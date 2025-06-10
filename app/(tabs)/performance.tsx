@@ -302,7 +302,7 @@ export default function PerformanceScreen() {
       <ThemedView style={styles.header}>
         <IconSymbol size={60} name="chart.bar.fill" color="#FF9800" />
         <ThemedText type="title" style={styles.title}>
-          محاور تقييم الأداء المهني
+          تقييم محاور الأداء المهني
         </ThemedText>
         <ThemedText style={styles.subtitle}>
           تقييم شامل لأدائك في المجالات المهنية المختلفة وفقاً للنظام المعتمد
