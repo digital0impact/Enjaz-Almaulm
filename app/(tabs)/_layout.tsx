@@ -27,17 +27,10 @@ export default function TabLayout() {
         }),
       }}>
       <Tabs.Screen
-        name="index"
+        name="explore"
         options={{
-          title: 'الرئيسية',
-          tabBarIcon: ({ color }) => <IconSymbol size={28} name="house.fill" color={color} />,
-        }}
-      />
-      <Tabs.Screen
-        name="basicData"
-        options={{
-          title: 'البيانات الأساسية',
-          tabBarIcon: ({ color }) => <IconSymbol size={28} name="person.text.rectangle.fill" color={color} />,
+          title: 'الأدوات المساعدة',
+          tabBarIcon: ({ color }) => <IconSymbol size={28} name="wrench.and.screwdriver.fill" color={color} />,
         }}
       />
       <Tabs.Screen
@@ -48,10 +41,17 @@ export default function TabLayout() {
         }}
       />
       <Tabs.Screen
-        name="explore"
+        name="basicData"
         options={{
-          title: 'الأدوات المساعدة',
-          tabBarIcon: ({ color }) => <IconSymbol size={28} name="wrench.and.screwdriver.fill" color={color} />,
+          title: 'البيانات الأساسية',
+          tabBarIcon: ({ color }) => <IconSymbol size={28} name="person.text.rectangle.fill" color={color} />,
+        }}
+      />
+      <Tabs.Screen
+        name="index"
+        options={{
+          title: 'الرئيسية',
+          tabBarIcon: ({ color }) => <IconSymbol size={28} name="house.fill" color={color} />,
         }}
       />
     </Tabs>
