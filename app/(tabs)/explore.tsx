@@ -1,110 +1,179 @@
-import { Image } from 'expo-image';
-import { Platform, StyleSheet } from 'react-native';
 
-import { Collapsible } from '@/components/Collapsible';
-import { ExternalLink } from '@/components/ExternalLink';
-import ParallaxScrollView from '@/components/ParallaxScrollView';
+import { StyleSheet, ScrollView, TouchableOpacity, Alert } from 'react-native';
 import { ThemedText } from '@/components/ThemedText';
 import { ThemedView } from '@/components/ThemedView';
 import { IconSymbol } from '@/components/ui/IconSymbol';
 
-export default function TabTwoScreen() {
+export default function ExploreScreen() {
+  const handleFeaturePress = (feature: string) => {
+    Alert.alert('قريباً', `ميزة ${feature} ستكون متاحة قريباً`);
+  };
+
   return (
-    <ParallaxScrollView
-      headerBackgroundColor={{ light: '#D0D0D0', dark: '#353636' }}
-      headerImage={
-        <IconSymbol
-          size={310}
-          color="#808080"
-          name="chevron.left.forwardslash.chevron.right"
-          style={styles.headerImage}
-        />
-      }>
-      <ThemedView style={styles.titleContainer}>
-        <ThemedText type="title">Explore</ThemedText>
+    <ScrollView style={styles.container}>
+      <ThemedView style={styles.header}>
+        <IconSymbol size={60} name="lightbulb.fill" color="#FFB74D" />
+        <ThemedText type="title" style={styles.title}>
+          استكشف المزيد
+        </ThemedText>
+        <ThemedText style={styles.subtitle}>
+          اكتشف المزيد من الميزات والأدوات المتاحة
+        </ThemedText>
       </ThemedView>
-      <ThemedText>This app includes example code to help you get started.</ThemedText>
-      <Collapsible title="File-based routing">
-        <ThemedText>
-          This app has two screens:{' '}
-          <ThemedText type="defaultSemiBold">app/(tabs)/index.tsx</ThemedText> and{' '}
-          <ThemedText type="defaultSemiBold">app/(tabs)/explore.tsx</ThemedText>
+
+      <ThemedView style={styles.featuresContainer}>
+        <ThemedText type="subtitle" style={styles.sectionTitle}>
+          الميزات المتقدمة
         </ThemedText>
-        <ThemedText>
-          The layout file in <ThemedText type="defaultSemiBold">app/(tabs)/_layout.tsx</ThemedText>{' '}
-          sets up the tab navigator.
-        </ThemedText>
-        <ExternalLink href="https://docs.expo.dev/router/introduction">
-          <ThemedText type="link">Learn more</ThemedText>
-        </ExternalLink>
-      </Collapsible>
-      <Collapsible title="Android, iOS, and web support">
-        <ThemedText>
-          You can open this project on Android, iOS, and the web. To open the web version, press{' '}
-          <ThemedText type="defaultSemiBold">w</ThemedText> in the terminal running this project.
-        </ThemedText>
-      </Collapsible>
-      <Collapsible title="Images">
-        <ThemedText>
-          For static images, you can use the <ThemedText type="defaultSemiBold">@2x</ThemedText> and{' '}
-          <ThemedText type="defaultSemiBold">@3x</ThemedText> suffixes to provide files for
-          different screen densities
-        </ThemedText>
-        <Image source={require('@/assets/images/react-logo.png')} style={{ alignSelf: 'center' }} />
-        <ExternalLink href="https://reactnative.dev/docs/images">
-          <ThemedText type="link">Learn more</ThemedText>
-        </ExternalLink>
-      </Collapsible>
-      <Collapsible title="Custom fonts">
-        <ThemedText>
-          Open <ThemedText type="defaultSemiBold">app/_layout.tsx</ThemedText> to see how to load{' '}
-          <ThemedText style={{ fontFamily: 'SpaceMono' }}>
-            custom fonts such as this one.
-          </ThemedText>
-        </ThemedText>
-        <ExternalLink href="https://docs.expo.dev/versions/latest/sdk/font">
-          <ThemedText type="link">Learn more</ThemedText>
-        </ExternalLink>
-      </Collapsible>
-      <Collapsible title="Light and dark mode components">
-        <ThemedText>
-          This template has light and dark mode support. The{' '}
-          <ThemedText type="defaultSemiBold">useColorScheme()</ThemedText> hook lets you inspect
-          what the user&apos;s current color scheme is, and so you can adjust UI colors accordingly.
-        </ThemedText>
-        <ExternalLink href="https://docs.expo.dev/develop/user-interface/color-themes/">
-          <ThemedText type="link">Learn more</ThemedText>
-        </ExternalLink>
-      </Collapsible>
-      <Collapsible title="Animations">
-        <ThemedText>
-          This template includes an example of an animated component. The{' '}
-          <ThemedText type="defaultSemiBold">components/HelloWave.tsx</ThemedText> component uses
-          the powerful <ThemedText type="defaultSemiBold">react-native-reanimated</ThemedText>{' '}
-          library to create a waving hand animation.
-        </ThemedText>
-        {Platform.select({
-          ios: (
-            <ThemedText>
-              The <ThemedText type="defaultSemiBold">components/ParallaxScrollView.tsx</ThemedText>{' '}
-              component provides a parallax effect for the header image.
+
+        <TouchableOpacity 
+          style={styles.featureCard}
+          onPress={() => handleFeaturePress('تقارير مفصلة')}
+        >
+          <IconSymbol size={32} name="doc.text.fill" color="#4CAF50" />
+          <ThemedView style={styles.featureContent}>
+            <ThemedText type="defaultSemiBold">تقارير مفصلة</ThemedText>
+            <ThemedText style={styles.featureDescription}>
+              احصل على تقارير شاملة عن أدائك المهني
             </ThemedText>
-          ),
-        })}
-      </Collapsible>
-    </ParallaxScrollView>
+          </ThemedView>
+        </TouchableOpacity>
+
+        <TouchableOpacity 
+          style={styles.featureCard}
+          onPress={() => handleFeaturePress('مشاركة البورتفوليو')}
+        >
+          <IconSymbol size={32} name="square.and.arrow.up" color="#2196F3" />
+          <ThemedView style={styles.featureContent}>
+            <ThemedText type="defaultSemiBold">مشاركة البورتفوليو</ThemedText>
+            <ThemedText style={styles.featureDescription}>
+              شارك إنجازاتك مع الزملاء والإدارة
+            </ThemedText>
+          </ThemedView>
+        </TouchableOpacity>
+
+        <TouchableOpacity 
+          style={styles.featureCard}
+          onPress={() => handleFeaturePress('النسخ الاحتياطي')}
+        >
+          <IconSymbol size={32} name="icloud.and.arrow.up" color="#FF9800" />
+          <ThemedView style={styles.featureContent}>
+            <ThemedText type="defaultSemiBold">النسخ الاحتياطي</ThemedText>
+            <ThemedText style={styles.featureDescription}>
+              احتفظ ببياناتك آمنة مع النسخ الاحتياطي التلقائي
+            </ThemedText>
+          </ThemedView>
+        </TouchableOpacity>
+
+        <TouchableOpacity 
+          style={styles.featureCard}
+          onPress={() => handleFeaturePress('التقويم التعليمي')}
+        >
+          <IconSymbol size={32} name="calendar.badge.plus" color="#9C27B0" />
+          <ThemedView style={styles.featureContent}>
+            <ThemedText type="defaultSemiBold">التقويم التعليمي</ThemedText>
+            <ThemedText style={styles.featureDescription}>
+              نظم جدولك الدراسي والمهام اليومية
+            </ThemedText>
+          </ThemedView>
+        </TouchableOpacity>
+
+        <TouchableOpacity 
+          style={styles.featureCard}
+          onPress={() => handleFeaturePress('التعلم المستمر')}
+        >
+          <IconSymbol size={32} name="graduationcap.fill" color="#607D8B" />
+          <ThemedView style={styles.featureContent}>
+            <ThemedText type="defaultSemiBold">التعلم المستمر</ThemedText>
+            <ThemedText style={styles.featureDescription}>
+              دورات ومواد تطوير مهني متخصصة
+            </ThemedText>
+          </ThemedView>
+        </TouchableOpacity>
+      </ThemedView>
+
+      <ThemedView style={styles.helpSection}>
+        <ThemedText type="subtitle" style={styles.sectionTitle}>
+          المساعدة والدعم
+        </ThemedText>
+        
+        <TouchableOpacity 
+          style={styles.helpCard}
+          onPress={() => Alert.alert('المساعدة', 'يمكنك التواصل معنا عبر البريد الإلكتروني')}
+        >
+          <IconSymbol size={24} name="questionmark.circle.fill" color="#4CAF50" />
+          <ThemedText>الأسئلة الشائعة</ThemedText>
+        </TouchableOpacity>
+
+        <TouchableOpacity 
+          style={styles.helpCard}
+          onPress={() => Alert.alert('الدعم الفني', 'سيتم التواصل معك قريباً')}
+        >
+          <IconSymbol size={24} name="phone.fill" color="#2196F3" />
+          <ThemedText>الدعم الفني</ThemedText>
+        </TouchableOpacity>
+      </ThemedView>
+    </ScrollView>
   );
 }
 
 const styles = StyleSheet.create({
-  headerImage: {
-    color: '#808080',
-    bottom: -90,
-    left: -35,
-    position: 'absolute',
+  container: {
+    flex: 1,
+    padding: 20,
   },
-  titleContainer: {
+  header: {
+    alignItems: 'center',
+    marginBottom: 30,
+  },
+  title: {
+    textAlign: 'center',
+    marginVertical: 15,
+  },
+  subtitle: {
+    textAlign: 'center',
+    opacity: 0.8,
+    marginBottom: 20,
+  },
+  featuresContainer: {
+    marginBottom: 30,
+  },
+  sectionTitle: {
+    marginBottom: 15,
+    textAlign: 'center',
+  },
+  featureCard: {
     flexDirection: 'row',
-    gap: 8,
+    alignItems: 'center',
+    backgroundColor: '#F5F5F5',
+    padding: 15,
+    borderRadius: 12,
+    marginBottom: 10,
+    elevation: 2,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.1,
+    shadowRadius: 2,
+  },
+  featureContent: {
+    flex: 1,
+    marginLeft: 15,
+  },
+  featureDescription: {
+    fontSize: 14,
+    opacity: 0.7,
+    marginTop: 2,
+  },
+  helpSection: {
+    marginBottom: 30,
+  },
+  helpCard: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#F0F8FF',
+    padding: 12,
+    borderRadius: 8,
+    marginBottom: 8,
+    gap: 10,
   },
 });
