@@ -61,10 +61,6 @@ export default function ToolsScreen() {
       <ThemedView style={styles.content}>
         {categories.map((category) => (
           <ThemedView key={category} style={styles.categorySection}>
-            <ThemedText type="subtitle" style={styles.categoryTitle}>
-              أدوات {category}
-            </ThemedText>
-
             <ThemedView style={styles.toolsGrid}>
               {tools
                 .filter(tool => tool.category === category)
