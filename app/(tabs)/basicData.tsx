@@ -14,6 +14,10 @@ export default function BasicDataScreen() {
     experience: '10 سنوات',
     education: 'بكالوريوس تربية رياضيات',
     school: 'مدرسة الأمل الثانوية',
+    educationDepartment: 'إدارة تعليم الرياض',
+    gradeLevel: 'المرحلة الثانوية - الصف الأول والثاني',
+    vision: 'إعداد جيل متميز قادر على مواجهة تحديات المستقبل',
+    mission: 'تقديم تعليم نوعي يركز على بناء الشخصية المتكاملة للطالب',
     email: 'teacher@example.com',
     phone: '+966123456789',
   });
@@ -202,6 +206,73 @@ export default function BasicDataScreen() {
               <ThemedText style={styles.value}>{userData.school}</ThemedText>
             )}
           </ThemedView>
+
+          <ThemedView style={styles.dataItem}>
+            <ThemedText style={styles.label}>الإدارة التعليمية</ThemedText>
+            {isEditing ? (
+              <TextInput
+                style={styles.input}
+                value={userData.educationDepartment}
+                onChangeText={(text) => updateField('educationDepartment', text)}
+                placeholder="أدخل اسم الإدارة التعليمية"
+              />
+            ) : (
+              <ThemedText style={styles.value}>{userData.educationDepartment}</ThemedText>
+            )}
+          </ThemedView>
+
+          <ThemedView style={styles.dataItem}>
+            <ThemedText style={styles.label}>المرحلة والصفوف الدراسية</ThemedText>
+            {isEditing ? (
+              <TextInput
+                style={styles.input}
+                value={userData.gradeLevel}
+                onChangeText={(text) => updateField('gradeLevel', text)}
+                placeholder="أدخل المرحلة والصفوف الدراسية"
+                multiline
+              />
+            ) : (
+              <ThemedText style={styles.value}>{userData.gradeLevel}</ThemedText>
+            )}
+          </ThemedView>
+        </ThemedView>
+
+        <ThemedView style={styles.dataSection}>
+          <ThemedText type="subtitle" style={styles.sectionTitle}>
+            الرؤية والرسالة
+          </ThemedText>
+
+          <ThemedView style={styles.dataItem}>
+            <ThemedText style={styles.label}>الرؤية</ThemedText>
+            {isEditing ? (
+              <TextInput
+                style={[styles.input, styles.textArea]}
+                value={userData.vision}
+                onChangeText={(text) => updateField('vision', text)}
+                placeholder="أدخل رؤيتك التعليمية"
+                multiline
+                numberOfLines={3}
+              />
+            ) : (
+              <ThemedText style={styles.value}>{userData.vision}</ThemedText>
+            )}
+          </ThemedView>
+
+          <ThemedView style={styles.dataItem}>
+            <ThemedText style={styles.label}>الرسالة</ThemedText>
+            {isEditing ? (
+              <TextInput
+                style={[styles.input, styles.textArea]}
+                value={userData.mission}
+                onChangeText={(text) => updateField('mission', text)}
+                placeholder="أدخل رسالتك التعليمية"
+                multiline
+                numberOfLines={3}
+              />
+            ) : (
+              <ThemedText style={styles.value}>{userData.mission}</ThemedText>
+            )}
+          </ThemedView>
         </ThemedView>
       </ThemedView>
     </ScrollView>
@@ -311,5 +382,9 @@ const styles = StyleSheet.create({
     borderRadius: 8,
     padding: 10,
     backgroundColor: '#FFFFFF',
+  },
+  textArea: {
+    minHeight: 80,
+    textAlignVertical: 'top',
   },
 });
