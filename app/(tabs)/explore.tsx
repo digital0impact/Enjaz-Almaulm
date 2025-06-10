@@ -74,9 +74,7 @@ export default function ToolsScreen() {
                     style={styles.toolCard}
                     onPress={() => handleToolPress(tool.title)}
                   >
-                    <ThemedView style={[styles.iconContainer, { backgroundColor: `${tool.color}15` }]}>
-                      <IconSymbol size={32} name={tool.icon as any} color={tool.color} />
-                    </ThemedView>
+                    <IconSymbol size={16} name="chevron.left" color="#666666" />
                     <ThemedView style={styles.toolContent}>
                       <ThemedText type="defaultSemiBold" style={styles.toolTitle}>
                         {tool.title}
@@ -85,7 +83,9 @@ export default function ToolsScreen() {
                         {tool.description}
                       </ThemedText>
                     </ThemedView>
-                    <IconSymbol size={16} name="chevron.left" color="#666666" />
+                    <ThemedView style={[styles.iconContainer, { backgroundColor: `${tool.color}15` }]}>
+                      <IconSymbol size={32} name={tool.icon as any} color={tool.color} />
+                    </ThemedView>
                   </TouchableOpacity>
                 ))}
             </ThemedView>
@@ -101,16 +101,16 @@ export default function ToolsScreen() {
             style={styles.helpCard}
             onPress={() => Alert.alert('المساعدة', 'يمكنك التواصل معنا عبر البريد الإلكتروني')}
           >
+            <ThemedText style={styles.helpText}>الأسئلة الشائعة</ThemedText>
             <IconSymbol size={24} name="questionmark.circle.fill" color="#4CAF50" />
-            <ThemedText>الأسئلة الشائعة</ThemedText>
           </TouchableOpacity>
 
           <TouchableOpacity 
             style={styles.helpCard}
             onPress={() => Alert.alert('الدعم الفني', 'سيتم التواصل معك قريباً')}
           >
+            <ThemedText style={styles.helpText}>الدعم الفني</ThemedText>
             <IconSymbol size={24} name="phone.fill" color="#2196F3" />
-            <ThemedText>الدعم الفني</ThemedText>
           </TouchableOpacity>
         </ThemedView>
       </ThemedView>
@@ -172,7 +172,7 @@ const styles = StyleSheet.create({
   },
   toolContent: {
     flex: 1,
-    marginRight: 15,
+    marginHorizontal: 15,
   },
   toolTitle: {
     fontSize: 16,
@@ -194,10 +194,14 @@ const styles = StyleSheet.create({
   helpCard: {
     flexDirection: 'row',
     alignItems: 'center',
+    justifyContent: 'space-between',
     backgroundColor: '#F0F8FF',
     padding: 12,
     borderRadius: 8,
     marginBottom: 8,
-    gap: 10,
+  },
+  helpText: {
+    flex: 1,
+    textAlign: 'right',
   },
 });
