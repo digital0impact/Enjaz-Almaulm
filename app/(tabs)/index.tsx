@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { StyleSheet, TouchableOpacity, Alert, ImageBackground, Image } from 'react-native';
+import { StyleSheet, TouchableOpacity, Alert } from 'react-native';
 import { ThemedText } from '@/components/ThemedText';
 import { ThemedView } from '@/components/ThemedView';
 import { IconSymbol } from '@/components/ui/IconSymbol';
@@ -56,19 +56,11 @@ export default function WelcomeScreen() {
 
   if (currentScreen === 'welcome') {
     return (
-      <ImageBackground 
-        source={require('../../assets/images/background.png')} 
-        style={styles.container}
-        resizeMode="cover"
-      >
-        <ThemedView style={styles.overlay}>
+      <ThemedView style={styles.container}>
+        <ThemedView style={styles.gradientBackground}>
           <ThemedView style={styles.welcomeContent}>
-            <ThemedView style={styles.logoContainer}>
-              <Image 
-                source={require('@/assets/images/logo.png')} 
-                style={styles.logo}
-                resizeMode="contain"
-              />
+            <ThemedView style={styles.iconContainer}>
+              <IconSymbol size={80} name="graduationcap.fill" color="#4CAF50" />
             </ThemedView>
             <ThemedText type="title" style={styles.title}>
               البورتفوليو الرقمي للمعلم
@@ -85,18 +77,14 @@ export default function WelcomeScreen() {
             </TouchableOpacity>
           </ThemedView>
         </ThemedView>
-      </ImageBackground>
+      </ThemedView>
     );
   }
 
   if (currentScreen === 'login') {
     return (
-      <ImageBackground 
-        source={require('../../assets/images/background.png')} 
-        style={styles.container}
-        resizeMode="cover"
-      >
-        <ThemedView style={styles.overlay}>
+      <ThemedView style={styles.container}>
+        <ThemedView style={styles.gradientBackground}>
           <ThemedView style={styles.loginContent}>
             <ThemedView style={styles.iconContainer}>
               <IconSymbol size={60} name="person.circle.fill" color="#2196F3" />
@@ -139,18 +127,14 @@ export default function WelcomeScreen() {
             </TouchableOpacity>
           </ThemedView>
         </ThemedView>
-      </ImageBackground>
+      </ThemedView>
     );
   }
 
   if (currentScreen === 'dashboard') {
     return (
-      <ImageBackground 
-        source={require('../../assets/images/background.png')} 
-        style={styles.container}
-        resizeMode="cover"
-      >
-        <ThemedView style={styles.overlay}>
+      <ThemedView style={styles.container}>
+        <ThemedView style={styles.gradientBackground}>
           <ThemedView style={styles.dashboardContent}>
             <ThemedView style={styles.dashboardHeader}>
               <ThemedText type="title" style={styles.welcomeTitle}>
@@ -203,18 +187,14 @@ export default function WelcomeScreen() {
             </ThemedView>
           </ThemedView>
         </ThemedView>
-      </ImageBackground>
+      </ThemedView>
     );
   }
 
   // الشاشات الفرعية
   return (
-    <ImageBackground 
-      source={require('../../assets/images/background.png')} 
-      style={styles.container}
-      resizeMode="cover"
-    >
-      <ThemedView style={styles.overlay}>
+    <ThemedView style={styles.container}>
+      <ThemedView style={styles.gradientBackground}>
         <ThemedView style={styles.dashboardContent}>
           <ThemedView style={styles.dashboardHeader}>
             <TouchableOpacity 
@@ -287,7 +267,7 @@ export default function WelcomeScreen() {
           )}
         </ThemedView>
       </ThemedView>
-    </ImageBackground>
+    </ThemedView>
   );
 }
 
@@ -295,9 +275,10 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
   },
-  overlay: {
+  gradientBackground: {
     flex: 1,
-    backgroundColor: 'rgba(255, 255, 255, 0.1)',
+    minHeight: '100%',
+    background: 'linear-gradient(135deg, #B8E6D6 0%, #F0FAF7 50%, #FFFFFF 100%)',
   },
   welcomeContent: {
     flex: 1,
@@ -305,7 +286,6 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     padding: 20,
     paddingTop: 60,
-    backgroundColor: 'transparent',
   },
   loginContent: {
     flex: 1,
@@ -313,39 +293,22 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     padding: 20,
     paddingTop: 40,
-    backgroundColor: 'transparent',
   },
   dashboardContent: {
     flex: 1,
     padding: 20,
     paddingTop: 40,
-    backgroundColor: 'transparent',
   },
   iconContainer: {
     marginBottom: 30,
     padding: 20,
-    backgroundColor: 'rgba(255, 255, 255, 0.9)',
+    backgroundColor: 'rgba(255, 255, 255, 0.8)',
     borderRadius: 50,
     shadowColor: '#000',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.3,
-    shadowRadius: 8,
-    elevation: 8,
-  },
-  logoContainer: {
-    marginBottom: 30,
-    padding: 20,
-    backgroundColor: 'rgba(255, 255, 255, 0.9)',
-    borderRadius: 30,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.3,
-    shadowRadius: 8,
-    elevation: 8,
-  },
-  logo: {
-    width: 120,
-    height: 120,
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    elevation: 3,
   },
   title: {
     fontSize: 28,
@@ -385,12 +348,11 @@ const styles = StyleSheet.create({
     paddingVertical: 15,
     paddingHorizontal: 40,
     borderRadius: 25,
-    backgroundColor: '#2E8B6F',
     shadowColor: '#000',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.3,
-    shadowRadius: 8,
-    elevation: 8,
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.2,
+    shadowRadius: 4,
+    elevation: 4,
   },
   buttonText: {
     color: 'white',
@@ -417,12 +379,11 @@ const styles = StyleSheet.create({
     paddingVertical: 15,
     paddingHorizontal: 20,
     borderRadius: 15,
-    backgroundColor: '#2E8B6F',
     shadowColor: '#000',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.3,
-    shadowRadius: 8,
-    elevation: 8,
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.2,
+    shadowRadius: 4,
+    elevation: 4,
   },
   loginButtonText: {
     color: 'white',
@@ -436,13 +397,13 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     marginBottom: 30,
     padding: 20,
-    backgroundColor: 'rgba(255, 255, 255, 0.9)',
+    backgroundColor: 'rgba(255, 255, 255, 0.8)',
     borderRadius: 15,
     shadowColor: '#000',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.2,
-    shadowRadius: 8,
-    elevation: 8,
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.1,
+    shadowRadius: 2,
+    elevation: 2,
   },
   welcomeTitle: {
     fontSize: 24,
@@ -464,12 +425,11 @@ const styles = StyleSheet.create({
     padding: 25,
     borderRadius: 20,
     alignItems: 'center',
-    backgroundColor: 'rgba(255, 255, 255, 0.9)',
     shadowColor: '#000',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.2,
-    shadowRadius: 8,
-    elevation: 8,
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    elevation: 3,
   },
   sectionTitle: {
     fontSize: 18,
