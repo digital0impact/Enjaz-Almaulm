@@ -149,9 +149,14 @@ export default function HomeScreen() {
                 مرحباً {userInfo?.name || 'المعلم'}
               </ThemedText>
             </ThemedView>
-            <TouchableOpacity onPress={handleLogout} style={styles.logoutButton}>
-              <IconSymbol size={24} name="arrow.right.square" color="#007AFF" />
-            </TouchableOpacity>
+            <ThemedView style={styles.headerButtons}>
+              <TouchableOpacity onPress={() => Alert.alert('الإعدادات', 'سيتم فتح صفحة الإعدادات قريباً')} style={styles.settingsButton}>
+                <IconSymbol size={24} name="gear" color="#007AFF" />
+              </TouchableOpacity>
+              <TouchableOpacity onPress={handleLogout} style={styles.logoutButton}>
+                <IconSymbol size={24} name="arrow.right.square" color="#007AFF" />
+              </TouchableOpacity>
+            </ThemedView>
           </ThemedView>
 
           <ThemedView style={styles.statsContainer}>
@@ -366,6 +371,15 @@ const styles = StyleSheet.create({
     color: '#666666',
     textAlign: 'right',
     writingDirection: 'rtl',
+  },
+  headerButtons: {
+    flexDirection: 'row',
+    gap: 10,
+  },
+  settingsButton: {
+    padding: 10,
+    backgroundColor: '#F0F0F0',
+    borderRadius: 20,
   },
   logoutButton: {
     padding: 10,
