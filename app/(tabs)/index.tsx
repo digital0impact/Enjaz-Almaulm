@@ -187,7 +187,7 @@ export default function HomeScreen() {
             <ThemedView style={styles.actionsGrid}>
               <TouchableOpacity style={styles.actionCard}>
                 <IconSymbol size={28} name="plus.circle.fill" color="#4CAF50" />
-                <ThemedText style={styles.actionText}>درس جديد</ThemedText>
+                <ThemedText style={styles.actionText}>عرض التقرير التفاعلي</ThemedText>
               </TouchableOpacity>
 
               <TouchableOpacity style={styles.actionCard}>
