@@ -380,6 +380,8 @@ const styles = StyleSheet.create({
   value: {
     fontSize: 16,
     color: '#000000',
+    textAlign: 'right',
+    writingDirection: 'rtl',
   },
   input: {
     fontSize: 16,
