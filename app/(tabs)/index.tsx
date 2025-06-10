@@ -151,7 +151,7 @@ export default function HomeScreen() {
             </ThemedView>
             <ThemedView style={styles.headerButtons}>
               <TouchableOpacity onPress={() => Alert.alert('الإعدادات', 'سيتم فتح صفحة الإعدادات قريباً')} style={styles.settingsButton}>
-                <IconSymbol size={24} name="gear" color="#007AFF" />
+                <IconSymbol size={24} name="wrench.fill" color="#007AFF" />
               </TouchableOpacity>
               <TouchableOpacity onPress={handleLogout} style={styles.logoutButton}>
                 <IconSymbol size={24} name="arrow.right.square" color="#007AFF" />

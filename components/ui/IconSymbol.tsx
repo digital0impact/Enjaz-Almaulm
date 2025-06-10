@@ -36,6 +36,16 @@ const MAPPING = {
   'calendar.badge.clock': 'event',
   'calendar.badge.exclamationmark': 'event-note',
   'calendar.badge.plus': 'event-available',
+  'gear': 'settings',
+  'gear.fill': 'settings',
+  'plus.circle.fill': 'add-circle',
+  'checkmark.circle.fill': 'check-circle',
+  'doc.badge.plus': 'note-add',
+  'person.badge.plus': 'person-add',
+  'book.fill': 'book',
+  'person.2.fill': 'group',
+  'calendar': 'calendar-today',
+  'arrow.right.square': 'logout',
 } as IconMapping;
 
 /**
