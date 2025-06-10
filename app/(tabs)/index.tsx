@@ -288,14 +288,14 @@ const styles = StyleSheet.create({
   title: {
     fontSize: 28,
     fontWeight: 'bold',
-    textAlign: 'center',
+    textAlign: 'right',
     marginBottom: 10,
     color: '#000000',
     writingDirection: 'rtl',
   },
   subtitle: {
     fontSize: 16,
-    textAlign: 'center',
+    textAlign: 'right',
     marginBottom: 30,
     lineHeight: 24,
     paddingHorizontal: 20,
@@ -360,11 +360,15 @@ const styles = StyleSheet.create({
     fontSize: 22,
     fontWeight: 'bold',
     color: '#000000',
+    textAlign: 'right',
+    writingDirection: 'rtl',
   },
   welcomeSubtitle: {
     fontSize: 14,
     marginTop: 5,
     color: '#666666',
+    textAlign: 'right',
+    writingDirection: 'rtl',
   },
   logoutButton: {
     padding: 10,
@@ -395,7 +399,8 @@ const styles = StyleSheet.create({
     fontSize: 12,
     color: '#666666',
     marginTop: 4,
-    textAlign: 'center',
+    textAlign: 'right',
+    writingDirection: 'rtl',
   },
   quickActions: {
     marginBottom: 25,
@@ -405,6 +410,8 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
     marginBottom: 15,
     color: '#007AFF',
+    textAlign: 'right',
+    writingDirection: 'rtl',
   },
   actionsGrid: {
     flexDirection: 'row',
@@ -452,9 +459,13 @@ const styles = StyleSheet.create({
     fontWeight: '600',
     color: '#000000',
     marginBottom: 4,
+    textAlign: 'right',
+    writingDirection: 'rtl',
   },
   activityTime: {
     fontSize: 12,
     color: '#666666',
+    textAlign: 'right',
+    writingDirection: 'rtl',
   },
 });
