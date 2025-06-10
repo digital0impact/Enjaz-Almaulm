@@ -295,6 +295,8 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
     marginTop: 15,
     marginBottom: 5,
+    textAlign: 'right',
+    writingDirection: 'rtl',
   },
   subtitle: {
     fontSize: 16,
@@ -345,6 +347,8 @@ const styles = StyleSheet.create({
     color: 'white',
     fontSize: 16,
     fontWeight: '600',
+    writingDirection: 'rtl',
+    textAlign: 'center',
   },
   dataSection: {
     marginBottom: 30,
@@ -354,6 +358,8 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
     marginBottom: 15,
     color: '#007AFF',
+    textAlign: 'right',
+    writingDirection: 'rtl',
   },
   dataItem: {
     marginBottom: 20,
@@ -368,6 +374,8 @@ const styles = StyleSheet.create({
     fontWeight: '600',
     color: '#666666',
     marginBottom: 8,
+    textAlign: 'right',
+    writingDirection: 'rtl',
   },
   value: {
     fontSize: 16,
@@ -381,6 +389,8 @@ const styles = StyleSheet.create({
     borderRadius: 8,
     padding: 10,
     backgroundColor: '#FFFFFF',
+    textAlign: 'right',
+    writingDirection: 'rtl',
   },
   textArea: {
     minHeight: 80,
