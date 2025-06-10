@@ -5,9 +5,10 @@ import { ThemedView } from '@/components/ThemedView';
 import { IconSymbol } from '@/components/ui/IconSymbol';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
-export default function WelcomeScreen() {
+export default function HomeScreen() {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [currentScreen, setCurrentScreen] = useState('welcome');
+  const [userInfo, setUserInfo] = useState<any>(null);
 
   useEffect(() => {
     checkLoginStatus();
@@ -17,6 +18,10 @@ export default function WelcomeScreen() {
     try {
       const userToken = await AsyncStorage.getItem('userToken');
       if (userToken) {
+        const userData = await AsyncStorage.getItem('userInfo');
+        if (userData) {
+          setUserInfo(JSON.parse(userData));
+        }
         setIsLoggedIn(true);
         setCurrentScreen('dashboard');
       }
@@ -27,14 +32,15 @@ export default function WelcomeScreen() {
 
   const handleLogin = async (method: string) => {
     try {
-      // محاكاة عملية تسجيل الدخول
       const token = 'user_token_' + Date.now();
-      await AsyncStorage.setItem('userToken', token);
-      await AsyncStorage.setItem('userInfo', JSON.stringify({
+      const userData = {
         name: 'المعلم محمد أحمد',
         email: 'teacher@example.com',
         method: method
-      }));
+      };
+      await AsyncStorage.setItem('userToken', token);
+      await AsyncStorage.setItem('userInfo', JSON.stringify(userData));
+      setUserInfo(userData);
       setIsLoggedIn(true);
       setCurrentScreen('dashboard');
       Alert.alert('تم بنجاح', 'تم تسجيل الدخول بنجاح');
@@ -48,6 +54,7 @@ export default function WelcomeScreen() {
       await AsyncStorage.removeItem('userToken');
       await AsyncStorage.removeItem('userInfo');
       setIsLoggedIn(false);
+      setUserInfo(null);
       setCurrentScreen('welcome');
     } catch (error) {
       console.log('Error logging out:', error);
@@ -59,9 +66,11 @@ export default function WelcomeScreen() {
       <ThemedView style={styles.container}>
         <ThemedView style={styles.gradientBackground}>
           <ThemedView style={styles.welcomeContent}>
-            <ThemedView style={styles.iconContainer}>
-              <IconSymbol size={80} name="graduationcap.fill" color="#4CAF50" />
-            </ThemedView>
+            <Image 
+              source={require('@/assets/images/logo.png')}
+              style={styles.logo}
+              resizeMode="contain"
+            />
             <ThemedText type="title" style={styles.title}>
               البورتفوليو الرقمي للمعلم
             </ThemedText>
@@ -87,7 +96,7 @@ export default function WelcomeScreen() {
         <ThemedView style={styles.gradientBackground}>
           <ThemedView style={styles.loginContent}>
             <ThemedView style={styles.iconContainer}>
-              <IconSymbol size={60} name="person.circle.fill" color="#2196F3" />
+              <IconSymbol size={60} name="person.circle.fill" color="#007AFF" />
             </ThemedView>
             <ThemedText type="title" style={styles.title}>
               تسجيل الدخول
@@ -95,7 +104,7 @@ export default function WelcomeScreen() {
 
             <ThemedView style={styles.loginButtons}>
               <TouchableOpacity 
-                style={[styles.loginButton]}
+                style={styles.loginButton}
                 onPress={() => handleLogin('email')}
               >
                 <IconSymbol size={24} name="envelope.fill" color="white" />
@@ -103,7 +112,7 @@ export default function WelcomeScreen() {
               </TouchableOpacity>
 
               <TouchableOpacity 
-                style={[styles.loginButton]}
+                style={styles.loginButton}
                 onPress={() => handleLogin('google')}
               >
                 <IconSymbol size={24} name="globe" color="white" />
@@ -111,7 +120,7 @@ export default function WelcomeScreen() {
               </TouchableOpacity>
 
               <TouchableOpacity 
-                style={[styles.loginButton]}
+                style={styles.loginButton}
                 onPress={() => handleLogin('apple')}
               >
                 <IconSymbol size={24} name="apple.logo" color="white" />
@@ -123,7 +132,7 @@ export default function WelcomeScreen() {
               style={styles.backButton}
               onPress={() => setCurrentScreen('welcome')}
             >
-              <IconSymbol size={24} name="arrow.left" color="#2196F3" />
+              <IconSymbol size={24} name="arrow.left" color="#007AFF" />
             </TouchableOpacity>
           </ThemedView>
         </ThemedView>
@@ -131,140 +140,104 @@ export default function WelcomeScreen() {
     );
   }
 
-  if (currentScreen === 'dashboard') {
-    return (
-      <ThemedView style={styles.container}>
-        <ThemedView style={styles.gradientBackground}>
-          <ThemedView style={styles.dashboardContent}>
-            <ThemedView style={styles.dashboardHeader}>
-              <ThemedText type="title" style={styles.welcomeTitle}>
-                لوحة التحكم الرئيسية
-              </ThemedText>
-              <TouchableOpacity onPress={handleLogout} style={styles.logoutButton}>
-                <IconSymbol size={24} name="arrow.right.square" color="#2E8B57" />
-              </TouchableOpacity>
-            </ThemedView>
-
-            <ThemedView style={styles.sectionsContainer}>
-              <TouchableOpacity 
-                style={[styles.sectionCard]}
-                onPress={() => setCurrentScreen('basicData')}
-              >
-                <IconSymbol size={40} name="person.text.rectangle.fill" color="#4CAF50" />
-                <ThemedText type="subtitle" style={styles.sectionTitle}>
-                  البيانات الأساسية
-                </ThemedText>
-                <ThemedText style={styles.sectionDescription}>
-                  المعلومات الشخصية والمهنية الأساسية
-                </ThemedText>
-              </TouchableOpacity>
-
-              <TouchableOpacity 
-                style={[styles.sectionCard]}
-                onPress={() => setCurrentScreen('performance')}
-              >
-                <IconSymbol size={40} name="chart.bar.fill" color="#FF9800" />
-                <ThemedText type="subtitle" style={styles.sectionTitle}>
-                  مجالات الأداء المهني
-                </ThemedText>
-                <ThemedText style={styles.sectionDescription}>
-                  التقييمات والإنجازات المهنية
-                </ThemedText>
-              </TouchableOpacity>
-
-              <TouchableOpacity 
-                style={[styles.sectionCard]}
-                onPress={() => setCurrentScreen('tools')}
-              >
-                <IconSymbol size={40} name="wrench.and.screwdriver.fill" color="#2196F3" />
-                <ThemedText type="subtitle" style={styles.sectionTitle}>
-                  الأدوات المساعدة
-                </ThemedText>
-                <ThemedText style={styles.sectionDescription}>
-                  أدوات وموارد لتطوير الأداء
-                </ThemedText>
-              </TouchableOpacity>
-            </ThemedView>
-          </ThemedView>
-        </ThemedView>
-      </ThemedView>
-    );
-  }
-
-  // الشاشات الفرعية
+  // Dashboard screen
   return (
     <ThemedView style={styles.container}>
       <ThemedView style={styles.gradientBackground}>
         <ThemedView style={styles.dashboardContent}>
           <ThemedView style={styles.dashboardHeader}>
-            <TouchableOpacity 
-              onPress={() => setCurrentScreen('dashboard')}
-              style={styles.backButton}
-            >
-              <IconSymbol size={24} name="arrow.left" color="#2196F3" />
+            <ThemedView>
+              <ThemedText type="title" style={styles.welcomeTitle}>
+                مرحباً {userInfo?.name || 'المعلم'}
+              </ThemedText>
+              <ThemedText style={styles.welcomeSubtitle}>
+                أهلاً بك في بورتفولــيوك الرقمي
+              </ThemedText>
+            </ThemedView>
+            <TouchableOpacity onPress={handleLogout} style={styles.logoutButton}>
+              <IconSymbol size={24} name="arrow.right.square" color="#007AFF" />
             </TouchableOpacity>
-            <ThemedText style={styles.welcomeTitle}>العودة للوحة التحكم</ThemedText>
           </ThemedView>
 
-          {currentScreen === 'basicData' && (
-            <ThemedView style={styles.sectionContent}>
-              <ThemedText type="title" style={styles.sectionTitle}>
-                البيانات الأساسية
-              </ThemedText>
-              <ThemedView style={styles.dataItem}>
-                <ThemedText type="subtitle">الاسم الكامل</ThemedText>
-                <ThemedText>المعلم محمد أحمد</ThemedText>
-              </ThemedView>
-              <ThemedView style={styles.dataItem}>
-                <ThemedText type="subtitle">التخصص</ThemedText>
-                <ThemedText>الرياضيات</ThemedText>
-              </ThemedView>
-              <ThemedView style={styles.dataItem}>
-                <ThemedText type="subtitle">سنوات الخبرة</ThemedText>
-                <ThemedText>10 سنوات</ThemedText>
-              </ThemedView>
+          <ThemedView style={styles.statsContainer}>
+            <ThemedView style={styles.statCard}>
+              <IconSymbol size={32} name="chart.bar.fill" color="#4CAF50" />
+              <ThemedText style={styles.statNumber}>92%</ThemedText>
+              <ThemedText style={styles.statLabel}>متوسط الأداء</ThemedText>
             </ThemedView>
-          )}
+            
+            <ThemedView style={styles.statCard}>
+              <IconSymbol size={32} name="person.2.fill" color="#FF9800" />
+              <ThemedText style={styles.statNumber}>156</ThemedText>
+              <ThemedText style={styles.statLabel}>عدد الطلاب</ThemedText>
+            </ThemedView>
+            
+            <ThemedView style={styles.statCard}>
+              <IconSymbol size={32} name="book.fill" color="#2196F3" />
+              <ThemedText style={styles.statNumber}>24</ThemedText>
+              <ThemedText style={styles.statLabel}>الدروس المكتملة</ThemedText>
+            </ThemedView>
+          </ThemedView>
 
-          {currentScreen === 'performance' && (
-            <ThemedView style={styles.sectionContent}>
-              <ThemedText type="title" style={styles.sectionTitle}>
-                مجالات الأداء المهني
-              </ThemedText>
-              <ThemedView style={styles.performanceItem}>
-                <ThemedText type="subtitle">التخطيط للتدريس</ThemedText>
-                <ThemedText>ممتاز - 95%</ThemedText>
-              </ThemedView>
-              <ThemedView style={styles.performanceItem}>
-                <ThemedText type="subtitle">استراتيجيات التدريس</ThemedText>
-                <ThemedText>جيد جداً - 88%</ThemedText>
-              </ThemedView>
-              <ThemedView style={styles.performanceItem}>
-                <ThemedText type="subtitle">إدارة الصف</ThemedText>
-                <ThemedText>ممتاز - 92%</ThemedText>
-              </ThemedView>
+          <ThemedView style={styles.quickActions}>
+            <ThemedText type="subtitle" style={styles.sectionTitle}>
+              الإجراءات السريعة
+            </ThemedText>
+            
+            <ThemedView style={styles.actionsGrid}>
+              <TouchableOpacity style={styles.actionCard}>
+                <IconSymbol size={28} name="plus.circle.fill" color="#4CAF50" />
+                <ThemedText style={styles.actionText}>درس جديد</ThemedText>
+              </TouchableOpacity>
+              
+              <TouchableOpacity style={styles.actionCard}>
+                <IconSymbol size={28} name="doc.text.fill" color="#FF9800" />
+                <ThemedText style={styles.actionText}>تقرير سريع</ThemedText>
+              </TouchableOpacity>
+              
+              <TouchableOpacity style={styles.actionCard}>
+                <IconSymbol size={28} name="bell.fill" color="#2196F3" />
+                <ThemedText style={styles.actionText}>التنبيهات</ThemedText>
+              </TouchableOpacity>
+              
+              <TouchableOpacity style={styles.actionCard}>
+                <IconSymbol size={28} name="calendar" color="#9C27B0" />
+                <ThemedText style={styles.actionText}>الجدول</ThemedText>
+              </TouchableOpacity>
             </ThemedView>
-          )}
+          </ThemedView>
 
-          {currentScreen === 'tools' && (
-            <ThemedView style={styles.sectionContent}>
-              <ThemedText type="title" style={styles.sectionTitle}>
-                الأدوات المساعدة
-              </ThemedText>
-              <TouchableOpacity style={styles.toolItem}>
-                <IconSymbol size={32} name="book.fill" color="#4CAF50" />
-                <ThemedText type="subtitle">مكتبة الموارد التعليمية</ThemedText>
-              </TouchableOpacity>
-              <TouchableOpacity style={styles.toolItem}>
-                <IconSymbol size={32} name="calendar" color="#FF9800" />
-                <ThemedText type="subtitle">مخطط الدروس</ThemedText>
-              </TouchableOpacity>
-              <TouchableOpacity style={styles.toolItem}>
-                <IconSymbol size={32} name="chart.line.uptrend.xyaxis" color="#2196F3" />
-                <ThemedText type="subtitle">تقارير الأداء</ThemedText>
-              </TouchableOpacity>
+          <ThemedView style={styles.recentActivity}>
+            <ThemedText type="subtitle" style={styles.sectionTitle}>
+              النشاط الأخير
+            </ThemedText>
+            
+            <ThemedView style={styles.activityList}>
+              <ThemedView style={styles.activityItem}>
+                <IconSymbol size={20} name="checkmark.circle.fill" color="#4CAF50" />
+                <ThemedView style={styles.activityContent}>
+                  <ThemedText style={styles.activityTitle}>تم إكمال درس الجبر</ThemedText>
+                  <ThemedText style={styles.activityTime}>منذ ساعتين</ThemedText>
+                </ThemedView>
+              </ThemedView>
+              
+              <ThemedView style={styles.activityItem}>
+                <IconSymbol size={20} name="doc.badge.plus" color="#FF9800" />
+                <ThemedView style={styles.activityContent}>
+                  <ThemedText style={styles.activityTitle}>إضافة تقييم جديد</ThemedText>
+                  <ThemedText style={styles.activityTime}>أمس</ThemedText>
+                </ThemedView>
+              </ThemedView>
+              
+              <ThemedView style={styles.activityItem}>
+                <IconSymbol size={20} name="person.badge.plus" color="#2196F3" />
+                <ThemedView style={styles.activityContent}>
+                  <ThemedText style={styles.activityTitle}>تحديث البيانات الشخصية</ThemedText>
+                  <ThemedText style={styles.activityTime}>منذ 3 أيام</ThemedText>
+                </ThemedView>
+              </ThemedView>
             </ThemedView>
-          )}
+          </ThemedView>
         </ThemedView>
       </ThemedView>
     </ThemedView>
@@ -274,48 +247,46 @@ export default function WelcomeScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    padding: 20,
+    backgroundColor: '#FFFFFF',
   },
   gradientBackground: {
     flex: 1,
-    minHeight: '100%',
-    background: 'linear-gradient(135deg, #B8E6D6 0%, #F0FAF7 50%, #FFFFFF 100%)',
+  },
+  logo: {
+    width: 120,
+    height: 120,
+    marginBottom: 30,
   },
   welcomeContent: {
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
-    padding: 20,
-    paddingTop: 60,
+    padding: 30,
   },
   loginContent: {
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
-    padding: 20,
-    paddingTop: 40,
+    padding: 30,
   },
   dashboardContent: {
     flex: 1,
     padding: 20,
-    paddingTop: 40,
   },
   iconContainer: {
     marginBottom: 30,
     padding: 20,
-    backgroundColor: 'rgba(255, 255, 255, 0.8)',
+    backgroundColor: '#F8F9FA',
     borderRadius: 50,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
-    elevation: 3,
+    borderWidth: 1,
+    borderColor: '#E5E5EA',
   },
   title: {
     fontSize: 28,
     fontWeight: 'bold',
     textAlign: 'center',
     marginBottom: 10,
+    color: '#000000',
   },
   subtitle: {
     fontSize: 16,
@@ -323,37 +294,13 @@ const styles = StyleSheet.create({
     marginBottom: 30,
     lineHeight: 24,
     paddingHorizontal: 20,
-  },
-  featuresPreview: {
-    width: '100%',
-    marginBottom: 40,
-    gap: 15,
-  },
-  featureItem: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    padding: 15,
-    borderRadius: 15,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.1,
-    shadowRadius: 2,
-    elevation: 2,
-  },
-  featureText: {
-    marginLeft: 10,
-    fontSize: 16,
-    fontWeight: '600',
+    color: '#666666',
   },
   getStartedButton: {
+    backgroundColor: '#007AFF',
     paddingVertical: 15,
     paddingHorizontal: 40,
     borderRadius: 25,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.2,
-    shadowRadius: 4,
-    elevation: 4,
   },
   buttonText: {
     color: 'white',
@@ -363,11 +310,13 @@ const styles = StyleSheet.create({
   },
   backButton: {
     position: 'absolute',
-    top: 20,
+    top: 50,
     left: 20,
     padding: 10,
-    backgroundColor: 'rgba(255, 255, 255, 0.8)',
+    backgroundColor: '#F8F9FA',
     borderRadius: 20,
+    borderWidth: 1,
+    borderColor: '#E5E5EA',
   },
   loginButtons: {
     width: '100%',
@@ -377,72 +326,126 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
+    backgroundColor: '#007AFF',
     paddingVertical: 15,
     paddingHorizontal: 20,
     borderRadius: 15,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.2,
-    shadowRadius: 4,
-    elevation: 4,
+    gap: 10,
   },
   loginButtonText: {
     color: 'white',
     fontSize: 16,
     fontWeight: '600',
-    marginLeft: 10,
   },
   dashboardHeader: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    marginBottom: 30,
+    marginBottom: 25,
     padding: 20,
-    backgroundColor: 'rgba(255, 255, 255, 0.8)',
+    backgroundColor: '#F8F9FA',
     borderRadius: 15,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.1,
-    shadowRadius: 2,
-    elevation: 2,
+    borderWidth: 1,
+    borderColor: '#E5E5EA',
   },
   welcomeTitle: {
-    fontSize: 24,
+    fontSize: 22,
     fontWeight: 'bold',
+    color: '#000000',
   },
   welcomeSubtitle: {
     fontSize: 14,
     marginTop: 5,
+    color: '#666666',
   },
   logoutButton: {
     padding: 10,
-    backgroundColor: 'rgba(46, 139, 111, 0.1)',
+    backgroundColor: '#F0F0F0',
     borderRadius: 20,
   },
-  sectionsContainer: {
-    gap: 20,
+  statsContainer: {
+    flexDirection: 'row',
+    gap: 10,
+    marginBottom: 25,
   },
-  sectionCard: {
-    padding: 25,
-    borderRadius: 20,
+  statCard: {
+    flex: 1,
     alignItems: 'center',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
-    elevation: 3,
+    padding: 15,
+    backgroundColor: '#F8F9FA',
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: '#E5E5EA',
+  },
+  statNumber: {
+    fontSize: 20,
+    fontWeight: 'bold',
+    marginTop: 8,
+    color: '#000000',
+  },
+  statLabel: {
+    fontSize: 12,
+    color: '#666666',
+    marginTop: 4,
+    textAlign: 'center',
+  },
+  quickActions: {
+    marginBottom: 25,
   },
   sectionTitle: {
     fontSize: 18,
     fontWeight: 'bold',
-    marginTop: 15,
-    marginBottom: 8,
+    marginBottom: 15,
+    color: '#007AFF',
+  },
+  actionsGrid: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 10,
+  },
+  actionCard: {
+    width: '48%',
+    alignItems: 'center',
+    padding: 15,
+    backgroundColor: '#F8F9FA',
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: '#E5E5EA',
+  },
+  actionText: {
+    fontSize: 14,
+    fontWeight: '600',
+    marginTop: 8,
+    color: '#000000',
     textAlign: 'center',
   },
-  sectionDescription: {
+  recentActivity: {
+    marginBottom: 20,
+  },
+  activityList: {
+    gap: 10,
+  },
+  activityItem: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    padding: 15,
+    backgroundColor: '#F8F9FA',
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: '#E5E5EA',
+    gap: 12,
+  },
+  activityContent: {
+    flex: 1,
+  },
+  activityTitle: {
     fontSize: 14,
-    textAlign: 'center',
-    color: '#666',
-    lineHeight: 20,
+    fontWeight: '600',
+    color: '#000000',
+    marginBottom: 4,
+  },
+  activityTime: {
+    fontSize: 12,
+    color: '#666666',
   },
 });
