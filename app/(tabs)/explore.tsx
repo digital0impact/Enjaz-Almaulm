@@ -1030,9 +1030,6 @@ export default function ToolsScreen() {
             >
               <ThemedView style={styles.cardHeader}>
                 <ThemedView style={styles.cardTitleContainer}>
-                  <ThemedText style={styles.itemNumber}>
-                    {index + 1}.
-                  </ThemedText>
                   <ThemedView style={styles.cardContent}>
                     <ThemedText type="defaultSemiBold" style={styles.cardTitle}>
                       {tool.title}
@@ -1134,14 +1131,6 @@ const styles = StyleSheet.create({
     flexDirection: I18nManager.isRTL ? 'row-reverse' : 'row',
     alignItems: 'flex-start',
     flex: 1,
-  },
-  itemNumber: {
-    fontSize: 16,
-    fontWeight: 'bold',
-    color: '#2196F3',
-    marginRight: I18nManager.isRTL ? 0 : 10,
-    marginLeft: I18nManager.isRTL ? 10 : 0,
-    minWidth: 25,
   },
   cardContent: {
     flex: 1,
