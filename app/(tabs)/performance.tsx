@@ -1,6 +1,5 @@
-
 import React, { useState, useEffect } from 'react';
-import { StyleSheet, ScrollView, TouchableOpacity, Alert } from 'react-native';
+import { StyleSheet, ScrollView, TouchableOpacity, Alert, I18nManager } from 'react-native';
 import { ThemedText } from '@/components/ThemedText';
 import { ThemedView } from '@/components/ThemedView';
 import { IconSymbol } from '@/components/ui/IconSymbol';
@@ -381,7 +380,7 @@ export default function PerformanceScreen() {
                 <ThemedView style={styles.detailsContainer}>
                   <ThemedText style={styles.detailsTitle}>تفاصيل التقييم:</ThemedText>
                   <ThemedText style={styles.detailsText}>{item.details}</ThemedText>
-                  
+
                   <ThemedView style={styles.evidenceHeader}>
                     <ThemedText style={styles.evidenceTitle}>الشواهد المطلوبة:</ThemedText>
                     <TouchableOpacity 
@@ -496,192 +495,100 @@ export default function PerformanceScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#FFFFFF',
+    backgroundColor: '#f8f9fa',
   },
   header: {
-    alignItems: 'center',
-    padding: 30,
-    backgroundColor: '#F8F9FA',
-    borderBottomWidth: 1,
-    borderBottomColor: '#E5E5EA',
-  },
-  title: {
-    fontSize: 22,
-    fontWeight: 'bold',
-    marginTop: 15,
-    marginBottom: 5,
-    textAlign: 'center',
-  },
-  subtitle: {
-    fontSize: 16,
-    color: '#666666',
-    textAlign: 'center',
-    lineHeight: 22,
-  },
-  content: {
+    backgroundColor: '#2E8B57',
     padding: 20,
-  },
-  summaryCard: {
-    backgroundColor: '#F8F9FA',
-    padding: 20,
-    borderRadius: 15,
-    marginBottom: 20,
-    borderWidth: 1,
-    borderColor: '#E5E5EA',
+    paddingTop: 40,
     alignItems: 'center',
   },
-  summaryTitle: {
-    fontSize: 18,
-    fontWeight: 'bold',
-    marginBottom: 15,
-    color: '#007AFF',
-  },
-  averageContainer: {
-    alignItems: 'center',
-  },
-  averageScore: {
-    fontSize: 36,
-    fontWeight: 'bold',
-  },
-  averageLevel: {
-    fontSize: 16,
-    color: '#666666',
-    marginTop: 5,
-  },
-  performanceList: {
-    marginBottom: 20,
-  },
-  sectionTitle: {
-    fontSize: 20,
-    fontWeight: 'bold',
-    marginBottom: 15,
-    color: '#007AFF',
-  },
-  performanceCard: {
-    backgroundColor: '#F8F9FA',
-    padding: 15,
-    borderRadius: 12,
-    marginBottom: 15,
-    borderWidth: 1,
-    borderColor: '#E5E5EA',
-    position: 'relative',
-  },
-  cardHeader: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'flex-start',
-    marginBottom: 10,
-  },
-  cardTitleContainer: {
-    flex: 1,
-    flexDirection: 'row',
-    marginRight: 15,
-  },
-  itemNumber: {
-    fontSize: 16,
-    fontWeight: 'bold',
-    color: '#007AFF',
-    marginRight: 10,
-    marginTop: 2,
-  },
-  cardContent: {
-    flex: 1,
-  },
-  cardTitle: {
-    fontSize: 16,
-    fontWeight: 'bold',
-    marginBottom: 5,
-  },
-  cardDescription: {
-    fontSize: 14,
-    color: '#666666',
-    lineHeight: 18,
-  },
-  scoreContainer: {
-    alignItems: 'center',
-  },
-  score: {
+  headerTitle: {
+    color: '#fff',
     fontSize: 24,
     fontWeight: 'bold',
+    textAlign: 'center',
+    writingDirection: 'rtl',
   },
-  scoreLevel: {
-    fontSize: 12,
-    fontWeight: '600',
-  },
-  progressBar: {
-    height: 8,
-    backgroundColor: '#E5E5EA',
-    borderRadius: 4,
-    overflow: 'hidden',
-    marginBottom: 10,
-  },
-  progressFill: {
-    height: '100%',
-    borderRadius: 4,
-  },
-  detailsContainer: {
-    marginTop: 10,
+  content: {
+    flex: 1,
     padding: 15,
-    backgroundColor: '#FFFFFF',
-    borderRadius: 8,
-    borderWidth: 1,
-    borderColor: '#E5E5EA',
+  },
+  performanceItem: {
+    backgroundColor: '#fff',
+    borderRadius: 12,
+    marginBottom: 15,
+    elevation: 2,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.1,
+    shadowRadius: 3,
+  },
+  performanceHeader: {
+    flexDirection: I18nManager.isRTL ? 'row-reverse' : 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    padding: 15,
+    borderBottomWidth: 1,
+    borderBottomColor: '#f0f0f0',
+  },
+  performanceTitle: {
+    fontSize: 16,
+    fontWeight: 'bold',
+    color: '#333',
+    flex: 1,
+    textAlign: 'right',
+    writingDirection: 'rtl',
+  },
+  expandIcon: {
+    marginRight: I18nManager.isRTL ? 10 : 0,
+    marginLeft: I18nManager.isRTL ? 0 : 10,
+  },
+  performanceDetails: {
+    padding: 15,
   },
   detailsTitle: {
     fontSize: 14,
     fontWeight: 'bold',
-    marginBottom: 8,
-    color: '#007AFF',
+    color: '#555',
+    marginBottom: 5,
+    textAlign: 'right',
+    writingDirection: 'rtl',
   },
   detailsText: {
     fontSize: 14,
-    color: '#666666',
+    color: '#666',
     lineHeight: 20,
-    marginBottom: 10,
+    marginBottom: 15,
+    textAlign: 'right',
+    writingDirection: 'rtl',
   },
   evidenceTitle: {
     fontSize: 14,
     fontWeight: 'bold',
-    marginBottom: 8,
-    color: '#4CAF50',
+    color: '#555',
+    marginBottom: 10,
+    textAlign: 'right',
+    writingDirection: 'rtl',
   },
   evidenceList: {
-    marginTop: 5,
+    marginBottom: 15,
   },
   evidenceItem: {
-    flexDirection: 'row',
-    marginBottom: 8,
+    flexDirection: I18nManager.isRTL ? 'row-reverse' : 'row',
+    justifyContent: 'space-between',
     alignItems: 'center',
-    padding: 10,
+    backgroundColor: '#f8f9fa',
+    padding: 12,
     borderRadius: 8,
-    borderWidth: 1,
+    marginBottom: 8,
   },
-  evidenceAvailable: {
-    backgroundColor: '#E8F5E8',
-    borderColor: '#4CAF50',
-  },
-  evidenceUnavailable: {
-    backgroundColor: '#FFF3F3',
-    borderColor: '#F44336',
-  },
-  evidenceBullet: {
+  evidenceName: {
     fontSize: 14,
-    color: '#4CAF50',
-    fontWeight: 'bold',
-    marginRight: 8,
-    marginTop: 2,
-  },
-  evidenceText: {
-    fontSize: 14,
-    lineHeight: 20,
+    color: '#333',
     flex: 1,
-    marginLeft: 8,
-  },
-  evidenceAvailableText: {
-    color: '#2E7D32',
-  },
-  evidenceUnavailableText: {
-    color: '#C62828',
+    textAlign: 'right',
+    writingDirection: 'rtl',
   },
   evidenceStatus: {
     fontSize: 12,
@@ -690,30 +597,49 @@ const styles = StyleSheet.create({
     paddingVertical: 4,
     borderRadius: 12,
     textAlign: 'center',
+  },
+  scoreContainer: {
+    flexDirection: I18nManager.isRTL ? 'row-reverse' : 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    backgroundColor: '#f0f7ff',
+    padding: 12,
+    borderRadius: 8,
+  },
+  scoreLabel: {
+    fontSize: 14,
+    fontWeight: 'bold',
+    color: '#007AFF',
+    textAlign: 'right',
+    writingDirection: 'rtl',
+  },
+  scoreInput: {
+    backgroundColor: '#fff',
+    borderWidth: 1,
+    borderColor: '#ddd',
+    borderRadius: 6,
+    paddingHorizontal: 10,
+    paddingVertical: 8,
+    fontSize: 14,
+    textAlign: 'center',
     minWidth: 60,
   },
-  evidenceAvailableStatus: {
-    backgroundColor: '#4CAF50',
-    color: 'white',
-  },
-  evidenceUnavailableStatus: {
-    backgroundColor: '#F44336',
-    color: 'white',
-  },
-  uploadIcon: {
-    marginRight: 8,
-    padding: 4,
+  weightContainer: {
+    flexDirection: I18nManager.isRTL ? 'row-reverse' : 'row',
+    alignItems: 'center',
+    marginTop: 10,
+    padding: 8,
     borderRadius: 12,
     backgroundColor: '#F0F7FF',
   },
   evidenceHeader: {
-    flexDirection: 'row',
+    flexDirection: I18nManager.isRTL ? 'row-reverse' : 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
     marginBottom: 8,
   },
   addEvidenceButton: {
-    flexDirection: 'row',
+    flexDirection: I18nManager.isRTL ? 'row-reverse' : 'row',
     alignItems: 'center',
     backgroundColor: '#E8F5E8',
     paddingHorizontal: 10,
@@ -727,11 +653,14 @@ const styles = StyleSheet.create({
     fontSize: 12,
     color: '#4CAF50',
     fontWeight: '600',
+    textAlign: 'right',
+    writingDirection: 'rtl',
   },
   evidenceActions: {
-    flexDirection: 'row',
+    flexDirection: I18nManager.isRTL ? 'row-reverse' : 'row',
     gap: 8,
-    marginLeft: 8,
+    marginRight: I18nManager.isRTL ? 8 : 0,
+    marginLeft: I18nManager.isRTL ? 0 : 8,
   },
   editButton: {
     padding: 4,
@@ -746,8 +675,8 @@ const styles = StyleSheet.create({
   weightText: {
     fontSize: 12,
     color: '#007AFF',
-    fontWeight: '600',
-    marginTop: 3,
+    textAlign: 'right',
+    writingDirection: 'rtl',
   },
   expandIcon: {
     position: 'absolute',

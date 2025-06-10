@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { StyleSheet, TouchableOpacity, Alert, Image } from 'react-native';
+import { StyleSheet, TouchableOpacity, Alert, Image, I18nManager } from 'react-native';
 import { ThemedText } from '@/components/ThemedText';
 import { ThemedView } from '@/components/ThemedView';
 import { IconSymbol } from '@/components/ui/IconSymbol';
@@ -163,13 +163,13 @@ export default function HomeScreen() {
               <ThemedText style={styles.statNumber}>92%</ThemedText>
               <ThemedText style={styles.statLabel}>متوسط الأداء</ThemedText>
             </ThemedView>
-            
+
             <ThemedView style={styles.statCard}>
               <IconSymbol size={32} name="person.2.fill" color="#FF9800" />
               <ThemedText style={styles.statNumber}>156</ThemedText>
               <ThemedText style={styles.statLabel}>عدد الطلاب</ThemedText>
             </ThemedView>
-            
+
             <ThemedView style={styles.statCard}>
               <IconSymbol size={32} name="book.fill" color="#2196F3" />
               <ThemedText style={styles.statNumber}>24</ThemedText>
@@ -181,23 +181,23 @@ export default function HomeScreen() {
             <ThemedText type="subtitle" style={styles.sectionTitle}>
               الإجراءات السريعة
             </ThemedText>
-            
+
             <ThemedView style={styles.actionsGrid}>
               <TouchableOpacity style={styles.actionCard}>
                 <IconSymbol size={28} name="plus.circle.fill" color="#4CAF50" />
                 <ThemedText style={styles.actionText}>درس جديد</ThemedText>
               </TouchableOpacity>
-              
+
               <TouchableOpacity style={styles.actionCard}>
                 <IconSymbol size={28} name="doc.text.fill" color="#FF9800" />
                 <ThemedText style={styles.actionText}>تقرير سريع</ThemedText>
               </TouchableOpacity>
-              
+
               <TouchableOpacity style={styles.actionCard}>
                 <IconSymbol size={28} name="bell.fill" color="#2196F3" />
                 <ThemedText style={styles.actionText}>التنبيهات</ThemedText>
               </TouchableOpacity>
-              
+
               <TouchableOpacity style={styles.actionCard}>
                 <IconSymbol size={28} name="calendar" color="#9C27B0" />
                 <ThemedText style={styles.actionText}>الجدول</ThemedText>
@@ -209,7 +209,7 @@ export default function HomeScreen() {
             <ThemedText type="subtitle" style={styles.sectionTitle}>
               النشاط الأخير
             </ThemedText>
-            
+
             <ThemedView style={styles.activityList}>
               <ThemedView style={styles.activityItem}>
                 <IconSymbol size={20} name="checkmark.circle.fill" color="#4CAF50" />
@@ -218,7 +218,7 @@ export default function HomeScreen() {
                   <ThemedText style={styles.activityTime}>منذ ساعتين</ThemedText>
                 </ThemedView>
               </ThemedView>
-              
+
               <ThemedView style={styles.activityItem}>
                 <IconSymbol size={20} name="doc.badge.plus" color="#FF9800" />
                 <ThemedView style={styles.activityContent}>
@@ -226,7 +226,7 @@ export default function HomeScreen() {
                   <ThemedText style={styles.activityTime}>أمس</ThemedText>
                 </ThemedView>
               </ThemedView>
-              
+
               <ThemedView style={styles.activityItem}>
                 <IconSymbol size={20} name="person.badge.plus" color="#2196F3" />
                 <ThemedView style={styles.activityContent}>
@@ -291,6 +291,7 @@ const styles = StyleSheet.create({
     textAlign: 'center',
     marginBottom: 10,
     color: '#000000',
+    writingDirection: 'rtl',
   },
   subtitle: {
     fontSize: 16,
@@ -299,6 +300,7 @@ const styles = StyleSheet.create({
     lineHeight: 24,
     paddingHorizontal: 20,
     color: '#666666',
+    writingDirection: 'rtl',
   },
   getStartedButton: {
     backgroundColor: '#007AFF',
@@ -327,7 +329,7 @@ const styles = StyleSheet.create({
     gap: 15,
   },
   loginButton: {
-    flexDirection: 'row',
+    flexDirection: I18nManager.isRTL ? 'row-reverse' : 'row',
     alignItems: 'center',
     justifyContent: 'center',
     backgroundColor: '#007AFF',
@@ -340,6 +342,8 @@ const styles = StyleSheet.create({
     color: 'white',
     fontSize: 16,
     fontWeight: '600',
+    textAlign: 'right',
+    writingDirection: 'rtl',
   },
   dashboardHeader: {
     flexDirection: 'row',
@@ -422,6 +426,7 @@ const styles = StyleSheet.create({
     marginTop: 8,
     color: '#000000',
     textAlign: 'center',
+    writingDirection: 'rtl',
   },
   recentActivity: {
     marginBottom: 20,
