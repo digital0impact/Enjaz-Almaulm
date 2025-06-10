@@ -6,7 +6,28 @@ import { IconSymbol } from '@/components/ui/IconSymbol';
 
 export default function ToolsScreen() {
   const handleToolPress = (tool: string) => {
-    Alert.alert('قريباً', `أداة ${tool} ستكون متاحة قريباً`);
+    if (tool === 'إدارة الغياب') {
+      Alert.alert(
+        'إدارة الغياب',
+        'اختر نوع العملية:',
+        [
+          {
+            text: 'تسجيل غياب معلم',
+            onPress: () => Alert.alert('تسجيل غياب معلم', 'سيتم فتح نموذج تسجيل الغياب مع خيارات:\n• غياب مرضي\n• غياب شخصي\n• تحديد التاريخ والفترة')
+          },
+          {
+            text: 'عرض سجل الغياب',
+            onPress: () => Alert.alert('سجل الغياب', 'سيتم عرض سجل شامل لغياب المعلمين مع:\n• نوع الغياب\n• التواريخ\n• الإحصائيات الشهرية')
+          },
+          {
+            text: 'إلغاء',
+            style: 'cancel'
+          }
+        ]
+      );
+    } else {
+      Alert.alert('قريباً', `أداة ${tool} ستكون متاحة قريباً`);
+    }
   };
 
   const tools = [
@@ -37,7 +58,7 @@ export default function ToolsScreen() {
     {
       id: 4,
       title: 'إدارة الغياب',
-      description: 'تتبع وإدارة غياب الطلاب والحضور',
+      description: 'تتبع غياب المعلمين والطلاب مع تحديد نوع الغياب (مرضي/شخصي)',
       icon: 'person.crop.circle.badge.xmark',
       color: '#9C27B0',
       category: 'أساسية',
