@@ -197,7 +197,7 @@ export default function HomeScreen() {
 
               <TouchableOpacity style={styles.actionCard}>
                 <IconSymbol size={28} name="bell.fill" color="#2196F3" />
-                <ThemedText style={styles.actionText}>التنبيهات</ThemedText>
+                <ThemedText style={styles.actionText}>التعليقات</ThemedText>
               </TouchableOpacity>
 
               <TouchableOpacity style={styles.actionCard}>
