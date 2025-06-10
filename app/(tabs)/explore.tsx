@@ -296,6 +296,275 @@ export default function ToolsScreen() {
     );
   };
 
+  const handleAlertsManagement = () => {
+    const alerts = [
+      { id: 1, title: 'موعد الاختبار النهائي', date: '2025-01-25', time: '08:00', type: 'اختبار', active: true },
+      { id: 2, title: 'اجتماع أولياء الأمور', date: '2025-01-30', time: '16:00', type: 'اجتماع', active: true },
+      { id: 3, title: 'تسليم التقارير الشهرية', date: '2025-01-28', time: '14:00', type: 'مهمة', active: false },
+      { id: 4, title: 'يوم التأسيس السعودي', date: '2025-02-22', time: '09:00', type: 'إجازة', active: true },
+      { id: 5, title: 'ورشة التطوير المهني', date: '2025-02-05', time: '10:00', type: 'تدريب', active: true }
+    ];
+
+    const activeAlerts = alerts.filter(alert => alert.active).length;
+    const totalAlerts = alerts.length;
+
+    Alert.alert(
+      'إدارة التنبيهات',
+      `📊 إحصائيات التنبيهات:\n` +
+      `• إجمالي التنبيهات: ${totalAlerts}\n` +
+      `• التنبيهات النشطة: ${activeAlerts}\n` +
+      `• التنبيهات المعطلة: ${totalAlerts - activeAlerts}\n\n` +
+      `اختر العملية المطلوبة:`,
+      [
+        {
+          text: 'عرض جميع التنبيهات',
+          onPress: () => handleViewAllAlerts(alerts)
+        },
+        {
+          text: 'إضافة تنبيه جديد',
+          onPress: () => handleAddNewAlert()
+        },
+        {
+          text: 'التنبيهات النشطة',
+          onPress: () => handleActiveAlerts(alerts.filter(alert => alert.active))
+        },
+        {
+          text: 'إعدادات التنبيهات',
+          onPress: () => handleAlertSettings()
+        },
+        {
+          text: 'إلغاء',
+          style: 'cancel'
+        }
+      ]
+    );
+  };
+
+  const handleViewAllAlerts = (alerts: any[]) => {
+    const alertsList = alerts.map(alert => 
+      `${alert.active ? '🔔' : '🔕'} ${alert.title}\n` +
+      `📅 ${alert.date} - ⏰ ${alert.time}\n` +
+      `🏷️ النوع: ${alert.type}\n` +
+      `${alert.active ? '✅ نشط' : '⏸️ معطل'}`
+    ).join('\n\n');
+
+    Alert.alert(
+      'جميع التنبيهات',
+      `📋 قائمة التنبيهات الكاملة:\n\n${alertsList}`,
+      [
+        {
+          text: 'تصفية حسب النوع',
+          onPress: () => handleFilterAlerts(alerts)
+        },
+        {
+          text: 'تصدير القائمة',
+          onPress: () => Alert.alert('تصدير', 'سيتم تصدير قائمة التنبيهات إلى ملف PDF')
+        },
+        {
+          text: 'تعديل تنبيه',
+          onPress: () => handleEditAlert(alerts)
+        },
+        {
+          text: 'عودة',
+          onPress: () => handleAlertsManagement()
+        }
+      ]
+    );
+  };
+
+  const handleAddNewAlert = () => {
+    Alert.alert(
+      'إضافة تنبيه جديد',
+      'اختر نوع التنبيه الجديد:',
+      [
+        {
+          text: '📚 تنبيه دراسي',
+          onPress: () => handleCreateAlert('دراسي')
+        },
+        {
+          text: '👥 تنبيه اجتماع',
+          onPress: () => handleCreateAlert('اجتماع')
+        },
+        {
+          text: '📝 تنبيه مهمة',
+          onPress: () => handleCreateAlert('مهمة')
+        },
+        {
+          text: '🎯 تنبيه شخصي',
+          onPress: () => handleCreateAlert('شخصي')
+        },
+        {
+          text: '🏖️ تنبيه إجازة',
+          onPress: () => handleCreateAlert('إجازة')
+        },
+        {
+          text: 'عودة',
+          onPress: () => handleAlertsManagement()
+        }
+      ]
+    );
+  };
+
+  const handleCreateAlert = (type: string) => {
+    Alert.alert(
+      `إضافة تنبيه ${type}`,
+      `سيتم فتح نموذج إنشاء تنبيه جديد من نوع "${type}":\n\n` +
+      `📝 العنوان: مطلوب\n` +
+      `📅 التاريخ: مطلوب\n` +
+      `⏰ الوقت: مطلوب\n` +
+      `📋 الوصف: اختياري\n` +
+      `🔔 نوع التنبيه: ${type}\n` +
+      `🔄 التكرار: اختياري\n\n` +
+      `✅ تم حفظ التنبيه بنجاح`,
+      [
+        {
+          text: 'حفظ وإضافة آخر',
+          onPress: () => handleAddNewAlert()
+        },
+        {
+          text: 'حفظ وإنهاء',
+          onPress: () => Alert.alert('نجح الحفظ', `تم إضافة تنبيه ${type} جديد بنجاح`)
+        },
+        {
+          text: 'إلغاء',
+          onPress: () => handleAddNewAlert()
+        }
+      ]
+    );
+  };
+
+  const handleActiveAlerts = (activeAlerts: any[]) => {
+    if (activeAlerts.length === 0) {
+      Alert.alert('التنبيهات النشطة', 'لا توجد تنبيهات نشطة حالياً');
+      return;
+    }
+
+    const alertsList = activeAlerts.map(alert => 
+      `🔔 ${alert.title}\n📅 ${alert.date} - ⏰ ${alert.time}\n🏷️ ${alert.type}`
+    ).join('\n\n');
+
+    Alert.alert(
+      'التنبيهات النشطة',
+      `📱 التنبيهات النشطة (${activeAlerts.length}):\n\n${alertsList}`,
+      [
+        {
+          text: 'إيقاف تنبيه',
+          onPress: () => Alert.alert('إيقاف', 'اختر التنبيه المراد إيقافه')
+        },
+        {
+          text: 'تأجيل تنبيه',
+          onPress: () => Alert.alert('تأجيل', 'سيتم تأجيل التنبيه لـ 15 دقيقة')
+        },
+        {
+          text: 'عودة',
+          onPress: () => handleAlertsManagement()
+        }
+      ]
+    );
+  };
+
+  const handleFilterAlerts = (alerts: any[]) => {
+    const types = [...new Set(alerts.map(alert => alert.type))];
+    
+    Alert.alert(
+      'تصفية التنبيهات',
+      'اختر نوع التنبيهات لعرضها:',
+      [
+        ...types.map(type => ({
+          text: `${type} (${alerts.filter(alert => alert.type === type).length})`,
+          onPress: () => {
+            const filteredAlerts = alerts.filter(alert => alert.type === type);
+            const alertsList = filteredAlerts.map(alert => 
+              `${alert.active ? '🔔' : '🔕'} ${alert.title}\n📅 ${alert.date} - ⏰ ${alert.time}`
+            ).join('\n\n');
+            
+            Alert.alert(
+              `تنبيهات ${type}`,
+              alertsList,
+              [
+                { text: 'عودة للتصفية', onPress: () => handleFilterAlerts(alerts) },
+                { text: 'إغلاق', style: 'cancel' }
+              ]
+            );
+          }
+        })),
+        {
+          text: 'عرض الكل',
+          onPress: () => handleViewAllAlerts(alerts)
+        },
+        {
+          text: 'عودة',
+          onPress: () => handleAlertsManagement()
+        }
+      ]
+    );
+  };
+
+  const handleEditAlert = (alerts: any[]) => {
+    const alertsList = alerts.map(alert => 
+      `${alert.id}. ${alert.title} (${alert.date})`
+    ).join('\n');
+
+    Alert.alert(
+      'تعديل التنبيهات',
+      `اختر التنبيه المراد تعديله:\n\n${alertsList}`,
+      [
+        {
+          text: 'تعديل التنبيه الأول',
+          onPress: () => Alert.alert(
+            'تعديل التنبيه',
+            `تعديل: ${alerts[0].title}\n\n` +
+            `الخيارات المتاحة:\n` +
+            `• تغيير العنوان\n` +
+            `• تغيير التاريخ والوقت\n` +
+            `• تغيير النوع\n` +
+            `• تفعيل/إلغاء التفعيل\n` +
+            `• حذف التنبيه`
+          )
+        },
+        {
+          text: 'تعديل متعدد',
+          onPress: () => Alert.alert('تعديل متعدد', 'سيتم فتح واجهة تعديل التنبيهات المتعددة')
+        },
+        {
+          text: 'عودة',
+          onPress: () => handleViewAllAlerts(alerts)
+        }
+      ]
+    );
+  };
+
+  const handleAlertSettings = () => {
+    Alert.alert(
+      'إعدادات التنبيهات',
+      '⚙️ إعدادات التنبيهات العامة:\n\n' +
+      '🔔 الصوت: مفعل\n' +
+      '📳 الاهتزاز: مفعل\n' +
+      '🕐 التنبيه المسبق: 15 دقيقة\n' +
+      '🔄 التكرار التلقائي: معطل\n' +
+      '🌙 عدم الإزعاج: 22:00 - 06:00\n' +
+      '📱 إشعارات الشاشة: مفعل',
+      [
+        {
+          text: 'تغيير الصوت',
+          onPress: () => Alert.alert('صوت التنبيه', 'اختر صوت التنبيه المفضل')
+        },
+        {
+          text: 'أوقات عدم الإزعاج',
+          onPress: () => Alert.alert('عدم الإزعاج', 'حدد الأوقات التي لا تريد تلقي تنبيهات فيها')
+        },
+        {
+          text: 'نسخ احتياطي',
+          onPress: () => Alert.alert('نسخ احتياطي', 'سيتم إنشاء نسخة احتياطية من جميع التنبيهات')
+        },
+        {
+          text: 'عودة',
+          onPress: () => handleAlertsManagement()
+        }
+      ]
+    );
+  };
+
   const handleToolPress = (tool: string) => {
     if (tool === 'إدارة الغياب') {
       handleAbsenceManagement();
@@ -321,6 +590,8 @@ export default function ToolsScreen() {
       );
     } else if (tool === 'الإجازات الرسمية') {
       handleOfficialHolidays();
+    } else if (tool === 'التنبيهات') {
+      handleAlertsManagement();
     } else {
       Alert.alert('قريباً', `أداة ${tool} ستكون متاحة قريباً`);
     }
