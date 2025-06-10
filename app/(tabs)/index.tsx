@@ -180,10 +180,6 @@ export default function HomeScreen() {
           </ThemedView>
 
           <ThemedView style={styles.quickActions}>
-            <ThemedText type="subtitle" style={styles.sectionTitle}>
-              الإجراءات السريعة
-            </ThemedText>
-
             <ThemedView style={styles.actionsGrid}>
               <TouchableOpacity style={styles.actionCard}>
                 <IconSymbol size={28} name="plus.circle.fill" color="#4CAF50" />
