@@ -192,7 +192,7 @@ export default function HomeScreen() {
 
               <TouchableOpacity style={styles.actionCard}>
                 <IconSymbol size={28} name="doc.text.fill" color="#FF9800" />
-                <ThemedText style={styles.actionText}>تقرير سريع</ThemedText>
+                <ThemedText style={styles.actionText}>أذكاري</ThemedText>
               </TouchableOpacity>
 
               <TouchableOpacity style={styles.actionCard}>
