@@ -30,6 +30,7 @@ const MAPPING = {
   'arrow.left': 'arrow-back',
   'lightbulb.fill': 'lightbulb',
   'doc.text.fill': 'description',
+  'arrow.up.doc.fill': 'upload-file',
 } as IconMapping;
 
 /**
