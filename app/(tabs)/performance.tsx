@@ -202,6 +202,102 @@ export default function PerformanceScreen() {
     );
   };
 
+  const addEvidence = (performanceId: number) => {
+    Alert.prompt(
+      'إضافة شاهد جديد',
+      'أدخل اسم الشاهد الجديد:',
+      [
+        {
+          text: 'إلغاء',
+          style: 'cancel',
+        },
+        {
+          text: 'إضافة',
+          onPress: (evidenceName) => {
+            if (evidenceName && evidenceName.trim()) {
+              setPerformanceData(prevData => 
+                prevData.map(item => 
+                  item.id === performanceId 
+                    ? {
+                        ...item,
+                        evidence: [...item.evidence, { name: evidenceName.trim(), available: false }]
+                      }
+                    : item
+                )
+              );
+            }
+          },
+        },
+      ],
+      'plain-text'
+    );
+  };
+
+  const editEvidence = (performanceId: number, evidenceIndex: number, currentName: string) => {
+    Alert.prompt(
+      'تعديل الشاهد',
+      'قم بتعديل اسم الشاهد:',
+      [
+        {
+          text: 'إلغاء',
+          style: 'cancel',
+        },
+        {
+          text: 'حفظ',
+          onPress: (newName) => {
+            if (newName && newName.trim()) {
+              setPerformanceData(prevData => 
+                prevData.map(item => 
+                  item.id === performanceId 
+                    ? {
+                        ...item,
+                        evidence: item.evidence.map((evidence, index) => 
+                          index === evidenceIndex 
+                            ? { ...evidence, name: newName.trim() }
+                            : evidence
+                        )
+                      }
+                    : item
+                )
+              );
+            }
+          },
+        },
+      ],
+      'plain-text',
+      currentName
+    );
+  };
+
+  const deleteEvidence = (performanceId: number, evidenceIndex: number) => {
+    Alert.alert(
+      'حذف الشاهد',
+      'هل أنت متأكد من رغبتك في حذف هذا الشاهد؟',
+      [
+        {
+          text: 'إلغاء',
+          style: 'cancel',
+        },
+        {
+          text: 'حذف',
+          style: 'destructive',
+          onPress: () => {
+            setPerformanceData(prevData => 
+              prevData.map(item => 
+                item.id === performanceId 
+                  ? {
+                      ...item,
+                      evidence: item.evidence.filter((_, index) => index !== evidenceIndex)
+                    }
+                  : item
+              )
+            );
+          },
+        },
+      ]
+    );
+  };
+
   return (
     <ScrollView style={styles.container}>
       <ThemedView style={styles.header}>
@@ -286,7 +382,20 @@ export default function PerformanceScreen() {
                   <ThemedText style={styles.detailsTitle}>تفاصيل التقييم:</ThemedText>
                   <ThemedText style={styles.detailsText}>{item.details}</ThemedText>
                   
-                  <ThemedText style={styles.evidenceTitle}>الشواهد المطلوبة:</ThemedText>
+                  <ThemedView style={styles.evidenceHeader}>
+                    <ThemedText style={styles.evidenceTitle}>الشواهد المطلوبة:</ThemedText>
+                    <TouchableOpacity 
+                      style={styles.addEvidenceButton}
+                      onPress={() => addEvidence(item.id)}
+                    >
+                      <IconSymbol 
+                        size={16} 
+                        name="plus.circle.fill" 
+                        color="#4CAF50" 
+                      />
+                      <ThemedText style={styles.addEvidenceText}>إضافة شاهد</ThemedText>
+                    </TouchableOpacity>
+                  </ThemedView>
                   <ThemedView style={styles.evidenceList}>
                     {item.evidence.map((evidenceItem, index) => (
                       <TouchableOpacity 
@@ -324,6 +433,28 @@ export default function PerformanceScreen() {
                         ]}>
                           {evidenceItem.available ? 'متوفر' : 'غير متوفر'}
                         </ThemedText>
+                        <ThemedView style={styles.evidenceActions}>
+                          <TouchableOpacity 
+                            style={styles.editButton}
+                            onPress={() => editEvidence(item.id, index, evidenceItem.name)}
+                          >
+                            <IconSymbol 
+                              size={14} 
+                              name="pencil.circle.fill" 
+                              color="#FF9800" 
+                            />
+                          </TouchableOpacity>
+                          <TouchableOpacity 
+                            style={styles.deleteButton}
+                            onPress={() => deleteEvidence(item.id, index)}
+                          >
+                            <IconSymbol 
+                              size={14} 
+                              name="trash.circle.fill" 
+                              color="#F44336" 
+                            />
+                          </TouchableOpacity>
+                        </ThemedView>
                       </TouchableOpacity>
                     ))}
                   </ThemedView>
@@ -574,6 +705,43 @@ const styles = StyleSheet.create({
     padding: 4,
     borderRadius: 12,
     backgroundColor: '#F0F7FF',
+  },
+  evidenceHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 8,
+  },
+  addEvidenceButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#E8F5E8',
+    paddingHorizontal: 10,
+    paddingVertical: 6,
+    borderRadius: 15,
+    borderWidth: 1,
+    borderColor: '#4CAF50',
+    gap: 4,
+  },
+  addEvidenceText: {
+    fontSize: 12,
+    color: '#4CAF50',
+    fontWeight: '600',
+  },
+  evidenceActions: {
+    flexDirection: 'row',
+    gap: 8,
+    marginLeft: 8,
+  },
+  editButton: {
+    padding: 4,
+    borderRadius: 8,
+    backgroundColor: '#FFF3E0',
+  },
+  deleteButton: {
+    padding: 4,
+    borderRadius: 8,
+    backgroundColor: '#FFEBEE',
   },
   weightText: {
     fontSize: 12,
