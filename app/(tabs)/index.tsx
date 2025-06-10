@@ -4,8 +4,10 @@ import { ThemedText } from '@/components/ThemedText';
 import { ThemedView } from '@/components/ThemedView';
 import { IconSymbol } from '@/components/ui/IconSymbol';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { useRouter } from 'expo-router';
 
 export default function HomeScreen() {
+  const router = useRouter();
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [currentScreen, setCurrentScreen] = useState('welcome');
   const [userInfo, setUserInfo] = useState<any>(null);
@@ -186,7 +188,10 @@ export default function HomeScreen() {
                 <ThemedText style={styles.actionText}>عرض التقرير التفاعلي</ThemedText>
               </TouchableOpacity>
 
-              <TouchableOpacity style={styles.actionCard}>
+              <TouchableOpacity 
+                style={styles.actionCard}
+                onPress={() => router.push('/azkar')}
+              >
                 <IconSymbol size={28} name="doc.text.fill" color="#FF9800" />
                 <ThemedText style={styles.actionText}>أذكاري</ThemedText>
               </TouchableOpacity>
