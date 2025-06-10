@@ -58,7 +58,7 @@ export default function ToolsScreen() {
     {
       id: 4,
       title: 'إدارة الغياب',
-      description: 'تتبع غياب المعلمين مع تحديد نوع الغياب (مرضي/شخصي)',
+      description: 'متتبع غياب المعلم',
       icon: 'person.crop.circle.badge.xmark',
       color: '#9C27B0',
       category: 'أساسية',
