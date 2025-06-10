@@ -297,6 +297,16 @@ export default function PerformanceScreen() {
                         ]}
                         onPress={() => toggleEvidenceStatus(item.id, index)}
                       >
+                        <TouchableOpacity 
+                          style={styles.uploadIcon}
+                          onPress={() => Alert.alert('تحميل ملف', `سيتم تحميل ملف لـ: ${evidenceItem.name}`)}
+                        >
+                          <IconSymbol 
+                            size={20} 
+                            name="plus.circle.fill" 
+                            color="#007AFF" 
+                          />
+                        </TouchableOpacity>
                         <IconSymbol 
                           size={16} 
                           name={evidenceItem.available ? "checkmark.circle.fill" : "xmark.circle.fill"} 
@@ -558,6 +568,12 @@ const styles = StyleSheet.create({
   evidenceUnavailableStatus: {
     backgroundColor: '#F44336',
     color: 'white',
+  },
+  uploadIcon: {
+    marginRight: 8,
+    padding: 4,
+    borderRadius: 12,
+    backgroundColor: '#F0F7FF',
   },
   weightText: {
     fontSize: 12,
