@@ -4,8 +4,10 @@ import { ThemedText } from '@/components/ThemedText';
 import { ThemedView } from '@/components/ThemedView';
 import { IconSymbol } from '@/components/ui/IconSymbol';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { useRouter } from 'expo-router';
 
 export default function PerformanceScreen() {
+  const router = useRouter();
   const [performanceData, setPerformanceData] = useState([
     {
       id: 1,
@@ -473,10 +475,10 @@ export default function PerformanceScreen() {
         <ThemedView style={styles.actionButtons}>
           <TouchableOpacity 
             style={styles.reportButton}
-            onPress={() => Alert.alert('تقرير مفصل', 'سيتم إنشاء تقرير مفصل عن الأداء المهني قريباً')}
+            onPress={() => router.push('/interactive-report')}
           >
             <IconSymbol size={20} name="doc.text.fill" color="white" />
-            <ThemedText style={styles.buttonText}>تقرير مفصل</ThemedText>
+            <ThemedText style={styles.buttonText}>تقرير تفاعلي</ThemedText>
           </TouchableOpacity>
 
           <TouchableOpacity 
