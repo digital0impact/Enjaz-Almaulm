@@ -35,6 +35,7 @@ const MAPPING = {
   'person.crop.circle.badge.xmark': 'person-remove',
   'calendar.badge.clock': 'event',
   'calendar.badge.exclamationmark': 'event-note',
+  'calendar.badge.plus': 'event-available',
 } as IconMapping;
 
 /**

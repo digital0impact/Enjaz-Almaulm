@@ -14,7 +14,7 @@ export default function ToolsScreen() {
       id: 1,
       title: 'التقويم الهجري والميلادي',
       description: 'عرض التواريخ الهجرية والميلادية مع التحويل بينهما',
-      icon: 'calendar',
+      icon: 'calendar.badge.plus',
       color: '#4CAF50',
       category: 'أساسية',
     },
