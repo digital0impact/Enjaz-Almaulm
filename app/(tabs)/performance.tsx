@@ -16,10 +16,10 @@ export default function PerformanceScreen() {
       description: 'التقيد بالدوام الرسمي، تأدية الحصص وفق الجدول الدراسي، المشاركة في الإشراف والانتظار والمناوبة، إعداد الدروس والاختبارات والواجبات',
       details: 'التزام عالي بالدوام الرسمي، تنفيذ ممتاز للحصص الدراسية وفق الجدول المحدد، ومشاركة فعالة في الإشراف والمناوبة والانتظار. إعداد منتظم ومتقن للدروس والاختبارات والواجبات.',
       evidence: [
-        'سجل الدوام',
-        'سجل المناوبة',
-        'سجل الانتظار',
-        'خطة توزيع المنهج'
+        { name: 'سجل الدوام', available: true },
+        { name: 'سجل المناوبة', available: true },
+        { name: 'سجل الانتظار', available: false },
+        { name: 'خطة توزيع المنهج', available: true }
       ],
     },
     {
@@ -30,10 +30,10 @@ export default function PerformanceScreen() {
       description: 'المشاركة في مجتمعات التعلم المهنية، تبادل الزيارات الصفية، تنفيذ الدروس التطبيقية، بحث الدرس، حضور الدورات والورش التدريبية',
       details: 'مشاركة نشطة في مجتمعات التعلم المهنية، تبادل منتظم للزيارات الصفية، وتنفيذ دروس تطبيقية متميزة. إجراء بحوث دروس وحضور مستمر للدورات التدريبية والورش التطويرية.',
       evidence: [
-        'سجل مجتمعات التعلم المهنية',
-        'سجل تبادل الزيارات',
-        'تقرير تنفيذ درس تطبيقي',
-        'شهادات حضور الدورات'
+        { name: 'سجل مجتمعات التعلم المهنية', available: true },
+        { name: 'سجل تبادل الزيارات', available: false },
+        { name: 'تقرير تنفيذ درس تطبيقي', available: true },
+        { name: 'شهادات حضور الدورات', available: true }
       ],
     },
     {
@@ -44,9 +44,9 @@ export default function PerformanceScreen() {
       description: 'التواصل الفعّال مع أولياء الأمور، تزويد أولياء الأمور بمستويات الطلاب، إيصال الملاحظات الهامة، تفعيل الخطة الأسبوعية للمدرسة، المشاركة في الجمعية العمومية',
       details: 'تواصل ممتاز مع أولياء الأمور وتزويدهم بمستويات أبنائهم بشكل دوري، إيصال الملاحظات الهامة، وتفعيل فعال للخطة الأسبوعية. مشاركة نشطة في الجمعية العمومية.',
       evidence: [
-        'صور من الجمعية العمومية',
-        'تقرير اجتماع مع ولي أمر',
-        'نسخة من الخطة الأسبوعية'
+        { name: 'صور من الجمعية العمومية', available: true },
+        { name: 'تقرير اجتماع مع ولي أمر', available: false },
+        { name: 'نسخة من الخطة الأسبوعية', available: true }
       ],
     },
     {
@@ -57,8 +57,8 @@ export default function PerformanceScreen() {
       description: 'استخدام استراتيجيات متنوعة، مراعاة الفروق الفردية، تطبيق استراتيجيات تناسب مستويات الطلاب',
       details: 'تطبيق متميز لاستراتيجيات تدريس متنوعة ومتطورة، مراعاة دقيقة للفروق الفردية بين الطلاب، واستخدام استراتيجيات تلائم جميع مستويات الطلاب المختلفة.',
       evidence: [
-        'تقرير عن تطبيق استراتيجية',
-        'ملف إنجاز المعلم'
+        { name: 'تقرير عن تطبيق استراتيجية', available: true },
+        { name: 'ملف إنجاز المعلم', available: false }
       ],
     },
     {
@@ -69,8 +69,8 @@ export default function PerformanceScreen() {
       description: 'معالجة الفاقد التعليمي، وضع خطط علاجية للطلاب الضعاف، وضع خطط إثرائية للمتميزين، تكريم الطلاب المتحسنين',
       details: 'جهود متميزة في معالجة الفاقد التعليمي، وضع خطط علاجية شاملة للطلاب الضعاف وخطط إثرائية للمتميزين، مع تكريم منتظم للطلاب المتحسنين.',
       evidence: [
-        'نتائج الاختبارات القبلية والبعدية',
-        'كشف متابعة الطلاب'
+        { name: 'نتائج الاختبارات القبلية والبعدية', available: true },
+        { name: 'كشف متابعة الطلاب', available: true }
       ],
     },
     {
@@ -81,8 +81,8 @@ export default function PerformanceScreen() {
       description: 'توزيع المنهج، إعداد الدروس والواجبات والاختبارات',
       details: 'تخطيط منهجي ومتقن لتوزيع المنهج بما يتناسب مع الزمن المتاح، إعداد دروس شاملة ومتنوعة، وتصميم واجبات واختبارات تتماشى مع أهداف التعلم.',
       evidence: [
-        'نموذج إعداد درس',
-        'نماذج من الواجبات والاختبارات'
+        { name: 'نموذج إعداد درس', available: true },
+        { name: 'نماذج من الواجبات والاختبارات', available: false }
       ],
     },
     {
@@ -93,8 +93,8 @@ export default function PerformanceScreen() {
       description: 'دمج التقنية في التعليم، التنويع في الوسائل التعليمية',
       details: 'استخدام متطور للتقنيات الحديثة في التعليم، تنويع إبداعي في الوسائل التعليمية المستخدمة، مع دمج فعال للتقنية في العملية التعليمية.',
       evidence: [
-        'صور للوسائل المستخدمة',
-        'تقرير عن برنامج تقني تم استخدامه'
+        { name: 'صور للوسائل المستخدمة', available: true },
+        { name: 'تقرير عن برنامج تقني تم استخدامه', available: false }
       ],
     },
     {
@@ -105,8 +105,8 @@ export default function PerformanceScreen() {
       description: 'مراعاة حاجات الطلاب، تهيئة نفسية ومادية ومعنوية مناسبة',
       details: 'اهتمام ممتاز بتهيئة بيئة تعليمية محفزة ومناسبة، مراعاة شاملة لحاجات الطلاب النفسية والمادية والمعنوية، وتصنيف دقيق للطلاب حسب أنماط التعلم.',
       evidence: [
-        'تقرير تصنيف الطلاب وفق أنماط التعلم',
-        'نماذج من أدوات التحفيز'
+        { name: 'تقرير تصنيف الطلاب وفق أنماط التعلم', available: false },
+        { name: 'نماذج من أدوات التحفيز', available: true }
       ],
     },
     {
@@ -117,8 +117,8 @@ export default function PerformanceScreen() {
       description: 'ضبط سلوك الطلاب، شد انتباه الطلاب، مراعاة الفروق الفردية',
       details: 'إدارة متميزة للصف، مهارات عالية في ضبط سلوك الطلاب وشد انتباههم، مع مراعاة دقيقة للفروق الفردية ومتابعة مستمرة للحضور والانضباط.',
       evidence: [
-        'كشف متابعة الحضور والغياب والتأخر',
-        'تطبيق إدارة الصف'
+        { name: 'كشف متابعة الحضور والغياب والتأخر', available: true },
+        { name: 'تطبيق إدارة الصف', available: true }
       ],
     },
     {
@@ -129,8 +129,8 @@ export default function PerformanceScreen() {
       description: 'تحليل نتائج الاختبارات الفصلية والنهائية، تصنيف الطلاب حسب نتائجهم، معالجة الفاقد التعليمي',
       details: 'تحليل شامل ودقيق لنتائج الاختبارات الفصلية والنهائية، تصنيف علمي للطلاب حسب نتائجهم ومستوياتهم، ووضع خطط فعالة لمعالجة الفاقد التعليمي.',
       evidence: [
-        'تقرير تحليل نتائج الطلاب',
-        'سجل معالجة الفاقد التعليمي'
+        { name: 'تقرير تحليل نتائج الطلاب', available: true },
+        { name: 'سجل معالجة الفاقد التعليمي', available: false }
       ],
     },
     {
@@ -141,9 +141,9 @@ export default function PerformanceScreen() {
       description: 'تطبيق الاختبارات الورقية والإلكترونية، المشاريع الطلابية، المهام الأدائية، ملفات الإنجاز',
       details: 'تنويع شامل في أساليب التقويم بين الاختبارات الورقية والإلكترونية، تنفيذ مشاريع طلابية متنوعة ومبتكرة، وإنشاء مهام أدائية وملفات إنجاز شاملة.',
       evidence: [
-        'نماذج من الاختبارات',
-        'نماذج من المشاريع والمهام',
-        'نماذج من ملفات الإنجاز'
+        { name: 'نماذج من الاختبارات', available: true },
+        { name: 'نماذج من المشاريع والمهام', available: false },
+        { name: 'نماذج من ملفات الإنجاز', available: true }
       ],
     },
   ]);
@@ -183,6 +183,23 @@ export default function PerformanceScreen() {
     const weightedSum = performanceData.reduce((acc, item) => acc + (item.score * item.weight), 0);
     const totalWeight = performanceData.reduce((acc, item) => acc + item.weight, 0);
     return Math.round(weightedSum / totalWeight);
+  };
+
+  const toggleEvidenceStatus = (performanceId: number, evidenceIndex: number) => {
+    setPerformanceData(prevData => 
+      prevData.map(item => 
+        item.id === performanceId 
+          ? {
+              ...item,
+              evidence: item.evidence.map((evidence, index) => 
+                index === evidenceIndex 
+                  ? { ...evidence, available: !evidence.available }
+                  : evidence
+              )
+            }
+          : item
+      )
+    );
   };
 
   return (
@@ -272,10 +289,32 @@ export default function PerformanceScreen() {
                   <ThemedText style={styles.evidenceTitle}>الشواهد المطلوبة:</ThemedText>
                   <ThemedView style={styles.evidenceList}>
                     {item.evidence.map((evidenceItem, index) => (
-                      <ThemedView key={index} style={styles.evidenceItem}>
-                        <ThemedText style={styles.evidenceBullet}>•</ThemedText>
-                        <ThemedText style={styles.evidenceText}>{evidenceItem}</ThemedText>
-                      </ThemedView>
+                      <TouchableOpacity 
+                        key={index} 
+                        style={[
+                          styles.evidenceItem,
+                          evidenceItem.available ? styles.evidenceAvailable : styles.evidenceUnavailable
+                        ]}
+                        onPress={() => toggleEvidenceStatus(item.id, index)}
+                      >
+                        <IconSymbol 
+                          size={16} 
+                          name={evidenceItem.available ? "checkmark.circle.fill" : "xmark.circle.fill"} 
+                          color={evidenceItem.available ? "#4CAF50" : "#F44336"} 
+                        />
+                        <ThemedText style={[
+                          styles.evidenceText,
+                          evidenceItem.available ? styles.evidenceAvailableText : styles.evidenceUnavailableText
+                        ]}>
+                          {evidenceItem.name}
+                        </ThemedText>
+                        <ThemedText style={[
+                          styles.evidenceStatus,
+                          evidenceItem.available ? styles.evidenceAvailableStatus : styles.evidenceUnavailableStatus
+                        ]}>
+                          {evidenceItem.available ? 'متوفر' : 'غير متوفر'}
+                        </ThemedText>
+                      </TouchableOpacity>
                     ))}
                   </ThemedView>
                 </ThemedView>
@@ -470,8 +509,19 @@ const styles = StyleSheet.create({
   },
   evidenceItem: {
     flexDirection: 'row',
-    marginBottom: 5,
-    alignItems: 'flex-start',
+    marginBottom: 8,
+    alignItems: 'center',
+    padding: 10,
+    borderRadius: 8,
+    borderWidth: 1,
+  },
+  evidenceAvailable: {
+    backgroundColor: '#E8F5E8',
+    borderColor: '#4CAF50',
+  },
+  evidenceUnavailable: {
+    backgroundColor: '#FFF3F3',
+    borderColor: '#F44336',
   },
   evidenceBullet: {
     fontSize: 14,
@@ -482,9 +532,32 @@ const styles = StyleSheet.create({
   },
   evidenceText: {
     fontSize: 14,
-    color: '#666666',
     lineHeight: 20,
     flex: 1,
+    marginLeft: 8,
+  },
+  evidenceAvailableText: {
+    color: '#2E7D32',
+  },
+  evidenceUnavailableText: {
+    color: '#C62828',
+  },
+  evidenceStatus: {
+    fontSize: 12,
+    fontWeight: '600',
+    paddingHorizontal: 8,
+    paddingVertical: 4,
+    borderRadius: 12,
+    textAlign: 'center',
+    minWidth: 60,
+  },
+  evidenceAvailableStatus: {
+    backgroundColor: '#4CAF50',
+    color: 'white',
+  },
+  evidenceUnavailableStatus: {
+    backgroundColor: '#F44336',
+    color: 'white',
   },
   weightText: {
     fontSize: 12,
