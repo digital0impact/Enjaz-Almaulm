@@ -57,7 +57,7 @@ export default function WelcomeScreen() {
   if (currentScreen === 'welcome') {
     return (
       <ImageBackground 
-        source={require('@/assets/images/background.png')} 
+        source={require('../../assets/images/background.png')} 
         style={styles.container}
         resizeMode="cover"
       >
@@ -92,7 +92,7 @@ export default function WelcomeScreen() {
   if (currentScreen === 'login') {
     return (
       <ImageBackground 
-        source={require('@/assets/images/background.png')} 
+        source={require('../../assets/images/background.png')} 
         style={styles.container}
         resizeMode="cover"
       >
@@ -146,7 +146,7 @@ export default function WelcomeScreen() {
   if (currentScreen === 'dashboard') {
     return (
       <ImageBackground 
-        source={require('@/assets/images/background.png')} 
+        source={require('../../assets/images/background.png')} 
         style={styles.container}
         resizeMode="cover"
       >
@@ -210,7 +210,7 @@ export default function WelcomeScreen() {
   // الشاشات الفرعية
   return (
     <ImageBackground 
-      source={require('@/assets/images/background.png')} 
+      source={require('../../assets/images/background.png')} 
       style={styles.container}
       resizeMode="cover"
     >
