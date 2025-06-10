@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { StyleSheet, TouchableOpacity, Alert } from 'react-native';
+import { StyleSheet, TouchableOpacity, Alert, ImageBackground } from 'react-native';
 import { ThemedText } from '@/components/ThemedText';
 import { ThemedView } from '@/components/ThemedView';
 import { IconSymbol } from '@/components/ui/IconSymbol';
@@ -56,8 +56,12 @@ export default function WelcomeScreen() {
 
   if (currentScreen === 'welcome') {
     return (
-      <ThemedView style={styles.container}>
-        <ThemedView style={styles.gradientBackground}>
+      <ImageBackground 
+        source={require('@/assets/images/background.png')} 
+        style={styles.container}
+        resizeMode="cover"
+      >
+        <ThemedView style={styles.overlay}>
           <ThemedView style={styles.welcomeContent}>
             <ThemedView style={styles.iconContainer}>
               <IconSymbol size={80} name="graduationcap.fill" color="#4CAF50" />
@@ -77,14 +81,18 @@ export default function WelcomeScreen() {
             </TouchableOpacity>
           </ThemedView>
         </ThemedView>
-      </ThemedView>
+      </ImageBackground>
     );
   }
 
   if (currentScreen === 'login') {
     return (
-      <ThemedView style={styles.container}>
-        <ThemedView style={styles.gradientBackground}>
+      <ImageBackground 
+        source={require('@/assets/images/background.png')} 
+        style={styles.container}
+        resizeMode="cover"
+      >
+        <ThemedView style={styles.overlay}>
           <ThemedView style={styles.loginContent}>
             <ThemedView style={styles.iconContainer}>
               <IconSymbol size={60} name="person.circle.fill" color="#2196F3" />
@@ -127,14 +135,18 @@ export default function WelcomeScreen() {
             </TouchableOpacity>
           </ThemedView>
         </ThemedView>
-      </ThemedView>
+      </ImageBackground>
     );
   }
 
   if (currentScreen === 'dashboard') {
     return (
-      <ThemedView style={styles.container}>
-        <ThemedView style={styles.gradientBackground}>
+      <ImageBackground 
+        source={require('@/assets/images/background.png')} 
+        style={styles.container}
+        resizeMode="cover"
+      >
+        <ThemedView style={styles.overlay}>
           <ThemedView style={styles.dashboardContent}>
             <ThemedView style={styles.dashboardHeader}>
               <ThemedText type="title" style={styles.welcomeTitle}>
@@ -187,14 +199,18 @@ export default function WelcomeScreen() {
             </ThemedView>
           </ThemedView>
         </ThemedView>
-      </ThemedView>
+      </ImageBackground>
     );
   }
 
   // الشاشات الفرعية
   return (
-    <ThemedView style={styles.container}>
-      <ThemedView style={styles.gradientBackground}>
+    <ImageBackground 
+      source={require('@/assets/images/background.png')} 
+      style={styles.container}
+      resizeMode="cover"
+    >
+      <ThemedView style={styles.overlay}>
         <ThemedView style={styles.dashboardContent}>
           <ThemedView style={styles.dashboardHeader}>
             <TouchableOpacity 
@@ -267,7 +283,7 @@ export default function WelcomeScreen() {
           )}
         </ThemedView>
       </ThemedView>
-    </ThemedView>
+    </ImageBackground>
   );
 }
 
@@ -275,10 +291,9 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
   },
-  gradientBackground: {
+  overlay: {
     flex: 1,
-    minHeight: '100%',
-    background: 'linear-gradient(135deg, #B8E6D6 0%, #F0FAF7 50%, #FFFFFF 100%)',
+    backgroundColor: 'rgba(255, 255, 255, 0.1)',
   },
   welcomeContent: {
     flex: 1,
@@ -286,6 +301,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     padding: 20,
     paddingTop: 60,
+    backgroundColor: 'transparent',
   },
   loginContent: {
     flex: 1,
@@ -293,22 +309,24 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     padding: 20,
     paddingTop: 40,
+    backgroundColor: 'transparent',
   },
   dashboardContent: {
     flex: 1,
     padding: 20,
     paddingTop: 40,
+    backgroundColor: 'transparent',
   },
   iconContainer: {
     marginBottom: 30,
     padding: 20,
-    backgroundColor: 'rgba(255, 255, 255, 0.8)',
+    backgroundColor: 'rgba(255, 255, 255, 0.9)',
     borderRadius: 50,
     shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
-    elevation: 3,
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.3,
+    shadowRadius: 8,
+    elevation: 8,
   },
   title: {
     fontSize: 28,
@@ -348,11 +366,12 @@ const styles = StyleSheet.create({
     paddingVertical: 15,
     paddingHorizontal: 40,
     borderRadius: 25,
+    backgroundColor: '#2E8B6F',
     shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.2,
-    shadowRadius: 4,
-    elevation: 4,
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.3,
+    shadowRadius: 8,
+    elevation: 8,
   },
   buttonText: {
     color: 'white',
@@ -379,11 +398,12 @@ const styles = StyleSheet.create({
     paddingVertical: 15,
     paddingHorizontal: 20,
     borderRadius: 15,
+    backgroundColor: '#2E8B6F',
     shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.2,
-    shadowRadius: 4,
-    elevation: 4,
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.3,
+    shadowRadius: 8,
+    elevation: 8,
   },
   loginButtonText: {
     color: 'white',
@@ -397,13 +417,13 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     marginBottom: 30,
     padding: 20,
-    backgroundColor: 'rgba(255, 255, 255, 0.8)',
+    backgroundColor: 'rgba(255, 255, 255, 0.9)',
     borderRadius: 15,
     shadowColor: '#000',
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.1,
-    shadowRadius: 2,
-    elevation: 2,
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.2,
+    shadowRadius: 8,
+    elevation: 8,
   },
   welcomeTitle: {
     fontSize: 24,
@@ -425,11 +445,12 @@ const styles = StyleSheet.create({
     padding: 25,
     borderRadius: 20,
     alignItems: 'center',
+    backgroundColor: 'rgba(255, 255, 255, 0.9)',
     shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
-    elevation: 3,
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.2,
+    shadowRadius: 8,
+    elevation: 8,
   },
   sectionTitle: {
     fontSize: 18,
