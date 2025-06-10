@@ -39,7 +39,7 @@ export default function TabLayout() {
       <Tabs.Screen
         name="performance"
         options={{
-          title: 'محاور الأداء',
+          title: 'الأداء المهني',
           tabBarIcon: ({ color }) => <IconSymbol size={28} name="chart.bar.fill" color={color} />,
         }}
       />
