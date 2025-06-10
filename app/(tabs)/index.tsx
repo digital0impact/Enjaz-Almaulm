@@ -66,11 +66,9 @@ export default function HomeScreen() {
       <ThemedView style={styles.container}>
         <ThemedView style={styles.gradientBackground}>
           <ThemedView style={styles.welcomeContent}>
-            <Image 
-              source={require('@/assets/images/logo.png')}
-              style={styles.logo}
-              resizeMode="contain"
-            />
+            <ThemedView style={styles.logoContainer}>
+              <IconSymbol size={80} name="book.fill" color="#007AFF" />
+            </ThemedView>
             <ThemedText type="title" style={styles.title}>
               البورتفوليو الرقمي للمعلم
             </ThemedText>
@@ -252,10 +250,16 @@ const styles = StyleSheet.create({
   gradientBackground: {
     flex: 1,
   },
-  logo: {
+  logoContainer: {
     width: 120,
     height: 120,
     marginBottom: 30,
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: '#F8F9FA',
+    borderRadius: 60,
+    borderWidth: 2,
+    borderColor: '#007AFF',
   },
   welcomeContent: {
     flex: 1,
