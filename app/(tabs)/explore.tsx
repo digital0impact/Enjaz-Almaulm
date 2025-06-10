@@ -36,7 +36,7 @@ export default function ToolsScreen() {
     },
     {
       id: 4,
-      title: 'متتبع الغياب',
+      title: 'إدارة الغياب',
       description: 'تتبع وإدارة غياب الطلاب والحضور',
       icon: 'person.crop.circle.badge.xmark',
       color: '#9C27B0',
