@@ -11,102 +11,206 @@ export default function PerformanceScreen() {
     {
       id: 1,
       title: 'أداء الواجبات الوظيفية',
-      score: 95,
+      score: 0,
       weight: 10,
-      description: 'التقيد بالدوام الرسمي، تأدية الحصص وفق الجدول الدراسي، المشاركة في الإشراف والانتظار والمناوبة، إعداد الدروس والاختبارات والواجبات',
-      details: 'التزام عالي بالدوام الرسمي، تنفيذ ممتاز للحصص الدراسية وفق الجدول المحدد، ومشاركة فعالة في الإشراف والمناوبة والانتظار. إعداد منتظم ومتقن للدروس والاختبارات والواجبات.',
-      evidence: 'سجل الدوام، سجل المناوبة، سجل الانتظار، خطة توزيع المنهج',
+      evidenceCompletion: 0,
+      totalEvidence: 4,
+      examples: [
+        'التقيد بالدوام الرسمي',
+        'تأدية الحصص الدراسية وفق الجدول الدراسي',
+        'المشاركة في الإشراف والمناوبة وحصص الانتظار',
+        'إعداد ومتابعة الدروس والواجبات والاختبارات'
+      ],
+      evidenceRequired: [
+        'سجل الدوام الرسمي',
+        'سجل المناوبة والإشراف اليومي',
+        'سجل الانتظار',
+        'خطة توزيع المنهج'
+      ]
     },
     {
       id: 2,
       title: 'التفاعل مع المجتمع المهني',
-      score: 88,
+      score: 0,
       weight: 10,
-      description: 'المشاركة في مجتمعات التعلم المهنية، تبادل الزيارات الصفية، تنفيذ الدروس التطبيقية، بحث الدرس، حضور الدورات والورش التدريبية',
-      details: 'مشاركة نشطة في مجتمعات التعلم المهنية، تبادل منتظم للزيارات الصفية، وتنفيذ دروس تطبيقية متميزة. إجراء بحوث دروس وحضور مستمر للدورات التدريبية والورش التطويرية.',
-      evidence: 'سجل مجتمعات التعلم المهنية، سجل تبادل الزيارات، تقرير تنفيذ درس تطبيقي، شهادات حضور الدورات',
+      evidenceCompletion: 0,
+      totalEvidence: 4,
+      examples: [
+        'المشاركة الفاعلة في مجتمعات التعلم المهنية',
+        'تبادل الزيارات',
+        'الدروس التطبيقية',
+        'بحث الدرس',
+        'حضور الدورات والورش التدريبية'
+      ],
+      evidenceRequired: [
+        'سجل مجتمعات التعلم المهنية',
+        'سجل تبادل الزيارات',
+        'تقرير تنفيذ درس تطبيقي',
+        'شهادات حضور الدورات والورش التدريبية'
+      ]
     },
     {
       id: 3,
       title: 'التفاعل مع أولياء الأمور',
-      score: 92,
+      score: 0,
       weight: 10,
-      description: 'التواصل الفعّال مع أولياء الأمور، تزويد أولياء الأمور بمستويات الطلاب، إيصال الملاحظات الهامة، تفعيل الخطة الأسبوعية للمدرسة، المشاركة في الجمعية العمومية',
-      details: 'تواصل ممتاز مع أولياء الأمور وتزويدهم بمستويات أبنائهم بشكل دوري، إيصال الملاحظات الهامة، وتفعيل فعال للخطة الأسبوعية. مشاركة نشطة في الجمعية العمومية.',
-      evidence: 'صور من الجمعية العمومية، تقرير اجتماع مع ولي أمر، نسخة من الخطة الأسبوعية',
+      evidenceCompletion: 0,
+      totalEvidence: 3,
+      examples: [
+        'التواصل الفعال مع أولياء الأمور بالتنسيق مع الموجه الطلابي',
+        'تزويد أولياء الأمور بمستويات الطلاب',
+        'إيصال الملاحظات الهامة لأولياء الأمور',
+        'تفعيل الخطة الأسبوعية للمدرسة',
+        'المشاركة الفاعلة في الجمعية العمومية للمعلمين وأولياء الأمور'
+      ],
+      evidenceRequired: [
+        'صور من الجمعية العمومية لأولياء الأمور والمعلمين',
+        'تقرير اجتماع ولي الأمر مع المعلم',
+        'نسخة من الخطة الأسبوعية للمدرسة'
+      ]
     },
     {
       id: 4,
       title: 'التنويع في استراتيجيات التدريس',
-      score: 87,
+      score: 0,
       weight: 10,
-      description: 'استخدام استراتيجيات متنوعة، مراعاة الفروق الفردية، تطبيق استراتيجيات تناسب مستويات الطلاب',
-      details: 'تطبيق متميز لاستراتيجيات تدريس متنوعة ومتطورة، مراعاة دقيقة للفروق الفردية بين الطلاب، واستخدام استراتيجيات تلائم جميع مستويات الطلاب المختلفة.',
-      evidence: 'تقرير عن تطبيق استراتيجية، ملف إنجاز المعلم',
+      evidenceCompletion: 0,
+      totalEvidence: 2,
+      examples: [
+        'استخدام استراتيجيات متنوعة',
+        'تناسب مستويات الطلاب',
+        'مراعاة الفروق الفردية'
+      ],
+      evidenceRequired: [
+        'تقرير عن تطبيق استراتيجية',
+        'ملف إنجاز المعلم'
+      ]
     },
     {
       id: 5,
       title: 'تحسين نتائج المتعلمين',
-      score: 85,
+      score: 0,
       weight: 10,
-      description: 'معالجة الفاقد التعليمي، وضع خطط علاجية للطلاب الضعاف، وضع خطط إثرائية للمتميزين، تكريم الطلاب المتحسنين',
-      details: 'جهود متميزة في معالجة الفاقد التعليمي، وضع خطط علاجية شاملة للطلاب الضعاف وخطط إثرائية للمتميزين، مع تكريم منتظم للطلاب المتحسنين.',
-      evidence: 'نتائج الاختبارات القبلية والبعدية، كشف متابعة الطلاب',
+      evidenceCompletion: 0,
+      totalEvidence: 2,
+      examples: [
+        'معالجة الفاقد التعليمي',
+        'وضع الخطط العلاجية للطلاب الضعاف',
+        'وضع الخطط الإثرائية للطلاب المتميزين',
+        'تكريم الطلاب المتميزين والذين تحسن مستواهم'
+      ],
+      evidenceRequired: [
+        'نتائج الاختبار القبلي والبعدي',
+        'كشف متابعة الطلاب'
+      ]
     },
     {
       id: 6,
       title: 'إعداد وتنفيذ خطة التعلم',
-      score: 90,
+      score: 0,
       weight: 10,
-      description: 'توزيع المنهج، إعداد الدروس والواجبات والاختبارات',
-      details: 'تخطيط منهجي ومتقن لتوزيع المنهج بما يتناسب مع الزمن المتاح، إعداد دروس شاملة ومتنوعة، وتصميم واجبات واختبارات تتماشى مع أهداف التعلم.',
-      evidence: 'نموذج إعداد درس، نماذج من الواجبات والاختبارات',
+      evidenceCompletion: 0,
+      totalEvidence: 3,
+      examples: [
+        'توزيع المنهج وإعداد الدروس',
+        'إعداد الواجبات والاختبارات',
+        'تنفيذ الدروس'
+      ],
+      evidenceRequired: [
+        'خطة توزيع المنهج',
+        'نموذج من إعداد الدروس',
+        'نماذج من الواجبات والاختبارات'
+      ]
     },
     {
       id: 7,
-      title: 'توظيف التقنيات ووسائل التعلم',
-      score: 82,
+      title: 'توظيف تقنيات ووسائل التعلم المناسبة',
+      score: 0,
       weight: 10,
-      description: 'دمج التقنية في التعليم، التنويع في الوسائل التعليمية',
-      details: 'استخدام متطور للتقنيات الحديثة في التعليم، تنويع إبداعي في الوسائل التعليمية المستخدمة، مع دمج فعال للتقنية في العملية التعليمية.',
-      evidence: 'صور للوسائل المستخدمة، تقرير عن برنامج تقني تم استخدامه',
+      evidenceCompletion: 0,
+      totalEvidence: 2,
+      examples: [
+        'دمج التقنية في التعليم',
+        'التنويع في الوسائل التعليمية'
+      ],
+      evidenceRequired: [
+        'صور من الوسائل التعليمية المستخدمة',
+        'تقرير عن برنامج تقني تم استخدامه'
+      ]
     },
     {
       id: 8,
       title: 'تهيئة البيئة التعليمية',
-      score: 89,
+      score: 0,
       weight: 5,
-      description: 'مراعاة حاجات الطلاب، تهيئة نفسية ومادية ومعنوية مناسبة',
-      details: 'اهتمام ممتاز بتهيئة بيئة تعليمية محفزة ومناسبة، مراعاة شاملة لحاجات الطلاب النفسية والمادية والمعنوية، وتصنيف دقيق للطلاب حسب أنماط التعلم.',
-      evidence: 'تقرير تصنيف الطلاب وفق أنماط التعلم، نماذج من أدوات التحفيز',
+      evidenceCompletion: 0,
+      totalEvidence: 2,
+      examples: [
+        'مراعاة حاجات الطلاب',
+        'التهيئة النفسية للطلاب',
+        'التحفيز المادي والمعنوي',
+        'توفير متطلبات الدرس'
+      ],
+      evidenceRequired: [
+        'تقرير تصنيف الطلاب وفق أنماط التعلم',
+        'نماذج من التحفيز المادي والمعنوي'
+      ]
     },
     {
       id: 9,
       title: 'الإدارة الصفية',
-      score: 93,
+      score: 0,
       weight: 5,
-      description: 'ضبط سلوك الطلاب، شد انتباه الطلاب، مراعاة الفروق الفردية',
-      details: 'إدارة متميزة للصف، مهارات عالية في ضبط سلوك الطلاب وشد انتباههم، مع مراعاة دقيقة للفروق الفردية ومتابعة مستمرة للحضور والانضباط.',
-      evidence: 'كشف متابعة الحضور والغياب والتأخر، تطبيق إدارة الصف',
+      evidenceCompletion: 0,
+      totalEvidence: 2,
+      examples: [
+        'ضبط سلوك الطلاب',
+        'شد انتباه الطلاب',
+        'مراعاة الفروق الفردية',
+        'متابعة الحضور والغياب والتأخر'
+      ],
+      evidenceRequired: [
+        'كشف المتابعة',
+        'تطبيق إدارة الصف'
+      ]
     },
     {
       id: 10,
       title: 'تحليل نتائج المتعلمين وتشخيص مستوياتهم',
-      score: 86,
+      score: 0,
       weight: 10,
-      description: 'تحليل نتائج الاختبارات الفصلية والنهائية، تصنيف الطلاب حسب نتائجهم، معالجة الفاقد التعليمي',
-      details: 'تحليل شامل ودقيق لنتائج الاختبارات الفصلية والنهائية، تصنيف علمي للطلاب حسب نتائجهم ومستوياتهم، ووضع خطط فعالة لمعالجة الفاقد التعليمي.',
-      evidence: 'تقرير تحليل نتائج الطلاب، سجل معالجة الفاقد التعليمي',
+      evidenceCompletion: 0,
+      totalEvidence: 2,
+      examples: [
+        'تحليل نتائج الاختبارات الفترية والنهائية',
+        'تصنيف الطلاب وفق نتائجهم',
+        'معالجة الفاقد التعليمي',
+        'تحديد نقاط القوة والضعف'
+      ],
+      evidenceRequired: [
+        'تقرير تحليل نتائج الطلاب',
+        'سجل معالجة الفاقد التعليمي'
+      ]
     },
     {
       id: 11,
       title: 'تنويع أساليب التقويم',
-      score: 84,
+      score: 0,
       weight: 10,
-      description: 'تطبيق الاختبارات الورقية والإلكترونية، المشاريع الطلابية، المهام الأدائية، ملفات الإنجاز',
-      details: 'تنويع شامل في أساليب التقويم بين الاختبارات الورقية والإلكترونية، تنفيذ مشاريع طلابية متنوعة ومبتكرة، وإنشاء مهام أدائية وملفات إنجاز شاملة.',
-      evidence: 'نماذج من الاختبارات، نماذج من المشاريع والمهام، نماذج من ملفات الإنجاز',
-    },
+      evidenceCompletion: 0,
+      totalEvidence: 3,
+      examples: [
+        'تطبيق الاختبارات الورقية والإلكترونية',
+        'المشاريع الطلابية',
+        'المهام الأدائية',
+        'ملفات إنجاز الطلاب'
+      ],
+      evidenceRequired: [
+        'نماذج من الاختبارات',
+        'نماذج من ملفات إنجاز الطلاب',
+        'نماذج من المهام الأدائية ومشاريع الطلاب'
+      ]
+    }
   ]);
 
   const [selectedPerformance, setSelectedPerformance] = useState<number | null>(null);
@@ -144,6 +248,10 @@ export default function PerformanceScreen() {
     const weightedSum = performanceData.reduce((acc, item) => acc + (item.score * item.weight), 0);
     const totalWeight = performanceData.reduce((acc, item) => acc + item.weight, 0);
     return Math.round(weightedSum / totalWeight);
+  };
+
+  const getEvidenceCompletionPercentage = (evidenceCompletion: number, totalEvidence: number) => {
+    return totalEvidence > 0 ? Math.round((evidenceCompletion / totalEvidence) * 100) : 0;
   };
 
   return (
@@ -195,11 +303,8 @@ export default function PerformanceScreen() {
                     <ThemedText type="defaultSemiBold" style={styles.cardTitle}>
                       {item.title}
                     </ThemedText>
-                    <ThemedText style={styles.cardDescription}>
-                      {item.description}
-                    </ThemedText>
                     <ThemedText style={styles.weightText}>
-                      الوزن: {item.weight}%
+                      وزن {item.weight}%
                     </ThemedText>
                   </ThemedView>
                 </ThemedView>
@@ -207,8 +312,14 @@ export default function PerformanceScreen() {
                   <ThemedText style={[styles.score, { color: getScoreColor(item.score) }]}>
                     {item.score}%
                   </ThemedText>
-                  <ThemedText style={[styles.scoreLevel, { color: getScoreColor(item.score) }]}>
-                    {getScoreLevel(item.score)}
+                  <ThemedText style={styles.evidenceCompletion}>
+                    اكتمال الشواهد
+                  </ThemedText>
+                  <ThemedText style={styles.evidenceCount}>
+                    {getEvidenceCompletionPercentage(item.evidenceCompletion, item.totalEvidence)}%
+                  </ThemedText>
+                  <ThemedText style={styles.evidenceRatio}>
+                    {item.evidenceCompletion}/{item.totalEvidence}
                   </ThemedText>
                 </ThemedView>
               </ThemedView>
@@ -225,13 +336,33 @@ export default function PerformanceScreen() {
                 />
               </ThemedView>
 
+              <ThemedView style={styles.actionButtonsRow}>
+                <TouchableOpacity style={styles.saveButton}>
+                  <ThemedText style={styles.actionButtonText}>حفظ</ThemedText>
+                </TouchableOpacity>
+                <TouchableOpacity style={styles.editButton}>
+                  <ThemedText style={styles.actionButtonText}>تحرير</ThemedText>
+                </TouchableOpacity>
+              </ThemedView>
+
               {selectedPerformance === item.id && (
                 <ThemedView style={styles.detailsContainer}>
-                  <ThemedText style={styles.detailsTitle}>تفاصيل التقييم:</ThemedText>
-                  <ThemedText style={styles.detailsText}>{item.details}</ThemedText>
+                  <ThemedText style={styles.examplesTitle}>أمثلة على تحقق العنصر:</ThemedText>
+                  {item.examples.map((example, idx) => (
+                    <ThemedText key={idx} style={styles.exampleText}>• {example}</ThemedText>
+                  ))}
                   
                   <ThemedText style={styles.evidenceTitle}>الشواهد المطلوبة:</ThemedText>
-                  <ThemedText style={styles.evidenceText}>{item.evidence}</ThemedText>
+                  <TouchableOpacity style={styles.addEvidenceButton}>
+                    <ThemedText style={styles.addEvidenceText}>إضافة شاهد</ThemedText>
+                  </TouchableOpacity>
+                  
+                  {item.evidenceRequired.map((evidence, idx) => (
+                    <ThemedView key={idx} style={styles.evidenceItem}>
+                      <ThemedText style={styles.evidenceText}>{evidence}</ThemedText>
+                      <ThemedText style={styles.evidenceStatus}>غير متوفر</ThemedText>
+                    </ThemedView>
+                  ))}
                 </ThemedView>
               )}
 
@@ -366,11 +497,6 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
     marginBottom: 5,
   },
-  cardDescription: {
-    fontSize: 14,
-    color: '#666666',
-    lineHeight: 18,
-  },
   scoreContainer: {
     alignItems: 'center',
   },
@@ -378,9 +504,19 @@ const styles = StyleSheet.create({
     fontSize: 24,
     fontWeight: 'bold',
   },
-  scoreLevel: {
+  evidenceCompletion: {
     fontSize: 12,
-    fontWeight: '600',
+    color: '#666666',
+    marginTop: 5,
+  },
+  evidenceCount: {
+    fontSize: 14,
+    fontWeight: 'bold',
+    color: '#007AFF',
+  },
+  evidenceRatio: {
+    fontSize: 12,
+    color: '#666666',
   },
   progressBar: {
     height: 8,
@@ -393,6 +529,28 @@ const styles = StyleSheet.create({
     height: '100%',
     borderRadius: 4,
   },
+  actionButtonsRow: {
+    flexDirection: 'row',
+    gap: 10,
+    marginBottom: 10,
+  },
+  saveButton: {
+    backgroundColor: '#4CAF50',
+    paddingVertical: 8,
+    paddingHorizontal: 20,
+    borderRadius: 8,
+  },
+  editButton: {
+    backgroundColor: '#FF9800',
+    paddingVertical: 8,
+    paddingHorizontal: 20,
+    borderRadius: 8,
+  },
+  actionButtonText: {
+    color: 'white',
+    fontSize: 14,
+    fontWeight: '600',
+  },
   detailsContainer: {
     marginTop: 10,
     padding: 15,
@@ -401,28 +559,56 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: '#E5E5EA',
   },
-  detailsTitle: {
+  examplesTitle: {
     fontSize: 14,
     fontWeight: 'bold',
     marginBottom: 8,
     color: '#007AFF',
   },
-  detailsText: {
+  exampleText: {
     fontSize: 14,
     color: '#666666',
     lineHeight: 20,
-    marginBottom: 10,
+    marginBottom: 5,
   },
   evidenceTitle: {
     fontSize: 14,
     fontWeight: 'bold',
+    marginTop: 15,
     marginBottom: 8,
     color: '#4CAF50',
   },
+  addEvidenceButton: {
+    backgroundColor: '#E3F2FD',
+    paddingVertical: 8,
+    paddingHorizontal: 15,
+    borderRadius: 8,
+    marginBottom: 10,
+    alignSelf: 'flex-start',
+  },
+  addEvidenceText: {
+    color: '#007AFF',
+    fontSize: 14,
+    fontWeight: '600',
+  },
+  evidenceItem: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    paddingVertical: 8,
+    paddingHorizontal: 10,
+    backgroundColor: '#F5F5F5',
+    borderRadius: 8,
+    marginBottom: 5,
+  },
   evidenceText: {
     fontSize: 14,
-    color: '#666666',
-    lineHeight: 20,
+    color: '#333333',
+    flex: 1,
+  },
+  evidenceStatus: {
+    fontSize: 12,
+    color: '#F44336',
     fontStyle: 'italic',
   },
   weightText: {
