@@ -31,6 +31,10 @@ const MAPPING = {
   'lightbulb.fill': 'lightbulb',
   'doc.text.fill': 'description',
   'arrow.up.doc.fill': 'upload-file',
+  'bell.fill': 'notifications',
+  'person.crop.circle.badge.xmark': 'person-remove',
+  'calendar.badge.clock': 'event',
+  'calendar.badge.exclamationmark': 'event-note',
 } as IconMapping;
 
 /**
