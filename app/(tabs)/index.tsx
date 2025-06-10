@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { StyleSheet, TouchableOpacity, Alert, ImageBackground } from 'react-native';
+import { StyleSheet, TouchableOpacity, Alert, ImageBackground, Image } from 'react-native';
 import { ThemedText } from '@/components/ThemedText';
 import { ThemedView } from '@/components/ThemedView';
 import { IconSymbol } from '@/components/ui/IconSymbol';
@@ -63,8 +63,12 @@ export default function WelcomeScreen() {
       >
         <ThemedView style={styles.overlay}>
           <ThemedView style={styles.welcomeContent}>
-            <ThemedView style={styles.iconContainer}>
-              <IconSymbol size={80} name="graduationcap.fill" color="#4CAF50" />
+            <ThemedView style={styles.logoContainer}>
+              <Image 
+                source={require('@/assets/images/logo.png')} 
+                style={styles.logo}
+                resizeMode="contain"
+              />
             </ThemedView>
             <ThemedText type="title" style={styles.title}>
               البورتفوليو الرقمي للمعلم
@@ -327,6 +331,21 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.3,
     shadowRadius: 8,
     elevation: 8,
+  },
+  logoContainer: {
+    marginBottom: 30,
+    padding: 20,
+    backgroundColor: 'rgba(255, 255, 255, 0.9)',
+    borderRadius: 30,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.3,
+    shadowRadius: 8,
+    elevation: 8,
+  },
+  logo: {
+    width: 120,
+    height: 120,
   },
   title: {
     fontSize: 28,
