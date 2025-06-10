@@ -15,6 +15,7 @@ export default function PerformanceScreen() {
       weight: 10,
       description: 'التقيد بالدوام الرسمي وتأدية الحصص وفق الجدول والمشاركة في المناوبة',
       details: 'التزام عالي بالدوام الرسمي، تنفيذ ممتاز للحصص الدراسية، ومشاركة فعالة في الإشراف والمناوبة. إعداد منتظم للدروس ومتابعة دقيقة للواجبات والاختبارات.',
+      evidence: 'سجل الدوام، المناوبة، الانتظار، خطة توزيع المنهج',
     },
     {
       id: 2,
@@ -23,6 +24,7 @@ export default function PerformanceScreen() {
       weight: 10,
       description: 'المشاركة الفاعلة في مجتمعات التعلم المهنية وحضور الدورات التدريبية',
       details: 'مشاركة نشطة في مجتمعات التعلم المهنية، تبادل منتظم للزيارات، وتنفيذ دروس تطبيقية. حضور مستمر للدورات التدريبية والورش التطويرية.',
+      evidence: 'تقارير/شهادات الدورات والزيارات، بحث الدرس',
     },
     {
       id: 3,
@@ -31,6 +33,7 @@ export default function PerformanceScreen() {
       weight: 10,
       description: 'التواصل الفعال مع أولياء الأمور وتزويدهم بمستوى الطلاب',
       details: 'تواصل ممتاز مع أولياء الأمور، إبلاغ دوري عن مستوى الطلاب والملاحظات الهامة، ومشاركة فعالة في الجمعية العمومية وفعاليات المدرسة.',
+      evidence: 'تقارير الاجتماعات وصور الفعاليات، تفعيل الخطة الأسبوعية',
     },
     {
       id: 4,
@@ -39,6 +42,7 @@ export default function PerformanceScreen() {
       weight: 10,
       description: 'استخدام استراتيجيات متنوعة تناسب مستويات الطلاب مع مراعاة الفروق الفردية',
       details: 'تطبيق متميز لاستراتيجيات تدريس متنوعة تلائم جميع مستويات الطلاب، مع اهتمام خاص بالفروق الفردية وتوثيق ممتاز لهذه الممارسات.',
+      evidence: 'تقرير عن تطبيق استراتيجيات، ملف إنجاز المعلم',
     },
     {
       id: 5,
@@ -47,6 +51,7 @@ export default function PerformanceScreen() {
       weight: 10,
       description: 'معالجة الفاقد التعليمي وإعداد خطط علاجية وإثرائية',
       details: 'جهود جيدة في معالجة الفاقد التعليمي، وضع خطط علاجية للطلاب الضعاف وخطط إثرائية للمتميزين، مع متابعة مستمرة لتحسن الطلاب.',
+      evidence: 'نتائج الاختبارات (قبلي/بعدي)، كشف متابعة الطلاب، تكريم الطلاب المتحسنين',
     },
     {
       id: 6,
@@ -55,6 +60,7 @@ export default function PerformanceScreen() {
       weight: 10,
       description: 'توزيع المنهج وإعداد الدروس والواجبات والاختبارات',
       details: 'تخطيط منهجي ومتقن لتوزيع المنهج، إعداد دروس شاملة ومتنوعة، وتصميم واجبات واختبارات تتماشى مع أهداف التعلم.',
+      evidence: 'نماذج من إعداد الدروس والواجبات، توزيع المنهج',
     },
     {
       id: 7,
@@ -63,6 +69,7 @@ export default function PerformanceScreen() {
       weight: 10,
       description: 'دمج التقنية في التعليم والتنويع في الوسائل التعليمية',
       details: 'استخدام جيد للتقنيات الحديثة في التعليم، تنويع مناسب في الوسائل التعليمية، مع إمكانية التطوير في استخدام التقنيات المتقدمة.',
+      evidence: 'صور/تقرير عن الوسائل أو البرامج المستخدمة',
     },
     {
       id: 8,
@@ -71,6 +78,7 @@ export default function PerformanceScreen() {
       weight: 5,
       description: 'مراعاة حاجات الطلاب والتهيئة النفسية والمادية والمعنوية',
       details: 'اهتمام ممتاز بتهيئة بيئة تعليمية محفزة، مراعاة دقيقة لحاجات الطلاب النفسية والمادية، وتصنيف فعال للطلاب حسب أنماط التعلم.',
+      evidence: 'تقرير تصنيف الطلاب حسب أنماط التعلم، نماذج التحفيز',
     },
     {
       id: 9,
@@ -79,6 +87,7 @@ export default function PerformanceScreen() {
       weight: 5,
       description: 'ضبط سلوك الطلاب وجذب انتباههم مع مراعاة الفروق الفردية',
       details: 'إدارة ممتازة للصف، مهارات عالية في ضبط سلوك الطلاب وجذب انتباههم، مع متابعة دقيقة للحضور والانضباط.',
+      evidence: 'كشف المتابعة وتطبيق إدارة الصف، متابعة الحضور والتأخر',
     },
     {
       id: 10,
@@ -87,6 +96,7 @@ export default function PerformanceScreen() {
       weight: 10,
       description: 'تحليل نتائج الاختبارات وتصنيف الطلاب وتحديد نقاط القوة والضعف',
       details: 'تحليل شامل لنتائج الاختبارات الفترية والنهائية، تصنيف دقيق للطلاب حسب مستوياتهم، وتحديد واضح لنقاط القوة والضعف لكل طالب.',
+      evidence: 'تقارير وسجلات تحليل النتائج، تصنيف الطلاب حسب نتائجهم',
     },
     {
       id: 11,
@@ -95,6 +105,7 @@ export default function PerformanceScreen() {
       weight: 10,
       description: 'تطبيق الاختبارات الورقية والإلكترونية والمشاريع الطلابية والمهام الأدائية',
       details: 'تنويع جيد في أساليب التقويم بين الاختبارات الورقية والإلكترونية، تنفيذ مشاريع طلابية متنوعة، وإنشاء ملفات إنجاز شاملة للطلاب.',
+      evidence: 'نماذج من المشاريع والمهام والاختبارات، ملفات إنجاز الطلاب',
     },
   ]);
 
@@ -140,10 +151,10 @@ export default function PerformanceScreen() {
       <ThemedView style={styles.header}>
         <IconSymbol size={60} name="chart.bar.fill" color="#FF9800" />
         <ThemedText type="title" style={styles.title}>
-          محاور الأداء المهني
+          عناصر تقييم الأداء الوظيفي للمعلمين
         </ThemedText>
         <ThemedText style={styles.subtitle}>
-          تقييم شامل لأدائك في المجالات المهنية المختلفة
+          تقييم شامل لأدائك في المجالات المهنية المختلفة وفقاً للنظام المعتمد
         </ThemedText>
       </ThemedView>
 
@@ -164,10 +175,10 @@ export default function PerformanceScreen() {
 
         <ThemedView style={styles.performanceList}>
           <ThemedText type="subtitle" style={styles.sectionTitle}>
-            تفاصيل محاور الأداء
+            تفاصيل عناصر التقييم
           </ThemedText>
 
-          {performanceData.map((item) => (
+          {performanceData.map((item, index) => (
             <TouchableOpacity
               key={item.id}
               style={styles.performanceCard}
@@ -177,15 +188,20 @@ export default function PerformanceScreen() {
             >
               <ThemedView style={styles.cardHeader}>
                 <ThemedView style={styles.cardTitleContainer}>
-                  <ThemedText type="defaultSemiBold" style={styles.cardTitle}>
-                    {item.title}
+                  <ThemedText style={styles.itemNumber}>
+                    {index + 1}.
                   </ThemedText>
-                  <ThemedText style={styles.cardDescription}>
-                    {item.description}
-                  </ThemedText>
-                  <ThemedText style={styles.weightText}>
-                    الوزن: {item.weight}%
-                  </ThemedText>
+                  <ThemedView style={styles.cardContent}>
+                    <ThemedText type="defaultSemiBold" style={styles.cardTitle}>
+                      {item.title}
+                    </ThemedText>
+                    <ThemedText style={styles.cardDescription}>
+                      {item.description}
+                    </ThemedText>
+                    <ThemedText style={styles.weightText}>
+                      الوزن: {item.weight}%
+                    </ThemedText>
+                  </ThemedView>
                 </ThemedView>
                 <ThemedView style={styles.scoreContainer}>
                   <ThemedText style={[styles.score, { color: getScoreColor(item.score) }]}>
@@ -213,6 +229,9 @@ export default function PerformanceScreen() {
                 <ThemedView style={styles.detailsContainer}>
                   <ThemedText style={styles.detailsTitle}>تفاصيل التقييم:</ThemedText>
                   <ThemedText style={styles.detailsText}>{item.details}</ThemedText>
+                  
+                  <ThemedText style={styles.evidenceTitle}>الشواهد المطلوبة:</ThemedText>
+                  <ThemedText style={styles.evidenceText}>{item.evidence}</ThemedText>
                 </ThemedView>
               )}
 
@@ -261,10 +280,11 @@ const styles = StyleSheet.create({
     borderBottomColor: '#E5E5EA',
   },
   title: {
-    fontSize: 24,
+    fontSize: 22,
     fontWeight: 'bold',
     marginTop: 15,
     marginBottom: 5,
+    textAlign: 'center',
   },
   subtitle: {
     fontSize: 16,
@@ -328,7 +348,18 @@ const styles = StyleSheet.create({
   },
   cardTitleContainer: {
     flex: 1,
+    flexDirection: 'row',
     marginRight: 15,
+  },
+  itemNumber: {
+    fontSize: 16,
+    fontWeight: 'bold',
+    color: '#007AFF',
+    marginRight: 10,
+    marginTop: 2,
+  },
+  cardContent: {
+    flex: 1,
   },
   cardTitle: {
     fontSize: 16,
@@ -380,6 +411,19 @@ const styles = StyleSheet.create({
     fontSize: 14,
     color: '#666666',
     lineHeight: 20,
+    marginBottom: 10,
+  },
+  evidenceTitle: {
+    fontSize: 14,
+    fontWeight: 'bold',
+    marginBottom: 8,
+    color: '#4CAF50',
+  },
+  evidenceText: {
+    fontSize: 14,
+    color: '#666666',
+    lineHeight: 20,
+    fontStyle: 'italic',
   },
   weightText: {
     fontSize: 12,
