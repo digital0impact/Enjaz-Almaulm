@@ -5,6 +5,13 @@ import { ThemedView } from '@/components/ThemedView';
 import { IconSymbol } from '@/components/ui/IconSymbol';
 
 export default function ToolsScreen() {
+  const getCurrentDate = () => {
+    const today = new Date();
+    const gregorian = today.toLocaleDateString('ar-SA');
+    const hijri = today.toLocaleDateString('ar-SA-u-ca-islamic');
+    return { gregorian, hijri };
+  };
+
   const handleToolPress = (tool: string) => {
     if (tool === 'إدارة الغياب') {
       Alert.alert(
@@ -21,6 +28,26 @@ export default function ToolsScreen() {
           },
           {
             text: 'إلغاء',
+            style: 'cancel'
+          }
+        ]
+      );
+    } else if (tool === 'التقويم الهجري والميلادي') {
+      const { gregorian, hijri } = getCurrentDate();
+      Alert.alert(
+        'التقويم الهجري والميلادي',
+        `التاريخ الميلادي: ${gregorian}\nالتاريخ الهجري: ${hijri}`,
+        [
+          {
+            text: 'محول التاريخ',
+            onPress: () => Alert.alert('محول التاريخ', 'سيتم فتح أداة تحويل التاريخ بين الهجري والميلادي')
+          },
+          {
+            text: 'التقويم الشهري',
+            onPress: () => Alert.alert('التقويم الشهري', 'سيتم عرض التقويم الشهري بالتاريخين الهجري والميلادي')
+          },
+          {
+            text: 'إغلاق',
             style: 'cancel'
           }
         ]
