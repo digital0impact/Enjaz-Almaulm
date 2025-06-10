@@ -1001,15 +1001,7 @@ export default function ToolsScreen() {
     },
   ];
 
-  const getToolUsageStats = () => {
-    return {
-      totalTools: tools.length,
-      frequentlyUsed: 2,
-      recentlyUsed: 3
-    };
-  };
-
-  const stats = getToolUsageStats();
+  
 
   return (
     <ScrollView style={styles.container}>
@@ -1024,25 +1016,6 @@ export default function ToolsScreen() {
       </ThemedView>
 
       <ThemedView style={styles.content}>
-        <ThemedView style={styles.summaryCard}>
-          <ThemedText type="subtitle" style={styles.summaryTitle}>
-            إحصائيات الأدوات
-          </ThemedText>
-          <ThemedView style={styles.statsContainer}>
-            <ThemedView style={styles.statItem}>
-              <ThemedText style={styles.statNumber}>{stats.totalTools}</ThemedText>
-              <ThemedText style={styles.statLabel}>إجمالي الأدوات</ThemedText>
-            </ThemedView>
-            <ThemedView style={styles.statItem}>
-              <ThemedText style={styles.statNumber}>{stats.frequentlyUsed}</ThemedText>
-              <ThemedText style={styles.statLabel}>الأكثر استخداماً</ThemedText>
-            </ThemedView>
-            <ThemedView style={styles.statItem}>
-              <ThemedText style={styles.statNumber}>{stats.recentlyUsed}</ThemedText>
-              <ThemedText style={styles.statLabel}>المستخدمة مؤخراً</ThemedText>
-            </ThemedView>
-          </ThemedView>
-        </ThemedView>
 
         <ThemedView style={styles.toolsList}>
           <ThemedText type="subtitle" style={styles.sectionTitle}>
@@ -1132,40 +1105,7 @@ const styles = StyleSheet.create({
     flex: 1,
     padding: 15,
   },
-  summaryCard: {
-    backgroundColor: '#fff',
-    borderRadius: 12,
-    padding: 20,
-    marginBottom: 20,
-    elevation: 2,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.1,
-    shadowRadius: 3,
-  },
-  summaryTitle: {
-    textAlign: 'center',
-    marginBottom: 15,
-    color: '#2196F3',
-  },
-  statsContainer: {
-    flexDirection: 'row',
-    justifyContent: 'space-around',
-  },
-  statItem: {
-    alignItems: 'center',
-  },
-  statNumber: {
-    fontSize: 24,
-    fontWeight: 'bold',
-    color: '#2196F3',
-  },
-  statLabel: {
-    fontSize: 12,
-    color: '#666',
-    marginTop: 4,
-    textAlign: 'center',
-  },
+  
   toolsList: {
     marginBottom: 20,
   },
