@@ -323,7 +323,7 @@ export default function PerformanceScreen() {
 
         <ThemedView style={styles.performanceList}>
           <ThemedText type="subtitle" style={styles.sectionTitle}>
-            تفاصيل عناصر التقييم
+            محاور تقييم الأداء المهني
           </ThemedText>
 
           {performanceData.map((item, index) => (
