@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { StyleSheet, ScrollView, TouchableOpacity, Alert, I18nManager } from 'react-native';
 import { ThemedText } from '@/components/ThemedText';
@@ -632,7 +633,15 @@ export default function ToolsScreen() {
     },
   ];
 
-  const categories = [...new Set(tools.map(tool => tool.category))];
+  const getToolUsageStats = () => {
+    return {
+      totalTools: tools.length,
+      frequentlyUsed: 2,
+      recentlyUsed: 3
+    };
+  };
+
+  const stats = getToolUsageStats();
 
   return (
     <ScrollView style={styles.container}>
@@ -647,54 +656,81 @@ export default function ToolsScreen() {
       </ThemedView>
 
       <ThemedView style={styles.content}>
-        {categories.map((category) => (
-          <ThemedView key={category} style={styles.categorySection}>
-            <ThemedView style={styles.toolsGrid}>
-              {tools
-                .filter(tool => tool.category === category)
-                .map((tool) => (
-                  <TouchableOpacity
-                    key={tool.id}
-                    style={styles.toolCard}
-                    onPress={() => handleToolPress(tool.title)}
-                  >
-                    <IconSymbol size={16} name="chevron.left" color="#666666" />
-                    <ThemedView style={styles.toolContent}>
-                      <ThemedText type="defaultSemiBold" style={styles.toolTitle}>
-                        {tool.title}
-                      </ThemedText>
-                      <ThemedText style={styles.toolDescription}>
-                        {tool.description}
-                      </ThemedText>
-                    </ThemedView>
-                    <ThemedView style={[styles.iconContainer, { backgroundColor: `${tool.color}15` }]}>
-                      <IconSymbol size={32} name={tool.icon as any} color={tool.color} />
-                    </ThemedView>
-                  </TouchableOpacity>
-                ))}
+        <ThemedView style={styles.summaryCard}>
+          <ThemedText type="subtitle" style={styles.summaryTitle}>
+            إحصائيات الأدوات
+          </ThemedText>
+          <ThemedView style={styles.statsContainer}>
+            <ThemedView style={styles.statItem}>
+              <ThemedText style={styles.statNumber}>{stats.totalTools}</ThemedText>
+              <ThemedText style={styles.statLabel}>إجمالي الأدوات</ThemedText>
+            </ThemedView>
+            <ThemedView style={styles.statItem}>
+              <ThemedText style={styles.statNumber}>{stats.frequentlyUsed}</ThemedText>
+              <ThemedText style={styles.statLabel}>الأكثر استخداماً</ThemedText>
+            </ThemedView>
+            <ThemedView style={styles.statItem}>
+              <ThemedText style={styles.statNumber}>{stats.recentlyUsed}</ThemedText>
+              <ThemedText style={styles.statLabel}>المستخدمة مؤخراً</ThemedText>
             </ThemedView>
           </ThemedView>
-        ))}
+        </ThemedView>
 
-        <ThemedView style={styles.helpSection}>
+        <ThemedView style={styles.toolsList}>
           <ThemedText type="subtitle" style={styles.sectionTitle}>
-            المساعدة والدعم
+            الأدوات المتاحة
           </ThemedText>
 
+          {tools.map((tool, index) => (
+            <TouchableOpacity
+              key={tool.id}
+              style={styles.toolCard}
+              onPress={() => handleToolPress(tool.title)}
+            >
+              <ThemedView style={styles.cardHeader}>
+                <ThemedView style={styles.cardTitleContainer}>
+                  <ThemedText style={styles.itemNumber}>
+                    {index + 1}.
+                  </ThemedText>
+                  <ThemedView style={styles.cardContent}>
+                    <ThemedText type="defaultSemiBold" style={styles.cardTitle}>
+                      {tool.title}
+                    </ThemedText>
+                    <ThemedText style={styles.cardDescription}>
+                      {tool.description}
+                    </ThemedText>
+                  </ThemedView>
+                </ThemedView>
+                <ThemedView style={[styles.iconContainer, { backgroundColor: `${tool.color}15` }]}>
+                  <IconSymbol size={32} name={tool.icon as any} color={tool.color} />
+                </ThemedView>
+              </ThemedView>
+
+              <IconSymbol 
+                size={16} 
+                name="chevron.left" 
+                color="#666666" 
+                style={styles.expandIcon}
+              />
+            </TouchableOpacity>
+          ))}
+        </ThemedView>
+
+        <ThemedView style={styles.actionButtons}>
           <TouchableOpacity 
-            style={styles.helpCard}
-            onPress={() => Alert.alert('المساعدة', 'يمكنك التواصل معنا عبر البريد الإلكتروني')}
+            style={styles.helpButton}
+            onPress={() => Alert.alert('المساعدة والدعم', 'يمكنك التواصل معنا عبر البريد الإلكتروني أو الهاتف للحصول على المساعدة')}
           >
-            <ThemedText style={styles.helpText}>الأسئلة الشائعة</ThemedText>
-            <IconSymbol size={24} name="questionmark.circle.fill" color="#4CAF50" />
+            <IconSymbol size={20} name="questionmark.circle.fill" color="white" />
+            <ThemedText style={styles.buttonText}>المساعدة والدعم</ThemedText>
           </TouchableOpacity>
 
           <TouchableOpacity 
-            style={styles.helpCard}
-            onPress={() => Alert.alert('الدعم الفني', 'سيتم التواصل معك قريباً')}
+            style={styles.feedbackButton}
+            onPress={() => Alert.alert('التقييم والاقتراحات', 'شاركنا رأيك واقتراحاتك لتحسين الأدوات')}
           >
-            <ThemedText style={styles.helpText}>الدعم الفني</ThemedText>
-            <IconSymbol size={24} name="phone.fill" color="#2196F3" />
+            <IconSymbol size={20} name="star.fill" color="white" />
+            <ThemedText style={styles.buttonText}>التقييم والاقتراحات</ThemedText>
           </TouchableOpacity>
         </ThemedView>
       </ThemedView>
@@ -705,47 +741,114 @@ export default function ToolsScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    padding: 20,
+    backgroundColor: '#f8f9fa',
   },
   header: {
+    backgroundColor: '#2196F3',
+    padding: 20,
+    paddingTop: 40,
     alignItems: 'center',
-    marginBottom: 30,
   },
   title: {
+    color: '#fff',
     textAlign: 'center',
     marginVertical: 15,
   },
   subtitle: {
+    color: '#fff',
     textAlign: 'center',
-    opacity: 0.8,
-    marginBottom: 20,
+    opacity: 0.9,
+    marginBottom: 10,
   },
   content: {
-    marginBottom: 30,
-  },
-  categorySection: {
-    marginBottom: 20,
-  },
-  categoryTitle: {
-    marginBottom: 10,
-    textAlign: 'right',
-    fontSize: 18,
-  },
-  toolsGrid: {
-    flexDirection: 'column',
-  },
-  toolCard: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: '#F5F5F5',
+    flex: 1,
     padding: 15,
+  },
+  summaryCard: {
+    backgroundColor: '#fff',
     borderRadius: 12,
-    marginBottom: 10,
+    padding: 20,
+    marginBottom: 20,
     elevation: 2,
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 1 },
     shadowOpacity: 0.1,
-    shadowRadius: 2,
+    shadowRadius: 3,
+  },
+  summaryTitle: {
+    textAlign: 'center',
+    marginBottom: 15,
+    color: '#2196F3',
+  },
+  statsContainer: {
+    flexDirection: 'row',
+    justifyContent: 'space-around',
+  },
+  statItem: {
+    alignItems: 'center',
+  },
+  statNumber: {
+    fontSize: 24,
+    fontWeight: 'bold',
+    color: '#2196F3',
+  },
+  statLabel: {
+    fontSize: 12,
+    color: '#666',
+    marginTop: 4,
+    textAlign: 'center',
+  },
+  toolsList: {
+    marginBottom: 20,
+  },
+  sectionTitle: {
+    marginBottom: 15,
+    textAlign: 'right',
+    color: '#2196F3',
+  },
+  toolCard: {
+    backgroundColor: '#fff',
+    borderRadius: 12,
+    marginBottom: 15,
+    elevation: 2,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.1,
+    shadowRadius: 3,
+    position: 'relative',
+  },
+  cardHeader: {
+    flexDirection: I18nManager.isRTL ? 'row-reverse' : 'row',
+    alignItems: 'center',
+    padding: 15,
+  },
+  cardTitleContainer: {
+    flexDirection: I18nManager.isRTL ? 'row-reverse' : 'row',
+    alignItems: 'flex-start',
+    flex: 1,
+  },
+  itemNumber: {
+    fontSize: 16,
+    fontWeight: 'bold',
+    color: '#2196F3',
+    marginRight: I18nManager.isRTL ? 0 : 10,
+    marginLeft: I18nManager.isRTL ? 10 : 0,
+    minWidth: 25,
+  },
+  cardContent: {
+    flex: 1,
+  },
+  cardTitle: {
+    fontSize: 16,
+    textAlign: 'right',
+    color: '#333',
+  },
+  cardDescription: {
+    fontSize: 14,
+    opacity: 0.7,
+    marginTop: 2,
+    textAlign: 'right',
+    color: '#666',
   },
   iconContainer: {
     width: 50,
@@ -753,39 +856,42 @@ const styles = StyleSheet.create({
     borderRadius: 25,
     alignItems: 'center',
     justifyContent: 'center',
+    marginLeft: I18nManager.isRTL ? 0 : 15,
+    marginRight: I18nManager.isRTL ? 15 : 0,
   },
-  toolContent: {
+  expandIcon: {
+    position: 'absolute',
+    top: 15,
+    left: 15,
+  },
+  actionButtons: {
+    flexDirection: 'row',
+    gap: 10,
+    marginBottom: 20,
+  },
+  helpButton: {
     flex: 1,
-    marginHorizontal: 15,
-  },
-  toolTitle: {
-    fontSize: 16,
-    textAlign: 'right',
-  },
-  toolDescription: {
-    fontSize: 14,
-    opacity: 0.7,
-    marginTop: 2,
-    textAlign: 'right',
-  },
-  helpSection: {
-    marginBottom: 30,
-  },
-  sectionTitle: {
-    marginBottom: 15,
-    textAlign: 'center',
-  },
-  helpCard: {
     flexDirection: 'row',
     alignItems: 'center',
-    justifyContent: 'space-between',
-    backgroundColor: '#F0F8FF',
-    padding: 12,
-    borderRadius: 8,
-    marginBottom: 8,
+    justifyContent: 'center',
+    backgroundColor: '#4CAF50',
+    paddingVertical: 15,
+    borderRadius: 12,
+    gap: 8,
   },
-  helpText: {
+  feedbackButton: {
     flex: 1,
-    textAlign: 'right',
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: '#FF9800',
+    paddingVertical: 15,
+    borderRadius: 12,
+    gap: 8,
+  },
+  buttonText: {
+    color: 'white',
+    fontSize: 16,
+    fontWeight: '600',
   },
 });
