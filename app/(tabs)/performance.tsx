@@ -311,7 +311,7 @@ export default function PerformanceScreen() {
 
       <ThemedView style={styles.content}>
         <ThemedView style={styles.summaryCard}>
-          <ThemedText type="subtitle" style={styles.summaryTitle}>
+          <ThemedText type="subtitle" style={[styles.summaryTitle, { textAlign: 'center' }]}>
             المتوسط العام للأداء
           </ThemedText>
           <ThemedView style={styles.averageContainer}>
