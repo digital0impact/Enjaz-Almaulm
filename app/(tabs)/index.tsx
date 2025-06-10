@@ -144,12 +144,9 @@ export default function HomeScreen() {
       <ThemedView style={styles.gradientBackground}>
         <ThemedView style={styles.dashboardContent}>
           <ThemedView style={styles.dashboardHeader}>
-            <ThemedView>
-              <ThemedText type="title" style={styles.welcomeTitle}>
+            <ThemedView style={{ flex: 1 }}>
+              <ThemedText type="title" style={[styles.welcomeTitle, { textAlign: 'center' }]}>
                 مرحباً {userInfo?.name || 'المعلم'}
-              </ThemedText>
-              <ThemedText style={styles.welcomeSubtitle}>
-                أهلاً بك في بورتفولــيوك الرقمي
               </ThemedText>
             </ThemedView>
             <TouchableOpacity onPress={handleLogout} style={styles.logoutButton}>
