@@ -1,34 +1,34 @@
 
-const tintColorLight = '#2E8B6F';
-const tintColorDark = '#6DB4A1';
+const tintColorLight = '#007AFF';
+const tintColorDark = '#007AFF';
 
 export const Colors = {
   light: {
-    text: '#11181C',
-    background: '#F0FAF7',
+    text: '#000000',
+    background: '#FFFFFF',
     tint: tintColorLight,
-    icon: '#687076',
-    tabIconDefault: '#687076',
+    icon: '#666666',
+    tabIconDefault: '#666666',
     tabIconSelected: tintColorLight,
-    primary: '#2E8B6F',
-    secondary: '#87D4C0',
-    accent: '#B8E6D6',
+    primary: '#007AFF',
+    secondary: '#F2F2F7',
+    accent: '#E5E5EA',
     card: '#FFFFFF',
-    border: '#E0F2EF',
-    notification: '#FF6B6B',
+    border: '#E5E5EA',
+    notification: '#FF3B30',
   },
   dark: {
-    text: '#ECEDEE',
-    background: '#1A2B26',
-    tint: tintColorDark,
-    icon: '#9BA1A6',
-    tabIconDefault: '#9BA1A6',
-    tabIconSelected: tintColorDark,
-    primary: '#6DB4A1',
-    secondary: '#4A9B87',
-    accent: '#2E8B6F',
-    card: '#233B34',
-    border: '#2E4A42',
-    notification: '#FF8E8E',
+    text: '#000000',
+    background: '#FFFFFF',
+    tint: tintColorLight,
+    icon: '#666666',
+    tabIconDefault: '#666666',
+    tabIconSelected: tintColorLight,
+    primary: '#007AFF',
+    secondary: '#F2F2F7',
+    accent: '#E5E5EA',
+    card: '#FFFFFF',
+    border: '#E5E5EA',
+    notification: '#FF3B30',
   },
 };
