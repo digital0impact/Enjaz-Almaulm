@@ -1,7 +1,7 @@
 {
   "expo": {
     "name": "expo-on-replit",
-    "slug": "expo-on-replit",
+    "slug": "t",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/images/icon.png",
@@ -37,6 +37,19 @@
     ],
     "experiments": {
       "typedRoutes": true
+    },
+    "extra": {
+      "router": {},
+      "eas": {
+        "projectId": "a5ce49d1-171d-4a7f-8b6b-2caebeb4a471"
+      }
+    },
+    "owner": "amalshaman",
+    "runtimeVersion": {
+      "policy": "appVersion"
+    },
+    "updates": {
+      "url": "https://u.expo.dev/a5ce49d1-171d-4a7f-8b6b-2caebeb4a471"
     }
   }
 }
