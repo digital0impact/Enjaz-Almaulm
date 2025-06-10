@@ -207,37 +207,7 @@ export default function HomeScreen() {
             </ThemedView>
           </ThemedView>
 
-          <ThemedView style={styles.recentActivity}>
-            <ThemedText type="subtitle" style={styles.sectionTitle}>
-              النشاط الأخير
-            </ThemedText>
-
-            <ThemedView style={styles.activityList}>
-              <ThemedView style={styles.activityItem}>
-                <IconSymbol size={20} name="checkmark.circle.fill" color="#4CAF50" />
-                <ThemedView style={styles.activityContent}>
-                  <ThemedText style={styles.activityTitle}>تم إكمال درس الجبر</ThemedText>
-                  <ThemedText style={styles.activityTime}>منذ ساعتين</ThemedText>
-                </ThemedView>
-              </ThemedView>
-
-              <ThemedView style={styles.activityItem}>
-                <IconSymbol size={20} name="doc.badge.plus" color="#FF9800" />
-                <ThemedView style={styles.activityContent}>
-                  <ThemedText style={styles.activityTitle}>إضافة تقييم جديد</ThemedText>
-                  <ThemedText style={styles.activityTime}>أمس</ThemedText>
-                </ThemedView>
-              </ThemedView>
-
-              <ThemedView style={styles.activityItem}>
-                <IconSymbol size={20} name="person.badge.plus" color="#2196F3" />
-                <ThemedView style={styles.activityContent}>
-                  <ThemedText style={styles.activityTitle}>تحديث البيانات الشخصية</ThemedText>
-                  <ThemedText style={styles.activityTime}>منذ 3 أيام</ThemedText>
-                </ThemedView>
-              </ThemedView>
-            </ThemedView>
-          </ThemedView>
+          
         </ThemedView>
       </ThemedView>
     </ThemedView>
@@ -446,37 +416,5 @@ const styles = StyleSheet.create({
     textAlign: 'center',
     writingDirection: 'rtl',
   },
-  recentActivity: {
-    marginBottom: 20,
-  },
-  activityList: {
-    gap: 10,
-  },
-  activityItem: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    padding: 15,
-    backgroundColor: '#F8F9FA',
-    borderRadius: 12,
-    borderWidth: 1,
-    borderColor: '#E5E5EA',
-    gap: 12,
-  },
-  activityContent: {
-    flex: 1,
-  },
-  activityTitle: {
-    fontSize: 14,
-    fontWeight: '600',
-    color: '#000000',
-    marginBottom: 4,
-    textAlign: 'right',
-    writingDirection: 'rtl',
-  },
-  activityTime: {
-    fontSize: 12,
-    color: '#666666',
-    textAlign: 'right',
-    writingDirection: 'rtl',
-  },
+  
 });
