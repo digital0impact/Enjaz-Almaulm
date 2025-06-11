@@ -4,8 +4,10 @@ import { StyleSheet, ScrollView, TouchableOpacity, Alert, I18nManager } from 're
 import { ThemedText } from '@/components/ThemedText';
 import { ThemedView } from '@/components/ThemedView';
 import { IconSymbol } from '@/components/ui/IconSymbol';
+import { useRouter } from 'expo-router';
 
 export default function ToolsScreen() {
+  const router = useRouter();
   const getCurrentDate = () => {
     const today = new Date();
     const gregorian = today.toLocaleDateString('ar-SA');
@@ -956,7 +958,7 @@ export default function ToolsScreen() {
     if (tool === 'إدارة الغياب') {
       handleAbsenceManagement();
     } else if (tool === 'التقويم الهجري والميلادي') {
-      handleCalendarDisplay();
+      router.push('/calendar');
     } else if (tool === 'الإجازات الرسمية') {
       handleOfficialHolidays();
     } else if (tool === 'التنبيهات') {
