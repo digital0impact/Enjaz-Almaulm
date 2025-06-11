@@ -6,8 +6,8 @@ import { IconSymbol } from '@/components/ui/IconSymbol';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useRouter } from 'expo-router';
 
-// Use the new beautiful background
-const backgroundImage = require('@/assets/images/new-background.png');
+// Use existing welcome background
+const backgroundImage = require('@/assets/images/welcome-background.png');
 
 export default function HomeScreen() {
   const router = useRouter();
@@ -89,7 +89,7 @@ export default function HomeScreen() {
   if (currentScreen === 'welcome') {
     return (
       <ThemedView style={styles.container}>
-        <ImageBackground source={backgroundImage} style={styles.backgroundImage}>
+        <ThemedView style={styles.gradientWelcomeBackground}>
           <ThemedView style={styles.welcomeContent}>
             <ThemedView style={styles.logoContainer}>
               <IconSymbol size={80} name="book.fill" color="#007AFF" />
@@ -108,7 +108,7 @@ export default function HomeScreen() {
               <ThemedText style={styles.buttonText}>ابدأ الآن</ThemedText>
             </TouchableOpacity>
           </ThemedView>
-        </ImageBackground>
+        </ThemedView>
       </ThemedView>
     );
   }
@@ -240,10 +240,10 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: '#FFFFFF',
   },
-  backgroundImage: {
+  gradientWelcomeBackground: {
     flex: 1,
-    resizeMode: 'cover',
-    justifyContent: 'center',
+    backgroundColor: '#E0F2F1', // Light teal background similar to your image
+    background: 'linear-gradient(135deg, #B2DFDB 0%, #E0F2F1 100%)',
   },
   gradientBackground: {
     flex: 1,
