@@ -162,7 +162,7 @@ export default function HomeScreen() {
 
   // Dashboard screen
   return (
-    <ThemedView style={styles.container} useBackgroundImage={true}>
+    <ThemedView style={[styles.container, styles.gradientBackground]}>
       <ThemedView style={styles.gradientBackground}>
         <ThemedView style={styles.dashboardContent}>
           <ThemedView style={styles.dashboardHeader}>
@@ -235,10 +235,11 @@ export default function HomeScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#FFFFFF',
+    padding: 20,
   },
   gradientBackground: {
-    flex: 1,
+    background: 'linear-gradient(135deg, #a8e6cf 0%, #dcedc8 50%, #f8bbd9 100%)',
+    backgroundColor: '#a8e6cf', // fallback for mobile
   },
   logoContainer: {
     width: 120,

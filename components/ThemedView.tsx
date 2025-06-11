@@ -13,12 +13,18 @@ export function ThemedView({ style, lightColor, darkColor, useBackgroundImage = 
 
   if (useBackgroundImage) {
     return (
-      <ImageBackground 
-        source={require('@/assets/images/background.png')} 
-        style={[{ backgroundColor: 'transparent' }, style]} 
-        resizeMode="cover"
-        {...otherProps}
-      />
+      <View style={[{ backgroundColor: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)' }, style]} {...otherProps}>
+        <View style={{
+          position: 'absolute',
+          top: 0,
+          left: 0,
+          right: 0,
+          bottom: 0,
+          backgroundColor: 'rgba(102, 126, 234, 0.1)',
+          opacity: 0.8
+        }} />
+        {otherProps.children}
+      </View>
     );
   }
 
