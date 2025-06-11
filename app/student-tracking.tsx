@@ -10,6 +10,7 @@ interface StudentData {
   id: string;
   name: string;
   grade: string;
+  status: 'تفوق' | 'ضعف' | 'صعوبات تعلم' | 'يحتاج إلى تطوير';
   subjects: { [key: string]: number };
   attendance: number;
   behavior: 'ممتاز' | 'جيد' | 'مقبول' | 'يحتاج تحسين';
@@ -25,6 +26,7 @@ export default function StudentTrackingScreen() {
   const [newStudent, setNewStudent] = useState<Partial<StudentData>>({
     name: '',
     grade: '',
+    status: 'تفوق',
     subjects: {},
     attendance: 100,
     behavior: 'ممتاز',
@@ -48,6 +50,7 @@ export default function StudentTrackingScreen() {
             id: '1',
             name: 'أحمد محمد',
             grade: 'الصف الثامن',
+            status: 'تفوق',
             subjects: { 'الرياضيات': 85, 'الفيزياء': 90, 'العربية': 88 },
             attendance: 95,
             behavior: 'ممتاز',
@@ -59,6 +62,7 @@ export default function StudentTrackingScreen() {
             id: '2',
             name: 'فاطمة علي',
             grade: 'الصف التاسع',
+            status: 'صعوبات تعلم',
             subjects: { 'الرياضيات': 92, 'الكيمياء': 88, 'الإنجليزية': 85 },
             attendance: 98,
             behavior: 'ممتاز',
@@ -94,6 +98,7 @@ export default function StudentTrackingScreen() {
       id: Date.now().toString(),
       name: newStudent.name!,
       grade: newStudent.grade!,
+      status: newStudent.status || 'تفوق',
       subjects: newStudent.subjects || {},
       attendance: newStudent.attendance || 100,
       behavior: newStudent.behavior || 'ممتاز',
@@ -108,6 +113,7 @@ export default function StudentTrackingScreen() {
     setNewStudent({
       name: '',
       grade: '',
+      status: 'تفوق',
       subjects: {},
       attendance: 100,
       behavior: 'ممتاز',
@@ -142,6 +148,16 @@ export default function StudentTrackingScreen() {
       case 'جيد': return '#2196F3';
       case 'مقبول': return '#FF9800';
       case 'يحتاج تحسين': return '#F44336';
+      default: return '#666666';
+    }
+  };
+
+  const getStatusColor = (status: string) => {
+    switch (status) {
+      case 'تفوق': return '#4CAF50';
+      case 'ضعف': return '#F44336';
+      case 'صعوبات تعلم': return '#FF9800';
+      case 'يحتاج إلى تطوير': return '#2196F3';
       default: return '#666666';
     }
   };
@@ -188,6 +204,30 @@ export default function StudentTrackingScreen() {
               onChangeText={(text) => setNewStudent({...newStudent, grade: text})}
             />
 
+            <ThemedView style={styles.pickerContainer}>
+              <ThemedText style={styles.pickerLabel}>نوع الحالة:</ThemedText>
+              <ThemedView style={styles.statusButtons}>
+                {['تفوق', 'ضعف', 'صعوبات تعلم', 'يحتاج إلى تطوير'].map((status) => (
+                  <TouchableOpacity
+                    key={status}
+                    style={[
+                      styles.statusButton,
+                      newStudent.status === status && styles.statusButtonActive,
+                      { backgroundColor: newStudent.status === status ? getStatusColor(status) : '#F0F0F0' }
+                    ]}
+                    onPress={() => setNewStudent({...newStudent, status: status as any})}
+                  >
+                    <ThemedText style={[
+                      styles.statusButtonText,
+                      { color: newStudent.status === status ? '#FFFFFF' : '#333333' }
+                    ]}>
+                      {status}
+                    </ThemedText>
+                  </TouchableOpacity>
+                ))}
+              </ThemedView>
+            </ThemedView>
+
             <TextInput
               style={styles.input}
               placeholder="رقم هاتف ولي الأمر"
@@ -223,6 +263,14 @@ export default function StudentTrackingScreen() {
               <ThemedView style={{ flex: 1 }}>
                 <ThemedText style={styles.studentName}>{student.name}</ThemedText>
                 <ThemedText style={styles.studentGrade}>{student.grade}</ThemedText>
+                <ThemedView style={styles.statusContainer}>
+                  <ThemedText style={[
+                    styles.statusBadge,
+                    { backgroundColor: getStatusColor(student.status), color: '#FFFFFF' }
+                  ]}>
+                    {student.status}
+                  </ThemedText>
+                </ThemedView>
               </ThemedView>
               <TouchableOpacity 
                 onPress={() => deleteStudent(student.id)}
@@ -490,5 +538,49 @@ const styles = StyleSheet.create({
     color: '#999999',
     marginTop: 5,
     textAlign: 'center',
+  },
+  pickerContainer: {
+    marginBottom: 15,
+  },
+  pickerLabel: {
+    fontSize: 16,
+    fontWeight: 'bold',
+    marginBottom: 8,
+    textAlign: 'right',
+    writingDirection: 'rtl',
+    color: '#000000',
+  },
+  statusButtons: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 8,
+    justifyContent: 'flex-end',
+  },
+  statusButton: {
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+    borderRadius: 15,
+    borderWidth: 1,
+    borderColor: '#E5E5EA',
+  },
+  statusButtonActive: {
+    borderColor: 'transparent',
+  },
+  statusButtonText: {
+    fontSize: 14,
+    fontWeight: '600',
+    textAlign: 'center',
+  },
+  statusContainer: {
+    marginTop: 5,
+  },
+  statusBadge: {
+    fontSize: 12,
+    fontWeight: 'bold',
+    paddingHorizontal: 8,
+    paddingVertical: 4,
+    borderRadius: 10,
+    textAlign: 'center',
+    alignSelf: 'flex-start',
   },
 });
