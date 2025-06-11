@@ -46,6 +46,8 @@ const MAPPING = {
   'person.2.fill': 'group',
   'calendar': 'calendar-today',
   'arrow.right.square': 'logout',
+  'twitter': 'alternate-email',
+  'linkedin': 'business',
 } as IconMapping;
 
 /**
