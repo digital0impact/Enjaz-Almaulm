@@ -471,7 +471,6 @@ export default function ScheduleScreen() {
         {/* الجدول الأسبوعي الشامل */}
         <ThemedView style={styles.weeklyScheduleCard}>
           <ThemedView style={styles.scheduleHeader}>
-            <ThemedText style={styles.scheduleTitle}>الجدول الأسبوعي الشامل</ThemedText>
             <TouchableOpacity 
               style={styles.addButton}
               onPress={() => setShowAddForm(true)}
@@ -479,6 +478,7 @@ export default function ScheduleScreen() {
               <IconSymbol size={20} name="plus.circle.fill" color="#4CAF50" />
               <ThemedText style={styles.addButtonText}>إضافة حصة</ThemedText>
             </TouchableOpacity>
+            <ThemedText style={styles.scheduleTitle}>الجدول الأسبوعي الشامل</ThemedText>
           </ThemedView>
 
           <ScrollView horizontal showsHorizontalScrollIndicator={true} style={styles.horizontalScroll}>
