@@ -162,7 +162,7 @@ export default function HomeScreen() {
 
   // Dashboard screen
   return (
-    <ThemedView style={styles.container}>
+    <ThemedView style={styles.container} useBackgroundImage={true}>
       <ThemedView style={styles.gradientBackground}>
         <ThemedView style={styles.dashboardContent}>
           <ThemedView style={styles.dashboardHeader}>
