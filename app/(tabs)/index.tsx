@@ -224,8 +224,6 @@ export default function HomeScreen() {
               </TouchableOpacity>
             </ThemedView>
           </ThemedView>
-
-
         </ThemedView>
       </ThemedView>
     </ThemedView>
