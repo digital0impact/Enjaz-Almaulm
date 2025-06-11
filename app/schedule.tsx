@@ -482,27 +482,27 @@ export default function ScheduleScreen() {
           </ThemedView>
 
           <ScrollView horizontal showsHorizontalScrollIndicator={true} style={styles.horizontalScroll}>
-            <ThemedView style={styles.weeklyTable}>
-              {/* رأس الجدول - الأيام */}
+            <ThemedView style={[styles.weeklyTable, { direction: 'rtl' }]}>
+              {/* رأس الجدول - الحصص */}
               <ThemedView style={styles.tableHeader}>
-                <ThemedView style={styles.timeColumnHeader}>
-                  <ThemedText style={styles.headerText}>الحصة</ThemedText>
+                <ThemedView style={styles.dayColumnHeader}>
+                  <ThemedText style={styles.headerText}>اليوم</ThemedText>
                 </ThemedView>
-                {days.map(day => (
-                  <ThemedView key={day} style={styles.dayColumnHeader}>
-                    <ThemedText style={styles.headerText}>{day}</ThemedText>
+                {timeSlots.map(timeSlot => (
+                  <ThemedView key={timeSlot} style={styles.timeColumnHeader}>
+                    <ThemedText style={styles.headerText}>{timeSlot}</ThemedText>
                   </ThemedView>
                 ))}
               </ThemedView>
 
-              {/* صفوف الأوقات */}
-              {timeSlots.map((timeSlot, timeIndex) => (
-                <ThemedView key={timeSlot} style={styles.tableRow}>
-                  <ThemedView style={styles.timeCell}>
-                    <ThemedText style={styles.timeCellText}>{timeSlot}</ThemedText>
+              {/* صفوف الأيام */}
+              {days.map((day, dayIndex) => (
+                <ThemedView key={day} style={styles.tableRow}>
+                  <ThemedView style={styles.dayCell}>
+                    <ThemedText style={styles.dayCellText}>{day}</ThemedText>
                   </ThemedView>
                   
-                  {days.map(day => {
+                  {timeSlots.map(timeSlot => {
                     const entry = schedule.find(e => e.day === day && e.time === timeSlot);
                     const isBreakTime = timeSlot === 'استراحة';
                     
@@ -690,7 +690,7 @@ const styles = StyleSheet.create({
     marginTop: 10,
   },
   weeklyTable: {
-    minWidth: 800,
+    minWidth: 1000,
   },
   tableHeader: {
     flexDirection: 'row',
@@ -699,20 +699,21 @@ const styles = StyleSheet.create({
     borderTopRightRadius: 8,
   },
   timeColumnHeader: {
+    width: 100,
+    padding: 8,
+    backgroundColor: '#1F5F3F',
+    justifyContent: 'center',
+    alignItems: 'center',
+    borderLeftWidth: 1,
+    borderLeftColor: '#fff',
+  },
+  dayColumnHeader: {
     width: 120,
     padding: 12,
     backgroundColor: '#1F5F3F',
     justifyContent: 'center',
     alignItems: 'center',
     borderTopRightRadius: 8,
-  },
-  dayColumnHeader: {
-    width: 140,
-    padding: 12,
-    justifyContent: 'center',
-    alignItems: 'center',
-    borderRightWidth: 1,
-    borderRightColor: '#fff',
   },
   headerText: {
     color: '#fff',
@@ -725,27 +726,27 @@ const styles = StyleSheet.create({
     borderBottomWidth: 1,
     borderBottomColor: '#E0E0E0',
   },
-  timeCell: {
+  dayCell: {
     width: 120,
-    padding: 8,
+    padding: 12,
     backgroundColor: '#F8F9FA',
     justifyContent: 'center',
     alignItems: 'center',
-    borderRightWidth: 1,
-    borderRightColor: '#E0E0E0',
+    borderLeftWidth: 1,
+    borderLeftColor: '#E0E0E0',
   },
-  timeCellText: {
-    fontSize: 10,
-    color: '#666',
-    fontWeight: '600',
+  dayCellText: {
+    fontSize: 14,
+    color: '#333',
+    fontWeight: 'bold',
     textAlign: 'center',
   },
   scheduleCell: {
-    width: 140,
-    minHeight: 60,
-    padding: 6,
-    borderRightWidth: 1,
-    borderRightColor: '#E0E0E0',
+    width: 100,
+    minHeight: 70,
+    padding: 4,
+    borderLeftWidth: 1,
+    borderLeftColor: '#E0E0E0',
     justifyContent: 'center',
     alignItems: 'center',
   },
@@ -764,27 +765,27 @@ const styles = StyleSheet.create({
     width: '100%',
   },
   cellSubject: {
-    fontSize: 11,
+    fontSize: 9,
     fontWeight: 'bold',
     color: '#fff',
     textAlign: 'center',
-    marginBottom: 2,
+    marginBottom: 1,
   },
   cellClass: {
-    fontSize: 9,
+    fontSize: 7,
     color: '#fff',
     textAlign: 'center',
     opacity: 0.9,
-    marginBottom: 2,
+    marginBottom: 1,
   },
   cellTypeBadge: {
     backgroundColor: 'rgba(255,255,255,0.2)',
-    paddingHorizontal: 4,
+    paddingHorizontal: 2,
     paddingVertical: 1,
-    borderRadius: 6,
+    borderRadius: 4,
   },
   cellTypeText: {
-    fontSize: 8,
+    fontSize: 6,
     color: '#fff',
     fontWeight: '600',
   },
