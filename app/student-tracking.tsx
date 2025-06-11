@@ -78,16 +78,7 @@ export default function StudentTrackingScreen() {
     }
   };
 
-  const handleDownloadEvidence = (studentName: string) => {
-    Alert.alert(
-      'تحميل الشواهد',
-      `تحميل شواهد الطالب: ${studentName}\n\nسيتم تحميل:\n• الأعمال والمشاريع\n• التقييمات\n• الصور والفيديوهات\n• التقارير`,
-      [
-        { text: 'إلغاء', style: 'cancel' },
-        { text: 'تحميل', onPress: () => Alert.alert('تم', 'تم بدء تحميل الشواهد') }
-      ]
-    );
-  };
+  
 
   if (showAddForm) {
     return (
@@ -329,14 +320,6 @@ export default function StudentTrackingScreen() {
                         <ThemedText style={styles.needText}>{need}</ThemedText>
                       </ThemedView>
                     ))}
-                    
-                    <TouchableOpacity 
-                      style={styles.evidenceButton}
-                      onPress={() => handleDownloadEvidence(student.name)}
-                    >
-                      <IconSymbol size={20} name="arrow.down.circle.fill" color="#007AFF" />
-                      <ThemedText style={styles.evidenceText}>تحميل الشواهد</ThemedText>
-                    </TouchableOpacity>
                   </ThemedView>
                 </ThemedView>
               </ThemedView>
@@ -526,22 +509,7 @@ const styles = StyleSheet.create({
     color: '#555',
     textAlign: 'right',
   },
-  evidenceButton: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    gap: 8,
-    padding: 12,
-    backgroundColor: '#f0f8ff',
-    borderRadius: 8,
-    borderWidth: 1,
-    borderColor: '#007AFF',
-  },
-  evidenceText: {
-    fontSize: 14,
-    color: '#007AFF',
-    fontWeight: '600',
-  },
+  
   formCard: {
     backgroundColor: '#fff',
     borderRadius: 12,
