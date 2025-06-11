@@ -6,8 +6,8 @@ import { IconSymbol } from '@/components/ui/IconSymbol';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useRouter } from 'expo-router';
 
-// Use default Expo partial logo as background
-const backgroundImage = require('@/assets/images/partial-react-logo.png');
+// Use the new beautiful background
+const backgroundImage = require('@/assets/images/new-background.png');
 
 export default function HomeScreen() {
   const router = useRouter();
@@ -247,7 +247,7 @@ const styles = StyleSheet.create({
   },
   gradientBackground: {
     flex: 1,
-    backgroundColor: '#E8F4FD', // Light blue gradient similar to your image
+    backgroundColor: 'rgba(255, 255, 255, 0.1)', // Light overlay for better text readability
   },
   logoContainer: {
     width: 120,
