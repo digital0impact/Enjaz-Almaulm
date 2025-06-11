@@ -13,7 +13,6 @@ interface ScheduleEntry {
   time: string;
   subject: string;
   class: string;
-  room: string;
   type: 'حصة' | 'مناوبة' | 'انتظار' | 'فراغ';
   color: string;
 }
@@ -31,7 +30,6 @@ export default function ScheduleScreen() {
     time: '',
     subject: '',
     class: '',
-    room: '',
     type: 'حصة' as 'حصة' | 'مناوبة' | 'انتظار' | 'فراغ'
   });
 
@@ -96,7 +94,6 @@ export default function ScheduleScreen() {
             time,
             subject: 'استراحة',
             class: '',
-            room: '',
             type: 'فراغ',
             color: '#E0E0E0'
           });
@@ -107,7 +104,6 @@ export default function ScheduleScreen() {
             time,
             subject: '',
             class: '',
-            room: '',
             type: 'فراغ',
             color: '#F5F5F5'
           });
@@ -137,7 +133,6 @@ export default function ScheduleScreen() {
       time: formData.time,
       subject: formData.subject,
       class: formData.class,
-      room: formData.room,
       type: formData.type,
       color: entryType?.color || '#4CAF50'
     };
@@ -181,7 +176,6 @@ export default function ScheduleScreen() {
       time: entry.time,
       subject: entry.subject,
       class: entry.class,
-      room: entry.room,
       type: entry.type
     });
     setEditingEntry(entry);
@@ -202,7 +196,7 @@ export default function ScheduleScreen() {
             if (entry) {
               const updatedSchedule = schedule.map(e => 
                 e.id === entryId 
-                  ? { ...e, subject: '', class: '', room: '', type: 'فراغ' as const, color: '#F5F5F5' }
+                  ? { ...e, subject: '', class: '', type: 'فراغ' as const, color: '#F5F5F5' }
                   : e
               );
               saveScheduleData(updatedSchedule);
@@ -220,7 +214,6 @@ export default function ScheduleScreen() {
       time: '',
       subject: '',
       class: '',
-      room: '',
       type: 'حصة'
     });
   };
@@ -396,32 +389,7 @@ export default function ScheduleScreen() {
                   </ThemedView>
                 </ThemedView>
 
-                <ThemedView style={styles.formGroup}>
-                  <ThemedText style={styles.label}>القاعة</ThemedText>
-                  <ThemedView style={styles.inputContainer}>
-                    <IconSymbol size={20} name="building.2.fill" color="#666" />
-                    <ThemedText 
-                      style={styles.textInput}
-                      onPress={() => {
-                        Alert.prompt(
-                          'القاعة',
-                          'أدخل رقم أو اسم القاعة:',
-                          [
-                            { text: 'إلغاء', style: 'cancel' },
-                            { 
-                              text: 'تأكيد', 
-                              onPress: (text) => text && setFormData(prev => ({ ...prev, room: text }))
-                            }
-                          ],
-                          'plain-text',
-                          formData.room
-                        );
-                      }}
-                    >
-                      {formData.room || 'اضغط لإدخال القاعة'}
-                    </ThemedText>
-                  </ThemedView>
-                </ThemedView>
+                
               </>
             )}
 
@@ -577,12 +545,7 @@ export default function ScheduleScreen() {
                         </ThemedView>
                       )}
                       
-                      {entry.room && (
-                        <ThemedView style={styles.entryInfo}>
-                          <IconSymbol size={14} name="building.2.fill" color="#666" />
-                          <ThemedText style={styles.entryInfoText}>{entry.room}</ThemedText>
-                        </ThemedView>
-                      )}
+                      
                     </>
                   ) : (
                     <ThemedText style={styles.emptySlot}>
