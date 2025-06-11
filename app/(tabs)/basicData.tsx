@@ -19,6 +19,8 @@ export default function BasicDataScreen() {
     mission: 'تقديم تعليم نوعي يركز على بناء الشخصية المتكاملة للطالب',
     email: 'teacher@example.com',
     phone: '+966123456789',
+    twitter: '',
+    linkedin: '',
   });
 
   useEffect(() => {
@@ -141,6 +143,34 @@ export default function BasicDataScreen() {
               />
             ) : (
               <ThemedText style={styles.value}>{userData.phone}</ThemedText>
+            )}
+          </ThemedView>
+
+          <ThemedView style={styles.dataItem}>
+            <ThemedText style={styles.label}>تويتر</ThemedText>
+            {isEditing ? (
+              <TextInput
+                style={styles.input}
+                value={userData.twitter}
+                onChangeText={(text) => updateField('twitter', text)}
+                placeholder="أدخل اسم المستخدم على تويتر"
+              />
+            ) : (
+              <ThemedText style={styles.value}>{userData.twitter}</ThemedText>
+            )}
+          </ThemedView>
+
+          <ThemedView style={styles.dataItem}>
+            <ThemedText style={styles.label}>لينكدإن</ThemedText>
+            {isEditing ? (
+              <TextInput
+                style={styles.input}
+                value={userData.linkedin}
+                onChangeText={(text) => updateField('linkedin', text)}
+                placeholder="أدخل رابط الملف الشخصي على لينكدإن"
+              />
+            ) : (
+              <ThemedText style={styles.value}>{userData.linkedin}</ThemedText>
             )}
           </ThemedView>
         </ThemedView>
