@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { StyleSheet, TouchableOpacity, ScrollView, Alert, I18nManager, TextInput } from 'react-native';
 import { ThemedText } from '@/components/ThemedText';
@@ -12,6 +11,7 @@ interface Student {
   description: string;
   status: 'ضعف' | 'تفوق' | 'صعوبات تعلم' | 'يحتاج تطوير';
   goals: string[];
+  goalCompletion?: boolean[];
   goalProgress: number;
   needs: string[];
   hasEvidence: boolean;
@@ -29,6 +29,17 @@ export default function StudentTrackingScreen() {
     needs: ['']
   });
 
+  const toggleGoalCompletion = (studentId: string, goalIndex: number) => {
+    setStudents(students.map(student => {
+      if (student.id === studentId) {
+        const newCompletion = [...(student.goalCompletion || [])];
+        newCompletion[goalIndex] = !newCompletion[goalIndex];
+        return { ...student, goalCompletion: newCompletion };
+      }
+      return student;
+    }));
+  };
+
   const addStudent = () => {
     if (newStudent.name.trim()) {
       const student: Student = {
@@ -37,6 +48,7 @@ export default function StudentTrackingScreen() {
         description: newStudent.description,
         status: newStudent.status,
         goals: newStudent.goals.filter(goal => goal.trim()),
+        goalCompletion: newStudent.goals.filter(goal => goal.trim()).map(() => false),
         goalProgress: 0,
         needs: newStudent.needs.filter(need => need.trim()),
         hasEvidence: false
@@ -51,6 +63,8 @@ export default function StudentTrackingScreen() {
       });
       setShowAddForm(false);
       Alert.alert('تم بنجاح', 'تم إضافة المتعلم بنجاح');
+    } else {
+      Alert.alert('خطأ', 'الرجاء إدخال اسم المتعلم');
     }
   };
 
@@ -210,22 +224,25 @@ export default function StudentTrackingScreen() {
                   <ThemedView style={styles.section}>
                     <ThemedText style={styles.sectionTitle}>الأهداف الخاصة بالتطوير:</ThemedText>
                     {student.goals.map((goal, index) => (
-                      <ThemedView key={index} style={styles.goalItem}>
-                        <IconSymbol size={16} name="target" color="#4CAF50" />
-                        <ThemedText style={styles.goalText}>{goal}</ThemedText>
+                      <ThemedView key={index} style={styles.goalItemVertical}>
+                        <TouchableOpacity 
+                          style={styles.goalCheckbox}
+                          onPress={() => toggleGoalCompletion(student.id, index)}
+                        >
+                          <IconSymbol 
+                            size={20} 
+                            name={student.goalCompletion?.[index] ? "checkmark.circle.fill" : "circle"} 
+                            color={student.goalCompletion?.[index] ? "#4CAF50" : "#666"} 
+                          />
+                        </TouchableOpacity>
+                        <ThemedText style={[
+                          styles.goalTextVertical,
+                          student.goalCompletion?.[index] && styles.completedGoal
+                        ]}>
+                          {goal}
+                        </ThemedText>
                       </ThemedView>
                     ))}
-                    <ThemedView style={styles.progressBar}>
-                      <ThemedView 
-                        style={[
-                          styles.progressFill, 
-                          { width: `${student.goalProgress}%` }
-                        ]} 
-                      />
-                    </ThemedView>
-                    <ThemedText style={styles.progressText}>
-                      مدى التحقق: {student.goalProgress}%
-                    </ThemedText>
                   </ThemedView>
 
                   <ThemedView style={styles.section}>
@@ -369,14 +386,40 @@ const styles = StyleSheet.create({
   goalItem: {
     flexDirection: 'row',
     alignItems: 'center',
+    marginBottom: 8,
     gap: 8,
-    paddingVertical: 4,
   },
   goalText: {
-    flex: 1,
     fontSize: 14,
-    color: '#555',
+    color: '#333',
+    flex: 1,
     textAlign: 'right',
+    writingDirection: 'rtl',
+  },
+  goalItemVertical: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+    marginBottom: 12,
+    paddingHorizontal: 12,
+    paddingVertical: 10,
+    backgroundColor: '#f8f9fa',
+    borderRadius: 8,
+    gap: 12,
+  },
+  goalCheckbox: {
+    marginTop: 2,
+  },
+  goalTextVertical: {
+    fontSize: 14,
+    color: '#333',
+    flex: 1,
+    textAlign: 'right',
+    writingDirection: 'rtl',
+    lineHeight: 20,
+  },
+  completedGoal: {
+    textDecorationLine: 'line-through',
+    color: '#999',
   },
   progressBar: {
     height: 8,
