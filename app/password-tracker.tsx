@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { StyleSheet, ScrollView, TouchableOpacity, Alert, TextInput, Modal, I18nManager } from 'react-native';
 import { ThemedText } from '@/components/ThemedText';
@@ -185,7 +184,7 @@ export default function PasswordTrackerScreen() {
       </ThemedView>
 
       <ScrollView style={styles.content} showsVerticalScrollIndicator={false}>
-        
+
         {/* نموذج الإدخال الرئيسي */}
         <ThemedView style={styles.formContainer}>
           <ThemedView style={styles.inputRow}>
@@ -242,7 +241,7 @@ export default function PasswordTrackerScreen() {
         {/* قائمة المواقع المحفوظة */}
         <ThemedView style={styles.savedSitesContainer}>
           <ThemedText style={styles.sectionTitle}>المواقع المحفوظة</ThemedText>
-          
+
           {filteredPasswords.map((password) => (
             <ThemedView key={password.id} style={styles.siteCard}>
               <ThemedView style={styles.siteHeader}>
@@ -262,17 +261,17 @@ export default function PasswordTrackerScreen() {
                   </TouchableOpacity>
                 </ThemedView>
               </ThemedView>
-              
+
               <ThemedView style={styles.siteDetails}>
                 <ThemedText style={styles.siteDetailLabel}>الرابط:</ThemedText>
                 <ThemedText style={styles.siteDetailValue}>{password.url}</ThemedText>
               </ThemedView>
-              
+
               <ThemedView style={styles.siteDetails}>
                 <ThemedText style={styles.siteDetailLabel}>المستخدم:</ThemedText>
                 <ThemedText style={styles.siteDetailValue}>{password.username}</ThemedText>
               </ThemedView>
-              
+
               <ThemedView style={styles.siteDetails}>
                 <ThemedText style={styles.siteDetailLabel}>كلمة المرور:</ThemedText>
                 <ThemedView style={styles.passwordRow}>
@@ -291,7 +290,7 @@ export default function PasswordTrackerScreen() {
                   </TouchableOpacity>
                 </ThemedView>
               </ThemedView>
-              
+
               <ThemedView style={styles.siteDetails}>
                 <ThemedText style={styles.siteDetailLabel}>النوع:</ThemedText>
                 <ThemedText style={styles.siteDetailValue}>{password.category}</ThemedText>
