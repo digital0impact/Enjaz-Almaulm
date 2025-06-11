@@ -1,34 +1,34 @@
 
-const tintColorLight = '#007AFF';
-const tintColorDark = '#007AFF';
+const tintColorLight = '#4ECDC4';
+const tintColorDark = '#4ECDC4';
 
 export const Colors = {
   light: {
-    text: '#000000',
-    background: '#FFFFFF',
+    text: '#2C3E50',
+    background: '#F8FFFE',
     tint: tintColorLight,
-    icon: '#666666',
-    tabIconDefault: '#666666',
+    icon: '#7F8C8D',
+    tabIconDefault: '#95A5A6',
     tabIconSelected: tintColorLight,
-    primary: '#007AFF',
-    secondary: '#F2F2F7',
-    accent: '#E5E5EA',
+    primary: '#4ECDC4',
+    secondary: '#E8F5F4',
+    accent: '#BDC3C7',
     card: '#FFFFFF',
-    border: '#E5E5EA',
-    notification: '#FF3B30',
+    border: '#D5DBDB',
+    notification: '#E74C3C',
   },
   dark: {
-    text: '#000000',
-    background: '#FFFFFF',
+    text: '#2C3E50',
+    background: '#F8FFFE',
     tint: tintColorLight,
-    icon: '#666666',
-    tabIconDefault: '#666666',
+    icon: '#7F8C8D',
+    tabIconDefault: '#95A5A6',
     tabIconSelected: tintColorLight,
-    primary: '#007AFF',
-    secondary: '#F2F2F7',
-    accent: '#E5E5EA',
+    primary: '#4ECDC4',
+    secondary: '#E8F5F4',
+    accent: '#BDC3C7',
     card: '#FFFFFF',
-    border: '#E5E5EA',
-    notification: '#FF3B30',
+    border: '#D5DBDB',
+    notification: '#E74C3C',
   },
 };
