@@ -35,15 +35,15 @@ export default function ScheduleScreen() {
 
   const days = ['الأحد', 'الاثنين', 'الثلاثاء', 'الأربعاء', 'الخميس'];
   const timeSlots = [
-    '7:00 - 7:45',
-    '7:45 - 8:30',
-    '8:30 - 9:15',
-    '9:15 - 10:00',
-    '10:00 - 10:15', // استراحة
-    '10:15 - 11:00',
-    '11:00 - 11:45',
-    '11:45 - 12:30',
-    '12:30 - 1:15'
+    'الحصة الأولى',
+    'الحصة الثانية',
+    'الحصة الثالثة',
+    'الحصة الرابعة',
+    'استراحة',
+    'الحصة الخامسة',
+    'الحصة السادسة',
+    'الحصة السابعة',
+    'الحصة الثامنة'
   ];
 
   const entryTypes = [
@@ -87,7 +87,7 @@ export default function ScheduleScreen() {
     const defaultEntries: ScheduleEntry[] = [];
     days.forEach((day, dayIndex) => {
       timeSlots.forEach((time, timeIndex) => {
-        if (time === '10:00 - 10:15') {
+        if (time === 'استراحة') {
           defaultEntries.push({
             id: `${dayIndex}-${timeIndex}`,
             day,
@@ -122,7 +122,7 @@ export default function ScheduleScreen() {
 
   const addOrUpdateEntry = () => {
     if (!formData.time) {
-      Alert.alert('خطأ', 'يرجى اختيار وقت الحصة');
+      Alert.alert('خطأ', 'يرجى اختيار رقم الحصة');
       return;
     }
 
@@ -151,7 +151,7 @@ export default function ScheduleScreen() {
       );
       
       if (conflict) {
-        Alert.alert('تعارض في الوقت', 'يوجد حصة أخرى في نفس الوقت');
+        Alert.alert('تعارض في الحصة', 'يوجد حصة أخرى في نفس الوقت');
         return;
       }
 
@@ -295,7 +295,7 @@ export default function ScheduleScreen() {
             </ThemedView>
 
             <ThemedView style={styles.formGroup}>
-              <ThemedText style={styles.label}>الوقت</ThemedText>
+              <ThemedText style={styles.label}>الحصة</ThemedText>
               <ThemedView style={styles.timeGrid}>
                 {timeSlots.map(time => (
                   <TouchableOpacity
@@ -486,7 +486,7 @@ export default function ScheduleScreen() {
               {/* رأس الجدول - الأيام */}
               <ThemedView style={styles.tableHeader}>
                 <ThemedView style={styles.timeColumnHeader}>
-                  <ThemedText style={styles.headerText}>الوقت</ThemedText>
+                  <ThemedText style={styles.headerText}>الحصة</ThemedText>
                 </ThemedView>
                 {days.map(day => (
                   <ThemedView key={day} style={styles.dayColumnHeader}>
@@ -504,7 +504,7 @@ export default function ScheduleScreen() {
                   
                   {days.map(day => {
                     const entry = schedule.find(e => e.day === day && e.time === timeSlot);
-                    const isBreakTime = timeSlot === '10:00 - 10:15';
+                    const isBreakTime = timeSlot === 'استراحة';
                     
                     return (
                       <TouchableOpacity
