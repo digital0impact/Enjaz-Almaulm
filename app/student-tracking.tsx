@@ -1,6 +1,6 @@
 
 import React, { useState } from 'react';
-import { StyleSheet, TouchableOpacity, ScrollView, Alert, I18nManager } from 'react-native';
+import { StyleSheet, TouchableOpacity, ScrollView, Alert, I18nManager, TextInput } from 'react-native';
 import { ThemedText } from '@/components/ThemedText';
 import { ThemedView } from '@/components/ThemedView';
 import { IconSymbol } from '@/components/ui/IconSymbol';
@@ -95,18 +95,30 @@ export default function StudentTrackingScreen() {
             <ThemedView style={styles.formGroup}>
               <ThemedText style={styles.label}>اسم المتعلم *</ThemedText>
               <ThemedView style={styles.inputContainer}>
-                <ThemedText style={styles.input}>
-                  {newStudent.name || 'أدخل اسم المتعلم...'}
-                </ThemedText>
+                <TextInput
+                  style={styles.textInput}
+                  value={newStudent.name}
+                  onChangeText={(text) => setNewStudent({ ...newStudent, name: text })}
+                  placeholder="أدخل اسم المتعلم..."
+                  placeholderTextColor="#999"
+                  textAlign="right"
+                />
               </ThemedView>
             </ThemedView>
 
             <ThemedView style={styles.formGroup}>
               <ThemedText style={styles.label}>وصف المتعلم</ThemedText>
               <ThemedView style={[styles.inputContainer, styles.textArea]}>
-                <ThemedText style={styles.input}>
-                  {newStudent.description || 'أدخل وصف المتعلم...'}
-                </ThemedText>
+                <TextInput
+                  style={[styles.textInput, styles.textAreaInput]}
+                  value={newStudent.description}
+                  onChangeText={(text) => setNewStudent({ ...newStudent, description: text })}
+                  placeholder="أدخل وصف المتعلم..."
+                  placeholderTextColor="#999"
+                  textAlign="right"
+                  multiline
+                  numberOfLines={3}
+                />
               </ThemedView>
             </ThemedView>
 
@@ -440,6 +452,18 @@ const styles = StyleSheet.create({
     fontSize: 14,
     color: '#666',
     textAlign: 'right',
+  },
+  textInput: {
+    fontSize: 14,
+    color: '#333',
+    textAlign: 'right',
+    padding: 0,
+    margin: 0,
+    minHeight: 20,
+  },
+  textAreaInput: {
+    minHeight: 60,
+    textAlignVertical: 'top',
   },
   statusOptions: {
     flexDirection: 'row',
