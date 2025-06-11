@@ -956,13 +956,13 @@ export default function ToolsScreen() {
 
   const handleToolPress = (tool: string) => {
     if (tool === 'إدارة الغياب') {
-      handleAbsenceManagement();
+      router.push('/absence-management');
     } else if (tool === 'التقويم الهجري والميلادي') {
       router.push('/calendar');
     } else if (tool === 'الإجازات الرسمية') {
-      handleOfficialHolidays();
+      router.push('/official-holidays');
     } else if (tool === 'التنبيهات') {
-      handleAlertsManagement();
+      router.push('/alerts-management');
     } else {
       Alert.alert('قريباً', `أداة ${tool} ستكون متاحة قريباً`);
     }
