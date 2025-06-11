@@ -217,7 +217,10 @@ export default function HomeScreen() {
                 <ThemedText style={styles.actionText}>التعليقات</ThemedText>
               </TouchableOpacity>
 
-              <TouchableOpacity style={styles.actionCard}>
+              <TouchableOpacity 
+                style={styles.actionCard}
+                onPress={() => router.push('/schedule')}
+              >
                 <IconSymbol size={28} name="calendar" color="#9C27B0" />
                 <ThemedText style={styles.actionText}>الجدول</ThemedText>
               </TouchableOpacity>
