@@ -227,6 +227,20 @@ export default function StudentTrackingScreen() {
               </TouchableOpacity>
             </ThemedView>
 
+            <ThemedView style={styles.formGroup}>
+              <ThemedText style={styles.label}>حفظ الشواهد</ThemedText>
+              <TouchableOpacity 
+                style={styles.evidenceUploadButton}
+                onPress={() => Alert.alert('حفظ الشواهد', 'سيتم إضافة ميزة رفع الشواهد قريباً')}
+              >
+                <IconSymbol size={20} name="cloud.upload.fill" color="#007AFF" />
+                <ThemedText style={styles.evidenceUploadText}>رفع الشواهد والمستندات</ThemedText>
+              </TouchableOpacity>
+              <ThemedText style={styles.evidenceNote}>
+                يمكنك رفع الصور، الفيديوهات، والمستندات المتعلقة بالمتعلم
+              </ThemedText>
+            </ThemedView>
+
             <TouchableOpacity style={styles.saveButton} onPress={addStudent}>
               <IconSymbol size={24} name="checkmark.circle.fill" color="white" />
               <ThemedText style={styles.saveButtonText}>حفظ المتعلم</ThemedText>
@@ -621,5 +635,29 @@ const styles = StyleSheet.create({
     color: '#007AFF',
     fontSize: 14,
     fontWeight: '600',
+  },
+  evidenceUploadButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 10,
+    padding: 15,
+    backgroundColor: '#f0f8ff',
+    borderRadius: 8,
+    borderWidth: 2,
+    borderColor: '#007AFF',
+    borderStyle: 'dashed',
+  },
+  evidenceUploadText: {
+    color: '#007AFF',
+    fontSize: 16,
+    fontWeight: '600',
+  },
+  evidenceNote: {
+    fontSize: 12,
+    color: '#666',
+    textAlign: 'center',
+    marginTop: 8,
+    fontStyle: 'italic',
   },
 });
