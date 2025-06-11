@@ -160,6 +160,82 @@ export default function StudentTrackingScreen() {
               </ThemedView>
             </ThemedView>
 
+            <ThemedView style={styles.formGroup}>
+              <ThemedText style={styles.label}>الأهداف الخاصة بالتطوير</ThemedText>
+              {newStudent.goals.map((goal, index) => (
+                <ThemedView key={index} style={styles.dynamicInputRow}>
+                  <TextInput
+                    style={styles.dynamicInput}
+                    value={goal}
+                    onChangeText={(text) => {
+                      const updatedGoals = [...newStudent.goals];
+                      updatedGoals[index] = text;
+                      setNewStudent({ ...newStudent, goals: updatedGoals });
+                    }}
+                    placeholder={`الهدف ${index + 1}...`}
+                    placeholderTextColor="#999"
+                    textAlign="right"
+                  />
+                  {newStudent.goals.length > 1 && (
+                    <TouchableOpacity
+                      style={styles.removeButton}
+                      onPress={() => {
+                        const updatedGoals = newStudent.goals.filter((_, i) => i !== index);
+                        setNewStudent({ ...newStudent, goals: updatedGoals });
+                      }}
+                    >
+                      <IconSymbol size={18} name="minus.circle.fill" color="#FF3B30" />
+                    </TouchableOpacity>
+                  )}
+                </ThemedView>
+              ))}
+              <TouchableOpacity
+                style={styles.addButton}
+                onPress={() => setNewStudent({ ...newStudent, goals: [...newStudent.goals, ''] })}
+              >
+                <IconSymbol size={18} name="plus.circle.fill" color="#007AFF" />
+                <ThemedText style={styles.addButtonText}>إضافة هدف جديد</ThemedText>
+              </TouchableOpacity>
+            </ThemedView>
+
+            <ThemedView style={styles.formGroup}>
+              <ThemedText style={styles.label}>الاحتياجات</ThemedText>
+              {newStudent.needs.map((need, index) => (
+                <ThemedView key={index} style={styles.dynamicInputRow}>
+                  <TextInput
+                    style={styles.dynamicInput}
+                    value={need}
+                    onChangeText={(text) => {
+                      const updatedNeeds = [...newStudent.needs];
+                      updatedNeeds[index] = text;
+                      setNewStudent({ ...newStudent, needs: updatedNeeds });
+                    }}
+                    placeholder={`الاحتياج ${index + 1}...`}
+                    placeholderTextColor="#999"
+                    textAlign="right"
+                  />
+                  {newStudent.needs.length > 1 && (
+                    <TouchableOpacity
+                      style={styles.removeButton}
+                      onPress={() => {
+                        const updatedNeeds = newStudent.needs.filter((_, i) => i !== index);
+                        setNewStudent({ ...newStudent, needs: updatedNeeds });
+                      }}
+                    >
+                      <IconSymbol size={18} name="minus.circle.fill" color="#FF3B30" />
+                    </TouchableOpacity>
+                  )}
+                </ThemedView>
+              ))}
+              <TouchableOpacity
+                style={styles.addButton}
+                onPress={() => setNewStudent({ ...newStudent, needs: [...newStudent.needs, ''] })}
+              >
+                <IconSymbol size={18} name="plus.circle.fill" color="#007AFF" />
+                <ThemedText style={styles.addButtonText}>إضافة احتياج جديد</ThemedText>
+              </TouchableOpacity>
+            </ThemedView>
+
             <TouchableOpacity style={styles.saveButton} onPress={addStudent}>
               <IconSymbol size={24} name="checkmark.circle.fill" color="white" />
               <ThemedText style={styles.saveButtonText}>حفظ المتعلم</ThemedText>
@@ -539,5 +615,43 @@ const styles = StyleSheet.create({
     color: 'white',
     fontSize: 16,
     fontWeight: 'bold',
+  },
+  dynamicInputRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 10,
+    marginBottom: 10,
+  },
+  dynamicInput: {
+    flex: 1,
+    borderWidth: 1,
+    borderColor: '#ddd',
+    borderRadius: 8,
+    padding: 12,
+    backgroundColor: '#f9f9f9',
+    fontSize: 14,
+    color: '#333',
+    textAlign: 'right',
+  },
+  removeButton: {
+    padding: 5,
+  },
+  addButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+    padding: 12,
+    backgroundColor: '#f0f8ff',
+    borderRadius: 8,
+    borderWidth: 1,
+    borderColor: '#007AFF',
+    borderStyle: 'dashed',
+    justifyContent: 'center',
+    marginTop: 5,
+  },
+  addButtonText: {
+    color: '#007AFF',
+    fontSize: 14,
+    fontWeight: '600',
   },
 });
