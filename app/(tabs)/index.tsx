@@ -1,13 +1,10 @@
 import React, { useState, useEffect } from 'react';
-import { StyleSheet, TouchableOpacity, Alert, ImageBackground, I18nManager } from 'react-native';
+import { StyleSheet, TouchableOpacity, Alert, Image, I18nManager } from 'react-native';
 import { ThemedText } from '@/components/ThemedText';
 import { ThemedView } from '@/components/ThemedView';
 import { IconSymbol } from '@/components/ui/IconSymbol';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useRouter } from 'expo-router';
-
-// Use existing welcome background
-const backgroundImage = require('@/assets/images/welcome-background.png');
 
 export default function HomeScreen() {
   const router = useRouter();
@@ -89,7 +86,7 @@ export default function HomeScreen() {
   if (currentScreen === 'welcome') {
     return (
       <ThemedView style={styles.container}>
-        <ThemedView style={styles.gradientWelcomeBackground}>
+        <ThemedView style={styles.gradientBackground}>
           <ThemedView style={styles.welcomeContent}>
             <ThemedView style={styles.logoContainer}>
               <IconSymbol size={80} name="book.fill" color="#007AFF" />
@@ -240,14 +237,8 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: '#FFFFFF',
   },
-  gradientWelcomeBackground: {
-    flex: 1,
-    backgroundColor: '#E0F2F1', // Light teal background similar to your image
-    background: 'linear-gradient(135deg, #B2DFDB 0%, #E0F2F1 100%)',
-  },
   gradientBackground: {
     flex: 1,
-    backgroundColor: 'rgba(255, 255, 255, 0.1)', // Light overlay for better text readability
   },
   logoContainer: {
     width: 120,
@@ -265,7 +256,6 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
     padding: 30,
-    backgroundColor: 'rgba(255,255,255,0.7)', // Optional: Add a semi-transparent background for better readability
   },
   loginContent: {
     flex: 1,
