@@ -179,7 +179,7 @@ export default function PasswordTrackerScreen() {
           <IconSymbol size={24} name="chevron.right" color="#fff" />
         </TouchableOpacity>
         <ThemedText type="title" style={styles.headerTitle}>
-          متتبع المواقع والكلمات السرية
+          متتبع المواقع
         </ThemedText>
       </ThemedView>
 
