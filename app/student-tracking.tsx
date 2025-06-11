@@ -329,15 +329,15 @@ export default function StudentTrackingScreen() {
                         <ThemedText style={styles.needText}>{need}</ThemedText>
                       </ThemedView>
                     ))}
+                    
+                    <TouchableOpacity 
+                      style={styles.evidenceButton}
+                      onPress={() => handleDownloadEvidence(student.name)}
+                    >
+                      <IconSymbol size={20} name="arrow.down.circle.fill" color="#007AFF" />
+                      <ThemedText style={styles.evidenceText}>تحميل الشواهد</ThemedText>
+                    </TouchableOpacity>
                   </ThemedView>
-
-                  <TouchableOpacity 
-                    style={styles.evidenceButton}
-                    onPress={() => handleDownloadEvidence(student.name)}
-                  >
-                    <IconSymbol size={20} name="arrow.down.circle.fill" color="#007AFF" />
-                    <ThemedText style={styles.evidenceText}>تحميل الشواهد</ThemedText>
-                  </TouchableOpacity>
                 </ThemedView>
               </ThemedView>
             ))}
