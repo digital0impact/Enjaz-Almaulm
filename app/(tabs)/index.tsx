@@ -11,10 +11,28 @@ export default function HomeScreen() {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [currentScreen, setCurrentScreen] = useState('welcome');
   const [userInfo, setUserInfo] = useState<any>(null);
+  const [teacherName, setTeacherName] = useState('المعلم');
 
   useEffect(() => {
     checkLoginStatus();
+    loadTeacherName();
   }, []);
+
+  const loadTeacherName = async () => {
+    try {
+      const basicData = await AsyncStorage.getItem('basicData');
+      if (basicData) {
+        const parsedData = JSON.parse(basicData);
+        if (parsedData.fullName) {
+          // استخراج الاسم الأول من الاسم الكامل
+          const firstName = parsedData.fullName.split(' ')[0];
+          setTeacherName(firstName);
+        }
+      }
+    } catch (error) {
+      console.log('Error loading teacher name:', error);
+    }
+  };
 
   const checkLoginStatus = async () => {
     try {
@@ -26,6 +44,8 @@ export default function HomeScreen() {
         }
         setIsLoggedIn(true);
         setCurrentScreen('dashboard');
+        // تحديث اسم المعلم عند تسجيل الدخول
+        loadTeacherName();
       }
     } catch (error) {
       console.log('Error checking login status:', error);
@@ -148,7 +168,7 @@ export default function HomeScreen() {
           <ThemedView style={styles.dashboardHeader}>
             <ThemedView style={{ flex: 1 }}>
               <ThemedText type="title" style={[styles.welcomeTitle, { textAlign: 'center' }]}>
-                مرحباً {userInfo?.name || 'المعلم'}
+                مرحباً {teacherName}
               </ThemedText>
             </ThemedView>
             <ThemedView style={styles.headerButtons}>
