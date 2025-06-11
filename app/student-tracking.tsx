@@ -40,42 +40,11 @@ export default function StudentTrackingScreen() {
 
   const loadStudentsData = async () => {
     try {
-      const stored = await AsyncStorage.getItem('studentsData');
-      if (stored) {
-        setStudents(JSON.parse(stored));
-      } else {
-        // بيانات تجريبية
-        const sampleData: StudentData[] = [
-          {
-            id: '1',
-            name: 'أحمد محمد',
-            grade: 'الصف الثامن',
-            status: 'تفوق',
-            subjects: { 'الرياضيات': 85, 'الفيزياء': 90, 'العربية': 88 },
-            attendance: 95,
-            behavior: 'ممتاز',
-            notes: 'طالب متفوق ومتعاون',
-            parentContact: '05xxxxxxxx',
-            lastUpdate: new Date().toLocaleDateString('ar-SA')
-          },
-          {
-            id: '2',
-            name: 'فاطمة علي',
-            grade: 'الصف التاسع',
-            status: 'صعوبات تعلم',
-            subjects: { 'الرياضيات': 92, 'الكيمياء': 88, 'الإنجليزية': 85 },
-            attendance: 98,
-            behavior: 'ممتاز',
-            notes: 'مشاركة فعالة في الأنشطة',
-            parentContact: '05xxxxxxxx',
-            lastUpdate: new Date().toLocaleDateString('ar-SA')
-          }
-        ];
-        setStudents(sampleData);
-        await AsyncStorage.setItem('studentsData', JSON.stringify(sampleData));
-      }
+      // Clear all student data
+      setStudents([]);
+      await AsyncStorage.removeItem('studentsData');
     } catch (error) {
-      console.error('Error loading students data:', error);
+      console.error('Error clearing students data:', error);
     }
   };
 
