@@ -468,103 +468,101 @@ export default function ScheduleScreen() {
           </ThemedView>
         </ThemedView>
 
-        {/* اختيار اليوم */}
-        <ThemedView style={styles.daySelector}>
-          <ThemedText style={styles.sectionTitle}>اختر اليوم</ThemedText>
-          <ScrollView horizontal showsHorizontalScrollIndicator={false}>
-            <ThemedView style={styles.daysContainer}>
-              {days.map(day => (
-                <TouchableOpacity
-                  key={day}
-                  style={[
-                    styles.dayButton,
-                    selectedDay === day && styles.dayButtonSelected
-                  ]}
-                  onPress={() => setSelectedDay(day)}
-                >
-                  <ThemedText style={[
-                    styles.dayButtonText,
-                    selectedDay === day && styles.dayButtonTextSelected
-                  ]}>
-                    {day}
-                  </ThemedText>
-                </TouchableOpacity>
-              ))}
-            </ThemedView>
-          </ScrollView>
-        </ThemedView>
-
-        {/* جدول اليوم المحدد */}
-        <ThemedView style={styles.scheduleCard}>
+        {/* الجدول الأسبوعي الشامل */}
+        <ThemedView style={styles.weeklyScheduleCard}>
           <ThemedView style={styles.scheduleHeader}>
-            <ThemedText style={styles.scheduleTitle}>جدول يوم {selectedDay}</ThemedText>
+            <ThemedText style={styles.scheduleTitle}>الجدول الأسبوعي الشامل</ThemedText>
             <TouchableOpacity 
               style={styles.addButton}
-              onPress={() => {
-                setFormData(prev => ({ ...prev, day: selectedDay }));
-                setShowAddForm(true);
-              }}
+              onPress={() => setShowAddForm(true)}
             >
               <IconSymbol size={20} name="plus.circle.fill" color="#4CAF50" />
-              <ThemedText style={styles.addButtonText}>إضافة</ThemedText>
+              <ThemedText style={styles.addButtonText}>إضافة حصة</ThemedText>
             </TouchableOpacity>
           </ThemedView>
 
-          <ThemedView style={styles.scheduleList}>
-            {getDaySchedule(selectedDay).map((entry, index) => (
-              <TouchableOpacity
-                key={entry.id}
-                style={[
-                  styles.scheduleEntry,
-                  { borderLeftColor: entry.color, borderLeftWidth: 4 }
-                ]}
-                onPress={() => entry.subject ? editEntry(entry) : null}
-                onLongPress={() => entry.subject ? deleteEntry(entry.id) : null}
-              >
-                <ThemedView style={styles.entryTime}>
-                  <IconSymbol size={16} name="clock" color="#666" />
-                  <ThemedText style={styles.timeText}>{entry.time}</ThemedText>
+          <ScrollView horizontal showsHorizontalScrollIndicator={true} style={styles.horizontalScroll}>
+            <ThemedView style={styles.weeklyTable}>
+              {/* رأس الجدول - الأيام */}
+              <ThemedView style={styles.tableHeader}>
+                <ThemedView style={styles.timeColumnHeader}>
+                  <ThemedText style={styles.headerText}>الوقت</ThemedText>
                 </ThemedView>
-                
-                <ThemedView style={styles.entryDetails}>
-                  {entry.subject ? (
-                    <>
-                      <ThemedView style={styles.entryHeader}>
-                        <ThemedText style={styles.entrySubject}>
-                          {entry.subject}
-                        </ThemedText>
-                        <ThemedView style={[styles.typeBadge, { backgroundColor: entry.color }]}>
-                          <ThemedText style={styles.typeBadgeText}>{entry.type}</ThemedText>
-                        </ThemedView>
-                      </ThemedView>
-                      
-                      {entry.class && (
-                        <ThemedView style={styles.entryInfo}>
-                          <IconSymbol size={14} name="person.2.fill" color="#666" />
-                          <ThemedText style={styles.entryInfoText}>{entry.class}</ThemedText>
-                        </ThemedView>
-                      )}
-                      
-                      
-                    </>
-                  ) : (
-                    <ThemedText style={styles.emptySlot}>
-                      {entry.time === '10:00 - 10:15' ? 'استراحة' : 'فترة فراغ'}
-                    </ThemedText>
-                  )}
-                </ThemedView>
+                {days.map(day => (
+                  <ThemedView key={day} style={styles.dayColumnHeader}>
+                    <ThemedText style={styles.headerText}>{day}</ThemedText>
+                  </ThemedView>
+                ))}
+              </ThemedView>
 
-                {entry.subject && (
-                  <TouchableOpacity 
-                    style={styles.editIcon}
-                    onPress={() => editEntry(entry)}
-                  >
-                    <IconSymbol size={16} name="pencil.circle.fill" color="#666" />
-                  </TouchableOpacity>
-                )}
-              </TouchableOpacity>
-            ))}
-          </ThemedView>
+              {/* صفوف الأوقات */}
+              {timeSlots.map((timeSlot, timeIndex) => (
+                <ThemedView key={timeSlot} style={styles.tableRow}>
+                  <ThemedView style={styles.timeCell}>
+                    <ThemedText style={styles.timeCellText}>{timeSlot}</ThemedText>
+                  </ThemedView>
+                  
+                  {days.map(day => {
+                    const entry = schedule.find(e => e.day === day && e.time === timeSlot);
+                    const isBreakTime = timeSlot === '10:00 - 10:15';
+                    
+                    return (
+                      <TouchableOpacity
+                        key={`${day}-${timeSlot}`}
+                        style={[
+                          styles.scheduleCell,
+                          { backgroundColor: entry?.color || (isBreakTime ? '#E0E0E0' : '#F8F9FA') },
+                          isBreakTime && styles.breakCell
+                        ]}
+                        onPress={() => {
+                          if (entry && entry.subject && !isBreakTime) {
+                            editEntry(entry);
+                          } else if (!isBreakTime) {
+                            setFormData({
+                              day: day,
+                              time: timeSlot,
+                              subject: '',
+                              class: '',
+                              type: 'حصة'
+                            });
+                            setShowAddForm(true);
+                          }
+                        }}
+                        onLongPress={() => {
+                          if (entry && entry.subject && !isBreakTime) {
+                            deleteEntry(entry.id);
+                          }
+                        }}
+                      >
+                        {isBreakTime ? (
+                          <ThemedText style={styles.breakText}>استراحة</ThemedText>
+                        ) : entry?.subject ? (
+                          <ThemedView style={styles.cellContent}>
+                            <ThemedText style={styles.cellSubject} numberOfLines={2}>
+                              {entry.subject}
+                            </ThemedText>
+                            {entry.class && (
+                              <ThemedText style={styles.cellClass} numberOfLines={1}>
+                                {entry.class}
+                              </ThemedText>
+                            )}
+                            <ThemedView style={styles.cellTypeBadge}>
+                              <ThemedText style={styles.cellTypeText}>{entry.type}</ThemedText>
+                            </ThemedView>
+                          </ThemedView>
+                        ) : (
+                          <ThemedView style={styles.emptyCellContent}>
+                            <IconSymbol size={16} name="plus.circle" color="#CCC" />
+                            <ThemedText style={styles.emptyCellText}>فراغ</ThemedText>
+                          </ThemedView>
+                        )}
+                      </TouchableOpacity>
+                    );
+                  })}
+                </ThemedView>
+              ))}
+            </ThemedView>
+          </ScrollView>
         </ThemedView>
 
         {/* أزرار الإجراءات */}
@@ -677,7 +675,7 @@ const styles = StyleSheet.create({
     textAlign: 'center',
     writingDirection: 'rtl',
   },
-  daySelector: {
+  weeklyScheduleCard: {
     backgroundColor: '#fff',
     borderRadius: 12,
     padding: 15,
@@ -688,49 +686,118 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.1,
     shadowRadius: 3,
   },
-  sectionTitle: {
-    fontSize: 16,
-    fontWeight: 'bold',
-    color: '#333',
-    textAlign: 'right',
-    writingDirection: 'rtl',
-    marginBottom: 10,
+  horizontalScroll: {
+    marginTop: 10,
   },
-  daysContainer: {
+  weeklyTable: {
+    minWidth: 800,
+  },
+  tableHeader: {
     flexDirection: 'row',
-    gap: 10,
-  },
-  dayButton: {
-    paddingHorizontal: 20,
-    paddingVertical: 10,
-    borderRadius: 20,
-    backgroundColor: '#f0f0f0',
-    borderWidth: 1,
-    borderColor: '#e0e0e0',
-  },
-  dayButtonSelected: {
     backgroundColor: '#2E8B57',
-    borderColor: '#2E8B57',
+    borderTopLeftRadius: 8,
+    borderTopRightRadius: 8,
   },
-  dayButtonText: {
+  timeColumnHeader: {
+    width: 120,
+    padding: 12,
+    backgroundColor: '#1F5F3F',
+    justifyContent: 'center',
+    alignItems: 'center',
+    borderTopRightRadius: 8,
+  },
+  dayColumnHeader: {
+    width: 140,
+    padding: 12,
+    justifyContent: 'center',
+    alignItems: 'center',
+    borderRightWidth: 1,
+    borderRightColor: '#fff',
+  },
+  headerText: {
+    color: '#fff',
     fontSize: 14,
+    fontWeight: 'bold',
+    textAlign: 'center',
+  },
+  tableRow: {
+    flexDirection: 'row',
+    borderBottomWidth: 1,
+    borderBottomColor: '#E0E0E0',
+  },
+  timeCell: {
+    width: 120,
+    padding: 8,
+    backgroundColor: '#F8F9FA',
+    justifyContent: 'center',
+    alignItems: 'center',
+    borderRightWidth: 1,
+    borderRightColor: '#E0E0E0',
+  },
+  timeCellText: {
+    fontSize: 10,
     color: '#666',
     fontWeight: '600',
     textAlign: 'center',
   },
-  dayButtonTextSelected: {
-    color: '#fff',
+  scheduleCell: {
+    width: 140,
+    minHeight: 60,
+    padding: 6,
+    borderRightWidth: 1,
+    borderRightColor: '#E0E0E0',
+    justifyContent: 'center',
+    alignItems: 'center',
   },
-  scheduleCard: {
-    backgroundColor: '#fff',
-    borderRadius: 12,
-    padding: 15,
-    marginBottom: 20,
-    elevation: 2,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.1,
-    shadowRadius: 3,
+  breakCell: {
+    backgroundColor: '#E0E0E0',
+  },
+  breakText: {
+    fontSize: 12,
+    color: '#666',
+    fontWeight: '600',
+    textAlign: 'center',
+  },
+  cellContent: {
+    alignItems: 'center',
+    justifyContent: 'center',
+    width: '100%',
+  },
+  cellSubject: {
+    fontSize: 11,
+    fontWeight: 'bold',
+    color: '#fff',
+    textAlign: 'center',
+    marginBottom: 2,
+  },
+  cellClass: {
+    fontSize: 9,
+    color: '#fff',
+    textAlign: 'center',
+    opacity: 0.9,
+    marginBottom: 2,
+  },
+  cellTypeBadge: {
+    backgroundColor: 'rgba(255,255,255,0.2)',
+    paddingHorizontal: 4,
+    paddingVertical: 1,
+    borderRadius: 6,
+  },
+  cellTypeText: {
+    fontSize: 8,
+    color: '#fff',
+    fontWeight: '600',
+  },
+  emptyCellContent: {
+    alignItems: 'center',
+    justifyContent: 'center',
+    opacity: 0.5,
+  },
+  emptyCellText: {
+    fontSize: 10,
+    color: '#999',
+    textAlign: 'center',
+    marginTop: 2,
   },
   scheduleHeader: {
     flexDirection: 'row',
