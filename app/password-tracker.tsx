@@ -193,6 +193,7 @@ export default function PasswordTrackerScreen() {
               style={styles.input}
               placeholder="مثال: نور، فارس، إلخ"
               placeholderTextColor="#999"
+              textAlign="right"
             />
           </ThemedView>
 
@@ -202,6 +203,7 @@ export default function PasswordTrackerScreen() {
               style={styles.input}
               placeholder="https://example.com"
               placeholderTextColor="#999"
+              textAlign="right"
             />
           </ThemedView>
 
@@ -211,6 +213,7 @@ export default function PasswordTrackerScreen() {
               style={styles.input}
               placeholder="username@example.com"
               placeholderTextColor="#999"
+              textAlign="right"
             />
           </ThemedView>
 
@@ -221,6 +224,7 @@ export default function PasswordTrackerScreen() {
               placeholder="••••••••"
               placeholderTextColor="#999"
               secureTextEntry
+              textAlign="right"
             />
           </ThemedView>
 
@@ -230,6 +234,7 @@ export default function PasswordTrackerScreen() {
               style={styles.input}
               placeholder="مواقع تعليمية، بنوك، إلخ"
               placeholderTextColor="#999"
+              textAlign="right"
             />
           </ThemedView>
 
@@ -337,6 +342,7 @@ export default function PasswordTrackerScreen() {
                 value={formData.siteName}
                 onChangeText={(text) => setFormData({...formData, siteName: text})}
                 placeholder="أدخل اسم الموقع"
+                textAlign="right"
               />
             </ThemedView>
 
@@ -347,6 +353,7 @@ export default function PasswordTrackerScreen() {
                 value={formData.url}
                 onChangeText={(text) => setFormData({...formData, url: text})}
                 placeholder="https://example.com"
+                textAlign="right"
               />
             </ThemedView>
 
@@ -357,6 +364,7 @@ export default function PasswordTrackerScreen() {
                 value={formData.username}
                 onChangeText={(text) => setFormData({...formData, username: text})}
                 placeholder="أدخل اسم المستخدم"
+                textAlign="right"
               />
             </ThemedView>
 
@@ -368,6 +376,7 @@ export default function PasswordTrackerScreen() {
                 onChangeText={(text) => setFormData({...formData, password: text})}
                 placeholder="أدخل كلمة المرور"
                 secureTextEntry
+                textAlign="right"
               />
             </ThemedView>
 
@@ -459,6 +468,7 @@ const styles = StyleSheet.create({
     backgroundColor: '#fff',
     textAlign: 'right',
     writingDirection: 'rtl',
+    direction: 'rtl',
   },
   addButton: {
     backgroundColor: '#FF6B35',
@@ -588,6 +598,7 @@ const styles = StyleSheet.create({
     backgroundColor: '#fff',
     textAlign: 'right',
     writingDirection: 'rtl',
+    direction: 'rtl',
   },
   categoryScroll: {
     flexDirection: 'row',
