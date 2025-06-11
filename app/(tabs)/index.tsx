@@ -6,8 +6,8 @@ import { IconSymbol } from '@/components/ui/IconSymbol';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useRouter } from 'expo-router';
 
-// Define the image path (replace with your actual image path)
-const backgroundImage = require('@/assets/images/welcome-background.png'); // Ensure the path is correct
+// Use default Expo partial logo as background
+const backgroundImage = require('@/assets/images/partial-react-logo.png');
 
 export default function HomeScreen() {
   const router = useRouter();
@@ -242,11 +242,12 @@ const styles = StyleSheet.create({
   },
   backgroundImage: {
     flex: 1,
-    resizeMode: 'cover', // or 'stretch'
+    resizeMode: 'cover',
     justifyContent: 'center',
   },
   gradientBackground: {
     flex: 1,
+    backgroundColor: '#E8F4FD', // Light blue gradient similar to your image
   },
   logoContainer: {
     width: 120,
