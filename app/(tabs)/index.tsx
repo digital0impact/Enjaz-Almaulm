@@ -179,7 +179,6 @@ export default function HomeScreen() {
                 <IconSymbol size={24} name="arrow.right.square" color="#007AFF" />
               </TouchableOpacity>
             </ThemedView>
-          </ThemedView>
 
 
 
@@ -211,7 +210,7 @@ export default function HomeScreen() {
                 onPress={() => router.push('/student-tracking')}
               >
                 <IconSymbol size={28} name="person.crop.circle.fill" color="#E91E63" />
-                <ThemedText style={styles.actionText}>متابعة حالة متعلم</ThemedText>
+                <ThemedText style={styles.actionText}>متابعة حالة المتعلمين</ThemedText>
               </TouchableOpacity>
 
               <TouchableOpacity style={styles.actionCard}>
