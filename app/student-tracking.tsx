@@ -159,19 +159,25 @@ export default function StudentTrackingScreen() {
           <ThemedView style={styles.addForm}>
             <ThemedText style={styles.formTitle}>إضافة طالب جديد</ThemedText>
 
-            <TextInput
-              style={styles.input}
-              placeholder="اسم الطالب"
-              value={newStudent.name}
-              onChangeText={(text) => setNewStudent({...newStudent, name: text})}
-            />
+            <ThemedView style={styles.inputGroup}>
+              <ThemedText style={styles.inputLabel}>اسم المتعلم *</ThemedText>
+              <TextInput
+                style={styles.input}
+                placeholder="أدخل اسم المتعلم الكامل"
+                value={newStudent.name}
+                onChangeText={(text) => setNewStudent({...newStudent, name: text})}
+              />
+            </ThemedView>
 
-            <TextInput
-              style={styles.input}
-              placeholder="الصف الدراسي"
-              value={newStudent.grade}
-              onChangeText={(text) => setNewStudent({...newStudent, grade: text})}
-            />
+            <ThemedView style={styles.inputGroup}>
+              <ThemedText style={styles.inputLabel}>الصف الدراسي *</ThemedText>
+              <TextInput
+                style={styles.input}
+                placeholder="مثال: الصف الثامن، الأول الثانوي"
+                value={newStudent.grade}
+                onChangeText={(text) => setNewStudent({...newStudent, grade: text})}
+              />
+            </ThemedView>
 
             <ThemedView style={styles.pickerContainer}>
               <ThemedText style={styles.pickerLabel}>نوع الحالة:</ThemedText>
@@ -197,20 +203,28 @@ export default function StudentTrackingScreen() {
               </ThemedView>
             </ThemedView>
 
-            <TextInput
-              style={styles.input}
-              placeholder="رقم هاتف ولي الأمر"
-              value={newStudent.parentContact}
-              onChangeText={(text) => setNewStudent({...newStudent, parentContact: text})}
-            />
+            <ThemedView style={styles.inputGroup}>
+              <ThemedText style={styles.inputLabel}>رقم هاتف ولي الأمر</ThemedText>
+              <TextInput
+                style={styles.input}
+                placeholder="05xxxxxxxx"
+                value={newStudent.parentContact}
+                onChangeText={(text) => setNewStudent({...newStudent, parentContact: text})}
+                keyboardType="phone-pad"
+              />
+            </ThemedView>
 
-            <TextInput
-              style={[styles.input, styles.textArea]}
-              placeholder="ملاحظات"
-              value={newStudent.notes}
-              onChangeText={(text) => setNewStudent({...newStudent, notes: text})}
-              multiline
-            />
+            <ThemedView style={styles.inputGroup}>
+              <ThemedText style={styles.inputLabel}>ملاحظات إضافية</ThemedText>
+              <TextInput
+                style={[styles.input, styles.textArea]}
+                placeholder="أدخل أي ملاحظات مهمة حول المتعلم..."
+                value={newStudent.notes}
+                onChangeText={(text) => setNewStudent({...newStudent, notes: text})}
+                multiline
+                numberOfLines={4}
+              />
+            </ThemedView>
 
             <ThemedView style={styles.formButtons}>
               <TouchableOpacity style={styles.saveButton} onPress={addStudent}>
@@ -364,13 +378,23 @@ const styles = StyleSheet.create({
     writingDirection: 'rtl',
     color: '#000000',
   },
+  inputGroup: {
+    marginBottom: 15,
+  },
+  inputLabel: {
+    fontSize: 16,
+    fontWeight: 'bold',
+    marginBottom: 8,
+    textAlign: 'right',
+    writingDirection: 'rtl',
+    color: '#333333',
+  },
   input: {
     backgroundColor: '#FFFFFF',
     borderWidth: 1,
     borderColor: '#E5E5EA',
     borderRadius: 10,
     padding: 12,
-    marginBottom: 10,
     fontSize: 16,
     textAlign: 'right',
     writingDirection: 'rtl',
