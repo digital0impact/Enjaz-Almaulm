@@ -161,25 +161,7 @@ export default function HomeScreen() {
             </ThemedView>
           </ThemedView>
 
-          <ThemedView style={styles.statsContainer}>
-            <ThemedView style={styles.statCard}>
-              <IconSymbol size={32} name="chart.bar.fill" color="#4CAF50" />
-              <ThemedText style={styles.statNumber}>92%</ThemedText>
-              <ThemedText style={styles.statLabel}>متوسط الأداء</ThemedText>
-            </ThemedView>
-
-            <ThemedView style={styles.statCard}>
-              <IconSymbol size={32} name="person.2.fill" color="#FF9800" />
-              <ThemedText style={styles.statNumber}>156</ThemedText>
-              <ThemedText style={styles.statLabel}>عدد الطلاب</ThemedText>
-            </ThemedView>
-
-            <ThemedView style={styles.statCard}>
-              <IconSymbol size={32} name="book.fill" color="#2196F3" />
-              <ThemedText style={styles.statNumber}>24</ThemedText>
-              <ThemedText style={styles.statLabel}>الدروس المكتملة</ThemedText>
-            </ThemedView>
-          </ThemedView>
+          
 
           <ThemedView style={styles.quickActions}>
             <ThemedView style={styles.actionsGrid}>
