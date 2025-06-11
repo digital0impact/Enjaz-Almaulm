@@ -17,6 +17,10 @@ interface StudentData {
   notes: string;
   parentContact: string;
   lastUpdate: string;
+  developmentGoals: string[];
+  achievementLevel: 'مرتفع' | 'متوسط' | 'منخفض' | 'غير محقق';
+  needs: string;
+  evidenceFiles: { name: string; uploadDate: string }[];
 }
 
 export default function StudentTrackingScreen() {
@@ -31,7 +35,11 @@ export default function StudentTrackingScreen() {
     attendance: 100,
     behavior: 'ممتاز',
     notes: '',
-    parentContact: ''
+    parentContact: '',
+    developmentGoals: [],
+    achievementLevel: 'متوسط',
+    needs: '',
+    evidenceFiles: []
   });
 
   useEffect(() => {
@@ -73,6 +81,10 @@ export default function StudentTrackingScreen() {
       behavior: newStudent.behavior || 'ممتاز',
       notes: newStudent.notes || '',
       parentContact: newStudent.parentContact || '',
+      developmentGoals: newStudent.developmentGoals || [],
+      achievementLevel: newStudent.achievementLevel || 'متوسط',
+      needs: newStudent.needs || '',
+      evidenceFiles: newStudent.evidenceFiles || [],
       lastUpdate: new Date().toLocaleDateString('ar-SA')
     };
 
@@ -87,7 +99,11 @@ export default function StudentTrackingScreen() {
       attendance: 100,
       behavior: 'ممتاز',
       notes: '',
-      parentContact: ''
+      parentContact: '',
+      developmentGoals: [],
+      achievementLevel: 'متوسط',
+      needs: '',
+      evidenceFiles: []
     });
     Alert.alert('نجح', 'تم إضافة الطالب بنجاح');
   };
@@ -129,6 +145,45 @@ export default function StudentTrackingScreen() {
       case 'يحتاج إلى تطوير': return '#2196F3';
       default: return '#666666';
     }
+  };
+
+  const getAchievementLevelColor = (level: string) => {
+    switch (level) {
+      case 'مرتفع': return '#4CAF50';
+      case 'متوسط': return '#2196F3';
+      case 'منخفض': return '#FF9800';
+      case 'غير محقق': return '#F44336';
+      default: return '#666666';
+    }
+  };
+
+  const addGoal = () => {
+    const goals = newStudent.developmentGoals || [];
+    goals.push('');
+    setNewStudent({...newStudent, developmentGoals: [...goals]});
+  };
+
+  const updateGoal = (index: number, value: string) => {
+    const goals = newStudent.developmentGoals || [];
+    goals[index] = value;
+    setNewStudent({...newStudent, developmentGoals: [...goals]});
+  };
+
+  const removeGoal = (index: number) => {
+    const goals = newStudent.developmentGoals || [];
+    goals.splice(index, 1);
+    setNewStudent({...newStudent, developmentGoals: [...goals]});
+  };
+
+  const uploadEvidence = () => {
+    Alert.alert('تحميل الشواهد', 'سيتم إضافة خاصية تحميل الملفات في التحديث القادم');
+    // Simulate file upload
+    const newEvidence = {
+      name: `شاهد_${Date.now()}.pdf`,
+      uploadDate: new Date().toLocaleDateString('ar-SA')
+    };
+    const evidenceFiles = newStudent.evidenceFiles || [];
+    setNewStudent({...newStudent, evidenceFiles: [...evidenceFiles, newEvidence]});
   };
 
   const getSubjectsDisplay = (subjects: { [key: string]: number }) => {
@@ -215,6 +270,85 @@ export default function StudentTrackingScreen() {
             </ThemedView>
 
             <ThemedView style={styles.inputGroup}>
+              <ThemedText style={styles.inputLabel}>الأهداف التطويرية</ThemedText>
+              {(newStudent.developmentGoals || []).map((goal, index) => (
+                <ThemedView key={index} style={styles.goalContainer}>
+                  <TextInput
+                    style={[styles.input, { flex: 1 }]}
+                    placeholder={`الهدف ${index + 1}`}
+                    value={goal}
+                    onChangeText={(text) => updateGoal(index, text)}
+                  />
+                  <TouchableOpacity 
+                    style={styles.removeGoalButton}
+                    onPress={() => removeGoal(index)}
+                  >
+                    <IconSymbol size={16} name="minus.circle.fill" color="#F44336" />
+                  </TouchableOpacity>
+                </ThemedView>
+              ))}
+              <TouchableOpacity style={styles.addGoalButton} onPress={addGoal}>
+                <IconSymbol size={16} name="plus.circle.fill" color="#4CAF50" />
+                <ThemedText style={styles.addGoalText}>إضافة هدف</ThemedText>
+              </TouchableOpacity>
+            </ThemedView>
+
+            <ThemedView style={styles.pickerContainer}>
+              <ThemedText style={styles.pickerLabel}>مستوى تحقق الأهداف:</ThemedText>
+              <ThemedView style={styles.statusButtons}>
+                {['مرتفع', 'متوسط', 'منخفض', 'غير محقق'].map((level) => (
+                  <TouchableOpacity
+                    key={level}
+                    style={[
+                      styles.statusButton,
+                      newStudent.achievementLevel === level && styles.statusButtonActive,
+                      { backgroundColor: newStudent.achievementLevel === level ? getAchievementLevelColor(level) : '#F0F0F0' }
+                    ]}
+                    onPress={() => setNewStudent({...newStudent, achievementLevel: level as any})}
+                  >
+                    <ThemedText style={[
+                      styles.statusButtonText,
+                      { color: newStudent.achievementLevel === level ? '#FFFFFF' : '#333333' }
+                    ]}>
+                      {level}
+                    </ThemedText>
+                  </TouchableOpacity>
+                ))}
+              </ThemedView>
+            </ThemedView>
+
+            <ThemedView style={styles.inputGroup}>
+              <ThemedText style={styles.inputLabel}>احتياجات المتعلم</ThemedText>
+              <TextInput
+                style={[styles.input, styles.textArea]}
+                placeholder="أدخل احتياجات المتعلم التطويرية والتعليمية..."
+                value={newStudent.needs}
+                onChangeText={(text) => setNewStudent({...newStudent, needs: text})}
+                multiline
+                numberOfLines={3}
+              />
+            </ThemedView>
+
+            <ThemedView style={styles.inputGroup}>
+              <ThemedView style={styles.evidenceHeader}>
+                <ThemedText style={styles.inputLabel}>الشواهد والأدلة</ThemedText>
+                <TouchableOpacity style={styles.uploadButton} onPress={uploadEvidence}>
+                  <IconSymbol size={16} name="arrow.up.doc.fill" color="#007AFF" />
+                  <ThemedText style={styles.uploadButtonText}>تحميل شاهد</ThemedText>
+                </TouchableOpacity>
+              </ThemedView>
+              {(newStudent.evidenceFiles || []).map((file, index) => (
+                <ThemedView key={index} style={styles.evidenceItem}>
+                  <IconSymbol size={16} name="doc.fill" color="#4CAF50" />
+                  <ThemedView style={{ flex: 1 }}>
+                    <ThemedText style={styles.evidenceFileName}>{file.name}</ThemedText>
+                    <ThemedText style={styles.evidenceDate}>تم الرفع: {file.uploadDate}</ThemedText>
+                  </ThemedView>
+                </ThemedView>
+              ))}
+            </ThemedView>
+
+            <ThemedView style={styles.inputGroup}>
               <ThemedText style={styles.inputLabel}>ملاحظات إضافية</ThemedText>
               <TextInput
                 style={[styles.input, styles.textArea]}
@@ -264,6 +398,53 @@ export default function StudentTrackingScreen() {
             </ThemedView>
 
             <ThemedView style={styles.studentInfo}>
+              <ThemedView style={styles.infoRow}>
+                <IconSymbol size={16} name="target" color="#4CAF50" />
+                <ThemedText style={styles.infoLabel}>الأهداف التطويرية:</ThemedText>
+              </ThemedView>
+              {student.developmentGoals && student.developmentGoals.length > 0 ? (
+                student.developmentGoals.map((goal, index) => (
+                  <ThemedText key={index} style={styles.goalText}>
+                    • {goal}
+                  </ThemedText>
+                ))
+              ) : (
+                <ThemedText style={styles.infoValue}>لم يتم تحديد أهداف بعد</ThemedText>
+              )}
+
+              <ThemedView style={styles.infoRow}>
+                <IconSymbol size={16} name="chart.bar.fill" color="#2196F3" />
+                <ThemedText style={styles.infoLabel}>مستوى التحقق:</ThemedText>
+                <ThemedText style={[styles.infoValue, { color: getAchievementLevelColor(student.achievementLevel) }]}>
+                  {student.achievementLevel}
+                </ThemedText>
+              </ThemedView>
+
+              {student.needs && (
+                <ThemedView style={styles.needsSection}>
+                  <ThemedView style={styles.infoRow}>
+                    <IconSymbol size={16} name="lightbulb.fill" color="#FF9800" />
+                    <ThemedText style={styles.infoLabel}>الاحتياجات:</ThemedText>
+                  </ThemedView>
+                  <ThemedText style={styles.needsText}>{student.needs}</ThemedText>
+                </ThemedView>
+              )}
+
+              {student.evidenceFiles && student.evidenceFiles.length > 0 && (
+                <ThemedView style={styles.evidenceSection}>
+                  <ThemedView style={styles.infoRow}>
+                    <IconSymbol size={16} name="doc.text.fill" color="#007AFF" />
+                    <ThemedText style={styles.infoLabel}>الشواهد ({student.evidenceFiles.length}):</ThemedText>
+                  </ThemedView>
+                  {student.evidenceFiles.map((file, index) => (
+                    <ThemedView key={index} style={styles.evidenceDisplayItem}>
+                      <IconSymbol size={14} name="doc.fill" color="#4CAF50" />
+                      <ThemedText style={styles.evidenceDisplayName}>{file.name}</ThemedText>
+                    </ThemedView>
+                  ))}
+                </ThemedView>
+              )}
+
               <ThemedView style={styles.infoRow}>
                 <IconSymbol size={16} name="book.fill" color="#4CAF50" />
                 <ThemedText style={styles.infoLabel}>المواد الدراسية:</ThemedText>
@@ -575,5 +756,122 @@ const styles = StyleSheet.create({
     borderRadius: 10,
     textAlign: 'center',
     alignSelf: 'flex-start',
+  },
+  goalContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+    marginBottom: 8,
+  },
+  removeGoalButton: {
+    padding: 4,
+  },
+  addGoalButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+    padding: 8,
+    backgroundColor: '#E8F5E8',
+    borderRadius: 8,
+    borderWidth: 1,
+    borderColor: '#4CAF50',
+    borderStyle: 'dashed',
+  },
+  addGoalText: {
+    fontSize: 14,
+    color: '#4CAF50',
+    fontWeight: '600',
+    textAlign: 'right',
+    writingDirection: 'rtl',
+  },
+  evidenceHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 8,
+  },
+  uploadButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+    backgroundColor: '#E3F2FD',
+    paddingHorizontal: 10,
+    paddingVertical: 6,
+    borderRadius: 15,
+    borderWidth: 1,
+    borderColor: '#007AFF',
+  },
+  uploadButtonText: {
+    fontSize: 12,
+    color: '#007AFF',
+    fontWeight: '600',
+    textAlign: 'right',
+    writingDirection: 'rtl',
+  },
+  evidenceItem: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+    padding: 8,
+    backgroundColor: '#F0F7FF',
+    borderRadius: 8,
+    marginBottom: 4,
+  },
+  evidenceFileName: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: '#333333',
+    textAlign: 'right',
+    writingDirection: 'rtl',
+  },
+  evidenceDate: {
+    fontSize: 12,
+    color: '#666666',
+    textAlign: 'right',
+    writingDirection: 'rtl',
+  },
+  goalText: {
+    fontSize: 14,
+    color: '#333333',
+    marginBottom: 4,
+    paddingRight: 16,
+    textAlign: 'right',
+    writingDirection: 'rtl',
+  },
+  needsSection: {
+    marginTop: 8,
+    padding: 10,
+    backgroundColor: '#FFF8E1',
+    borderRadius: 8,
+    borderWidth: 1,
+    borderColor: '#FFE082',
+  },
+  needsText: {
+    fontSize: 14,
+    color: '#333333',
+    lineHeight: 20,
+    marginTop: 4,
+    textAlign: 'right',
+    writingDirection: 'rtl',
+  },
+  evidenceSection: {
+    marginTop: 8,
+    padding: 10,
+    backgroundColor: '#E3F2FD',
+    borderRadius: 8,
+    borderWidth: 1,
+    borderColor: '#BBDEFB',
+  },
+  evidenceDisplayItem: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    marginTop: 4,
+  },
+  evidenceDisplayName: {
+    fontSize: 12,
+    color: '#333333',
+    textAlign: 'right',
+    writingDirection: 'rtl',
   },
 });
