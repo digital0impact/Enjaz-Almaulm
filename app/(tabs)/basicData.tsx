@@ -147,7 +147,10 @@ export default function BasicDataScreen() {
           </ThemedView>
 
           <ThemedView style={styles.dataItem}>
-            <ThemedText style={styles.label}>تويتر</ThemedText>
+            <ThemedView style={styles.labelRow}>
+              <IconSymbol size={20} name="twitter" color="#1DA1F2" />
+              <ThemedText style={styles.label}>تويتر</ThemedText>
+            </ThemedView>
             {isEditing ? (
               <TextInput
                 style={styles.input}
@@ -161,7 +164,10 @@ export default function BasicDataScreen() {
           </ThemedView>
 
           <ThemedView style={styles.dataItem}>
-            <ThemedText style={styles.label}>لينكدإن</ThemedText>
+            <ThemedView style={styles.labelRow}>
+              <IconSymbol size={20} name="linkedin" color="#0077B5" />
+              <ThemedText style={styles.label}>لينكدإن</ThemedText>
+            </ThemedView>
             {isEditing ? (
               <TextInput
                 style={styles.input}
@@ -399,11 +405,17 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: '#E5E5EA',
   },
+  labelRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'flex-end',
+    marginBottom: 8,
+    gap: 8,
+  },
   label: {
     fontSize: 14,
     fontWeight: '600',
     color: '#666666',
-    marginBottom: 8,
     textAlign: 'right',
     writingDirection: 'rtl',
   },
