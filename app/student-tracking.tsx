@@ -107,13 +107,13 @@ export default function StudentTrackingScreen() {
             </ThemedView>
 
             <ThemedView style={styles.formGroup}>
-              <ThemedText style={styles.label}>وصف المتعلم</ThemedText>
+              <ThemedText style={styles.label}>صف المتعلم</ThemedText>
               <ThemedView style={[styles.inputContainer, styles.textArea]}>
                 <TextInput
                   style={[styles.textInput, styles.textAreaInput]}
                   value={newStudent.description}
                   onChangeText={(text) => setNewStudent({ ...newStudent, description: text })}
-                  placeholder="أدخل وصف المتعلم..."
+                  placeholder="أدخل صف المتعلم..."
                   placeholderTextColor="#999"
                   textAlign="right"
                   multiline
