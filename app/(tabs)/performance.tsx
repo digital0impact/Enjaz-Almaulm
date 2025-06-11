@@ -483,7 +483,7 @@ export default function PerformanceScreen() {
 
           <TouchableOpacity 
             style={styles.improveButton}
-            onPress={() => Alert.alert('خطة التحسين', 'سيتم إنشاء خطة لتحسين الأداء قريباً')}
+            onPress={() => router.push('/improvement-plan')}
           >
             <IconSymbol size={20} name="chart.line.uptrend.xyaxis" color="white" />
             <ThemedText style={styles.buttonText}>خطة التحسين</ThemedText>
