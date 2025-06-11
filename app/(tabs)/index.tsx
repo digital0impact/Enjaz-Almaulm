@@ -208,7 +208,7 @@ export default function HomeScreen() {
                 style={styles.actionCard}
                 onPress={() => router.push('/student-tracking')}
               >
-                <IconSymbol size={28} name="person.crop.circle.fill" color="#E91E63" />
+                <IconSymbol size={28} name="person.crop.circle.badge.plus" color="#E91E63" />
                 <ThemedText style={styles.actionText}>تتبع حالة متعلم</ThemedText>
               </TouchableOpacity>
 

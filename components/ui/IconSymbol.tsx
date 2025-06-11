@@ -48,6 +48,20 @@ const MAPPING = {
   'arrow.right.square': 'logout',
   'twitter': 'alternate-email',
   'linkedin': 'business',
+  'lock.shield.fill': 'security',
+  'target': 'gps-fixed',
+  'hand.raised.fill': 'pan-tool',
+  'arrow.down.circle.fill': 'file-download',
+  'chevron.left': 'chevron-left',
+  'plus': 'add',
+  'xmark': 'close',
+  'checkmark': 'check',
+  'pencil': 'edit',
+  'trash': 'delete',
+  'eye': 'visibility',
+  'eye.slash': 'visibility-off',
+  'chevron.right': 'chevron-right',
+  'person.crop.circle.badge.plus': 'person-add-alt-1',
 } as IconMapping;
 
 /**
