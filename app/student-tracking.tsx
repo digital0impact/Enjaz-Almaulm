@@ -144,7 +144,7 @@ export default function StudentTrackingScreen() {
           <IconSymbol size={24} name="chevron.left" color="#007AFF" />
         </TouchableOpacity>
         <ThemedText type="title" style={styles.title}>
-          متابعة حالة المتعلمين
+          متابعة حالة متعلم
         </ThemedText>
         <TouchableOpacity 
           onPress={() => setShowAddForm(true)} 
