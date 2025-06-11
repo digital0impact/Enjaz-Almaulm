@@ -204,13 +204,7 @@ export default function HomeScreen() {
                 <ThemedText style={styles.actionText}>متتبع المواقع وكلمات المرور</ThemedText>
               </TouchableOpacity>
 
-              <TouchableOpacity 
-                style={styles.actionCard}
-                onPress={() => router.push('/student-tracking')}
-              >
-                <IconSymbol size={28} name="person.crop.circle.fill" color="#E91E63" />
-                <ThemedText style={styles.actionText}>متابعة حالة المتعلمين</ThemedText>
-              </TouchableOpacity>
+              
 
               <TouchableOpacity style={styles.actionCard}>
                 <IconSymbol size={28} name="envelope.fill" color="#2196F3" />
