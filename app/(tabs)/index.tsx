@@ -179,8 +179,7 @@ export default function HomeScreen() {
                 <IconSymbol size={24} name="arrow.right.square" color="#007AFF" />
               </TouchableOpacity>
             </ThemedView>
-
-
+          </ThemedView>
 
           <ThemedView style={styles.quickActions}>
             <ThemedView style={styles.actionsGrid}>
