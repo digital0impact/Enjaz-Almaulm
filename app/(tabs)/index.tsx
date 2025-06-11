@@ -196,6 +196,14 @@ export default function HomeScreen() {
                 <ThemedText style={styles.actionText}>أذكاري</ThemedText>
               </TouchableOpacity>
 
+              <TouchableOpacity 
+                style={styles.actionCard}
+                onPress={() => router.push('/password-tracker')}
+              >
+                <IconSymbol size={28} name="lock.shield.fill" color="#6A1B9A" />
+                <ThemedText style={styles.actionText}>متتبع المواقع وكلمات المرور</ThemedText>
+              </TouchableOpacity>
+
               <TouchableOpacity style={styles.actionCard}>
                 <IconSymbol size={28} name="bell.fill" color="#2196F3" />
                 <ThemedText style={styles.actionText}>التعليقات</ThemedText>
