@@ -88,22 +88,44 @@ export default function HomeScreen() {
       <ThemedView style={styles.container}>
         <ThemedView style={styles.gradientBackground}>
           <ThemedView style={styles.welcomeContent}>
-            <ThemedView style={styles.logoContainer}>
-              <IconSymbol size={80} name="book.fill" color="#007AFF" />
+            <ThemedView style={styles.heroSection}>
+              <ThemedView style={styles.logoContainer}>
+                <IconSymbol size={80} name="book.fill" color="#007AFF" />
+              </ThemedView>
+              <ThemedText type="title" style={styles.title}>
+                البورتفوليو الرقمي للمعلم
+              </ThemedText>
+              <ThemedText style={styles.subtitle}>
+                منصتك المتكاملة لإدارة وعرض إنجازاتك المهنية
+              </ThemedText>
             </ThemedView>
-            <ThemedText type="title" style={styles.title}>
-              البورتفوليو الرقمي للمعلم
-            </ThemedText>
-            <ThemedText style={styles.subtitle}>
-              منصتك المتكاملة لإدارة وعرض إنجازاتك المهنية
-            </ThemedText>
+
+            <ThemedView style={styles.featuresSection}>
+              <ThemedView style={styles.featureItem}>
+                <IconSymbol size={32} name="chart.bar.fill" color="#4CAF50" />
+                <ThemedText style={styles.featureText}>تتبع الأداء المهني</ThemedText>
+              </ThemedView>
+              <ThemedView style={styles.featureItem}>
+                <IconSymbol size={32} name="person.text.rectangle.fill" color="#FF9800" />
+                <ThemedText style={styles.featureText}>إدارة البيانات الأساسية</ThemedText>
+              </ThemedView>
+              <ThemedView style={styles.featureItem}>
+                <IconSymbol size={32} name="wrench.and.screwdriver.fill" color="#2196F3" />
+                <ThemedText style={styles.featureText}>الأدوات المساعدة</ThemedText>
+              </ThemedView>
+            </ThemedView>
 
             <TouchableOpacity 
               style={styles.getStartedButton}
               onPress={() => setCurrentScreen('login')}
             >
               <ThemedText style={styles.buttonText}>ابدأ الآن</ThemedText>
+              <IconSymbol size={20} name="arrow.left" color="white" />
             </TouchableOpacity>
+
+            <ThemedText style={styles.versionText}>
+              الإصدار 1.0 - تطوير المعلم المحترف
+            </ThemedText>
           </ThemedView>
         </ThemedView>
       </ThemedView>
@@ -238,8 +260,8 @@ const styles = StyleSheet.create({
     padding: 20,
   },
   gradientBackground: {
-    background: 'linear-gradient(135deg, #a8e6cf 0%, #dcedc8 50%, #f8bbd9 100%)',
-    backgroundColor: '#a8e6cf', // fallback for mobile
+    backgroundColor: '#a8e6cf',
+    flex: 1,
   },
   logoContainer: {
     width: 120,
@@ -249,8 +271,43 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     backgroundColor: '#F8F9FA',
     borderRadius: 60,
-    borderWidth: 2,
+    borderWidth: 3,
     borderColor: '#007AFF',
+    shadowColor: '#007AFF',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.3,
+    shadowRadius: 8,
+    elevation: 8,
+  },
+  heroSection: {
+    alignItems: 'center',
+    marginBottom: 40,
+  },
+  featuresSection: {
+    flexDirection: 'row',
+    justifyContent: 'space-around',
+    marginBottom: 40,
+    paddingHorizontal: 20,
+  },
+  featureItem: {
+    alignItems: 'center',
+    flex: 1,
+    marginHorizontal: 10,
+  },
+  featureText: {
+    fontSize: 12,
+    fontWeight: '600',
+    textAlign: 'center',
+    marginTop: 8,
+    color: '#555555',
+    writingDirection: 'rtl',
+  },
+  versionText: {
+    fontSize: 12,
+    color: '#888888',
+    textAlign: 'center',
+    marginTop: 20,
+    writingDirection: 'rtl',
   },
   welcomeContent: {
     flex: 1,
@@ -298,6 +355,15 @@ const styles = StyleSheet.create({
     paddingVertical: 15,
     paddingHorizontal: 40,
     borderRadius: 25,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 10,
+    shadowColor: '#007AFF',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.3,
+    shadowRadius: 8,
+    elevation: 8,
   },
   buttonText: {
     color: 'white',
