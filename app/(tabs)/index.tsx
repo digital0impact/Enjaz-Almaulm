@@ -7,7 +7,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useRouter } from 'expo-router';
 
 // Define the image path (replace with your actual image path)
-const backgroundImage = require('./assets/images/welcome-bg.jpg'); // Ensure the path is correct
+const backgroundImage = require('@/assets/images/welcome-background.png'); // Ensure the path is correct
 
 export default function HomeScreen() {
   const router = useRouter();
