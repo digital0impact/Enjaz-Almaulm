@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import { StyleSheet, ScrollView, TouchableOpacity, Alert, I18nManager } from 'react-native';
+import { StyleSheet, ScrollView, TouchableOpacity, Alert, I18nManager, ImageBackground } from 'react-native';
+import { LinearGradient as ExpoLinearGradient } from 'expo-linear-gradient';
 import { ThemedText } from '@/components/ThemedText';
 import { ThemedView } from '@/components/ThemedView';
 import { IconSymbol } from '@/components/ui/IconSymbol';
@@ -300,18 +301,28 @@ export default function PerformanceScreen() {
   };
 
   return (
-    <ScrollView style={styles.container}>
-      <ThemedView style={styles.header}>
-        <IconSymbol size={60} name="chart.bar.fill" color="#1c1f33" />
-        <ThemedText type="title" style={styles.title}>
-          تقييم محاور الأداء المهني
-        </ThemedText>
-        <ThemedText style={styles.subtitle}>
-          تقييم شامل لأدائك في المجالات المهنية المختلفة وفقاً للنظام المعتمد
-        </ThemedText>
-      </ThemedView>
+    <ThemedView style={styles.container}>
+      <ImageBackground
+        source={require('@/assets/images/background.png')}
+        style={styles.backgroundImage}
+        resizeMode="cover"
+      >
+        <ExpoLinearGradient
+          colors={['rgba(255,255,255,0.9)', 'rgba(225,245,244,0.95)', 'rgba(173,212,206,0.8)']}
+          style={styles.gradientOverlay}
+        >
+          <ScrollView style={styles.scrollContainer}>
+            <ThemedView style={styles.header}>
+              <IconSymbol size={60} name="chart.bar.fill" color="#1c1f33" />
+              <ThemedText type="title" style={styles.title}>
+                تقييم محاور الأداء المهني
+              </ThemedText>
+              <ThemedText style={styles.subtitle}>
+                تقييم شامل لأدائك في المجالات المهنية المختلفة وفقاً للنظام المعتمد
+              </ThemedText>
+            </ThemedView>
 
-      <ThemedView style={styles.content}>
+            <ThemedView style={styles.content}>
         <ThemedView style={styles.summaryCard}>
           <ThemedText type="subtitle" style={[styles.summaryTitle, { textAlign: 'center' }]}>
             المتوسط العام للأداء
@@ -489,21 +500,32 @@ export default function PerformanceScreen() {
             <ThemedText style={styles.buttonText}>خطة التحسين</ThemedText>
           </TouchableOpacity>
         </ThemedView>
-      </ThemedView>
-    </ScrollView>
+          </ScrollView>
+        </ExpoLinearGradient>
+      </ImageBackground>
+    </ThemedView>
   );
 }
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#f8f9fa',
+  },
+  backgroundImage: {
+    flex: 1,
+    width: '100%',
+    height: '100%',
+  },
+  gradientOverlay: {
+    flex: 1,
+  },
+  scrollContainer: {
+    flex: 1,
   },
   header: {
-    backgroundColor: 'transparent',
-    padding: 20,
-    paddingTop: 40,
     alignItems: 'center',
+    padding: 30,
+    backgroundColor: 'transparent',
   },
   title: {
     color: '#1c1f33',
@@ -528,8 +550,8 @@ const styles = StyleSheet.create({
     writingDirection: 'rtl',
   },
   content: {
-    flex: 1,
-    padding: 15,
+    padding: 20,
+    backgroundColor: 'transparent',
   },
   performanceItem: {
     backgroundColor: '#fff',
