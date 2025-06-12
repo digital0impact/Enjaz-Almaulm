@@ -500,7 +500,7 @@ const styles = StyleSheet.create({
     backgroundColor: '#f8f9fa',
   },
   header: {
-    backgroundColor: '#2E8B57',
+    backgroundColor: 'transparent',
     padding: 20,
     paddingTop: 40,
     alignItems: 'center',
