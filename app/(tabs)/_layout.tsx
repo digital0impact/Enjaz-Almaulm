@@ -47,7 +47,7 @@ export default function TabLayout() {
         name="basicData"
         options={{
           title: 'البيانات الأساسية',
-          tabBarIcon: ({ color }) => <IconSymbol size={28} name="person.text.rectangle.fill" color={color} />,
+          tabBarIcon: ({ color }) => <IconSymbol size={28} name="person.circle.fill" color={color} />,
         }}
       />
       <Tabs.Screen
