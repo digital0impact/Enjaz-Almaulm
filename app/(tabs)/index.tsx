@@ -53,23 +53,29 @@ export default function HomeScreen() {
     }
   };
 
-  const handleLogin = async (method: string) => {
-    try {
-      const token = 'user_token_' + Date.now();
-      const userData = {
-        name: 'المعلم محمد أحمد',
-        email: 'teacher@example.com',
-        method: method
-      };
-      await AsyncStorage.setItem('userToken', token);
-      await AsyncStorage.setItem('userInfo', JSON.stringify(userData));
-      setUserInfo(userData);
-      setIsLoggedIn(true);
-      setCurrentScreen('dashboard');
-      Alert.alert('تم بنجاح', 'تم تسجيل الدخول بنجاح');
-    } catch (error) {
-      Alert.alert('خطأ', 'حدث خطأ في تسجيل الدخول');
-    }
+  const handleLogin = (method: string) => {
+    // محاكاة عملية تسجيل الدخول
+    const loginMethods = {
+      'email': 'البريد الإلكتروني',
+      'google': 'حساب Google',
+      'apple': 'حساب Apple',
+      'microsoft': 'حساب Microsoft'
+    };
+
+    Alert.alert(
+      'تسجيل الدخول',
+      `سيتم تسجيل الدخول باستخدام ${loginMethods[method as keyof typeof loginMethods]}`,
+      [
+        { text: 'إلغاء', style: 'cancel' },
+        {
+          text: 'متابعة',
+          onPress: () => {
+            // محاكاة نجاح تسجيل الدخول
+            setCurrentScreen('dashboard');
+          }
+        }
+      ]
+    );
   };
 
   const handleLogout = async () => {
@@ -178,6 +184,15 @@ export default function HomeScreen() {
               >
                 <IconSymbol size={24} name="apple.logo" color="white" />
                 <ThemedText style={styles.loginButtonText}>حساب Apple</ThemedText>
+              </TouchableOpacity>
+              
+              {/* Microsoft Login Button */}
+              <TouchableOpacity 
+                style={styles.loginButton}
+                onPress={() => handleLogin('microsoft')}
+              >
+                <IconSymbol size={24} name="microsoft" color="white" />
+                <ThemedText style={styles.loginButtonText}>حساب Microsoft</ThemedText>
               </TouchableOpacity>
             </ThemedView>
 
