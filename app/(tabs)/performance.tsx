@@ -746,7 +746,7 @@ const styles = StyleSheet.create({
     transform: [{ scale: 1.02 }],
   },
   improveButton: {
-    flex: 1,
+    flex: 0.4,
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
