@@ -69,7 +69,7 @@ export default function HomeScreen() {
         { text: 'إلغاء', style: 'cancel' },
         {
           text: 'متابعة',
-          onPress={() => {
+          onPress: () => {
             // محاكاة نجاح تسجيل الدخول
             setCurrentScreen('dashboard');
           }
