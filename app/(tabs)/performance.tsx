@@ -338,10 +338,6 @@ export default function PerformanceScreen() {
         </ThemedView>
 
         <ThemedView style={styles.performanceList}>
-          <ThemedText type="subtitle" style={styles.sectionTitle}>
-            محاور تقييم الأداء المهني
-          </ThemedText>
-
           {performanceData.map((item, index) => (
             <TouchableOpacity
               key={item.id}
