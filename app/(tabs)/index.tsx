@@ -93,7 +93,7 @@ export default function HomeScreen() {
                 <IconSymbol size={80} name="book.fill" color="#007AFF" />
               </ThemedView>
               <ThemedText type="title" style={styles.title}>
-                البورتفوليو الرقمي للمعلم
+                للمعلم
               </ThemedText>
               <ThemedText style={styles.subtitle}>
                 منصتك المتكاملة لإدارة وعرض إنجازاتك المهنية
