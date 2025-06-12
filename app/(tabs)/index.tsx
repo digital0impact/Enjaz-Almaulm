@@ -189,7 +189,7 @@ export default function HomeScreen() {
         <ThemedView style={styles.dashboardContent}>
           <ThemedView style={styles.dashboardHeader}>
             <ThemedView style={{ flex: 1 }}>
-              <ThemedText type="title" style={[styles.welcomeTitle, { textAlign: 'center' }]}>
+              <ThemedText type="title" style={[styles.welcomeTitle, { textAlign: 'center', marginTop: 15 }]}>
                 مرحباً {teacherName}
               </ThemedText>
             </ThemedView>
