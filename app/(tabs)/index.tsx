@@ -89,6 +89,13 @@ export default function HomeScreen() {
         <ThemedView style={styles.gradientBackground}>
           <ThemedView style={styles.welcomeContent}>
             <ThemedView style={styles.heroSection}>
+              <ThemedView style={styles.logoContainer}>
+                <Image 
+                  source={require('@/assets/images/Logo.png')} 
+                  style={styles.logoImage}
+                  resizeMode="contain"
+                />
+              </ThemedView>
               <ThemedText type="title" style={styles.title}>
                 للمعلم
               </ThemedText>
@@ -262,15 +269,12 @@ const styles = StyleSheet.create({
     marginBottom: 30,
     justifyContent: 'center',
     alignItems: 'center',
-    backgroundColor: '#F8F9FA',
+    backgroundColor: 'transparent',
     borderRadius: 60,
-    borderWidth: 3,
-    borderColor: '#007AFF',
-    shadowColor: '#007AFF',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.3,
-    shadowRadius: 8,
-    elevation: 8,
+  },
+  logoImage: {
+    width: 100,
+    height: 100,
   },
   heroSection: {
     alignItems: 'center',
