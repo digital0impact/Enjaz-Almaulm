@@ -160,10 +160,7 @@ export default function BasicDataScreen() {
           </ThemedView>
 
           <ThemedView style={styles.dataItem}>
-            <ThemedView style={styles.labelRow}>
-              <IconSymbol size={20} name="twitter" color="#545454" />
-              <ThemedText style={styles.label}>تويتر</ThemedText>
-            </ThemedView>
+            <ThemedText style={styles.label}>تويتر</ThemedText>
             {isEditing ? (
               <TextInput
                 style={styles.input}
@@ -177,10 +174,7 @@ export default function BasicDataScreen() {
           </ThemedView>
 
           <ThemedView style={styles.dataItem}>
-            <ThemedView style={styles.labelRow}>
-              <IconSymbol size={20} name="linkedin" color="#545454" />
-              <ThemedText style={styles.label}>لينكدإن</ThemedText>
-            </ThemedView>
+            <ThemedText style={styles.label}>لينكدإن</ThemedText>
             {isEditing ? (
               <TextInput
                 style={styles.input}
