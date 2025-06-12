@@ -104,7 +104,7 @@ export default function HomeScreen() {
               </ThemedText>
             </ThemedView>
 
-            <ThemedView style={styles.featuresSection}>
+            <ThemedView style={[styles.featuresSection, { marginBottom: 25 }]}>
               <ThemedView style={styles.featureItem}>
                 <IconSymbol size={32} name="person.text.rectangle.fill" color="#FF9800" />
                 <ThemedText style={styles.featureText}></ThemedText>
