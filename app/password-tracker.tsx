@@ -468,7 +468,7 @@ const styles = StyleSheet.create({
     backgroundColor: '#fff',
     textAlign: 'right',
     writingDirection: 'rtl',
-    direction: 'rtl',
+    writingDirection: 'rtl',
   },
   addButton: {
     backgroundColor: '#FF6B35',
@@ -598,7 +598,7 @@ const styles = StyleSheet.create({
     backgroundColor: '#fff',
     textAlign: 'right',
     writingDirection: 'rtl',
-    direction: 'rtl',
+    writingDirection: 'rtl',
   },
   categoryScroll: {
     flexDirection: 'row',
