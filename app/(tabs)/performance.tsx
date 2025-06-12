@@ -484,16 +484,16 @@ export default function PerformanceScreen() {
             style={styles.reportButton}
             onPress={() => router.push('/interactive-report')}
           >
-            <IconSymbol size={20} name="doc.text.fill" color="white" />
-            <ThemedText style={styles.buttonText}>تقرير تفاعلي</ThemedText>
+            <IconSymbol size={20} name="doc.text.fill" color="#1c1f33" />
+            <ThemedText style={[styles.buttonText, { color: '#1c1f33' }]}>تقرير تفاعلي</ThemedText>
           </TouchableOpacity>
 
           <TouchableOpacity 
             style={styles.improveButton}
             onPress={() => router.push('/improvement-plan')}
           >
-            <IconSymbol size={20} name="chart.line.uptrend.xyaxis" color="white" />
-            <ThemedText style={styles.buttonText}>خطة التحسين</ThemedText>
+            <IconSymbol size={20} name="chart.line.uptrend.xyaxis" color="#1c1f33" />
+            <ThemedText style={[styles.buttonText, { color: '#1c1f33' }]}>خطة التحسين</ThemedText>
           </TouchableOpacity>
         </ThemedView>
       </ThemedView>
@@ -728,20 +728,30 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: '#007AFF',
+    backgroundColor: '#cadfde',
     paddingVertical: 15,
     borderRadius: 12,
     gap: 8,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.15,
+    shadowRadius: 8,
+    elevation: 6,
   },
   improveButton: {
     flex: 1,
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: '#4CAF50',
+    backgroundColor: '#cadfde',
     paddingVertical: 15,
     borderRadius: 12,
     gap: 8,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.15,
+    shadowRadius: 8,
+    elevation: 6,
   },
   buttonText: {
     color: 'white',
