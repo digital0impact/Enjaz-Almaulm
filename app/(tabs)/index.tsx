@@ -89,9 +89,6 @@ export default function HomeScreen() {
         <ThemedView style={styles.gradientBackground}>
           <ThemedView style={styles.welcomeContent}>
             <ThemedView style={styles.heroSection}>
-              <ThemedView style={styles.logoContainer}>
-                <IconSymbol size={80} name="book.fill" color="#007AFF" />
-              </ThemedView>
               <ThemedText type="title" style={styles.title}>
                 للمعلم
               </ThemedText>
