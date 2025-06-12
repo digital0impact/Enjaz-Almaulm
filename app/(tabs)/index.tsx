@@ -164,7 +164,7 @@ export default function HomeScreen() {
             <ThemedView style={styles.gradientBackground}>
               <ThemedView style={styles.loginContent}>
                 <ThemedView style={styles.iconContainer}>
-                  <IconSymbol size={60} name="person.circle.fill" color="#007AFF" />
+                  <IconSymbol size={60} name="person.circle.fill" color="#1c1f33" />
                 </ThemedView>
                 <ThemedText type="title" style={styles.title}>
                   تسجيل الدخول
@@ -209,7 +209,7 @@ export default function HomeScreen() {
                   style={styles.backButton}
                   onPress={() => setCurrentScreen('welcome')}
                 >
-                  <IconSymbol size={24} name="arrow.left" color="#007AFF" />
+                  <IconSymbol size={24} name="arrow.left" color="#1c1f33" />
                 </TouchableOpacity>
               </ThemedView>
             </ThemedView>
