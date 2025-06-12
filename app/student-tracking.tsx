@@ -1,9 +1,13 @@
-import React, { useState } from 'react';
-import { StyleSheet, TouchableOpacity, ScrollView, Alert, I18nManager, TextInput } from 'react-native';
+import React, { useState, useEffect } from 'react';
+import { StyleSheet, ScrollView, TouchableOpacity, Alert, I18nManager } from 'react-native';
 import { ThemedText } from '@/components/ThemedText';
 import { ThemedView } from '@/components/ThemedView';
+import { ThemedHeader } from '@/components/ThemedHeader';
+import { ThemedCard } from '@/components/ThemedCard';
+import { ThemedButton } from '@/components/ThemedButton';
 import { IconSymbol } from '@/components/ui/IconSymbol';
 import { useRouter } from 'expo-router';
+import { useThemedStyles, useGlobalTheme } from '@/hooks/useGlobalTheme';
 
 interface Student {
   id: string;
@@ -19,6 +23,8 @@ interface Student {
 
 export default function StudentTrackingScreen() {
   const router = useRouter();
+  const styles = useThemedStyles();
+  const { colors } = useGlobalTheme();
   const [students, setStudents] = useState<Student[]>([]);
   const [showAddForm, setShowAddForm] = useState(false);
   const [newStudent, setNewStudent] = useState({
@@ -78,7 +84,7 @@ export default function StudentTrackingScreen() {
     }
   };
 
-  
+
 
   if (showAddForm) {
     return (
@@ -149,7 +155,6 @@ export default function StudentTrackingScreen() {
                   </TouchableOpacity>
                 ))}
               </ThemedView>
-            </ThemedView>
 
             <ThemedView style={styles.formGroup}>
               <ThemedText style={styles.label}>الأهداف الخاصة بالتطوير</ThemedText>
@@ -253,23 +258,14 @@ export default function StudentTrackingScreen() {
 
   return (
     <ThemedView style={styles.container}>
-      <ThemedView style={styles.header}>
-        <TouchableOpacity 
-          style={styles.backButton}
-          onPress={() => router.back()}
-        >
-          <IconSymbol size={24} name="chevron.left" color="#007AFF" />
-        </TouchableOpacity>
-        <ThemedText type="title" style={styles.title}>
-          تتبع حالة متعلم
-        </ThemedText>
-        <TouchableOpacity 
-          onPress={() => setShowAddForm(true)} 
-          style={styles.addButton}
-        >
-          <IconSymbol size={24} name="plus" color="#007AFF" />
-        </TouchableOpacity>
-      </ThemedView>
+      {/* الهيدر الموحد */}
+      <ThemedHeader 
+        title="تتبع حالة متعلم"
+        rightButton={{
+          icon: "plus",
+          onPress: addStudent
+        }}
+      />
 
       {/* شريط الأدوات المتقدم */}
       <ThemedView style={styles.toolbar}>
@@ -324,7 +320,7 @@ export default function StudentTrackingScreen() {
         ) : (
           <ThemedView style={styles.studentsList}>
             {students.map((student) => (
-              <ThemedView key={student.id} style={styles.studentCard}>
+              <ThemedCard key={student.id} style={styles.studentCard}>
                 <ThemedView style={styles.studentHeader}>
                   <ThemedView style={styles.studentInfo}>
                     <ThemedText type="defaultSemiBold" style={styles.studentName}>
@@ -379,7 +375,7 @@ export default function StudentTrackingScreen() {
                     ))}
                   </ThemedView>
                 </ThemedView>
-              </ThemedView>
+              </ThemedCard>
             ))}
           </ThemedView>
         )}
@@ -388,345 +384,4 @@ export default function StudentTrackingScreen() {
   );
 }
 
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: '#f5f5f5',
-  },
-  header: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    padding: 20,
-    backgroundColor: '#fff',
-    borderBottomWidth: 1,
-    borderBottomColor: '#e0e0e0',
-  },
-  backButton: {
-    padding: 8,
-    borderRadius: 20,
-    backgroundColor: '#f0f0f0',
-  },
-  title: {
-    fontSize: 20,
-    fontWeight: 'bold',
-    color: '#333',
-    textAlign: 'center',
-    flex: 1,
-  },
-  toolbar: {
-    flexDirection: 'row',
-    backgroundColor: '#fff',
-    paddingHorizontal: 15,
-    paddingVertical: 12,
-    borderBottomWidth: 1,
-    borderBottomColor: '#e0e0e0',
-    gap: 5,
-  },
-  toolButton: {
-    flex: 1,
-    alignItems: 'center',
-    paddingVertical: 8,
-    paddingHorizontal: 6,
-    borderRadius: 8,
-    backgroundColor: '#f8f9fa',
-    borderWidth: 1,
-    borderColor: '#e9ecef',
-  },
-  toolButtonText: {
-    fontSize: 10,
-    color: '#666',
-    marginTop: 2,
-    textAlign: 'center',
-    fontWeight: '500',
-  },
-  addButton: {
-    padding: 8,
-    borderRadius: 20,
-    backgroundColor: '#f0f0f0',
-  },
-  content: {
-    flex: 1,
-    padding: 20,
-  },
-  emptyState: {
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginTop: 100,
-  },
-  emptyTitle: {
-    fontSize: 18,
-    fontWeight: 'bold',
-    color: '#666',
-    marginTop: 20,
-    textAlign: 'center',
-  },
-  emptySubtitle: {
-    fontSize: 14,
-    color: '#999',
-    marginTop: 10,
-    textAlign: 'center',
-  },
-  studentsList: {
-    gap: 15,
-  },
-  studentCard: {
-    backgroundColor: '#fff',
-    borderRadius: 12,
-    padding: 20,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
-    elevation: 3,
-  },
-  studentHeader: {
-    flexDirection: 'row',
-    alignItems: 'flex-start',
-    justifyContent: 'space-between',
-    marginBottom: 15,
-  },
-  studentInfo: {
-    flex: 1,
-  },
-  studentName: {
-    fontSize: 18,
-    fontWeight: 'bold',
-    color: '#333',
-    textAlign: 'right',
-  },
-  studentDescription: {
-    fontSize: 14,
-    color: '#666',
-    marginTop: 5,
-    textAlign: 'right',
-  },
-  statusBadge: {
-    paddingHorizontal: 12,
-    paddingVertical: 6,
-    borderRadius: 15,
-    marginLeft: 10,
-  },
-  statusBadgeText: {
-    color: 'white',
-    fontSize: 12,
-    fontWeight: 'bold',
-    textAlign: 'center',
-  },
-  studentDetails: {
-    gap: 15,
-  },
-  section: {
-    gap: 8,
-  },
-  sectionTitle: {
-    fontSize: 16,
-    fontWeight: 'bold',
-    color: '#333',
-    textAlign: 'right',
-  },
-  goalItem: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginBottom: 8,
-    gap: 8,
-  },
-  goalText: {
-    fontSize: 14,
-    color: '#333',
-    flex: 1,
-    textAlign: 'right',
-    writingDirection: 'rtl',
-  },
-  goalItemVertical: {
-    flexDirection: 'row',
-    alignItems: 'flex-start',
-    marginBottom: 12,
-    paddingHorizontal: 12,
-    paddingVertical: 10,
-    backgroundColor: '#f8f9fa',
-    borderRadius: 8,
-    gap: 12,
-  },
-  goalCheckbox: {
-    marginTop: 2,
-  },
-  goalTextVertical: {
-    fontSize: 14,
-    color: '#333',
-    flex: 1,
-    textAlign: 'right',
-    writingDirection: 'rtl',
-    lineHeight: 20,
-  },
-  completedGoal: {
-    textDecorationLine: 'line-through',
-    color: '#999',
-  },
-  progressBar: {
-    height: 8,
-    backgroundColor: '#e0e0e0',
-    borderRadius: 4,
-    overflow: 'hidden',
-    marginTop: 5,
-  },
-  progressFill: {
-    height: '100%',
-    backgroundColor: '#4CAF50',
-  },
-  progressText: {
-    fontSize: 12,
-    color: '#666',
-    textAlign: 'right',
-    marginTop: 5,
-  },
-  needItem: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 8,
-    paddingVertical: 4,
-  },
-  needText: {
-    flex: 1,
-    fontSize: 14,
-    color: '#555',
-    textAlign: 'right',
-  },
-  
-  formCard: {
-    backgroundColor: '#fff',
-    borderRadius: 12,
-    padding: 20,
-    gap: 20,
-  },
-  formGroup: {
-    gap: 8,
-  },
-  label: {
-    fontSize: 16,
-    fontWeight: 'bold',
-    color: '#333',
-    textAlign: 'right',
-  },
-  inputContainer: {
-    borderWidth: 1,
-    borderColor: '#ddd',
-    borderRadius: 8,
-    padding: 12,
-    backgroundColor: '#f9f9f9',
-  },
-  textArea: {
-    minHeight: 80,
-  },
-  input: {
-    fontSize: 14,
-    color: '#666',
-    textAlign: 'right',
-  },
-  textInput: {
-    fontSize: 14,
-    color: '#333',
-    textAlign: 'right',
-    padding: 0,
-    margin: 0,
-    minHeight: 20,
-  },
-  textAreaInput: {
-    minHeight: 60,
-    textAlignVertical: 'top',
-  },
-  statusOptions: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    gap: 10,
-  },
-  statusOption: {
-    paddingHorizontal: 16,
-    paddingVertical: 8,
-    borderRadius: 20,
-    borderWidth: 1,
-    borderColor: '#ddd',
-  },
-  statusText: {
-    fontSize: 14,
-    fontWeight: '600',
-    textAlign: 'center',
-  },
-  saveButton: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    gap: 8,
-    backgroundColor: '#007AFF',
-    padding: 15,
-    borderRadius: 8,
-    marginTop: 10,
-  },
-  saveButtonText: {
-    color: 'white',
-    fontSize: 16,
-    fontWeight: 'bold',
-  },
-  dynamicInputRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 10,
-    marginBottom: 10,
-  },
-  dynamicInput: {
-    flex: 1,
-    borderWidth: 1,
-    borderColor: '#ddd',
-    borderRadius: 8,
-    padding: 12,
-    backgroundColor: '#f9f9f9',
-    fontSize: 14,
-    color: '#333',
-    textAlign: 'right',
-  },
-  removeButton: {
-    padding: 5,
-  },
-  addButton: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 8,
-    padding: 12,
-    backgroundColor: '#f0f8ff',
-    borderRadius: 8,
-    borderWidth: 1,
-    borderColor: '#007AFF',
-    borderStyle: 'dashed',
-    justifyContent: 'center',
-    marginTop: 5,
-  },
-  addButtonText: {
-    color: '#007AFF',
-    fontSize: 14,
-    fontWeight: '600',
-  },
-  evidenceUploadButton: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    gap: 10,
-    padding: 15,
-    backgroundColor: '#f0f8ff',
-    borderRadius: 8,
-    borderWidth: 2,
-    borderColor: '#007AFF',
-    borderStyle: 'dashed',
-  },
-  evidenceUploadText: {
-    color: '#007AFF',
-    fontSize: 16,
-    fontWeight: '600',
-  },
-  evidenceNote: {
-    fontSize: 12,
-    color: '#666',
-    textAlign: 'center',
-    marginTop: 8,
-    fontStyle: 'italic',
-  },
-});
+// استخدام الأنماط الموحدة من useThemedStyles
