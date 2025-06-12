@@ -1,12 +1,13 @@
 import React, { useState, useEffect } from 'react';
-import { StyleSheet, ScrollView, TextInput, TouchableOpacity, Alert, I18nManager } from 'react-native';
+import { StyleSheet, ScrollView, TouchableOpacity, Alert, I18nManager } from 'react-native';
 import { ThemedText } from '@/components/ThemedText';
 import { ThemedView } from '@/components/ThemedView';
 import { IconSymbol } from '@/components/ui/IconSymbol';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { useFirebase } from '@/hooks/useFirebase';
 
 export default function BasicDataScreen() {
-  const [isEditing, setIsEditing] = useState(false);
+  const { isConnected, isLoading, saveTeacher, syncData } = useFirebase();
   const [userData, setUserData] = useState({
     fullName: 'المعلم محمد أحمد',
     specialty: 'الرياضيات',
