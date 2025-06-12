@@ -1,89 +1,58 @@
+// styles/theme.ts
 
-import { Colors, GlobalStyles } from '@/constants/Colors';
-import { useColorScheme } from '@/hooks/useColorScheme';
+export const lightTheme = {
+  isDark: false,
+  colors: {
+    primary: "#add6d7",
+    secondary: "#bcebec",
+    background: "#f2fafa",
+    surface: "#e0f0f1",
+    muted: "#cadfde",
+    border: "#cadcd9",
+    accent: "#add4ce",
+    textPrimary: "#100f0d",
+    textSecondary: "#5a5b58",
+    disabled: "#9a9a95",
+  },
+  spacing: {
+    xs: 4,
+    sm: 8,
+    md: 16,
+    lg: 24,
+    xl: 32,
+    xxl: 40,
+  },
+  borderRadius: {
+    sm: 6,
+    md: 12,
+    lg: 20,
+    full: 9999,
+  },
+  fontSize: {
+    xs: 12,
+    sm: 14,
+    md: 16,
+    lg: 20,
+    xl: 24,
+    xxl: 32,
+  },
+};
 
-export function useGlobalTheme() {
-  const colorScheme = useColorScheme() ?? 'light';
-  
-  return {
-    colors: Colors[colorScheme],
-    styles: GlobalStyles,
-    isDark: colorScheme === 'dark',
-  };
-}
-
-export function useThemedStyles() {
-  const { colors, styles } = useGlobalTheme();
-  
-  // دمج الألوان مع الأنماط
-  const themedStyles = {
-    ...styles,
-    // تحديث الأنماط بالألوان الحالية
-    header: {
-      ...styles.header,
-      backgroundColor: colors.headerBackground,
-      borderBottomColor: colors.border,
-    },
-    headerTitle: {
-      ...styles.headerTitle,
-      color: colors.headerText,
-    },
-    primaryButton: {
-      ...styles.primaryButton,
-      backgroundColor: colors.buttonPrimary,
-    },
-    secondaryButton: {
-      ...styles.secondaryButton,
-      backgroundColor: colors.buttonSecondary,
-      borderColor: colors.border,
-    },
-    primaryButtonText: {
-      ...styles.primaryButtonText,
-      color: colors.buttonText,
-    },
-    secondaryButtonText: {
-      ...styles.secondaryButtonText,
-      color: colors.buttonTextSecondary,
-    },
-    card: {
-      ...styles.card,
-      backgroundColor: colors.card,
-      shadowColor: colors.cardShadow,
-      borderColor: colors.border,
-    },
-    textInput: {
-      ...styles.textInput,
-      backgroundColor: colors.inputBackground,
-      borderColor: colors.inputBorder,
-      color: colors.inputText,
-    },
-    toolbar: {
-      ...styles.toolbar,
-      backgroundColor: colors.toolbarBackground,
-      borderBottomColor: colors.toolbarBorder,
-    },
-    toolButton: {
-      ...styles.toolButton,
-      backgroundColor: colors.alternateBackground,
-      borderColor: colors.border,
-    },
-    toolButtonText: {
-      ...styles.toolButtonText,
-      color: colors.text,
-    },
-    container: {
-      ...styles.container,
-      backgroundColor: colors.background,
-    },
-    divider: {
-      ...styles.divider,
-      backgroundColor: colors.divider,
-    },
-    emptyStateText: {
-      ...styles.emptyStateText,
-      color: colors.placeholderText,
-    },
-  };
-  
-  return themedStyles;
-}
+export const darkTheme = {
+  isDark: true,
+  colors: {
+    primary: "#add4ce",
+    secondary: "#5a5b58",
+    background: "#100f0d",
+    surface: "#1c1c1a",
+    muted: "#333331",
+    border: "#2a2a27",
+    accent: "#bcebec",
+    textPrimary: "#f2fafa",
+    textSecondary: "#cadcd9",
+    disabled: "#9a9a95",
+  },
+  spacing: lightTheme.spacing,
+  borderRadius: lightTheme.borderRadius,
+  fontSize: lightTheme.fontSize,
+};
