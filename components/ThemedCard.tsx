@@ -1,29 +1,27 @@
 
 import React from 'react';
-import { ViewProps } from 'react-native';
-import { ThemedView } from './ThemedView';
+import { View, ViewProps } from 'react-native';
 import { useThemedStyles } from '@/hooks/useGlobalTheme';
 
 export type ThemedCardProps = ViewProps & {
-  children: React.ReactNode;
-  padding?: number;
+  variant?: 'default' | 'elevated';
 };
 
 export function ThemedCard({ 
-  children, 
+  variant = 'default',
   style, 
-  padding,
+  children,
   ...props 
 }: ThemedCardProps) {
   const styles = useThemedStyles();
   
-  const cardStyle = padding !== undefined 
-    ? { ...styles.card, padding } 
+  const cardStyle = variant === 'elevated' 
+    ? [styles.card, { elevation: 4, boxShadow: '0px 4px 8px rgba(0, 0, 0, 0.15)' }]
     : styles.card;
 
   return (
-    <ThemedView style={[cardStyle, style]} {...props}>
+    <View style={[cardStyle, style]} {...props}>
       {children}
-    </ThemedView>
+    </View>
   );
 }

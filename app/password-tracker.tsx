@@ -497,7 +497,7 @@ const styles = StyleSheet.create({
     padding: 15,
     marginBottom: 10,
     elevation: 1,
-    boxShadow: '0px 1px 2px rgba(0, 0, 0, 0.1)',
+    boxShadow: '0px 1px 3px rgba(0, 0, 0, 0.1)',
   },
   siteHeader: {
     flexDirection: 'row',

@@ -1,6 +1,6 @@
-// hooks/useTheme.ts
+
 import { useColorScheme } from "react-native";
-import { lightTheme, darkTheme } from "../styles/theme";
+import { lightTheme, darkTheme } from "./useGlobalTheme";
 
 export function useTheme() {
   const scheme = useColorScheme();
