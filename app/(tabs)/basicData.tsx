@@ -322,6 +322,7 @@ export default function BasicDataScreen() {
             )}
           </ThemedView>
         </ThemedView>
+      </ThemedView>
           </ScrollView>
         </ExpoLinearGradient>
       </ImageBackground>
