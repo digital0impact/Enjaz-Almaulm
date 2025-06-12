@@ -302,7 +302,7 @@ export default function PerformanceScreen() {
   return (
     <ScrollView style={styles.container}>
       <ThemedView style={styles.header}>
-        <IconSymbol size={60} name="chart.bar.fill" color="#FF9800" />
+        <IconSymbol size={60} name="chart.bar.fill" color="#1c1f33" />
         <ThemedText type="title" style={styles.title}>
           تقييم محاور الأداء المهني
         </ThemedText>
@@ -506,7 +506,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   title: {
-    color: '#000000',
+    color: '#1c1f33',
     fontSize: 24,
     fontWeight: 'bold',
     textAlign: 'center',
@@ -514,7 +514,7 @@ const styles = StyleSheet.create({
     marginBottom: 10,
   },
   subtitle: {
-    color: '#666666',
+    color: '#1c1f33',
     fontSize: 16,
     textAlign: 'center',
     writingDirection: 'rtl',
