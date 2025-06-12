@@ -107,7 +107,7 @@ export default function HomeScreen() {
               </ThemedView>
               <ThemedView style={styles.featureItem}>
                 <IconSymbol size={32} name="person.text.rectangle.fill" color="#FF9800" />
-                <ThemedText style={styles.featureText}>إدارة البيانات الأساسية</ThemedText>
+                <ThemedText style={styles.featureText}></ThemedText>
               </ThemedView>
               <ThemedView style={styles.featureItem}>
                 <IconSymbol size={32} name="wrench.and.screwdriver.fill" color="#2196F3" />
