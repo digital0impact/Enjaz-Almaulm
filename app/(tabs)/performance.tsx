@@ -780,7 +780,7 @@ const styles = StyleSheet.create({
     writingDirection: 'rtl',
   },
   performanceCard: {
-    backgroundColor: '#fff',
+    backgroundColor: '#cadfde',
     borderRadius: 12,
     marginBottom: 15,
     elevation: 2,
