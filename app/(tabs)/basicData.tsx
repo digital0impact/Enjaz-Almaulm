@@ -110,7 +110,7 @@ export default function BasicDataScreen() {
           )}
         </ThemedView>
 
-        <ThemedView style={styles.dataSection}>
+        <ThemedView style={[styles.dataSection, { backgroundColor: 'transparent' }]}>
           <ThemedText type="subtitle" style={styles.sectionTitle}>
             المعلومات الشخصية
           </ThemedText>
@@ -188,7 +188,7 @@ export default function BasicDataScreen() {
           </ThemedView>
         </ThemedView>
 
-        <ThemedView style={styles.dataSection}>
+        <ThemedView style={[styles.dataSection, { backgroundColor: 'transparent' }]}>
           <ThemedText type="subtitle" style={styles.sectionTitle}>
             المعلومات المهنية
           </ThemedText>
@@ -279,7 +279,7 @@ export default function BasicDataScreen() {
           </ThemedView>
         </ThemedView>
 
-        <ThemedView style={styles.dataSection}>
+        <ThemedView style={[styles.dataSection, { backgroundColor: 'transparent' }]}>
           <ThemedText type="subtitle" style={styles.sectionTitle}>
             الرؤية والرسالة
           </ThemedText>
