@@ -1,40 +1,57 @@
+
 import React from 'react';
-import { View, TouchableOpacity, ViewProps } from 'react-native';
+import { TouchableOpacity } from 'react-native';
+import { ThemedView } from './ThemedView';
 import { ThemedText } from './ThemedText';
 import { IconSymbol } from './ui/IconSymbol';
 import { useThemedStyles, useGlobalTheme } from '@/hooks/useGlobalTheme';
+import { useRouter } from 'expo-router';
 
-export type ThemedHeaderProps = ViewProps & {
+export type ThemedHeaderProps = {
   title: string;
   showBackButton?: boolean;
+  rightButton?: {
+    icon: string;
+    onPress: () => void;
+  };
   onBackPress?: () => void;
-  rightComponent?: React.ReactNode;
 };
 
 export function ThemedHeader({ 
   title, 
-  showBackButton = false, 
-  onBackPress,
-  rightComponent,
-  style,
-  ...props 
+  showBackButton = true, 
+  rightButton,
+  onBackPress 
 }: ThemedHeaderProps) {
   const styles = useThemedStyles();
   const { colors } = useGlobalTheme();
+  const router = useRouter();
+  
+  const handleBackPress = () => {
+    if (onBackPress) {
+      onBackPress();
+    } else {
+      router.back();
+    }
+  };
 
   return (
-    <View style={[styles.header, style]} {...props}>
+    <ThemedView style={styles.header}>
       {showBackButton && (
-        <TouchableOpacity onPress={onBackPress} style={{ padding: 8 }}>
-          <IconSymbol size={24} name="chevron.left" color={colors.textPrimary} />
+        <TouchableOpacity style={styles.headerButton} onPress={handleBackPress}>
+          <IconSymbol size={24} name="chevron.left" color={colors.headerText} />
         </TouchableOpacity>
       )}
-
+      
       <ThemedText style={styles.headerTitle}>{title}</ThemedText>
-
-      {rightComponent && (
-        <View>{rightComponent}</View>
+      
+      {rightButton ? (
+        <TouchableOpacity style={styles.headerButton} onPress={rightButton.onPress}>
+          <IconSymbol size={24} name={rightButton.icon} color={colors.headerText} />
+        </TouchableOpacity>
+      ) : (
+        <ThemedView style={{ width: 40 }} />
       )}
-    </View>
+    </ThemedView>
   );
 }
