@@ -500,6 +500,7 @@ export default function PerformanceScreen() {
             <ThemedText style={styles.buttonText}>خطة التحسين</ThemedText>
           </TouchableOpacity>
         </ThemedView>
+      </ThemedView>
           </ScrollView>
         </ExpoLinearGradient>
       </ImageBackground>
