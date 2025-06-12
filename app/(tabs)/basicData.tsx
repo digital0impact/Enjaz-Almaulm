@@ -444,7 +444,7 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
     marginBottom: 15,
     color: '#1c1f33',
-    textAlign: 'right',
+    textAlign: 'center',
     writingDirection: 'rtl',
   },
   dataItem: {
