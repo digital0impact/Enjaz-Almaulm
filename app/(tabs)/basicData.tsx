@@ -160,13 +160,13 @@ export default function BasicDataScreen() {
           </ThemedView>
 
           <ThemedView style={styles.dataItem}>
-            <ThemedText style={styles.label}>تويتر</ThemedText>
+            <ThemedText style={styles.label}>منصة X</ThemedText>
             {isEditing ? (
               <TextInput
                 style={styles.input}
                 value={userData.twitter}
                 onChangeText={(text) => updateField('twitter', text)}
-                placeholder="أدخل اسم المستخدم على تويتر"
+                placeholder="أدخل اسم المستخدم على منصة X"
               />
             ) : (
               <ThemedText style={styles.value}>{userData.twitter}</ThemedText>
