@@ -39,7 +39,7 @@ export function ThemedHeader({
     <ThemedView style={styles.header}>
       {showBackButton && (
         <TouchableOpacity style={styles.headerButton} onPress={handleBackPress}>
-          <IconSymbol size={24} name="chevron.left" color={colors.headerText} />
+          <IconSymbol size={32} name="chevron.left" color={colors.headerText} />
         </TouchableOpacity>
       )}
       
@@ -47,10 +47,10 @@ export function ThemedHeader({
       
       {rightButton ? (
         <TouchableOpacity style={styles.headerButton} onPress={rightButton.onPress}>
-          <IconSymbol size={24} name={rightButton.icon} color={colors.headerText} />
+          <IconSymbol size={32} name={rightButton.icon} color={colors.headerText} />
         </TouchableOpacity>
       ) : (
-        <ThemedView style={{ width: 40 }} />
+        <ThemedView style={{ width: 48 }} />
       )}
     </ThemedView>
   );

@@ -1,4 +1,3 @@
-
 const tintColorLight = '#4ECDC4';
 const tintColorDark = '#4ECDC4';
 
@@ -220,4 +219,27 @@ export const GlobalStyles = {
     textAlign: 'center' as const,
     writingDirection: 'rtl' as const,
   },
+  // أحجام عامة
+  spacing: {
+    xs: 4,
+    sm: 8,
+    md: 16,
+    lg: 24,
+    xl: 32,
+  },
+
+  borderRadius: {
+    sm: 8,
+    md: 12,
+    lg: 16,
+    xl: 24,
+  },
+
+  iconSize: {
+    sm: 24,
+    md: 28,
+    lg: 32,
+    xl: 36,
+  },
 };
+```
