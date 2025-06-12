@@ -9,7 +9,7 @@ import { useGlobalTheme } from '@/hooks/useGlobalTheme';
 
 export default function MonthlyCalendarScreen() {
   const router = useRouter();
-  const { colors, globalStyles } = useGlobalTheme();
+  const { colors, styles } = useGlobalTheme();
   const [currentDate, setCurrentDate] = useState(new Date());
   const [selectedDate, setSelectedDate] = useState<number | null>(null);
 
@@ -128,18 +128,18 @@ export default function MonthlyCalendarScreen() {
   return (
     <ScrollView style={[styles.container, { backgroundColor: colors.background }]}>
       {/* Header */}
-      <ThemedView style={[globalStyles.header, { backgroundColor: colors.primary }]}>
+      <ThemedView style={[styles.header, { backgroundColor: colors.primary }]}>
         <TouchableOpacity 
-          style={globalStyles.headerButton}
+          style={styles.headerButton}
           onPress={() => router.back()}
         >
           <IconSymbol size={24} name="chevron.left" color="#fff" />
         </TouchableOpacity>
-        <ThemedText style={globalStyles.headerTitle}>
+        <ThemedText style={styles.headerTitle}>
           التقويم الشهري
         </ThemedText>
         <TouchableOpacity 
-          style={globalStyles.headerButton}
+          style={styles.headerButton}
           onPress={() => Alert.alert('خيارات', 'خيارات التقويم الشهري')}
         >
           <IconSymbol size={24} name="ellipsis" color="#fff" />
@@ -208,31 +208,31 @@ export default function MonthlyCalendarScreen() {
           </ThemedText>
           
           <TouchableOpacity
-            style={[styles.actionButton, globalStyles.primaryButton]}
+            style={[styles.actionButton, styles.primaryButton]}
             onPress={() => Alert.alert('اليوم', 'الانتقال إلى تاريخ اليوم')}
           >
             <IconSymbol size={20} name="calendar.badge.clock" color="#fff" />
-            <ThemedText style={[styles.actionButtonText, globalStyles.primaryButtonText]}>
+            <ThemedText style={[styles.actionButtonText, styles.primaryButtonText]}>
               الانتقال لليوم
             </ThemedText>
           </TouchableOpacity>
 
           <TouchableOpacity
-            style={[styles.actionButton, globalStyles.secondaryButton]}
+            style={[styles.actionButton, styles.secondaryButton]}
             onPress={() => Alert.alert('إضافة حدث', 'إضافة حدث جديد للتقويم')}
           >
             <IconSymbol size={20} name="plus.circle" color={colors.primary} />
-            <ThemedText style={[styles.actionButtonText, globalStyles.secondaryButtonText]}>
+            <ThemedText style={[styles.actionButtonText, styles.secondaryButtonText]}>
               إضافة حدث جديد
             </ThemedText>
           </TouchableOpacity>
 
           <TouchableOpacity
-            style={[styles.actionButton, globalStyles.secondaryButton]}
+            style={[styles.actionButton, styles.secondaryButton]}
             onPress={() => Alert.alert('عرض الأحداث', 'عرض جميع أحداث الشهر')}
           >
             <IconSymbol size={20} name="list.bullet" color={colors.primary} />
-            <ThemedText style={[styles.actionButtonText, globalStyles.secondaryButtonText]}>
+            <ThemedText style={[styles.actionButtonText, styles.secondaryButtonText]}>
               عرض أحداث الشهر
             </ThemedText>
           </TouchableOpacity>
