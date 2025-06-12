@@ -17,72 +17,7 @@ export default function CalendarScreen() {
   };
 
   const handleMonthlyCalendar = () => {
-    const currentDate = new Date();
-    const month = currentDate.getMonth();
-    const year = currentDate.getFullYear();
-    const firstDay = new Date(year, month, 1);
-    const lastDay = new Date(year, month + 1, 0);
-    const daysInMonth = lastDay.getDate();
-    const startDayOfWeek = firstDay.getDay();
-
-    // إنشاء تقويم الشهر
-    let calendarDays = '';
-    let dayCounter = 1;
-    
-    // أسماء أيام الأسبوع
-    calendarDays += 'ح   ن   ث   ر   خ   ج   س\n';
-    calendarDays += '―――――――――――――――――――――\n';
-    
-    // إضافة الأسابيع
-    for (let week = 0; week < 6; week++) {
-      let weekRow = '';
-      for (let day = 0; day < 7; day++) {
-        const currentDayPosition = week * 7 + day;
-        if (currentDayPosition < startDayOfWeek || dayCounter > daysInMonth) {
-          weekRow += '   ';
-        } else {
-          const dayStr = dayCounter < 10 ? ` ${dayCounter}` : `${dayCounter}`;
-          // تمييز اليوم الحالي
-          if (dayCounter === currentDate.getDate()) {
-            weekRow += `[${dayStr}]`;
-          } else {
-            weekRow += ` ${dayStr}`;
-          }
-          dayCounter++;
-        }
-        if (day < 6) weekRow += ' ';
-      }
-      calendarDays += weekRow + '\n';
-      if (dayCounter > daysInMonth) break;
-    }
-
-    Alert.alert(
-      '📅 التقويم الشهري',
-      `🗓️ ${currentDate.toLocaleDateString('ar-SA', { year: 'numeric', month: 'long' })}\n\n` +
-      `${calendarDays}\n` +
-      `📝 ملاحظات:\n` +
-      `• اليوم الحالي محاط بأقواس [${currentDate.getDate()}]\n` +
-      `• ح=الأحد، ن=الاثنين، ث=الثلاثاء، ر=الأربعاء\n` +
-      `• خ=الخميس، ج=الجمعة، س=السبت`,
-      [
-        {
-          text: '📅 التقويم الهجري',
-          onPress: () => handleHijriCalendar()
-        },
-        {
-          text: '📋 إضافة حدث',
-          onPress: () => Alert.alert('إضافة حدث', 'سيتم فتح نموذج إضافة حدث جديد للتقويم')
-        },
-        {
-          text: '📊 عرض الأحداث',
-          onPress: () => handleViewEvents()
-        },
-        {
-          text: 'إغلاق',
-          style: 'cancel'
-        }
-      ]
-    );
+    router.push('/monthly-calendar');
   };
 
   const handleHijriCalendar = () => {
