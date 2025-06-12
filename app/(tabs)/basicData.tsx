@@ -456,7 +456,7 @@ const styles = StyleSheet.create({
   dataItem: {
     marginBottom: 20,
     padding: 15,
-    backgroundColor: '#F8F9FA',
+    backgroundColor: '#e0f0f1',
     borderRadius: 12,
     borderWidth: 1,
     borderColor: '#E5E5EA',
