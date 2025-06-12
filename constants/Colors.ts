@@ -242,4 +242,3 @@ export const GlobalStyles = {
     xl: 36,
   },
 };
-```

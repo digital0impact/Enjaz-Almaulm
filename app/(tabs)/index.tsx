@@ -264,17 +264,17 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   logoContainer: {
-    width: 120,
-    height: 120,
+    width: 180,
+    height: 180,
     marginBottom: 30,
     justifyContent: 'center',
     alignItems: 'center',
     backgroundColor: 'transparent',
-    borderRadius: 60,
+    borderRadius: 90,
   },
   logoImage: {
-    width: 150,
-    height: 150,
+    width: 220,
+    height: 220,
   },
   heroSection: {
     alignItems: 'center',
