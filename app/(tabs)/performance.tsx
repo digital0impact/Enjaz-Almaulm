@@ -685,6 +685,9 @@ const styles = StyleSheet.create({
     borderColor: '#4CAF50',
     gap: 4,
   },
+  addEvidenceButtonHover: {
+    backgroundColor: '#cadfde',
+  },
   addEvidenceText: {
     fontSize: 12,
     color: '#4CAF50',
@@ -738,6 +741,10 @@ const styles = StyleSheet.create({
     shadowRadius: 8,
     elevation: 6,
   },
+  reportButtonHover: {
+    backgroundColor: '#b8d1cd',
+    transform: [{ scale: 1.02 }],
+  },
   improveButton: {
     flex: 1,
     flexDirection: 'row',
@@ -752,6 +759,10 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.15,
     shadowRadius: 8,
     elevation: 6,
+  },
+  improveButtonHover: {
+    backgroundColor: '#b8d1cd',
+    transform: [{ scale: 1.02 }],
   },
   buttonText: {
     color: 'white',
@@ -799,6 +810,10 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.1,
     shadowRadius: 3,
     position: 'relative',
+  },
+  performanceCardHover: {
+    backgroundColor: '#cadfde',
+    opacity: 0.8,
   },
   cardHeader: {
     flexDirection: 'row',
