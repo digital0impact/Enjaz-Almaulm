@@ -1,4 +1,3 @@
-
 const tintColorLight = '#4ECDC4';
 const tintColorDark = '#4ECDC4';
 
