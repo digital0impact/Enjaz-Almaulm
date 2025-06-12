@@ -111,7 +111,7 @@ export default function HomeScreen() {
               </ThemedView>
               <ThemedView style={styles.featureItem}>
                 <IconSymbol size={32} name="wrench.and.screwdriver.fill" color="#2196F3" />
-                <ThemedText style={styles.featureText}>أدوات متنوعة</ThemedText>
+                <ThemedText style={styles.featureText}></ThemedText>
               </ThemedView>
             </ThemedView>
 
