@@ -362,7 +362,7 @@ const styles = StyleSheet.create({
     elevation: 8,
   },
   buttonText: {
-    color: 'white',
+    color: '#1c1f33',
     fontSize: 18,
     fontWeight: 'bold',
     textAlign: 'center',
