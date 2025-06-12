@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Image, StyleSheet, TouchableOpacity, I18nManager, ImageBackground, LinearGradient } from 'react-native';
+import { Image, StyleSheet, TouchableOpacity, I18nManager, ImageBackground, LinearGradient, Alert } from 'react-native';
 import { LinearGradient as ExpoLinearGradient } from 'expo-linear-gradient';
 import { ThemedText } from '@/components/ThemedText';
 import { ThemedView } from '@/components/ThemedView';
@@ -152,58 +152,69 @@ export default function HomeScreen() {
   if (currentScreen === 'login') {
     return (
       <ThemedView style={styles.container}>
-        <ThemedView style={styles.gradientBackground}>
-          <ThemedView style={styles.loginContent}>
-            <ThemedView style={styles.iconContainer}>
-              <IconSymbol size={60} name="person.circle.fill" color="#007AFF" />
+        <ImageBackground
+          source={require('@/assets/images/background.png')}
+          style={styles.backgroundImage}
+          resizeMode="cover"
+        >
+          <ExpoLinearGradient
+            colors={['rgba(255,255,255,0.9)', 'rgba(225,245,244,0.95)', 'rgba(173,212,206,0.8)']}
+            style={styles.gradientOverlay}
+          >
+            <ThemedView style={styles.gradientBackground}>
+              <ThemedView style={styles.loginContent}>
+                <ThemedView style={styles.iconContainer}>
+                  <IconSymbol size={60} name="person.circle.fill" color="#007AFF" />
+                </ThemedView>
+                <ThemedText type="title" style={styles.title}>
+                  تسجيل الدخول
+                </ThemedText>
+
+                <ThemedView style={styles.loginButtons}>
+                  <TouchableOpacity 
+                    style={styles.loginButton}
+                    onPress={() => handleLogin('email')}
+                  >
+                    <IconSymbol size={24} name="envelope.fill" color="#1c1f33" />
+                    <ThemedText style={styles.loginButtonText}>البريد الإلكتروني</ThemedText>
+                  </TouchableOpacity>
+
+                  <TouchableOpacity 
+                    style={styles.loginButton}
+                    onPress={() => handleLogin('google')}
+                  >
+                    <IconSymbol size={24} name="globe" color="#1c1f33" />
+                    <ThemedText style={styles.loginButtonText}>حساب Google</ThemedText>
+                  </TouchableOpacity>
+
+                  <TouchableOpacity 
+                    style={styles.loginButton}
+                    onPress={() => handleLogin('apple')}
+                  >
+                    <IconSymbol size={24} name="apple.logo" color="#1c1f33" />
+                    <ThemedText style={styles.loginButtonText}>حساب Apple</ThemedText>
+                  </TouchableOpacity>
+                  
+                  {/* Microsoft Login Button */}
+                  <TouchableOpacity 
+                    style={styles.loginButton}
+                    onPress={() => handleLogin('microsoft')}
+                  >
+                    <IconSymbol size={24} name="microsoft" color="#1c1f33" />
+                    <ThemedText style={styles.loginButtonText}>حساب Microsoft</ThemedText>
+                  </TouchableOpacity>
+                </ThemedView>
+
+                <TouchableOpacity 
+                  style={styles.backButton}
+                  onPress={() => setCurrentScreen('welcome')}
+                >
+                  <IconSymbol size={24} name="arrow.left" color="#007AFF" />
+                </TouchableOpacity>
+              </ThemedView>
             </ThemedView>
-            <ThemedText type="title" style={styles.title}>
-              تسجيل الدخول
-            </ThemedText>
-
-            <ThemedView style={styles.loginButtons}>
-              <TouchableOpacity 
-                style={styles.loginButton}
-                onPress={() => handleLogin('email')}
-              >
-                <IconSymbol size={24} name="envelope.fill" color="white" />
-                <ThemedText style={styles.loginButtonText}>البريد الإلكتروني</ThemedText>
-              </TouchableOpacity>
-
-              <TouchableOpacity 
-                style={styles.loginButton}
-                onPress={() => handleLogin('google')}
-              >
-                <IconSymbol size={24} name="globe" color="white" />
-                <ThemedText style={styles.loginButtonText}>حساب Google</ThemedText>
-              </TouchableOpacity>
-
-              <TouchableOpacity 
-                style={styles.loginButton}
-                onPress={() => handleLogin('apple')}
-              >
-                <IconSymbol size={24} name="apple.logo" color="white" />
-                <ThemedText style={styles.loginButtonText}>حساب Apple</ThemedText>
-              </TouchableOpacity>
-              
-              {/* Microsoft Login Button */}
-              <TouchableOpacity 
-                style={styles.loginButton}
-                onPress={() => handleLogin('microsoft')}
-              >
-                <IconSymbol size={24} name="microsoft" color="white" />
-                <ThemedText style={styles.loginButtonText}>حساب Microsoft</ThemedText>
-              </TouchableOpacity>
-            </ThemedView>
-
-            <TouchableOpacity 
-              style={styles.backButton}
-              onPress={() => setCurrentScreen('welcome')}
-            >
-              <IconSymbol size={24} name="arrow.left" color="#007AFF" />
-            </TouchableOpacity>
-          </ThemedView>
-        </ThemedView>
+          </ExpoLinearGradient>
+        </ImageBackground>
       </ThemedView>
     );
   }
@@ -425,14 +436,20 @@ const styles = StyleSheet.create({
     flexDirection: I18nManager.isRTL ? 'row-reverse' : 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: '#007AFF',
+    backgroundColor: '#add4ce',
     paddingVertical: 15,
     paddingHorizontal: 20,
-    borderRadius: 15,
+    borderRadius: 25,
     gap: 10,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 6 },
+    shadowOpacity: 0.4,
+    shadowRadius: 12,
+    elevation: 12,
+    marginBottom: 10,
   },
   loginButtonText: {
-    color: 'white',
+    color: '#1c1f33',
     fontSize: 16,
     fontWeight: '600',
     textAlign: 'right',
