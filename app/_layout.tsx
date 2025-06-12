@@ -5,7 +5,7 @@ import { StatusBar } from 'expo-status-bar';
 import { I18nManager } from 'react-native';
 import 'react-native-reanimated';
 
-import { useColorScheme } from 'react-native';
+import { useColorScheme } from '@/hooks/useColorScheme';
 
 // Force RTL layout
 I18nManager.allowRTL(true);
