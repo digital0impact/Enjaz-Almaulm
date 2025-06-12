@@ -245,7 +245,7 @@ export default function StudentTrackingScreen() {
                 يمكنك رفع الصور، الفيديوهات، والمستندات المتعلقة بالمتعلم
               </ThemedText>
             </ThemedView>
-</ThemedView>
+
             <TouchableOpacity style={styles.saveButton} onPress={addStudent}>
               <IconSymbol size={24} name="checkmark.circle.fill" color="white" />
               <ThemedText style={styles.saveButtonText}>حفظ المتعلم</ThemedText>
