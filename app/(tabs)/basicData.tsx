@@ -78,7 +78,7 @@ export default function BasicDataScreen() {
             </ThemedView>
 
       <ThemedView style={styles.content}>
-        <ThemedView style={styles.actionButtons}>
+        <ThemedView style={[styles.actionButtons, { backgroundColor: 'transparent' }]}>
           {!isEditing ? (
             <TouchableOpacity 
               style={styles.editButton}
