@@ -99,7 +99,7 @@ export default function HomeScreen() {
               <ThemedText type="title" style={styles.title}>
                 للمعلم
               </ThemedText>
-              <ThemedText style={styles.subtitle}>
+              <ThemedText style={[styles.subtitle, { textAlign: 'center' }]}>
                 منصتك المتكاملة لإدارة وعرض إنجازاتك المهنية
               </ThemedText>
             </ThemedView>
