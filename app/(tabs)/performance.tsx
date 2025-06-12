@@ -492,7 +492,7 @@ export default function PerformanceScreen() {
             style={styles.improveButton}
             onPress={() => router.push('/improvement-plan')}
           >
-            <IconSymbol size={20} name="chart.line.uptrend.xyaxis" color="#1c1f33" />
+            <IconSymbol size={20} name="target" color="#1c1f33" />
             <ThemedText style={[styles.buttonText, { color: '#1c1f33' }]}>خطة التحسين</ThemedText>
           </TouchableOpacity>
         </ThemedView>
