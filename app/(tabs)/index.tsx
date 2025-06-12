@@ -120,7 +120,6 @@ export default function HomeScreen() {
               onPress={() => setCurrentScreen('login')}
             >
               <ThemedText style={styles.buttonText}>ابدأ الآن</ThemedText>
-              <IconSymbol size={20} name="arrow.left" color="white" />
             </TouchableOpacity>
 
             <ThemedText style={styles.versionText}>
