@@ -875,4 +875,17 @@ const styles = StyleSheet.create({
     borderRadius: 8,
     backgroundColor: '#E3F2FD',
   },
+  summaryCard: {
+    backgroundColor: '#e0f0f1',
+    borderRadius: 12,
+    marginBottom: 15,
+    padding: 20,
+    borderWidth: 1,
+    borderColor: '#E5E5EA',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    elevation: 3,
+  },
 });
