@@ -33,7 +33,7 @@ export default function TabLayout() {
         name="explore"
         options={{
           title: 'الأدوات المساعدة',
-          tabBarIcon: ({ color }) => <IconSymbol size={28} name="wrench.and.screwdriver.fill" color={color} />,
+          tabBarIcon: ({ color }) => <IconSymbol size={28} name="gear.fill" color={color} />,
         }}
       />
       <Tabs.Screen
