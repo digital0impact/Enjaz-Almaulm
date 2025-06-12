@@ -271,6 +271,49 @@ export default function StudentTrackingScreen() {
         </TouchableOpacity>
       </ThemedView>
 
+      {/* شريط الأدوات المتقدم */}
+      <ThemedView style={styles.toolbar}>
+        <TouchableOpacity 
+          style={styles.toolButton}
+          onPress={() => Alert.alert('البحث', 'سيتم فتح أداة البحث في المتعلمين')}
+        >
+          <IconSymbol size={20} name="magnifyingglass" color="#007AFF" />
+          <ThemedText style={styles.toolButtonText}>بحث</ThemedText>
+        </TouchableOpacity>
+
+        <TouchableOpacity 
+          style={styles.toolButton}
+          onPress={() => Alert.alert('التصفية', 'تصفية المتعلمين حسب:\n• الحالة\n• التقدم\n• الأهداف المكتملة')}
+        >
+          <IconSymbol size={20} name="line.3.horizontal.decrease.circle" color="#FF9800" />
+          <ThemedText style={styles.toolButtonText}>تصفية</ThemedText>
+        </TouchableOpacity>
+
+        <TouchableOpacity 
+          style={styles.toolButton}
+          onPress={() => Alert.alert('التصدير', 'تصدير البيانات بصيغة:\n• PDF\n• Excel\n• CSV')}
+        >
+          <IconSymbol size={20} name="square.and.arrow.up" color="#4CAF50" />
+          <ThemedText style={styles.toolButtonText}>تصدير</ThemedText>
+        </TouchableOpacity>
+
+        <TouchableOpacity 
+          style={styles.toolButton}
+          onPress={() => Alert.alert('الإحصائيات', 'عرض إحصائيات شاملة:\n• عدد المتعلمين حسب الحالة\n• معدل التقدم\n• الأهداف المكتملة')}
+        >
+          <IconSymbol size={20} name="chart.bar.fill" color="#9C27B0" />
+          <ThemedText style={styles.toolButtonText}>إحصائيات</ThemedText>
+        </TouchableOpacity>
+
+        <TouchableOpacity 
+          style={styles.toolButton}
+          onPress={() => Alert.alert('الإعدادات', 'إعدادات تتبع المتعلمين:\n• إعدادات التنبيهات\n• قوالب الأهداف\n• إعدادات التصدير')}
+        >
+          <IconSymbol size={20} name="gearshape.fill" color="#666" />
+          <ThemedText style={styles.toolButtonText}>إعدادات</ThemedText>
+        </TouchableOpacity>
+      </ThemedView>
+
       <ScrollView style={styles.content}>
         {students.length === 0 ? (
           <ThemedView style={styles.emptyState}>
@@ -370,6 +413,32 @@ const styles = StyleSheet.create({
     color: '#333',
     textAlign: 'center',
     flex: 1,
+  },
+  toolbar: {
+    flexDirection: 'row',
+    backgroundColor: '#fff',
+    paddingHorizontal: 15,
+    paddingVertical: 12,
+    borderBottomWidth: 1,
+    borderBottomColor: '#e0e0e0',
+    gap: 5,
+  },
+  toolButton: {
+    flex: 1,
+    alignItems: 'center',
+    paddingVertical: 8,
+    paddingHorizontal: 6,
+    borderRadius: 8,
+    backgroundColor: '#f8f9fa',
+    borderWidth: 1,
+    borderColor: '#e9ecef',
+  },
+  toolButtonText: {
+    fontSize: 10,
+    color: '#666',
+    marginTop: 2,
+    textAlign: 'center',
+    fontWeight: '500',
   },
   addButton: {
     padding: 8,
