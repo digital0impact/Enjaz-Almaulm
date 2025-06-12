@@ -506,7 +506,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   title: {
-    color: '#fff',
+    color: '#000000',
     fontSize: 24,
     fontWeight: 'bold',
     textAlign: 'center',
@@ -514,7 +514,7 @@ const styles = StyleSheet.create({
     marginBottom: 10,
   },
   subtitle: {
-    color: '#fff',
+    color: '#666666',
     fontSize: 16,
     textAlign: 'center',
     writingDirection: 'rtl',
