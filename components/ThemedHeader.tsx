@@ -1,57 +1,40 @@
-
 import React from 'react';
-import { TouchableOpacity } from 'react-native';
-import { ThemedView } from './ThemedView';
+import { View, TouchableOpacity, ViewProps } from 'react-native';
 import { ThemedText } from './ThemedText';
 import { IconSymbol } from './ui/IconSymbol';
 import { useThemedStyles, useGlobalTheme } from '@/hooks/useGlobalTheme';
-import { useRouter } from 'expo-router';
 
-export type ThemedHeaderProps = {
+export type ThemedHeaderProps = ViewProps & {
   title: string;
   showBackButton?: boolean;
-  rightButton?: {
-    icon: string;
-    onPress: () => void;
-  };
   onBackPress?: () => void;
+  rightComponent?: React.ReactNode;
 };
 
 export function ThemedHeader({ 
   title, 
-  showBackButton = true, 
-  rightButton,
-  onBackPress 
+  showBackButton = false, 
+  onBackPress,
+  rightComponent,
+  style,
+  ...props 
 }: ThemedHeaderProps) {
   const styles = useThemedStyles();
   const { colors } = useGlobalTheme();
-  const router = useRouter();
-  
-  const handleBackPress = () => {
-    if (onBackPress) {
-      onBackPress();
-    } else {
-      router.back();
-    }
-  };
 
   return (
-    <ThemedView style={styles.header}>
+    <View style={[styles.header, style]} {...props}>
       {showBackButton && (
-        <TouchableOpacity style={styles.headerButton} onPress={handleBackPress}>
-          <IconSymbol size={32} name="chevron.left" color={colors.headerText} />
+        <TouchableOpacity onPress={onBackPress} style={{ padding: 8 }}>
+          <IconSymbol size={24} name="chevron.left" color={colors.textPrimary} />
         </TouchableOpacity>
       )}
-      
+
       <ThemedText style={styles.headerTitle}>{title}</ThemedText>
-      
-      {rightButton ? (
-        <TouchableOpacity style={styles.headerButton} onPress={rightButton.onPress}>
-          <IconSymbol size={32} name={rightButton.icon} color={colors.headerText} />
-        </TouchableOpacity>
-      ) : (
-        <ThemedView style={{ width: 48 }} />
+
+      {rightComponent && (
+        <View>{rightComponent}</View>
       )}
-    </ThemedView>
+    </View>
   );
 }

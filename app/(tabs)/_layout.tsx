@@ -33,28 +33,28 @@ export default function TabLayout() {
         name="explore"
         options={{
           title: 'الأدوات المساعدة',
-          tabBarIcon: ({ color }) => <IconSymbol size={32} name="wrench.and.screwdriver.fill" color={color} />,
+          tabBarIcon: ({ color }) => <IconSymbol size={28} name="wrench.and.screwdriver.fill" color={color} />,
         }}
       />
       <Tabs.Screen
         name="performance"
         options={{
           title: 'الأداء المهني',
-          tabBarIcon: ({ color }) => <IconSymbol size={32} name="chart.bar.fill" color={color} />,
+          tabBarIcon: ({ color }) => <IconSymbol size={28} name="chart.bar.fill" color={color} />,
         }}
       />
       <Tabs.Screen
         name="basicData"
         options={{
           title: 'البيانات الأساسية',
-          tabBarIcon: ({ color }) => <IconSymbol size={32} name="person.text.rectangle.fill" color={color} />,
+          tabBarIcon: ({ color }) => <IconSymbol size={28} name="person.text.rectangle.fill" color={color} />,
         }}
       />
       <Tabs.Screen
         name="index"
         options={{
           title: 'الرئيسية',
-          tabBarIcon: ({ color }) => <IconSymbol size={32} name="house.fill" color={color} />,
+          tabBarIcon: ({ color }) => <IconSymbol size={28} name="house.fill" color={color} />,
         }}
       />
     </Tabs>

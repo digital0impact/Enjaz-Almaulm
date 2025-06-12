@@ -443,10 +443,7 @@ const styles = StyleSheet.create({
     padding: 20,
     marginBottom: 20,
     elevation: 2,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.1,
-    shadowRadius: 3,
+    boxShadow: '0px 1px 3px rgba(0, 0, 0, 0.1)',
   },
   inputRow: {
     marginBottom: 15,
@@ -500,10 +497,7 @@ const styles = StyleSheet.create({
     padding: 15,
     marginBottom: 10,
     elevation: 1,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.1,
-    shadowRadius: 2,
+    boxShadow: '0px 1px 3px rgba(0, 0, 0, 0.1)',
   },
   siteHeader: {
     flexDirection: 'row',
