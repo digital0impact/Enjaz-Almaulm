@@ -449,7 +449,7 @@ const styles = StyleSheet.create({
     fontSize: 20,
     fontWeight: 'bold',
     marginBottom: 15,
-    color: '#007AFF',
+    color: '#1c1f33',
     textAlign: 'right',
     writingDirection: 'rtl',
   },
