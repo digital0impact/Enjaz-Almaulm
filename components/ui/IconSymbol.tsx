@@ -62,6 +62,7 @@ const MAPPING = {
   'eye.slash': 'visibility-off',
   'chevron.right': 'chevron-right',
   'person.crop.circle.badge.plus': 'person-add-alt-1',
+  'microsoft': 'business',
 } as IconMapping;
 
 /**

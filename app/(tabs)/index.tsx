@@ -69,7 +69,7 @@ export default function HomeScreen() {
         { text: 'إلغاء', style: 'cancel' },
         {
           text: 'متابعة',
-          onPress: () => {
+          onPress={() => {
             // محاكاة نجاح تسجيل الدخول
             setCurrentScreen('dashboard');
           }
@@ -194,7 +194,7 @@ export default function HomeScreen() {
                     <IconSymbol size={24} name="apple.logo" color="#1c1f33" />
                     <ThemedText style={styles.loginButtonText}>حساب Apple</ThemedText>
                   </TouchableOpacity>
-                  
+
                   {/* Microsoft Login Button */}
                   <TouchableOpacity 
                     style={styles.loginButton}
