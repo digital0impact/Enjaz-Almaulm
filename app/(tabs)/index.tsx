@@ -347,7 +347,7 @@ const styles = StyleSheet.create({
     writingDirection: 'rtl',
   },
   getStartedButton: {
-    backgroundColor: '#007AFF',
+    backgroundColor: '#add4ce',
     paddingVertical: 15,
     paddingHorizontal: 40,
     borderRadius: 25,
@@ -355,7 +355,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     gap: 10,
-    shadowColor: '#007AFF',
+    shadowColor: '#add4ce',
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.3,
     shadowRadius: 8,
