@@ -67,7 +67,7 @@ export default function BasicDataScreen() {
           <ScrollView style={styles.scrollContainer}>
             <ThemedView style={styles.header}>
               <ThemedView style={styles.iconContainer}>
-                <IconSymbol size={60} name="person.text.rectangle.fill" color="#1c1f33" />
+                <IconSymbol size={60} name="person.circle.fill" color="#1c1f33" />
               </ThemedView>
               <ThemedText type="title" style={styles.title}>
                 البيانات الأساسية
