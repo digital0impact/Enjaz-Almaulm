@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import { StyleSheet, TouchableOpacity, Alert, Image, I18nManager } from 'react-native';
+import { Image, StyleSheet, TouchableOpacity, I18nManager, ImageBackground, LinearGradient } from 'react-native';
+import { LinearGradient as ExpoLinearGradient } from 'expo-linear-gradient';
 import { ThemedText } from '@/components/ThemedText';
 import { ThemedView } from '@/components/ThemedView';
 import { IconSymbol } from '@/components/ui/IconSymbol';
@@ -86,6 +87,15 @@ export default function HomeScreen() {
   if (currentScreen === 'welcome') {
     return (
       <ThemedView style={styles.container}>
+        <ImageBackground
+          source={require('@/assets/images/background.png')}
+          style={styles.backgroundImage}
+          resizeMode="cover"
+        >
+          <ExpoLinearGradient
+            colors={['rgba(255,255,255,0.9)', 'rgba(225,245,244,0.95)', 'rgba(173,212,206,0.8)']}
+            style={styles.gradientOverlay}
+          >
         <ThemedView style={styles.gradientBackground}>
           <ThemedView style={styles.welcomeContent}>
             <ThemedView style={styles.heroSection}>
@@ -127,6 +137,8 @@ export default function HomeScreen() {
             </ThemedText>
           </ThemedView>
         </ThemedView>
+        </ExpoLinearGradient>
+        </ImageBackground>
       </ThemedView>
     );
   }
@@ -260,6 +272,14 @@ const styles = StyleSheet.create({
   },
   gradientBackground: {
     backgroundColor: '#a8e6cf',
+    flex: 1,
+  },
+    backgroundImage: {
+    flex: 1,
+    width: '100%',
+    height: '100%',
+  },
+  gradientOverlay: {
     flex: 1,
   },
   logoContainer: {
@@ -496,6 +516,17 @@ const styles = StyleSheet.create({
     color: '#000000',
     textAlign: 'center',
     writingDirection: 'rtl',
+  },
+  titleContainer: {
+    alignItems: 'center',
+    gap: 8,
+    paddingHorizontal: 20,
+    paddingVertical: 30,
+    textAlign: 'center',
+    writingDirection: 'rtl',
+    backgroundColor: 'rgba(255,255,255,0.8)',
+    borderRadius: 15,
+    marginHorizontal: 10,
   },
 
 });
