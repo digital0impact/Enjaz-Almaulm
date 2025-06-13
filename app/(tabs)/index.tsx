@@ -67,8 +67,7 @@ export default function HomeScreen() {
     }
   };
 
-  const handleLogin = (method: string) => {
-    // محاكاة عملية تسجيل الدخول
+  const handleLogin = async (method: string) => {
     const loginMethods = {
       'email': 'البريد الإلكتروني',
       'google': 'حساب Google',
@@ -76,20 +75,38 @@ export default function HomeScreen() {
       'microsoft': 'حساب Microsoft'
     };
 
-    Alert.alert(
-      'تسجيل الدخول',
-      `سيتم تسجيل الدخول باستخدام ${loginMethods[method as keyof typeof loginMethods]}`,
-      [
-        { text: 'إلغاء', style: 'cancel' },
-        {
-          text: 'متابعة',
-          onPress: () => {
-            // محاكاة نجاح تسجيل الدخول
-            setCurrentScreen('dashboard');
-          }
-        }
-      ]
-    );
+    try {
+      // محاكاة عملية تسجيل الدخول الناجحة
+      const userData = {
+        id: '123',
+        name: 'المعلم التجريبي',
+        email: 'teacher@example.com',
+        method: method
+      };
+
+      // حفظ بيانات المستخدم
+      await AsyncStorage.setItem('userToken', 'demo_token_123');
+      await AsyncStorage.setItem('userInfo', JSON.stringify(userData));
+      await AsyncStorage.setItem('basicData', JSON.stringify({ fullName: 'المعلم التجريبي' }));
+
+      // تحديث الحالة
+      setIsLoggedIn(true);
+      setUserInfo(userData);
+      setCurrentScreen('dashboard');
+      setTeacherName('المعلم');
+
+      Alert.alert(
+        'نجح تسجيل الدخول',
+        `تم تسجيل الدخول بنجاح باستخدام ${loginMethods[method as keyof typeof loginMethods]}`
+      );
+
+    } catch (error) {
+      console.log('Error during login:', error);
+      Alert.alert(
+        'خطأ',
+        'حدث خطأ أثناء تسجيل الدخول. يرجى المحاولة مرة أخرى.'
+      );
+    }
   };
 
   const handleLogout = async () => {
