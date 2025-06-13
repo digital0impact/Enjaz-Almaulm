@@ -347,12 +347,12 @@ export default function DetailedReportScreen() {
 
           <ThemedView style={styles.tabSelector}>
             <TouchableOpacity
-              style={[styles.tabButton, selectedView === 'overview' && styles.activeTabButton]}
-              onPress={() => setSelectedView('overview')}
+              style={[styles.tabButton, selectedView === 'recommendations' && styles.activeTabButton]}
+              onPress={() => setSelectedView('recommendations')}
             >
-              <IconSymbol size={16} name="chart.pie.fill" color={selectedView === 'overview' ? '#fff' : '#666'} />
-              <ThemedText style={[styles.tabButtonText, selectedView === 'overview' && styles.activeTabButtonText]}>
-                نظرة عامة
+              <IconSymbol size={16} name="lightbulb.fill" color={selectedView === 'recommendations' ? '#fff' : '#666'} />
+              <ThemedText style={[styles.tabButtonText, selectedView === 'recommendations' && styles.activeTabButtonText]}>
+                التوصيات
               </ThemedText>
             </TouchableOpacity>
 
@@ -367,12 +367,12 @@ export default function DetailedReportScreen() {
             </TouchableOpacity>
 
             <TouchableOpacity
-              style={[styles.tabButton, selectedView === 'recommendations' && styles.activeTabButton]}
-              onPress={() => setSelectedView('recommendations')}
+              style={[styles.tabButton, selectedView === 'overview' && styles.activeTabButton]}
+              onPress={() => setSelectedView('overview')}
             >
-              <IconSymbol size={16} name="lightbulb.fill" color={selectedView === 'recommendations' ? '#fff' : '#666'} />
-              <ThemedText style={[styles.tabButtonText, selectedView === 'recommendations' && styles.activeTabButtonText]}>
-                التوصيات
+              <IconSymbol size={16} name="chart.pie.fill" color={selectedView === 'overview' ? '#fff' : '#666'} />
+              <ThemedText style={[styles.tabButtonText, selectedView === 'overview' && styles.activeTabButtonText]}>
+                نظرة عامة
               </ThemedText>
             </TouchableOpacity>
           </ThemedView>
