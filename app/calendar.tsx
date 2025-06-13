@@ -1,24 +1,131 @@
-import React from 'react';
-import { StyleSheet, ScrollView, ImageBackground, Platform } from 'react-native';
+
+import React, { useState } from 'react';
+import { StyleSheet, ScrollView, TouchableOpacity, View, Alert, ImageBackground } from 'react-native';
 import { LinearGradient as ExpoLinearGradient } from 'expo-linear-gradient';
 import { ThemedText } from '@/components/ThemedText';
 import { ThemedView } from '@/components/ThemedView';
 import { IconSymbol } from '@/components/ui/IconSymbol';
 
 export default function CalendarScreen() {
-  const getCurrentDate = () => {
+  const [currentDate, setCurrentDate] = useState(new Date());
+  const [selectedDate, setSelectedDate] = useState<number | null>(null);
+
+  const monthNames = [
+    'يناير', 'فبراير', 'مارس', 'أبريل', 'مايو', 'يونيو',
+    'يوليو', 'أغسطس', 'سبتمبر', 'أكتوبر', 'نوفمبر', 'ديسمبر'
+  ];
+
+  const dayAbbreviations = ['ح', 'ن', 'ث', 'ر', 'خ', 'ج', 'س'];
+
+  const getCalendarData = () => {
+    const year = currentDate.getFullYear();
+    const month = currentDate.getMonth();
+    const firstDay = new Date(year, month, 1);
+    const lastDay = new Date(year, month + 1, 0);
+    const daysInMonth = lastDay.getDate();
+    const startDayOfWeek = firstDay.getDay();
     const today = new Date();
-    const gregorian = today.toLocaleDateString('ar-SA', {
+    const isCurrentMonth = today.getMonth() === month && today.getFullYear() === year;
+
+    const calendarDays = [];
+
+    // إضافة الأيام الفارغة في بداية الشهر
+    for (let i = 0; i < startDayOfWeek; i++) {
+      calendarDays.push(null);
+    }
+
+    // إضافة أيام الشهر
+    for (let day = 1; day <= daysInMonth; day++) {
+      calendarDays.push(day);
+    }
+
+    return {
+      days: calendarDays,
+      monthName: monthNames[month],
+      year,
+      today: isCurrentMonth ? today.getDate() : null
+    };
+  };
+
+  const navigateMonth = (direction: 'prev' | 'next') => {
+    const newDate = new Date(currentDate);
+    if (direction === 'prev') {
+      newDate.setMonth(newDate.getMonth() - 1);
+    } else {
+      newDate.setMonth(newDate.getMonth() + 1);
+    }
+    setCurrentDate(newDate);
+    setSelectedDate(null);
+  };
+
+  const handleDatePress = (day: number) => {
+    setSelectedDate(day);
+    const selectedDateObj = new Date(currentDate.getFullYear(), currentDate.getMonth(), day);
+    const gregorianDate = selectedDateObj.toLocaleDateString('ar-SA', {
       year: 'numeric',
       month: '2-digit',
       day: '2-digit',
       calendar: 'gregory'
     });
-    const hijri = today.toLocaleDateString('ar-SA-u-ca-islamic');
-    return { gregorian, hijri };
+    const hijriDate = selectedDateObj.toLocaleDateString('ar-SA-u-ca-islamic');
+    
+    Alert.alert(
+      `📅 ${day} ${getCalendarData().monthName} ${getCalendarData().year}`,
+      `📍 التاريخ الميلادي: ${gregorianDate}\n` +
+      `🌙 التاريخ الهجري: ${hijriDate}\n\n` +
+      `📋 الأحداث المتاحة لهذا اليوم:\n` +
+      `• لا توجد أحداث مسجلة\n\n` +
+      `✨ الإجراءات المتاحة:`,
+      [
+        {
+          text: '➕ إضافة حدث',
+          onPress: () => Alert.alert('إضافة حدث', `سيتم إضافة حدث جديد ليوم ${day} ${getCalendarData().monthName}`)
+        },
+        {
+          text: '📋 عرض التفاصيل',
+          onPress: () => Alert.alert('تفاصيل اليوم', `تفاصيل يوم ${day} ${getCalendarData().monthName} ${getCalendarData().year}`)
+        },
+        {
+          text: 'إغلاق',
+          style: 'cancel'
+        }
+      ]
+    );
   };
 
-  const { gregorian, hijri } = getCurrentDate();
+  const renderCalendarDay = (day: number | null, index: number) => {
+    if (day === null) {
+      return <View key={index} style={styles.emptyDay} />;
+    }
+
+    const { today } = getCalendarData();
+    const isToday = day === today;
+    const isSelected = day === selectedDate;
+
+    return (
+      <TouchableOpacity
+        key={index}
+        style={[
+          styles.dayContainer,
+          isToday && styles.todayContainer,
+          isSelected && styles.selectedContainer
+        ]}
+        onPress={() => handleDatePress(day)}
+      >
+        <ThemedText
+          style={[
+            styles.dayText,
+            isToday && styles.todayText,
+            isSelected && styles.selectedText
+          ]}
+        >
+          {day}
+        </ThemedText>
+      </TouchableOpacity>
+    );
+  };
+
+  const calendarData = getCalendarData();
 
   return (
     <ThemedView style={styles.container}>
@@ -37,42 +144,107 @@ export default function CalendarScreen() {
                 <IconSymbol size={60} name="calendar" color="#1c1f33" />
               </ThemedView>
               <ThemedText type="title" style={styles.title}>
-                التقويم الهجري والميلادي
+                التقويم الشهري
               </ThemedText>
               <ThemedText style={styles.subtitle}>
-                عرض التقويم بالتاريخين الهجري والميلادي
+                عرض التقويم الشهري مع التواريخ الهجرية والميلادية
               </ThemedText>
             </ThemedView>
 
             <ThemedView style={styles.content}>
-              <ThemedView style={styles.calendarSection}>
-                <ThemedText type="subtitle" style={styles.sectionTitle}>
-                  التاريخ اليوم
+              {/* Month Navigation */}
+              <ThemedView style={styles.monthNavigation}>
+                <TouchableOpacity 
+                  style={styles.navButton}
+                  onPress={() => navigateMonth('next')}
+                >
+                  <IconSymbol size={20} name="chevron.left" color="#4CAF50" />
+                </TouchableOpacity>
+                
+                <ThemedText style={styles.monthTitle}>
+                  {calendarData.monthName} {calendarData.year}
                 </ThemedText>
+                
+                <TouchableOpacity 
+                  style={styles.navButton}
+                  onPress={() => navigateMonth('prev')}
+                >
+                  <IconSymbol size={20} name="chevron.right" color="#4CAF50" />
+                </TouchableOpacity>
+              </ThemedView>
 
-                <ThemedView style={styles.dateCard}>
-                  <ThemedView style={styles.dateRow}>
-                    <ThemedView style={styles.dateIconWrapper}>
-                      <IconSymbol size={24} name="calendar.circle" color="#007AFF" />
-                    </ThemedView>
-                    <ThemedView style={styles.dateInfo}>
-                      <ThemedText style={styles.dateLabel}>التاريخ الميلادي</ThemedText>
-                      <ThemedText style={styles.dateValue}>{gregorian}</ThemedText>
-                    </ThemedView>
+              {/* Days Header */}
+              <ThemedView style={styles.daysHeader}>
+                {dayAbbreviations.map((day, index) => (
+                  <ThemedView key={index} style={styles.dayHeaderContainer}>
+                    <ThemedText style={styles.dayHeaderText}>
+                      {day}
+                    </ThemedText>
+                  </ThemedView>
+                ))}
+              </ThemedView>
+
+              {/* Calendar Grid */}
+              <ThemedView style={styles.calendarGrid}>
+                {calendarData.days.map((day, index) => renderCalendarDay(day, index))}
+              </ThemedView>
+
+              {/* Legend */}
+              <ThemedView style={styles.legend}>
+                <ThemedText style={styles.legendTitle}>
+                  📋 مفتاح الألوان:
+                </ThemedText>
+                <ThemedView style={styles.legendItems}>
+                  <ThemedView style={styles.legendItem}>
+                    <View style={[styles.legendColor, { backgroundColor: '#4CAF50' }]} />
+                    <ThemedText style={styles.legendText}>اليوم الحالي</ThemedText>
+                  </ThemedView>
+                  <ThemedView style={styles.legendItem}>
+                    <View style={[styles.legendColor, { backgroundColor: '#BDC3C7' }]} />
+                    <ThemedText style={styles.legendText}>اليوم المحدد</ThemedText>
                   </ThemedView>
                 </ThemedView>
+              </ThemedView>
 
-                <ThemedView style={styles.dateCard}>
-                  <ThemedView style={styles.dateRow}>
-                    <ThemedView style={styles.dateIconWrapper}>
-                      <IconSymbol size={24} name="moon.circle" color="#4CAF50" />
-                    </ThemedView>
-                    <ThemedView style={styles.dateInfo}>
-                      <ThemedText style={styles.dateLabel}>التاريخ الهجري</ThemedText>
-                      <ThemedText style={styles.dateValue}>{hijri}</ThemedText>
-                    </ThemedView>
-                  </ThemedView>
-                </ThemedView>
+              {/* Quick Actions */}
+              <ThemedView style={styles.quickActions}>
+                <ThemedText style={styles.sectionTitle}>
+                  ⚡ إجراءات سريعة
+                </ThemedText>
+                
+                <TouchableOpacity
+                  style={styles.actionButton}
+                  onPress={() => {
+                    setCurrentDate(new Date());
+                    setSelectedDate(null);
+                    Alert.alert('اليوم', 'تم الانتقال إلى تاريخ اليوم');
+                  }}
+                >
+                  <IconSymbol size={20} name="calendar.badge.clock" color="#fff" />
+                  <ThemedText style={styles.actionButtonText}>
+                    الانتقال لليوم
+                  </ThemedText>
+                </TouchableOpacity>
+
+                <TouchableOpacity
+                  style={[styles.actionButton, styles.secondaryButton]}
+                  onPress={() => Alert.alert('إضافة حدث', 'إضافة حدث جديد للتقويم')}
+                >
+                  <IconSymbol size={20} name="plus.circle" color="#4CAF50" />
+                  <ThemedText style={[styles.actionButtonText, styles.secondaryButtonText]}>
+                    إضافة حدث جديد
+                  </ThemedText>
+                </TouchableOpacity>
+
+                <TouchableOpacity
+                  style={[styles.actionButton, styles.secondaryButton]}
+                  onPress={() => Alert.alert('عرض الأحداث', 'عرض جميع أحداث الشهر')}
+                >
+                  <IconSymbol size={20} name="list.bullet" color="#4CAF50" />
+                  <ThemedText style={[styles.actionButtonText, styles.secondaryButtonText]}>
+                    عرض أحداث الشهر
+                  </ThemedText>
+                </TouchableOpacity>
               </ThemedView>
             </ThemedView>
           </ScrollView>
@@ -134,22 +306,13 @@ const styles = StyleSheet.create({
   content: {
     padding: 20,
     backgroundColor: 'transparent',
+    gap: 15,
   },
-  calendarSection: {
-    marginBottom: 30,
-    backgroundColor: 'transparent',
-  },
-  sectionTitle: {
-    fontSize: 20,
-    fontWeight: 'bold',
-    marginBottom: 15,
-    color: '#1c1f33',
-    textAlign: 'center',
-    writingDirection: 'rtl',
-  },
-  dateCard: {
-    marginBottom: 15,
-    padding: 20,
+  monthNavigation: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    padding: 16,
     backgroundColor: '#e0f0f1',
     borderRadius: 12,
     borderWidth: 1,
@@ -160,40 +323,173 @@ const styles = StyleSheet.create({
     shadowRadius: 4,
     elevation: 3,
   },
-  dateRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 15,
+  navButton: {
+    padding: 8,
+    borderRadius: 20,
+    backgroundColor: 'rgba(76, 175, 80, 0.1)',
   },
-  dateIconWrapper: {
-    padding: 10,
-    backgroundColor: '#FFFFFF',
-    borderRadius: 25,
+  monthTitle: {
+    fontSize: 20,
+    fontWeight: 'bold',
+    textAlign: 'center',
+    color: '#000000',
+    writingDirection: 'rtl',
+  },
+  daysHeader: {
+    flexDirection: 'row',
+    backgroundColor: '#e0f0f1',
+    borderRadius: 12,
+    overflow: 'hidden',
+    borderWidth: 1,
+    borderColor: '#E5E5EA',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.1,
+    shadowRadius: 2,
+    elevation: 1,
+  },
+  dayHeaderContainer: {
+    flex: 1,
+    paddingVertical: 12,
+    alignItems: 'center',
+    backgroundColor: 'rgba(76, 175, 80, 0.1)',
+  },
+  dayHeaderText: {
+    fontSize: 14,
+    fontWeight: '600',
+    textAlign: 'center',
+    color: '#000000',
+  },
+  calendarGrid: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    backgroundColor: '#e0f0f1',
+    borderRadius: 12,
+    padding: 8,
     borderWidth: 1,
     borderColor: '#E5E5EA',
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.1,
     shadowRadius: 4,
-    elevation: 2,
+    elevation: 3,
   },
-  dateInfo: {
-    flex: 1,
+  dayContainer: {
+    width: '14.28%',
+    aspectRatio: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    borderRadius: 8,
+    margin: 1,
+    backgroundColor: 'transparent',
   },
-  dateLabel: {
+  todayContainer: {
+    backgroundColor: '#4CAF50',
+  },
+  selectedContainer: {
+    backgroundColor: '#BDC3C7',
+  },
+  emptyDay: {
+    width: '14.28%',
+    aspectRatio: 1,
+  },
+  dayText: {
+    fontSize: 16,
+    fontWeight: '500',
+    textAlign: 'center',
+    color: '#000000',
+  },
+  todayText: {
+    color: '#fff',
+    fontWeight: 'bold',
+  },
+  selectedText: {
+    color: '#333',
+    fontWeight: 'bold',
+  },
+  legend: {
+    padding: 16,
+    backgroundColor: '#e0f0f1',
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: '#E5E5EA',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.1,
+    shadowRadius: 2,
+    elevation: 1,
+  },
+  legendTitle: {
+    fontSize: 16,
+    fontWeight: '600',
+    marginBottom: 12,
+    textAlign: 'right',
+    writingDirection: 'rtl',
+    color: '#000000',
+  },
+  legendItems: {
+    gap: 8,
+  },
+  legendItem: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+  },
+  legendColor: {
+    width: 16,
+    height: 16,
+    borderRadius: 8,
+  },
+  legendText: {
+    fontSize: 14,
+    textAlign: 'right',
+    writingDirection: 'rtl',
+    color: '#000000',
+  },
+  quickActions: {
+    padding: 16,
+    backgroundColor: '#e0f0f1',
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: '#E5E5EA',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.1,
+    shadowRadius: 2,
+    elevation: 1,
+    gap: 12,
+  },
+  sectionTitle: {
+    fontSize: 16,
+    fontWeight: '600',
+    textAlign: 'right',
+    writingDirection: 'rtl',
+    marginBottom: 8,
+    color: '#000000',
+  },
+  actionButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 8,
+    paddingVertical: 12,
+    paddingHorizontal: 16,
+    borderRadius: 8,
+    backgroundColor: '#4CAF50',
+  },
+  secondaryButton: {
+    backgroundColor: '#FFFFFF',
+    borderWidth: 1,
+    borderColor: '#4CAF50',
+  },
+  actionButtonText: {
     fontSize: 14,
     fontWeight: '600',
-    color: '#666666',
-    textAlign: 'right',
-    writingDirection: 'rtl',
-    marginBottom: 5,
-  },
-  dateValue: {
-    fontSize: 18,
-    fontWeight: 'bold',
-    color: '#000000',
-    textAlign: 'right',
+    textAlign: 'center',
+    color: '#fff',
     writingDirection: 'rtl',
   },
-  
+  secondaryButtonText: {
+    color: '#4CAF50',
+  },
 });
