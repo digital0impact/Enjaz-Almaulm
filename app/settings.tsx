@@ -166,7 +166,7 @@ export default function SettingsScreen() {
                 <IconSymbol size={24} name="arrow.right" color="#1c1f33" />
               </TouchableOpacity>
               <ThemedView style={styles.iconContainer}>
-                <IconSymbol size={60} name="gearshape.fill" color="#1c1f33" />
+                <IconSymbol size={60} name="gear.fill" color="#1c1f33" />
               </ThemedView>
               <ThemedText type="title" style={styles.title}>الإعدادات</ThemedText>
               <ThemedText style={styles.subtitle}>إعدادات التطبيق والحساب</ThemedText>
@@ -353,7 +353,7 @@ const styles = StyleSheet.create({
   iconContainer: {
     marginBottom: 20,
     padding: 20,
-    backgroundColor: '#e0f0f1',
+    backgroundColor: '#F8F9FA',
     borderRadius: 50,
     borderWidth: 1,
     borderColor: '#E5E5EA',
@@ -385,16 +385,7 @@ const styles = StyleSheet.create({
   },
   section: {
     marginBottom: 30,
-    padding: 15,
     backgroundColor: 'transparent',
-    borderRadius: 12,
-    borderWidth: 1,
-    borderColor: '#E5E5EA',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
-    elevation: 3,
   },
   sectionTitle: {
     fontSize: 20,
@@ -407,7 +398,16 @@ const styles = StyleSheet.create({
   userInfo: {
     flexDirection: I18nManager.isRTL ? 'row-reverse' : 'row',
     alignItems: 'center',
-    padding: 10,
+    padding: 15,
+    backgroundColor: '#e0f0f1',
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: '#E5E5EA',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    elevation: 3,
   },
   userAvatar: {
     marginLeft: I18nManager.isRTL ? 0 : 12,
@@ -434,18 +434,18 @@ const styles = StyleSheet.create({
     flexDirection: I18nManager.isRTL ? 'row-reverse' : 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    paddingHorizontal: 10,
+    paddingHorizontal: 15,
     paddingVertical: 15,
-    marginBottom: 10,
-    backgroundColor: '#FFFFFF',
-    borderRadius: 8,
+    marginBottom: 15,
+    backgroundColor: '#e0f0f1',
+    borderRadius: 12,
     borderWidth: 1,
     borderColor: '#E5E5EA',
     shadowColor: '#000',
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.05,
-    shadowRadius: 2,
-    elevation: 1,
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    elevation: 3,
   },
   settingInfo: {
     flexDirection: I18nManager.isRTL ? 'row-reverse' : 'row',
