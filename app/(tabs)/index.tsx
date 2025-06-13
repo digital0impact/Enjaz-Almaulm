@@ -178,7 +178,7 @@ export default function HomeScreen() {
             <ThemedView style={styles.gradientBackground}>
               <ThemedView style={styles.loginContent}>
                 <ThemedView style={styles.iconContainer}>
-                  <IconSymbol size={60} name="person.circle.fill" color="#1c1f33" />
+                  <IconSymbol size={60} name="lock.shield.fill" color="#1c1f33" />
                 </ThemedView>
                 <ThemedText type="title" style={styles.title}>
                   تسجيل الدخول
