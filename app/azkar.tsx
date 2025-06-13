@@ -252,15 +252,15 @@ export default function AzkarScreen() {
                   <IconSymbol size={60} name="book.fill" color="#1c1f33" />
                 </ThemedView>
                 <ThemedView style={styles.titleRow}>
+                  <ThemedText type="title" style={styles.title}>
+                    أذكاري
+                  </ThemedText>
                   <TouchableOpacity 
                     style={styles.backButton}
                     onPress={() => router.back()}
                   >
                     <IconSymbol size={16} name="arrow.right" color="#1c1f33" />
                   </TouchableOpacity>
-                  <ThemedText type="title" style={styles.title}>
-                    أذكاري
-                  </ThemedText>
                 </ThemedView>
                 <ThemedText style={styles.subtitle}>
                   اختر فئة الأذكار للبدء في التسبيح والذكر
@@ -405,10 +405,10 @@ const styles = StyleSheet.create({
   titleRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    justifyContent: 'center',
-    gap: 15,
+    justifyContent: 'space-between',
     marginTop: 15,
     marginBottom: 10,
+    paddingHorizontal: 20,
   },
   title: {
     fontSize: 28,
