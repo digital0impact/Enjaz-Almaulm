@@ -363,8 +363,8 @@ export default function ScheduleScreen() {
 
             <ThemedView style={styles.formActions}>
               <TouchableOpacity style={styles.saveButton} onPress={addOrUpdateEntry}>
-                <IconSymbol size={20} name="checkmark.circle.fill" color="white" />
-                <ThemedText style={styles.buttonText}>
+                <IconSymbol size={20} name="checkmark.circle.fill" color="#1c1f33" />
+                <ThemedText style={styles.saveButtonText}>
                   {editingEntry ? 'تحديث' : 'إضافة'}
                 </ThemedText>
               </TouchableOpacity>
@@ -377,8 +377,8 @@ export default function ScheduleScreen() {
                   resetForm();
                 }}
               >
-                <IconSymbol size={20} name="xmark.circle.fill" color="white" />
-                <ThemedText style={styles.buttonText}>إلغاء</ThemedText>
+                <IconSymbol size={20} name="xmark.circle.fill" color="#1c1f33" />
+                <ThemedText style={styles.cancelButtonText}>إلغاء</ThemedText>
               </TouchableOpacity>
             </ThemedView>
           </ThemedView>
@@ -1031,19 +1031,45 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: '#4CAF50',
+    backgroundColor: '#add4ce',
     paddingVertical: 15,
-    borderRadius: 12,
-    gap: 8,
+    paddingHorizontal: 25,
+    borderRadius: 25,
+    gap: 10,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 6 },
+    shadowOpacity: 0.4,
+    shadowRadius: 12,
+    elevation: 12,
+  },
+  saveButtonText: {
+    color: '#1c1f33',
+    fontSize: 16,
+    fontWeight: '600',
+    textAlign: 'center',
   },
   cancelButton: {
     flex: 1,
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: '#F44336',
+    backgroundColor: '#f8f9fa',
     paddingVertical: 15,
-    borderRadius: 12,
-    gap: 8,
+    paddingHorizontal: 25,
+    borderRadius: 25,
+    gap: 10,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 6 },
+    shadowOpacity: 0.4,
+    shadowRadius: 12,
+    elevation: 12,
+    borderWidth: 1,
+    borderColor: '#E5E5EA',
+  },
+  cancelButtonText: {
+    color: '#1c1f33',
+    fontSize: 16,
+    fontWeight: '600',
+    textAlign: 'center',
   },
 });
