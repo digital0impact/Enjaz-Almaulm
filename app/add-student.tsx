@@ -12,7 +12,7 @@ interface Student {
   id: string;
   name: string;
   grade: string;
-  status: 'ممتاز' | 'جيد جداً' | 'جيد' | 'مقبول' | 'ضعيف';
+  status: 'ممتاز' | 'مقبول' | 'ضعيف' | 'ضعف';
   lastUpdate: string;
   notes: string;
   goals: Goal[];
@@ -43,7 +43,7 @@ export default function AddStudentScreen() {
   const [studentData, setStudentData] = useState({
     name: '',
     grade: '',
-    status: 'جيد' as Student['status'],
+    status: 'مقبول' as Student['status'],
     notes: '',
     goals: [] as Goal[],
     needs: [] as string[],
@@ -72,10 +72,9 @@ export default function AddStudentScreen() {
 
   const statusOptions = [
     { value: 'ممتاز', label: 'متفوق', color: '#4CAF50', icon: 'star.fill' },
-    { value: 'جيد جداً', label: 'جيد جداً', color: '#8BC34A', icon: 'star.circle.fill' },
-    { value: 'جيد', label: 'جيد', color: '#FF9800', icon: 'star.circle' },
     { value: 'مقبول', label: 'يحتاج إلى تطوير', color: '#FF5722', icon: 'star' },
-    { value: 'ضعيف', label: 'صعوبات تعلم', color: '#F44336', icon: 'exclamationmark.triangle.fill' }
+    { value: 'ضعيف', label: 'صعوبات تعلم', color: '#F44336', icon: 'exclamationmark.triangle.fill' },
+    { value: 'ضعف', label: 'ضعف', color: '#9C27B0', icon: 'minus.circle.fill' }
   ];
 
   const evidenceTypes = [
