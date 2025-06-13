@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { StyleSheet, ScrollView, TouchableOpacity, Alert, I18nManager, ImageBackground, Dimensions } from 'react-native';
 import { LinearGradient as ExpoLinearGradient } from 'expo-linear-gradient';
@@ -152,7 +151,7 @@ export default function ScheduleScreen() {
         entry.time === formData.time && 
         entry.subject !== ''
       );
-      
+
       if (conflict) {
         Alert.alert('تعارض في الحصة', 'يوجد حصة أخرى في نفس الوقت');
         return;
@@ -404,7 +403,7 @@ export default function ScheduleScreen() {
                   </ThemedView>
                 </ThemedView>
 
-                
+
               </>
             )}
 
@@ -429,8 +428,9 @@ export default function ScheduleScreen() {
               </TouchableOpacity>
             </ThemedView>
           </ThemedView>
-            </ScrollView>
-          </ExpoLinearGradient>
+            </ThemedView>
+          </ScrollView>
+        </ExpoLinearGradient>
         </ImageBackground>
       </ThemedView>
     );
@@ -476,19 +476,19 @@ export default function ScheduleScreen() {
               <ThemedText style={styles.statNumber}>{stats.totalClasses}</ThemedText>
               <ThemedText style={styles.statLabel}>حصص دراسية</ThemedText>
             </ThemedView>
-            
+
             <ThemedView style={[styles.statItem, { backgroundColor: '#2196F315' }]}>
               <IconSymbol size={24} name="eye.fill" color="#2196F3" />
               <ThemedText style={styles.statNumber}>{stats.totalSupervision}</ThemedText>
               <ThemedText style={styles.statLabel}>مناوبات</ThemedText>
             </ThemedView>
-            
+
             <ThemedView style={[styles.statItem, { backgroundColor: '#FF980015' }]}>
               <IconSymbol size={24} name="clock.fill" color="#FF9800" />
               <ThemedText style={styles.statNumber}>{stats.totalWaiting}</ThemedText>
               <ThemedText style={styles.statLabel}>انتظار</ThemedText>
             </ThemedView>
-            
+
             <ThemedView style={[styles.statItem, { backgroundColor: '#9E9E9E15' }]}>
               <IconSymbol size={24} name="pause.circle.fill" color="#9E9E9E" />
               <ThemedText style={styles.statNumber}>{stats.freeSlots}</ThemedText>
@@ -530,11 +530,11 @@ export default function ScheduleScreen() {
                   <ThemedView style={styles.dayCell}>
                     <ThemedText style={styles.dayCellText}>{day}</ThemedText>
                   </ThemedView>
-                  
+
                   {timeSlots.map(timeSlot => {
                     const entry = schedule.find(e => e.day === day && e.time === timeSlot);
                     const isBreakTime = timeSlot === 'استراحة';
-                    
+
                     return (
                       <TouchableOpacity
                         key={`${day}-${timeSlot}`}
@@ -618,8 +618,9 @@ export default function ScheduleScreen() {
             <ThemedText style={styles.buttonText}>عرض شامل</ThemedText>
           </TouchableOpacity>
         </ThemedView>
-          </ScrollView>
-        </ExpoLinearGradient>
+          </ThemedView>
+            </ScrollView>
+          </ExpoLinearGradient>
       </ImageBackground>
     </ThemedView>
   );
