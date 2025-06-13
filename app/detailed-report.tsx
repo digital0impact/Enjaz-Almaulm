@@ -385,7 +385,7 @@ export default function DetailedReportScreen() {
                 style={styles.exportButton}
                 onPress={handleExportReport}
               >
-                <IconSymbol size={20} name="square.and.arrow.up.fill" color="white" />
+                <IconSymbol size={20} name="square.and.arrow.up.fill" color="#1c1f33" />
                 <ThemedText style={styles.buttonText}>تصدير التقرير التفصيلي</ThemedText>
               </TouchableOpacity>
 
@@ -393,7 +393,7 @@ export default function DetailedReportScreen() {
                 style={styles.interactiveButton}
                 onPress={() => router.push('/interactive-report')}
               >
-                <IconSymbol size={20} name="chart.line.uptrend.xyaxis" color="white" />
+                <IconSymbol size={20} name="chart.line.uptrend.xyaxis" color="#1c1f33" />
                 <ThemedText style={styles.buttonText}>التقرير التفاعلي</ThemedText>
               </TouchableOpacity>
             </ThemedView>
@@ -676,26 +676,38 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: '#007AFF',
+    backgroundColor: '#add4ce',
     paddingVertical: 15,
-    borderRadius: 12,
-    gap: 8,
+    paddingHorizontal: 25,
+    borderRadius: 25,
+    gap: 10,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 6 },
+    shadowOpacity: 0.4,
+    shadowRadius: 12,
+    elevation: 12,
   },
   interactiveButton: {
     flex: 1,
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: '#34C759',
+    backgroundColor: '#add4ce',
     paddingVertical: 15,
-    borderRadius: 12,
-    gap: 8,
+    paddingHorizontal: 25,
+    borderRadius: 25,
+    gap: 10,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 6 },
+    shadowOpacity: 0.4,
+    shadowRadius: 12,
+    elevation: 12,
   },
   buttonText: {
-    color: 'white',
-    fontSize: 14,
+    color: '#1c1f33',
+    fontSize: 16,
     fontWeight: '600',
-    textAlign: 'center',
     writingDirection: 'rtl',
+    textAlign: 'center',
   },
 });
