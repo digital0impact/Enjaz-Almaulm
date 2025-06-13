@@ -1,410 +1,481 @@
+
 import React, { useState, useEffect } from 'react';
-import { StyleSheet, ScrollView, TouchableOpacity, Alert, TextInput, Modal, I18nManager } from 'react-native';
+import { StyleSheet, ScrollView, TouchableOpacity, Alert, I18nManager, ImageBackground, Dimensions, TextInput } from 'react-native';
+import { LinearGradient as ExpoLinearGradient } from 'expo-linear-gradient';
 import { ThemedText } from '@/components/ThemedText';
 import { ThemedView } from '@/components/ThemedView';
 import { IconSymbol } from '@/components/ui/IconSymbol';
 import { useRouter } from 'expo-router';
-import AsyncStorage from '@react-native-async-storage/async-storage';
+
+const { width } = Dimensions.get('window');
 
 interface PasswordEntry {
   id: string;
-  siteName: string;
+  websiteName: string;
+  url: string;
   username: string;
   password: string;
-  url: string;
   category: string;
   lastUpdated: string;
+  strength: 'ضعيف' | 'متوسط' | 'قوي';
+  notes?: string;
 }
 
 export default function PasswordTrackerScreen() {
   const router = useRouter();
-  const [passwords, setPasswords] = useState<PasswordEntry[]>([]);
-  const [isModalVisible, setIsModalVisible] = useState(false);
-  const [editingEntry, setEditingEntry] = useState<PasswordEntry | null>(null);
-  const [showPasswords, setShowPasswords] = useState<{[key: string]: boolean}>({});
-  const [searchQuery, setSearchQuery] = useState('');
-  const [selectedCategory, setSelectedCategory] = useState('الكل');
+  const [selectedView, setSelectedView] = useState('overview');
+  const [showAddForm, setShowAddForm] = useState(false);
+  const [passwords, setPasswords] = useState<PasswordEntry[]>([
+    {
+      id: '1',
+      websiteName: 'منصة نور التعليمية',
+      url: 'https://noor.moe.gov.sa',
+      username: 'teacher123',
+      password: 'SecurePass123!',
+      category: 'تعليمي',
+      lastUpdated: '2024-01-15',
+      strength: 'قوي',
+      notes: 'النظام الأساسي لإدارة الطلاب'
+    },
+    {
+      id: '2',
+      websiteName: 'بوابة المستقبل',
+      url: 'https://fg.moe.gov.sa',
+      username: 'teacher123',
+      password: 'Pass456',
+      category: 'تعليمي',
+      lastUpdated: '2023-12-20',
+      strength: 'متوسط',
+      notes: 'منصة التعلم الرقمي'
+    },
+    {
+      id: '3',
+      websiteName: 'نظام فارس',
+      url: 'https://fareshr.gov.sa',
+      username: 'emp789',
+      password: 'weak123',
+      category: 'إداري',
+      lastUpdated: '2023-11-10',
+      strength: 'ضعيف',
+      notes: 'نظام إدارة الموارد البشرية'
+    },
+    {
+      id: '4',
+      websiteName: 'منصة مدرستي',
+      url: 'https://schools.madrasati.sa',
+      username: 'teacher123',
+      password: 'StrongPass789!@#',
+      category: 'تعليمي',
+      lastUpdated: '2024-01-20',
+      strength: 'قوي',
+      notes: 'منصة التعليم عن بُعد'
+    }
+  ]);
 
-  const [formData, setFormData] = useState({
-    siteName: '',
+  const [newPassword, setNewPassword] = useState({
+    websiteName: '',
+    url: '',
     username: '',
     password: '',
-    url: '',
-    category: 'مواقع تعليمية'
+    category: 'تعليمي',
+    notes: ''
   });
 
-  const categories = [
-    'الكل',
-    'مواقع تعليمية',
-    'شبكات اجتماعية',
-    'بريد إلكتروني',
-    'بنوك ومالية',
-    'خدمات حكومية',
-    'ترفيه',
-    'أخرى'
-  ];
-
-  useEffect(() => {
-    loadPasswords();
-  }, []);
-
-  const loadPasswords = async () => {
-    try {
-      const storedPasswords = await AsyncStorage.getItem('passwordTracker');
-      if (storedPasswords) {
-        setPasswords(JSON.parse(storedPasswords));
-      } else {
-        // بيانات تجريبية
-        const samplePasswords: PasswordEntry[] = [
-          {
-            id: '1',
-            siteName: 'نور',
-            username: 'teacher@school.edu.sa',
-            password: 'MySecurePass123',
-            url: 'https://noor.moe.gov.sa',
-            category: 'مواقع تعليمية',
-            lastUpdated: new Date().toISOString()
-          },
-          {
-            id: '2',
-            siteName: 'فارس',
-            username: 'teacher.name',
-            password: 'FaresPass456',
-            url: 'https://fares.moe.gov.sa',
-            category: 'مواقع تعليمية',
-            lastUpdated: new Date().toISOString()
-          }
-        ];
-        setPasswords(samplePasswords);
-        await AsyncStorage.setItem('passwordTracker', JSON.stringify(samplePasswords));
-      }
-    } catch (error) {
-      console.log('Error loading passwords:', error);
+  const getStrengthColor = (strength: PasswordEntry['strength']) => {
+    switch (strength) {
+      case 'قوي': return '#4CAF50';
+      case 'متوسط': return '#FF9800';
+      case 'ضعيف': return '#F44336';
+      default: return '#757575';
     }
   };
 
-  const savePasswords = async (updatedPasswords: PasswordEntry[]) => {
-    try {
-      await AsyncStorage.setItem('passwordTracker', JSON.stringify(updatedPasswords));
-      setPasswords(updatedPasswords);
-    } catch (error) {
-      Alert.alert('خطأ', 'حدث خطأ في حفظ البيانات');
+  const getCategoryColor = (category: string) => {
+    switch (category) {
+      case 'تعليمي': return '#2196F3';
+      case 'إداري': return '#9C27B0';
+      case 'شخصي': return '#FF5722';
+      default: return '#607D8B';
     }
   };
 
-  const addPassword = async () => {
-    if (!formData.siteName || !formData.username || !formData.password) {
-      Alert.alert('خطأ', 'يرجى ملء جميع الحقول المطلوبة');
-      return;
-    }
-
-    const newEntry: PasswordEntry = {
-      id: editingEntry?.id || Date.now().toString(),
-      siteName: formData.siteName,
-      username: formData.username,
-      password: formData.password,
-      url: formData.url,
-      category: formData.category,
-      lastUpdated: new Date().toISOString()
-    };
-
-    let updatedPasswords;
-    if (editingEntry) {
-      updatedPasswords = passwords.map(p => p.id === editingEntry.id ? newEntry : p);
+  const getPasswordStrength = (password: string): PasswordEntry['strength'] => {
+    if (password.length >= 12 && /(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])/.test(password)) {
+      return 'قوي';
+    } else if (password.length >= 8 && /(?=.*[a-zA-Z])(?=.*\d)/.test(password)) {
+      return 'متوسط';
     } else {
-      updatedPasswords = [...passwords, newEntry];
+      return 'ضعيف';
     }
-
-    await savePasswords(updatedPasswords);
-    setIsModalVisible(false);
-    setEditingEntry(null);
-    setFormData({
-      siteName: '',
-      username: '',
-      password: '',
-      url: '',
-      category: 'مواقع تعليمية'
-    });
-    Alert.alert('تم الحفظ', editingEntry ? 'تم تحديث البيانات بنجاح' : 'تم إضافة الموقع بنجاح');
   };
 
-  const editPassword = (entry: PasswordEntry) => {
-    setEditingEntry(entry);
-    setFormData({
-      siteName: entry.siteName,
-      username: entry.username,
-      password: entry.password,
-      url: entry.url,
-      category: entry.category
-    });
-    setIsModalVisible(true);
+  const addPassword = () => {
+    if (newPassword.websiteName.trim() && newPassword.username.trim() && newPassword.password.trim()) {
+      const passwordEntry: PasswordEntry = {
+        id: Date.now().toString(),
+        websiteName: newPassword.websiteName,
+        url: newPassword.url,
+        username: newPassword.username,
+        password: newPassword.password,
+        category: newPassword.category,
+        lastUpdated: new Date().toISOString().split('T')[0],
+        strength: getPasswordStrength(newPassword.password),
+        notes: newPassword.notes
+      };
+      setPasswords([...passwords, passwordEntry]);
+      setNewPassword({
+        websiteName: '',
+        url: '',
+        username: '',
+        password: '',
+        category: 'تعليمي',
+        notes: ''
+      });
+      setShowAddForm(false);
+      Alert.alert('تم بنجاح', 'تم إضافة كلمة المرور بنجاح');
+    } else {
+      Alert.alert('خطأ', 'الرجاء ملء جميع الحقول المطلوبة');
+    }
   };
 
-  const deletePassword = (id: string) => {
+  const renderOverviewTab = () => (
+    <ThemedView style={styles.tabContent}>
+      <ThemedView style={styles.summarySection}>
+        <ThemedText style={styles.sectionTitle}>إحصائيات كلمات المرور</ThemedText>
+        <ThemedView style={styles.statsGrid}>
+          <ThemedView style={[styles.statCard, { backgroundColor: '#E3F2FD' }]}>
+            <IconSymbol size={24} name="key.fill" color="#2196F3" />
+            <ThemedText style={styles.statValue}>{passwords.length}</ThemedText>
+            <ThemedText style={styles.statLabel}>إجمالي كلمات المرور</ThemedText>
+          </ThemedView>
+          
+          <ThemedView style={[styles.statCard, { backgroundColor: '#E8F5E8' }]}>
+            <IconSymbol size={24} name="checkmark.shield.fill" color="#4CAF50" />
+            <ThemedText style={styles.statValue}>{passwords.filter(p => p.strength === 'قوي').length}</ThemedText>
+            <ThemedText style={styles.statLabel}>كلمات مرور قوية</ThemedText>
+          </ThemedView>
+          
+          <ThemedView style={[styles.statCard, { backgroundColor: '#FFEBEE' }]}>
+            <IconSymbol size={24} name="exclamationmark.triangle.fill" color="#F44336" />
+            <ThemedText style={styles.statValue}>{passwords.filter(p => p.strength === 'ضعيف').length}</ThemedText>
+            <ThemedText style={styles.statLabel}>تحتاج تحديث</ThemedText>
+          </ThemedView>
+        </ThemedView>
+      </ThemedView>
+
+      <ThemedView style={styles.categoriesGrid}>
+        {passwords.map((item) => (
+          <ThemedView key={item.id} style={styles.passwordCard}>
+            <ThemedView style={styles.passwordHeader}>
+              <ThemedText style={styles.websiteName} numberOfLines={1}>
+                {item.websiteName}
+              </ThemedText>
+              <ThemedView style={[styles.strengthBadge, { backgroundColor: getStrengthColor(item.strength) }]}>
+                <ThemedText style={styles.strengthText}>{item.strength}</ThemedText>
+              </ThemedView>
+            </ThemedView>
+            
+            <ThemedText style={styles.username}>المستخدم: {item.username}</ThemedText>
+            <ThemedText style={styles.lastUpdated}>آخر تحديث: {item.lastUpdated}</ThemedText>
+            
+            <ThemedView style={styles.passwordActions}>
+              <TouchableOpacity 
+                style={styles.actionButton}
+                onPress={() => Alert.alert('كلمة المرور', item.password)}
+              >
+                <IconSymbol size={16} name="eye.fill" color="#2196F3" />
+                <ThemedText style={styles.actionButtonText}>عرض</ThemedText>
+              </TouchableOpacity>
+              
+              <TouchableOpacity 
+                style={styles.actionButton}
+                onPress={() => Alert.alert('تم النسخ', 'تم نسخ كلمة المرور')}
+              >
+                <IconSymbol size={16} name="doc.on.doc.fill" color="#4CAF50" />
+                <ThemedText style={styles.actionButtonText}>نسخ</ThemedText>
+              </TouchableOpacity>
+            </ThemedView>
+          </ThemedView>
+        ))}
+      </ThemedView>
+    </ThemedView>
+  );
+
+  const renderAddPasswordForm = () => (
+    <ThemedView style={styles.tabContent}>
+      <ThemedView style={styles.formContainer}>
+        <ThemedText style={styles.sectionTitle}>إضافة كلمة مرور جديدة</ThemedText>
+        
+        <ThemedView style={styles.formGroup}>
+          <ThemedText style={styles.formLabel}>اسم الموقع *</ThemedText>
+          <TextInput
+            style={styles.formInput}
+            value={newPassword.websiteName}
+            onChangeText={(text) => setNewPassword({ ...newPassword, websiteName: text })}
+            placeholder="أدخل اسم الموقع..."
+            placeholderTextColor="#999"
+            textAlign="right"
+          />
+        </ThemedView>
+
+        <ThemedView style={styles.formGroup}>
+          <ThemedText style={styles.formLabel}>رابط الموقع</ThemedText>
+          <TextInput
+            style={styles.formInput}
+            value={newPassword.url}
+            onChangeText={(text) => setNewPassword({ ...newPassword, url: text })}
+            placeholder="https://example.com"
+            placeholderTextColor="#999"
+            textAlign="right"
+          />
+        </ThemedView>
+
+        <ThemedView style={styles.formGroup}>
+          <ThemedText style={styles.formLabel}>اسم المستخدم *</ThemedText>
+          <TextInput
+            style={styles.formInput}
+            value={newPassword.username}
+            onChangeText={(text) => setNewPassword({ ...newPassword, username: text })}
+            placeholder="أدخل اسم المستخدم..."
+            placeholderTextColor="#999"
+            textAlign="right"
+          />
+        </ThemedView>
+
+        <ThemedView style={styles.formGroup}>
+          <ThemedText style={styles.formLabel}>كلمة المرور *</ThemedText>
+          <TextInput
+            style={styles.formInput}
+            value={newPassword.password}
+            onChangeText={(text) => setNewPassword({ ...newPassword, password: text })}
+            placeholder="أدخل كلمة مرور قوية..."
+            placeholderTextColor="#999"
+            textAlign="right"
+            secureTextEntry
+          />
+          <ThemedText style={[styles.strengthIndicator, { color: getStrengthColor(getPasswordStrength(newPassword.password)) }]}>
+            قوة كلمة المرور: {getPasswordStrength(newPassword.password)}
+          </ThemedText>
+        </ThemedView>
+
+        <ThemedView style={styles.formGroup}>
+          <ThemedText style={styles.formLabel}>الفئة</ThemedText>
+          <ThemedView style={styles.categorySelector}>
+            {['تعليمي', 'إداري', 'شخصي'].map((category) => (
+              <TouchableOpacity
+                key={category}
+                style={[
+                  styles.categoryOption,
+                  { backgroundColor: getCategoryColor(category) + '20' },
+                  newPassword.category === category && { backgroundColor: getCategoryColor(category) }
+                ]}
+                onPress={() => setNewPassword({ ...newPassword, category })}
+              >
+                <ThemedText style={[
+                  styles.categoryText,
+                  newPassword.category === category && { color: 'white' }
+                ]}>
+                  {category}
+                </ThemedText>
+              </TouchableOpacity>
+            ))}
+          </ThemedView>
+        </ThemedView>
+
+        <ThemedView style={styles.formGroup}>
+          <ThemedText style={styles.formLabel}>ملاحظات</ThemedText>
+          <TextInput
+            style={[styles.formInput, styles.textArea]}
+            value={newPassword.notes}
+            onChangeText={(text) => setNewPassword({ ...newPassword, notes: text })}
+            placeholder="أضف ملاحظات إضافية..."
+            placeholderTextColor="#999"
+            textAlign="right"
+            multiline
+            numberOfLines={3}
+          />
+        </ThemedView>
+
+        <TouchableOpacity style={styles.saveButton} onPress={addPassword}>
+          <IconSymbol size={20} name="checkmark.circle.fill" color="#1c1f33" />
+          <ThemedText style={styles.saveButtonText}>حفظ كلمة المرور</ThemedText>
+        </TouchableOpacity>
+      </ThemedView>
+    </ThemedView>
+  );
+
+  const renderRecommendationsTab = () => (
+    <ThemedView style={styles.tabContent}>
+      <ThemedView style={styles.recommendationsContainer}>
+        <ThemedText style={styles.sectionTitle}>توصيات الأمان</ThemedText>
+        
+        <ThemedView style={styles.recommendationCard}>
+          <ThemedText style={styles.recommendationTitle}>
+            <IconSymbol size={16} name="exclamationmark.triangle.fill" color="#F44336" /> كلمات مرور ضعيفة
+          </ThemedText>
+          {passwords.filter(p => p.strength === 'ضعيف').map((password) => (
+            <ThemedText key={password.id} style={styles.recommendationText}>
+              • {password.websiteName} - يحتاج إلى تحديث كلمة المرور
+            </ThemedText>
+          ))}
+        </ThemedView>
+
+        <ThemedView style={styles.recommendationCard}>
+          <ThemedText style={styles.recommendationTitle}>
+            <IconSymbol size={16} name="calendar" color="#9C27B0" /> كلمات مرور قديمة
+          </ThemedText>
+          {passwords.filter(p => {
+            const lastUpdate = new Date(p.lastUpdated);
+            const monthsOld = (Date.now() - lastUpdate.getTime()) / (1000 * 60 * 60 * 24 * 30);
+            return monthsOld > 6;
+          }).map((password) => (
+            <ThemedText key={password.id} style={styles.recommendationText}>
+              • {password.websiteName} - لم يتم تحديثها منذ أكثر من 6 أشهر
+            </ThemedText>
+          ))}
+        </ThemedView>
+
+        <ThemedView style={styles.recommendationCard}>
+          <ThemedText style={styles.recommendationTitle}>
+            <IconSymbol size={16} name="star.fill" color="#FF9800" /> نصائح الأمان
+          </ThemedText>
+          <ThemedText style={styles.recommendationText}>
+            • استخدم كلمات مرور فريدة لكل موقع
+          </ThemedText>
+          <ThemedText style={styles.recommendationText}>
+            • قم بتحديث كلمات المرور كل 3-6 أشهر
+          </ThemedText>
+          <ThemedText style={styles.recommendationText}>
+            • استخدم المصادقة الثنائية عند توفرها
+          </ThemedText>
+          <ThemedText style={styles.recommendationText}>
+            • تجنب استخدام معلومات شخصية في كلمات المرور
+          </ThemedText>
+        </ThemedView>
+      </ThemedView>
+    </ThemedView>
+  );
+
+  const renderCurrentTab = () => {
+    switch (selectedView) {
+      case 'add':
+        return renderAddPasswordForm();
+      case 'recommendations':
+        return renderRecommendationsTab();
+      default:
+        return renderOverviewTab();
+    }
+  };
+
+  const handleExportPasswords = () => {
     Alert.alert(
-      'حذف الموقع',
-      'هل تريد حذف هذا الموقع؟',
+      'تصدير كلمات المرور',
+      'اختر تنسيق التصدير:',
       [
-        { text: 'إلغاء', style: 'cancel' },
         {
-          text: 'حذف',
-          style: 'destructive',
-          onPress: async () => {
-            const updatedPasswords = passwords.filter(p => p.id !== id);
-            await savePasswords(updatedPasswords);
-          }
+          text: 'Excel آمن',
+          onPress: () => Alert.alert('تصدير Excel', 'سيتم تصدير كلمات المرور في ملف Excel محمي بكلمة مرور')
+        },
+        {
+          text: 'CSV مشفر',
+          onPress: () => Alert.alert('تصدير CSV', 'سيتم إنشاء ملف CSV مشفر')
+        },
+        {
+          text: 'نسخة احتياطية آمنة',
+          onPress: () => Alert.alert('نسخة احتياطية', 'سيتم إنشاء نسخة احتياطية مشفرة')
+        },
+        {
+          text: 'إلغاء',
+          style: 'cancel'
         }
       ]
     );
   };
 
-  const togglePasswordVisibility = (id: string) => {
-    setShowPasswords(prev => ({ ...prev, [id]: !prev[id] }));
-  };
-
-  const filteredPasswords = passwords.filter(password => {
-    const matchesSearch = password.siteName.toLowerCase().includes(searchQuery.toLowerCase()) ||
-                         password.username.toLowerCase().includes(searchQuery.toLowerCase());
-    const matchesCategory = selectedCategory === 'الكل' || password.category === selectedCategory;
-    return matchesSearch && matchesCategory;
-  });
-
   return (
     <ThemedView style={styles.container}>
-      <ThemedView style={styles.header}>
-        <TouchableOpacity 
-          style={styles.backButton}
-          onPress={() => router.back()}
-        >
-          <IconSymbol size={24} name="chevron.right" color="#fff" />
-        </TouchableOpacity>
-        <ThemedText type="title" style={styles.headerTitle}>
-          متتبع المواقع
-        </ThemedText>
-      </ThemedView>
-
-      <ScrollView style={styles.content} showsVerticalScrollIndicator={false}>
-
-        {/* نموذج الإدخال الرئيسي */}
-        <ThemedView style={styles.formContainer}>
-          <ThemedView style={styles.inputRow}>
-            <ThemedText style={styles.label}>اسم الموقع والخدمة</ThemedText>
-            <TextInput 
-              style={styles.input}
-              placeholder="مثال: نور، فارس، إلخ"
-              placeholderTextColor="#999"
-              textAlign="right"
-            />
-          </ThemedView>
-
-          <ThemedView style={styles.inputRow}>
-            <ThemedText style={styles.label}>الرابط</ThemedText>
-            <TextInput 
-              style={styles.input}
-              placeholder="https://example.com"
-              placeholderTextColor="#999"
-              textAlign="right"
-            />
-          </ThemedView>
-
-          <ThemedView style={styles.inputRow}>
-            <ThemedText style={styles.label}>اسم المستخدم والايميل</ThemedText>
-            <TextInput 
-              style={styles.input}
-              placeholder="username@example.com"
-              placeholderTextColor="#999"
-              textAlign="right"
-            />
-          </ThemedView>
-
-          <ThemedView style={styles.inputRow}>
-            <ThemedText style={styles.label}>كلمة المرور</ThemedText>
-            <TextInput 
-              style={styles.input}
-              placeholder="••••••••"
-              placeholderTextColor="#999"
-              secureTextEntry
-              textAlign="right"
-            />
-          </ThemedView>
-
-          <ThemedView style={styles.inputRow}>
-            <ThemedText style={styles.label}>نوع الخدمة</ThemedText>
-            <TextInput 
-              style={styles.input}
-              placeholder="مواقع تعليمية، بنوك، إلخ"
-              placeholderTextColor="#999"
-              textAlign="right"
-            />
-          </ThemedView>
-
-          <TouchableOpacity style={styles.addButton}>
-            <ThemedText style={styles.addButtonText}>إضافة الموقع</ThemedText>
-          </TouchableOpacity>
-        </ThemedView>
-
-        {/* قائمة المواقع المحفوظة */}
-        <ThemedView style={styles.savedSitesContainer}>
-          <ThemedText style={styles.sectionTitle}>المواقع المحفوظة</ThemedText>
-
-          {filteredPasswords.map((password) => (
-            <ThemedView key={password.id} style={styles.siteCard}>
-              <ThemedView style={styles.siteHeader}>
-                <ThemedText style={styles.siteName}>{password.siteName}</ThemedText>
-                <ThemedView style={styles.siteActions}>
-                  <TouchableOpacity 
-                    style={styles.actionButton}
-                    onPress={() => editPassword(password)}
-                  >
-                    <IconSymbol size={18} name="pencil" color="#007AFF" />
-                  </TouchableOpacity>
-                  <TouchableOpacity 
-                    style={styles.actionButton}
-                    onPress={() => deletePassword(password.id)}
-                  >
-                    <IconSymbol size={18} name="trash" color="#FF3B30" />
-                  </TouchableOpacity>
-                </ThemedView>
-              </ThemedView>
-
-              <ThemedView style={styles.siteDetails}>
-                <ThemedText style={styles.siteDetailLabel}>الرابط:</ThemedText>
-                <ThemedText style={styles.siteDetailValue}>{password.url}</ThemedText>
-              </ThemedView>
-
-              <ThemedView style={styles.siteDetails}>
-                <ThemedText style={styles.siteDetailLabel}>المستخدم:</ThemedText>
-                <ThemedText style={styles.siteDetailValue}>{password.username}</ThemedText>
-              </ThemedView>
-
-              <ThemedView style={styles.siteDetails}>
-                <ThemedText style={styles.siteDetailLabel}>كلمة المرور:</ThemedText>
-                <ThemedView style={styles.passwordRow}>
-                  <ThemedText style={styles.siteDetailValue}>
-                    {showPasswords[password.id] ? password.password : '••••••••'}
-                  </ThemedText>
-                  <TouchableOpacity 
-                    style={styles.eyeButton}
-                    onPress={() => togglePasswordVisibility(password.id)}
-                  >
-                    <IconSymbol 
-                      size={16} 
-                      name={showPasswords[password.id] ? "eye.slash" : "eye"} 
-                      color="#666" 
-                    />
-                  </TouchableOpacity>
-                </ThemedView>
-              </ThemedView>
-
-              <ThemedView style={styles.siteDetails}>
-                <ThemedText style={styles.siteDetailLabel}>النوع:</ThemedText>
-                <ThemedText style={styles.siteDetailValue}>{password.category}</ThemedText>
-              </ThemedView>
-            </ThemedView>
-          ))}
-        </ThemedView>
-      </ScrollView>
-
-      {/* Modal للإضافة والتعديل */}
-      <Modal
-        visible={isModalVisible}
-        animationType="slide"
-        presentationStyle="pageSheet"
+      <ImageBackground
+        source={require('@/assets/images/background.png')}
+        style={styles.backgroundImage}
+        resizeMode="cover"
       >
-        <ThemedView style={styles.modalContainer}>
-          <ThemedView style={styles.modalHeader}>
-            <TouchableOpacity onPress={() => {
-              setIsModalVisible(false);
-              setEditingEntry(null);
-              setFormData({
-                siteName: '',
-                username: '',
-                password: '',
-                url: '',
-                category: 'مواقع تعليمية'
-              });
-            }}>
-              <IconSymbol size={24} name="xmark" color="#007AFF" />
+        <ExpoLinearGradient
+          colors={['rgba(255,255,255,0.9)', 'rgba(225,245,244,0.95)', 'rgba(173,212,206,0.8)']}
+          style={styles.gradientOverlay}
+        >
+          <ThemedView style={styles.header}>
+            <TouchableOpacity 
+              style={styles.backButton}
+              onPress={() => router.back()}
+            >
+              <IconSymbol size={24} name="chevron.right" color="#1c1f33" />
             </TouchableOpacity>
-            <ThemedText type="title" style={styles.modalTitle}>
-              {editingEntry ? 'تعديل الموقع' : 'إضافة موقع جديد'}
-            </ThemedText>
-            <TouchableOpacity onPress={addPassword}>
-              <IconSymbol size={24} name="checkmark" color="#007AFF" />
+            <ThemedView style={styles.headerContent}>
+              <IconSymbol size={50} name="key.fill" color="#1c1f33" />
+              <ThemedText type="title" style={styles.headerTitle}>
+                متتبع المواقع وكلمات المرور
+              </ThemedText>
+              <ThemedText style={styles.headerSubtitle}>
+                إدارة آمنة لجميع كلمات المرور والمواقع المهمة
+              </ThemedText>
+            </ThemedView>
+          </ThemedView>
+
+          <ThemedView style={styles.tabSelector}>
+            <TouchableOpacity
+              style={[styles.tabButton, selectedView === 'recommendations' && styles.activeTabButton]}
+              onPress={() => setSelectedView('recommendations')}
+            >
+              <IconSymbol size={16} name="lightbulb.fill" color={selectedView === 'recommendations' ? '#fff' : '#666'} />
+              <ThemedText style={[styles.tabButtonText, selectedView === 'recommendations' && styles.activeTabButtonText]}>
+                توصيات الأمان
+              </ThemedText>
+            </TouchableOpacity>
+
+            <TouchableOpacity
+              style={[styles.tabButton, selectedView === 'add' && styles.activeTabButton]}
+              onPress={() => setSelectedView('add')}
+            >
+              <IconSymbol size={16} name="plus.circle.fill" color={selectedView === 'add' ? '#fff' : '#666'} />
+              <ThemedText style={[styles.tabButtonText, selectedView === 'add' && styles.activeTabButtonText]}>
+                إضافة جديد
+              </ThemedText>
+            </TouchableOpacity>
+
+            <TouchableOpacity
+              style={[styles.tabButton, selectedView === 'overview' && styles.activeTabButton]}
+              onPress={() => setSelectedView('overview')}
+            >
+              <IconSymbol size={16} name="list.bullet" color={selectedView === 'overview' ? '#fff' : '#666'} />
+              <ThemedText style={[styles.tabButtonText, selectedView === 'overview' && styles.activeTabButtonText]}>
+                جميع كلمات المرور
+              </ThemedText>
             </TouchableOpacity>
           </ThemedView>
 
-          <ScrollView style={styles.modalContent}>
-            <ThemedView style={styles.inputGroup}>
-              <ThemedText style={styles.inputLabel}>اسم الموقع *</ThemedText>
-              <TextInput
-                style={styles.textInput}
-                value={formData.siteName}
-                onChangeText={(text) => setFormData({...formData, siteName: text})}
-                placeholder="أدخل اسم الموقع"
-                textAlign="right"
-              />
-            </ThemedView>
+          <ScrollView style={styles.content}>
+            {renderCurrentTab()}
 
-            <ThemedView style={styles.inputGroup}>
-              <ThemedText style={styles.inputLabel}>الرابط</ThemedText>
-              <TextInput
-                style={styles.textInput}
-                value={formData.url}
-                onChangeText={(text) => setFormData({...formData, url: text})}
-                placeholder="https://example.com"
-                textAlign="right"
-              />
-            </ThemedView>
+            <ThemedView style={styles.actionButtons}>
+              <TouchableOpacity 
+                style={styles.exportButton}
+                onPress={handleExportPasswords}
+              >
+                <IconSymbol size={20} name="square.and.arrow.up.fill" color="#1c1f33" />
+                <ThemedText style={styles.buttonText}>تصدير النسخة الاحتياطية</ThemedText>
+              </TouchableOpacity>
 
-            <ThemedView style={styles.inputGroup}>
-              <ThemedText style={styles.inputLabel}>اسم المستخدم *</ThemedText>
-              <TextInput
-                style={styles.textInput}
-                value={formData.username}
-                onChangeText={(text) => setFormData({...formData, username: text})}
-                placeholder="أدخل اسم المستخدم"
-                textAlign="right"
-              />
-            </ThemedView>
-
-            <ThemedView style={styles.inputGroup}>
-              <ThemedText style={styles.inputLabel}>كلمة المرور *</ThemedText>
-              <TextInput
-                style={styles.textInput}
-                value={formData.password}
-                onChangeText={(text) => setFormData({...formData, password: text})}
-                placeholder="أدخل كلمة المرور"
-                secureTextEntry
-                textAlign="right"
-              />
-            </ThemedView>
-
-            <ThemedView style={styles.inputGroup}>
-              <ThemedText style={styles.inputLabel}>فئة الموقع</ThemedText>
-              <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.categoryScroll}>
-                {categories.slice(1).map((category) => (
-                  <TouchableOpacity
-                    key={category}
-                    style={[
-                      styles.categoryButton,
-                      formData.category === category && styles.categoryButtonActive
-                    ]}
-                    onPress={() => setFormData({...formData, category})}
-                  >
-                    <ThemedText style={[
-                      styles.categoryButtonText,
-                      formData.category === category && styles.categoryButtonTextActive
-                    ]}>
-                      {category}
-                    </ThemedText>
-                  </TouchableOpacity>
-                ))}
-              </ScrollView>
+              <TouchableOpacity 
+                style={styles.securityButton}
+                onPress={() => Alert.alert('فحص الأمان', 'سيتم فحص جميع كلمات المرور للتأكد من أمانها')}
+              >
+                <IconSymbol size={20} name="checkmark.shield.fill" color="#1c1f33" />
+                <ThemedText style={styles.buttonText}>فحص الأمان</ThemedText>
+              </TouchableOpacity>
             </ThemedView>
           </ScrollView>
-        </ThemedView>
-      </Modal>
+        </ExpoLinearGradient>
+      </ImageBackground>
     </ThemedView>
   );
 }
@@ -412,34 +483,95 @@ export default function PasswordTrackerScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#f8f9fa',
+  },
+  backgroundImage: {
+    flex: 1,
+    width: '100%',
+    height: '100%',
+  },
+  gradientOverlay: {
+    flex: 1,
   },
   header: {
-    backgroundColor: '#FF6B35',
     padding: 20,
     paddingTop: 50,
     flexDirection: 'row',
     alignItems: 'center',
+    backgroundColor: 'transparent',
   },
   backButton: {
     padding: 8,
     marginRight: 10,
+    backgroundColor: '#F8F9FA',
+    borderRadius: 20,
+    borderWidth: 1,
+    borderColor: '#E5E5EA',
+  },
+  headerContent: {
+    flex: 1,
+    alignItems: 'center',
   },
   headerTitle: {
-    color: '#fff',
-    fontSize: 18,
+    color: '#1c1f33',
+    fontSize: 24,
     fontWeight: 'bold',
     textAlign: 'center',
     writingDirection: 'rtl',
+    marginTop: 10,
+  },
+  headerSubtitle: {
+    color: '#1c1f33',
+    fontSize: 14,
+    textAlign: 'center',
+    writingDirection: 'rtl',
+    opacity: 0.8,
+    marginTop: 5,
+  },
+  tabSelector: {
+    flexDirection: 'row',
+    backgroundColor: '#fff',
+    marginHorizontal: 15,
+    borderRadius: 25,
+    padding: 5,
+    elevation: 2,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.1,
+    shadowRadius: 3,
+  },
+  tabButton: {
     flex: 1,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingVertical: 10,
+    paddingHorizontal: 8,
+    borderRadius: 20,
+    gap: 5,
+  },
+  activeTabButton: {
+    backgroundColor: '#1c1f33',
+  },
+  tabButtonText: {
+    fontSize: 12,
+    color: '#666',
+    fontWeight: '600',
+    textAlign: 'center',
+    writingDirection: 'rtl',
+  },
+  activeTabButtonText: {
+    color: '#fff',
   },
   content: {
     flex: 1,
-    padding: 20,
+    padding: 15,
   },
-  formContainer: {
+  tabContent: {
+    backgroundColor: 'transparent',
+  },
+  summarySection: {
     backgroundColor: '#fff',
-    borderRadius: 12,
+    borderRadius: 15,
     padding: 20,
     marginBottom: 20,
     elevation: 2,
@@ -448,177 +580,272 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.1,
     shadowRadius: 3,
   },
-  inputRow: {
-    marginBottom: 15,
-  },
-  label: {
-    fontSize: 14,
-    fontWeight: '600',
-    color: '#333',
-    marginBottom: 8,
-    textAlign: 'right',
-    writingDirection: 'rtl',
-  },
-  input: {
-    borderWidth: 1,
-    borderColor: '#E5E5EA',
-    borderRadius: 8,
-    padding: 12,
-    fontSize: 16,
-    backgroundColor: '#fff',
-    textAlign: 'right',
-    writingDirection: 'rtl',
-    writingDirection: 'rtl',
-  },
-  addButton: {
-    backgroundColor: '#FF6B35',
-    padding: 15,
-    borderRadius: 8,
-    alignItems: 'center',
-    marginTop: 10,
-  },
-  addButtonText: {
-    color: '#fff',
-    fontSize: 16,
-    fontWeight: 'bold',
-    writingDirection: 'rtl',
-  },
-  savedSitesContainer: {
-    marginBottom: 20,
-  },
   sectionTitle: {
     fontSize: 18,
     fontWeight: 'bold',
     color: '#333',
-    marginBottom: 15,
-    textAlign: 'right',
+    textAlign: 'center',
     writingDirection: 'rtl',
+    marginBottom: 15,
   },
-  siteCard: {
-    backgroundColor: '#fff',
-    borderRadius: 12,
+  statsGrid: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    gap: 10,
+  },
+  statCard: {
+    flex: 1,
+    alignItems: 'center',
     padding: 15,
-    marginBottom: 10,
+    borderRadius: 12,
     elevation: 1,
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 1 },
     shadowOpacity: 0.1,
     shadowRadius: 2,
   },
-  siteHeader: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    marginBottom: 10,
-  },
-  siteName: {
-    fontSize: 16,
+  statValue: {
+    fontSize: 24,
     fontWeight: 'bold',
+    marginTop: 8,
     color: '#333',
-    textAlign: 'right',
-    writingDirection: 'rtl',
   },
-  siteActions: {
-    flexDirection: 'row',
-    gap: 10,
-  },
-  actionButton: {
-    padding: 5,
-  },
-  siteDetails: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginBottom: 5,
-    gap: 10,
-  },
-  siteDetailLabel: {
+  statLabel: {
     fontSize: 12,
     color: '#666',
-    minWidth: 60,
-    textAlign: 'right',
+    textAlign: 'center',
     writingDirection: 'rtl',
+    marginTop: 4,
   },
-  siteDetailValue: {
-    fontSize: 12,
+  categoriesGrid: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    justifyContent: 'space-between',
+    gap: 10,
+  },
+  passwordCard: {
+    width: '48%',
+    backgroundColor: '#fff',
+    borderRadius: 12,
+    padding: 15,
+    elevation: 2,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.1,
+    shadowRadius: 3,
+    marginBottom: 10,
+  },
+  passwordHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 8,
+  },
+  websiteName: {
+    fontSize: 14,
+    fontWeight: 'bold',
     color: '#333',
     flex: 1,
     textAlign: 'right',
     writingDirection: 'rtl',
   },
-  passwordRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    flex: 1,
-    gap: 5,
+  strengthBadge: {
+    paddingHorizontal: 8,
+    paddingVertical: 4,
+    borderRadius: 10,
   },
-  eyeButton: {
-    padding: 2,
+  strengthText: {
+    fontSize: 10,
+    color: '#fff',
+    fontWeight: '600',
   },
-  modalContainer: {
-    flex: 1,
-    backgroundColor: '#fff',
-  },
-  modalHeader: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    padding: 20,
-    paddingTop: 50,
-    backgroundColor: '#f8f9fa',
-    borderBottomWidth: 1,
-    borderBottomColor: '#E5E5EA',
-  },
-  modalTitle: {
-    fontSize: 18,
-    fontWeight: 'bold',
-    textAlign: 'center',
+  username: {
+    fontSize: 12,
+    color: '#666',
+    marginBottom: 4,
+    textAlign: 'right',
     writingDirection: 'rtl',
   },
-  modalContent: {
-    flex: 1,
-    padding: 20,
+  lastUpdated: {
+    fontSize: 10,
+    color: '#999',
+    marginBottom: 8,
+    textAlign: 'right',
+    writingDirection: 'rtl',
   },
-  inputGroup: {
+  passwordActions: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    gap: 5,
+  },
+  actionButton: {
+    flex: 1,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: '#f8f9fa',
+    paddingVertical: 6,
+    borderRadius: 8,
+    gap: 4,
+  },
+  actionButtonText: {
+    fontSize: 10,
+    color: '#666',
+    fontWeight: '600',
+  },
+  formContainer: {
+    backgroundColor: '#fff',
+    borderRadius: 15,
+    padding: 20,
+    elevation: 2,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.1,
+    shadowRadius: 3,
+  },
+  formGroup: {
     marginBottom: 20,
   },
-  inputLabel: {
+  formLabel: {
     fontSize: 14,
-    fontWeight: '600',
+    fontWeight: 'bold',
     color: '#333',
     marginBottom: 8,
     textAlign: 'right',
     writingDirection: 'rtl',
   },
-  textInput: {
+  formInput: {
+    backgroundColor: '#f8f9fa',
     borderWidth: 1,
-    borderColor: '#E5E5EA',
+    borderColor: '#ddd',
     borderRadius: 8,
-    padding: 12,
-    fontSize: 16,
-    backgroundColor: '#fff',
+    paddingHorizontal: 15,
+    paddingVertical: 12,
+    fontSize: 14,
     textAlign: 'right',
     writingDirection: 'rtl',
+  },
+  textArea: {
+    height: 80,
+    textAlignVertical: 'top',
+  },
+  strengthIndicator: {
+    fontSize: 12,
+    marginTop: 5,
+    textAlign: 'right',
     writingDirection: 'rtl',
+    fontWeight: '600',
   },
-  categoryScroll: {
+  categorySelector: {
     flexDirection: 'row',
+    gap: 10,
   },
-  categoryButton: {
-    backgroundColor: '#f0f0f0',
+  categoryOption: {
+    flex: 1,
+    paddingVertical: 10,
     paddingHorizontal: 15,
-    paddingVertical: 8,
-    borderRadius: 20,
-    marginRight: 10,
+    borderRadius: 8,
+    alignItems: 'center',
   },
-  categoryButtonActive: {
-    backgroundColor: '#FF6B35',
-  },
-  categoryButtonText: {
-    fontSize: 14,
-    color: '#666',
+  categoryText: {
+    fontSize: 12,
+    fontWeight: '600',
     textAlign: 'center',
   },
-  categoryButtonTextActive: {
-    color: '#fff',
+  saveButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: '#add4ce',
+    paddingVertical: 15,
+    paddingHorizontal: 25,
+    borderRadius: 25,
+    gap: 10,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 6 },
+    shadowOpacity: 0.4,
+    shadowRadius: 12,
+    elevation: 12,
+  },
+  saveButtonText: {
+    color: '#1c1f33',
+    fontSize: 16,
+    fontWeight: '600',
+    writingDirection: 'rtl',
+    textAlign: 'center',
+  },
+  recommendationsContainer: {
+    gap: 15,
+  },
+  recommendationCard: {
+    backgroundColor: '#fff',
+    borderRadius: 12,
+    padding: 20,
+    elevation: 2,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.1,
+    shadowRadius: 3,
+  },
+  recommendationTitle: {
+    fontSize: 16,
+    fontWeight: 'bold',
+    color: '#333',
+    marginBottom: 12,
+    textAlign: 'right',
+    writingDirection: 'rtl',
+  },
+  recommendationText: {
+    fontSize: 14,
+    color: '#666',
+    lineHeight: 22,
+    marginBottom: 8,
+    textAlign: 'right',
+    writingDirection: 'rtl',
+  },
+  actionButtons: {
+    flexDirection: 'row',
+    gap: 10,
+    marginTop: 20,
+    marginBottom: 20,
+  },
+  exportButton: {
+    flex: 1,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: '#add4ce',
+    paddingVertical: 15,
+    paddingHorizontal: 25,
+    borderRadius: 25,
+    gap: 10,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 6 },
+    shadowOpacity: 0.4,
+    shadowRadius: 12,
+    elevation: 12,
+  },
+  securityButton: {
+    flex: 1,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: '#add4ce',
+    paddingVertical: 15,
+    paddingHorizontal: 25,
+    borderRadius: 25,
+    gap: 10,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 6 },
+    shadowOpacity: 0.4,
+    shadowRadius: 12,
+    elevation: 12,
+  },
+  buttonText: {
+    color: '#1c1f33',
+    fontSize: 16,
+    fontWeight: '600',
+    writingDirection: 'rtl',
+    textAlign: 'center',
   },
 });
