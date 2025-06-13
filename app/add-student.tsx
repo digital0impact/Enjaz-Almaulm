@@ -291,7 +291,7 @@ export default function AddStudentScreen() {
                             ]}
                             onPress={() => setStudentData({...studentData, status: option.value as Student['status']})}
                           >
-                            <IconSymbol size={24} name={option.icon} color="#fff" />
+                            <IconSymbol size={18} name={option.icon} color="#fff" />
                             <ThemedText style={styles.statusText}>{option.label}</ThemedText>
                           </TouchableOpacity>
                         ))}
@@ -660,18 +660,18 @@ const styles = StyleSheet.create({
   },
   statusGrid: {
     flexDirection: 'row',
-    flexWrap: 'wrap',
-    gap: 10,
+    justifyContent: 'space-between',
+    gap: 8,
     backgroundColor: 'transparent',
   },
   statusOption: {
-    flexDirection: 'row',
+    flexDirection: 'column',
     alignItems: 'center',
-    paddingVertical: 12,
-    paddingHorizontal: 15,
-    borderRadius: 12,
-    gap: 8,
-    minWidth: '45%',
+    paddingVertical: 8,
+    paddingHorizontal: 10,
+    borderRadius: 10,
+    gap: 4,
+    flex: 1,
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.1,
@@ -684,7 +684,7 @@ const styles = StyleSheet.create({
   },
   statusText: {
     color: '#fff',
-    fontSize: 14,
+    fontSize: 11,
     fontWeight: '600',
     textAlign: 'center',
   },
