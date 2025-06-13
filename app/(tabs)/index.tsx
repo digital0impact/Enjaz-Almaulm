@@ -321,7 +321,9 @@ export default function HomeScreen() {
                         style={styles.dataItem}
                         onPress={() => router.push('/azkar')}
                       >
-                        <IconSymbol size={28} name="doc.text.fill" color="#FF9800" />
+                        <ThemedView style={styles.azkarIconContainer}>
+                          <IconSymbol size={28} name="doc.text.fill" color="#1c1f33" />
+                        </ThemedView>
                         <ThemedText style={styles.actionText}>أذكاري</ThemedText>
                       </TouchableOpacity>
 
@@ -733,5 +735,18 @@ const styles = StyleSheet.create({
     elevation: 10,
     alignItems: 'center',
     width: '48%',
+  },
+  azkarIconContainer: {
+    marginBottom: 10,
+    padding: 15,
+    backgroundColor: '#F8F9FA',
+    borderRadius: 50,
+    borderWidth: 1,
+    borderColor: '#E5E5EA',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 6 },
+    shadowOpacity: 0.25,
+    shadowRadius: 12,
+    elevation: 10,
   },
 });
