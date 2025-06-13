@@ -677,7 +677,7 @@ const styles = StyleSheet.create({
     marginTop: 10,
   },
   weeklyTable: {
-    minWidth: 900,
+    minWidth: 780,
   },
   tableHeader: {
     flexDirection: 'row',
@@ -686,7 +686,7 @@ const styles = StyleSheet.create({
     borderTopRightRadius: 8,
   },
   timeColumnHeader: {
-    width: 60,
+    width: 55,
     padding: 4,
     backgroundColor: '#1F5F3F',
     justifyContent: 'center',
@@ -729,7 +729,7 @@ const styles = StyleSheet.create({
     textAlign: 'center',
   },
   scheduleCell: {
-    width: 60,
+    width: 55,
     minHeight: 60,
     padding: 2,
     borderLeftWidth: 1,
