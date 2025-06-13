@@ -402,67 +402,94 @@ export default function PerformanceScreen() {
                     </TouchableOpacity>
                     <ThemedText style={styles.evidenceTitle}>الشواهد المطلوبة:</ThemedText>
                   </ThemedView>
-                  <ThemedView style={styles.evidenceList}>
-                    {item.evidence.map((evidenceItem, index) => (
-                      <TouchableOpacity 
-                        key={index} 
-                        style={[
-                          styles.evidenceItem,
-                          evidenceItem.available ? styles.evidenceAvailable : styles.evidenceUnavailable
-                        ]}
-                        onPress={() => toggleEvidenceStatus(item.id, index)}
-                      >
+                  <ThemedView style={styles.evidenceContainer}>
+                    {/* القائمة العمودية للاستعراض المصغر */}
+                    <ThemedView style={styles.evidenceSummary}>
+                      <ThemedText style={styles.summaryTitle}>استعراض الشواهد</ThemedText>
+                      <ThemedView style={styles.summaryIndicators}>
+                        {item.evidence.map((evidenceItem, index) => (
+                          <ThemedView key={index} style={styles.summaryIndicator}>
+                            <ThemedView style={[
+                              styles.indicatorDot,
+                              evidenceItem.available ? styles.indicatorAvailable : styles.indicatorUnavailable
+                            ]} />
+                            <ThemedText style={styles.indicatorLabel}>
+                              {evidenceItem.name.slice(0, 15)}...
+                            </ThemedText>
+                          </ThemedView>
+                        ))}
+                      </ThemedView>
+                      <ThemedView style={styles.summaryStats}>
+                        <ThemedText style={styles.statsText}>
+                          {item.evidence.filter(e => e.available).length} / {item.evidence.length}
+                        </ThemedText>
+                        <ThemedText style={styles.statsLabel}>متوفر</ThemedText>
+                      </ThemedView>
+                    </ThemedView>
+
+                    {/* قائمة الشواهد المفصلة */}
+                    <ThemedView style={styles.evidenceList}>
+                      {item.evidence.map((evidenceItem, index) => (
                         <TouchableOpacity 
-                          style={styles.uploadIcon}
-                          onPress={() => Alert.alert('تحميل ملف', `سيتم تحميل ملف لـ: ${evidenceItem.name}`)}
+                          key={index} 
+                          style={[
+                            styles.evidenceItem,
+                            evidenceItem.available ? styles.evidenceAvailable : styles.evidenceUnavailable
+                          ]}
+                          onPress={() => toggleEvidenceStatus(item.id, index)}
                         >
+                          <TouchableOpacity 
+                            style={styles.uploadIcon}
+                            onPress={() => Alert.alert('تحميل ملف', `سيتم تحميل ملف لـ: ${evidenceItem.name}`)}
+                          >
+                            <IconSymbol 
+                              size={14} 
+                              name="arrow.up.doc.fill" 
+                              color="#424242" 
+                            />
+                          </TouchableOpacity>
                           <IconSymbol 
-                            size={16} 
-                            name="arrow.up.doc.fill" 
-                            color="#424242" 
+                            size={10} 
+                            name={evidenceItem.available ? "checkmark" : "xmark"} 
+                            color={evidenceItem.available ? "#4CAF50" : "#F44336"} 
                           />
+                          <ThemedText style={[
+                            styles.evidenceText,
+                            evidenceItem.available ? styles.evidenceAvailableText : styles.evidenceUnavailableText
+                          ]}>
+                            {evidenceItem.name}
+                          </ThemedText>
+                          <ThemedText style={[
+                            styles.evidenceStatus,
+                            evidenceItem.available ? styles.evidenceAvailableStatus : styles.evidenceUnavailableStatus
+                          ]}>
+                            {evidenceItem.available ? 'متوفر' : 'غير متوفر'}
+                          </ThemedText>
+                          <ThemedView style={styles.evidenceActions}>
+                            <TouchableOpacity 
+                              style={styles.editButton}
+                              onPress={() => editEvidence(item.id, index, evidenceItem.name)}
+                            >
+                              <IconSymbol 
+                                size={10} 
+                                name="pencil.circle.fill" 
+                                color="#FF9800" 
+                              />
+                            </TouchableOpacity>
+                            <TouchableOpacity 
+                              style={styles.deleteButton}
+                              onPress={() => deleteEvidence(item.id, index)}
+                            >
+                              <IconSymbol 
+                                size={10} 
+                                name="trash.circle.fill" 
+                                color="#F44336" 
+                              />
+                            </TouchableOpacity>
+                          </ThemedView>
                         </TouchableOpacity>
-                        <IconSymbol 
-                          size={12} 
-                          name={evidenceItem.available ? "checkmark" : "xmark"} 
-                          color={evidenceItem.available ? "#4CAF50" : "#F44336"} 
-                        />
-                        <ThemedText style={[
-                          styles.evidenceText,
-                          evidenceItem.available ? styles.evidenceAvailableText : styles.evidenceUnavailableText
-                        ]}>
-                          {evidenceItem.name}
-                        </ThemedText>
-                        <ThemedText style={[
-                          styles.evidenceStatus,
-                          evidenceItem.available ? styles.evidenceAvailableStatus : styles.evidenceUnavailableStatus
-                        ]}>
-                          {evidenceItem.available ? 'متوفر' : 'غير متوفر'}
-                        </ThemedText>
-                        <ThemedView style={styles.evidenceActions}>
-                          <TouchableOpacity 
-                            style={styles.editButton}
-                            onPress={() => editEvidence(item.id, index, evidenceItem.name)}
-                          >
-                            <IconSymbol 
-                              size={12} 
-                              name="pencil.circle.fill" 
-                              color="#FF9800" 
-                            />
-                          </TouchableOpacity>
-                          <TouchableOpacity 
-                            style={styles.deleteButton}
-                            onPress={() => deleteEvidence(item.id, index)}
-                          >
-                            <IconSymbol 
-                              size={12} 
-                              name="trash.circle.fill" 
-                              color="#F44336" 
-                            />
-                          </TouchableOpacity>
-                        </ThemedView>
-                      </TouchableOpacity>
-                    ))}
+                      ))}
+                    </ThemedView>
                   </ThemedView>
                 </ThemedView>
               )}
@@ -605,17 +632,80 @@ const styles = StyleSheet.create({
     textAlign: 'right',
     writingDirection: 'rtl',
   },
-  evidenceList: {
+  evidenceContainer: {
+    flexDirection: 'row',
     marginBottom: 15,
+    gap: 10,
+  },
+  evidenceSummary: {
+    flex: 1,
+    backgroundColor: '#f0f4f8',
+    borderRadius: 8,
+    padding: 8,
+    borderWidth: 1,
+    borderColor: '#e1e8ed',
+  },
+  summaryTitle: {
+    fontSize: 11,
+    fontWeight: 'bold',
+    color: '#333',
+    marginBottom: 6,
+    textAlign: 'center',
+  },
+  summaryIndicators: {
+    marginBottom: 6,
+  },
+  summaryIndicator: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 3,
+    gap: 6,
+  },
+  indicatorDot: {
+    width: 8,
+    height: 8,
+    borderRadius: 4,
+  },
+  indicatorAvailable: {
+    backgroundColor: '#4CAF50',
+  },
+  indicatorUnavailable: {
+    backgroundColor: '#F44336',
+  },
+  indicatorLabel: {
+    fontSize: 9,
+    color: '#666',
+    flex: 1,
+    textAlign: 'right',
+  },
+  summaryStats: {
+    alignItems: 'center',
+    paddingTop: 6,
+    borderTopWidth: 1,
+    borderTopColor: '#e1e8ed',
+  },
+  statsText: {
+    fontSize: 12,
+    fontWeight: 'bold',
+    color: '#333',
+    textAlign: 'center',
+  },
+  statsLabel: {
+    fontSize: 9,
+    color: '#666',
+    textAlign: 'center',
+  },
+  evidenceList: {
+    flex: 2,
   },
   evidenceItem: {
     flexDirection: I18nManager.isRTL ? 'row-reverse' : 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
     backgroundColor: '#f8f9fa',
-    padding: 6,
-    borderRadius: 6,
-    marginBottom: 4,
+    padding: 4,
+    borderRadius: 4,
+    marginBottom: 3,
   },
   evidenceName: {
     fontSize: 14,
@@ -625,11 +715,11 @@ const styles = StyleSheet.create({
     writingDirection: 'rtl',
   },
   evidenceStatus: {
-    fontSize: 10,
+    fontSize: 8,
     fontWeight: '600',
-    paddingHorizontal: 6,
-    paddingVertical: 2,
-    borderRadius: 8,
+    paddingHorizontal: 4,
+    paddingVertical: 1,
+    borderRadius: 6,
     textAlign: 'center',
   },
   scoreContainer: {
@@ -883,9 +973,9 @@ const styles = StyleSheet.create({
     borderTopColor: '#E5E5EA',
   },
   evidenceText: {
-    fontSize: 12,
+    fontSize: 10,
     flex: 1,
-    marginHorizontal: 6,
+    marginHorizontal: 4,
     textAlign: 'right',
     writingDirection: 'rtl',
   },
@@ -916,8 +1006,8 @@ const styles = StyleSheet.create({
     textAlign: 'center',
   },
   uploadIcon: {
-    padding: 2,
-    borderRadius: 6,
+    padding: 1,
+    borderRadius: 4,
     backgroundColor: '#E8E9EB',
   },
   summaryCard: {
