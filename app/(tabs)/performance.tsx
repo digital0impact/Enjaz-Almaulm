@@ -388,7 +388,11 @@ export default function PerformanceScreen() {
                   <ThemedText style={styles.detailsTitle}>تفاصيل التقييم:</ThemedText>
                   <ThemedText style={styles.detailsText}>{item.details}</ThemedText>
 
-                  <ThemedView style={styles.evidenceHeader}>
+                  <ThemedView style={styles.evidenceTitleSection}>
+                    <ThemedText style={styles.evidenceTitle}>الشواهد المطلوبة:</ThemedText>
+                  </ThemedView>
+                  
+                  <ThemedView style={styles.addEvidenceSection}>
                     <TouchableOpacity 
                       style={styles.addEvidenceButton}
                       onPress={() => addEvidence(item.id)}
@@ -400,7 +404,6 @@ export default function PerformanceScreen() {
                       />
                       <ThemedText style={styles.addEvidenceText}>إضافة شاهد</ThemedText>
                     </TouchableOpacity>
-                    <ThemedText style={styles.evidenceTitle}>الشواهد المطلوبة:</ThemedText>
                   </ThemedView>
                   <ThemedView style={styles.evidenceContainer}>
                     {/* القائمة العمودية للاستعراض المصغر */}
@@ -755,6 +758,13 @@ const styles = StyleSheet.create({
     padding: 8,
     borderRadius: 12,
     backgroundColor: '#F0F7FF',
+  },
+  evidenceTitleSection: {
+    marginBottom: 8,
+  },
+  addEvidenceSection: {
+    alignItems: 'flex-start',
+    marginBottom: 8,
   },
   evidenceHeader: {
     flexDirection: 'row',
