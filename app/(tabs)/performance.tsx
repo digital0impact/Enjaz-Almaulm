@@ -514,11 +514,11 @@ export default function PerformanceScreen() {
                               style={styles.evidenceExpandIcon}
                             />
                           </TouchableOpacity>
-                          
+
                           {selectedEvidence?.performanceId === item.id && selectedEvidence?.evidenceIndex === index && (
                             <ThemedView style={styles.evidenceDropdown}>
                               <ThemedText style={styles.evidenceDropdownTitle}>تفاصيل الشاهد:</ThemedText>
-                              
+
                               {uploadedFiles[`${item.id}-${index}`] ? (
                                 <ThemedView style={styles.fileDetailsContainer}>
                                   <ThemedText style={styles.fileDetailsTitle}>الملف المحمل:</ThemedText>
@@ -1201,5 +1201,21 @@ const styles = StyleSheet.create({
     marginTop: 2,
     textAlign: 'center',
     writingDirection: 'rtl',
+  },
+  demoTeacher: {
+    flexDirection: I18nManager.isRTL ? 'row-reverse' : 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    padding: 15,
+    backgroundColor: 'transparent',
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: '#E5E5EA',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    elevation: 3,
+    marginBottom: 20,
   },
 });
