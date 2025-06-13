@@ -15,6 +15,27 @@ interface Student {
   status: 'ممتاز' | 'جيد جداً' | 'جيد' | 'مقبول' | 'ضعيف';
   lastUpdate: string;
   notes: string;
+  goals: Goal[];
+  needs: string[];
+  performanceEvidence: PerformanceEvidence[];
+}
+
+interface Goal {
+  id: string;
+  title: string;
+  description: string;
+  targetDate: string;
+  progress: number; // 0-100
+  status: 'محقق' | 'قيد التنفيذ' | 'لم يبدأ';
+}
+
+interface PerformanceEvidence {
+  id: string;
+  type: 'اختبار' | 'مشروع' | 'واجب' | 'مشاركة' | 'سلوك';
+  title: string;
+  score: number;
+  date: string;
+  notes: string;
 }
 
 export default function AddStudentScreen() {
@@ -23,8 +44,31 @@ export default function AddStudentScreen() {
     name: '',
     grade: '',
     status: 'جيد' as Student['status'],
+    notes: '',
+    goals: [] as Goal[],
+    needs: [] as string[],
+    performanceEvidence: [] as PerformanceEvidence[]
+  });
+
+  const [newGoal, setNewGoal] = useState({
+    title: '',
+    description: '',
+    targetDate: '',
+    progress: 0,
+    status: 'لم يبدأ' as Goal['status']
+  });
+
+  const [newNeed, setNewNeed] = useState('');
+  const [newEvidence, setNewEvidence] = useState({
+    type: 'اختبار' as PerformanceEvidence['type'],
+    title: '',
+    score: 0,
+    date: '',
     notes: ''
   });
+
+  const [showGoalForm, setShowGoalForm] = useState(false);
+  const [showEvidenceForm, setShowEvidenceForm] = useState(false);
 
   const statusOptions = [
     { value: 'ممتاز', label: 'متفوق', color: '#4CAF50', icon: 'star.fill' },
@@ -33,6 +77,108 @@ export default function AddStudentScreen() {
     { value: 'مقبول', label: 'يحتاج إلى تطوير', color: '#FF5722', icon: 'star' },
     { value: 'ضعيف', label: 'صعوبات تعلم', color: '#F44336', icon: 'exclamationmark.triangle.fill' }
   ];
+
+  const evidenceTypes = [
+    { value: 'اختبار', label: 'اختبار', icon: 'doc.text' },
+    { value: 'مشروع', label: 'مشروع', icon: 'folder' },
+    { value: 'واجب', label: 'واجب', icon: 'pencil' },
+    { value: 'مشاركة', label: 'مشاركة', icon: 'hand.raised' },
+    { value: 'سلوك', label: 'سلوك', icon: 'person.circle' }
+  ];
+
+  const addGoal = () => {
+    if (!newGoal.title.trim()) {
+      Alert.alert('خطأ', 'يرجى إدخال عنوان الهدف');
+      return;
+    }
+
+    const goal: Goal = {
+      id: Date.now().toString(),
+      ...newGoal,
+      title: newGoal.title.trim(),
+      description: newGoal.description.trim(),
+    };
+
+    setStudentData(prev => ({
+      ...prev,
+      goals: [...prev.goals, goal]
+    }));
+
+    setNewGoal({
+      title: '',
+      description: '',
+      targetDate: '',
+      progress: 0,
+      status: 'لم يبدأ'
+    });
+
+    setShowGoalForm(false);
+  };
+
+  const addNeed = () => {
+    if (!newNeed.trim()) {
+      Alert.alert('خطأ', 'يرجى إدخال الاحتياج');
+      return;
+    }
+
+    setStudentData(prev => ({
+      ...prev,
+      needs: [...prev.needs, newNeed.trim()]
+    }));
+
+    setNewNeed('');
+  };
+
+  const addEvidence = () => {
+    if (!newEvidence.title.trim()) {
+      Alert.alert('خطأ', 'يرجى إدخال عنوان الشاهد');
+      return;
+    }
+
+    const evidence: PerformanceEvidence = {
+      id: Date.now().toString(),
+      ...newEvidence,
+      title: newEvidence.title.trim(),
+      notes: newEvidence.notes.trim(),
+      date: newEvidence.date || new Date().toLocaleDateString('ar-SA')
+    };
+
+    setStudentData(prev => ({
+      ...prev,
+      performanceEvidence: [...prev.performanceEvidence, evidence]
+    }));
+
+    setNewEvidence({
+      type: 'اختبار',
+      title: '',
+      score: 0,
+      date: '',
+      notes: ''
+    });
+
+    setShowEvidenceForm(false);
+  };
+
+  const removeGoal = (goalId: string) => {
+    setStudentData(prev => ({
+      ...prev,
+      goals: prev.goals.filter(goal => goal.id !== goalId)
+    }));
+  };
+
+  const removeNeed = (needIndex: number) => {
+    setStudentData(prev => ({
+      ...prev,
+      needs: prev.needs.filter((_, index) => index !== needIndex)
+    }));
+  };
+
+  const removeEvidence = (evidenceId: string) => {
+    setStudentData(prev => ({
+      ...prev,
+      performanceEvidence: prev.performanceEvidence.filter(evidence => evidence.id !== evidenceId)
+    }));
+  };
 
   const saveStudent = async () => {
     if (!studentData.name.trim() || !studentData.grade.trim()) {
@@ -50,7 +196,10 @@ export default function AddStudentScreen() {
         grade: studentData.grade.trim(),
         status: studentData.status,
         lastUpdate: new Date().toLocaleDateString('ar-SA'),
-        notes: studentData.notes.trim()
+        notes: studentData.notes.trim(),
+        goals: studentData.goals,
+        needs: studentData.needs,
+        performanceEvidence: studentData.performanceEvidence
       };
 
       students.push(newStudent);
@@ -98,65 +247,272 @@ export default function AddStudentScreen() {
                     إضافة متعلم جديد
                   </ThemedText>
                   <ThemedText style={styles.subtitle}>
-                    إدخال بيانات المتعلم الأساسية
+                    إدخال بيانات المتعلم الشاملة
                   </ThemedText>
                 </ThemedView>
 
                 {/* Form */}
                 <ThemedView style={styles.formContainer}>
-                  {/* اسم المتعلم */}
-                  <ThemedView style={styles.inputGroup}>
-                    <ThemedText style={styles.label}>اسم المتعلم *</ThemedText>
-                    <TextInput
-                      style={styles.textInput}
-                      value={studentData.name}
-                      onChangeText={(text) => setStudentData({...studentData, name: text})}
-                      placeholder="أدخل اسم المتعلم"
-                      textAlign="right"
-                    />
-                  </ThemedView>
+                  {/* البيانات الأساسية */}
+                  <ThemedView style={styles.sectionContainer}>
+                    <ThemedText style={styles.sectionTitle}>البيانات الأساسية</ThemedText>
+                    
+                    <ThemedView style={styles.inputGroup}>
+                      <ThemedText style={styles.label}>اسم المتعلم *</ThemedText>
+                      <TextInput
+                        style={styles.textInput}
+                        value={studentData.name}
+                        onChangeText={(text) => setStudentData({...studentData, name: text})}
+                        placeholder="أدخل اسم المتعلم"
+                        textAlign="right"
+                      />
+                    </ThemedView>
 
-                  {/* الصف الدراسي */}
-                  <ThemedView style={styles.inputGroup}>
-                    <ThemedText style={styles.label}>الصف الدراسي *</ThemedText>
-                    <TextInput
-                      style={styles.textInput}
-                      value={studentData.grade}
-                      onChangeText={(text) => setStudentData({...studentData, grade: text})}
-                      placeholder="أدخل الصف الدراسي (مثال: الصف الأول الثانوي)"
-                      textAlign="right"
-                    />
-                  </ThemedView>
+                    <ThemedView style={styles.inputGroup}>
+                      <ThemedText style={styles.label}>الصف الدراسي *</ThemedText>
+                      <TextInput
+                        style={styles.textInput}
+                        value={studentData.grade}
+                        onChangeText={(text) => setStudentData({...studentData, grade: text})}
+                        placeholder="أدخل الصف الدراسي"
+                        textAlign="right"
+                      />
+                    </ThemedView>
 
-                  {/* حالة المتعلم */}
-                  <ThemedView style={styles.inputGroup}>
-                    <ThemedText style={styles.label}>حالة المتعلم</ThemedText>
-                    <ThemedView style={styles.statusGrid}>
-                      {statusOptions.map((option) => (
-                        <TouchableOpacity
-                          key={option.value}
-                          style={[
-                            styles.statusOption,
-                            { backgroundColor: option.color },
-                            studentData.status === option.value && styles.selectedStatus
-                          ]}
-                          onPress={() => setStudentData({...studentData, status: option.value as Student['status']})}
-                        >
-                          <IconSymbol size={24} name={option.icon} color="#fff" />
-                          <ThemedText style={styles.statusText}>{option.label}</ThemedText>
-                        </TouchableOpacity>
-                      ))}
+                    <ThemedView style={styles.inputGroup}>
+                      <ThemedText style={styles.label}>حالة المتعلم</ThemedText>
+                      <ThemedView style={styles.statusGrid}>
+                        {statusOptions.map((option) => (
+                          <TouchableOpacity
+                            key={option.value}
+                            style={[
+                              styles.statusOption,
+                              { backgroundColor: option.color },
+                              studentData.status === option.value && styles.selectedStatus
+                            ]}
+                            onPress={() => setStudentData({...studentData, status: option.value as Student['status']})}
+                          >
+                            <IconSymbol size={24} name={option.icon} color="#fff" />
+                            <ThemedText style={styles.statusText}>{option.label}</ThemedText>
+                          </TouchableOpacity>
+                        ))}
+                      </ThemedView>
                     </ThemedView>
                   </ThemedView>
 
-                  {/* ملاحظات */}
-                  <ThemedView style={styles.inputGroup}>
-                    <ThemedText style={styles.label}>ملاحظات إضافية</ThemedText>
+                  {/* الأهداف */}
+                  <ThemedView style={styles.sectionContainer}>
+                    <ThemedView style={styles.sectionHeader}>
+                      <TouchableOpacity 
+                        style={styles.addButton}
+                        onPress={() => setShowGoalForm(true)}
+                      >
+                        <IconSymbol size={16} name="plus.circle.fill" color="#1c1f33" />
+                        <ThemedText style={styles.addButtonText}>إضافة هدف</ThemedText>
+                      </TouchableOpacity>
+                      <ThemedText style={styles.sectionTitle}>الأهداف التعليمية</ThemedText>
+                    </ThemedView>
+
+                    {showGoalForm && (
+                      <ThemedView style={styles.formCard}>
+                        <ThemedView style={styles.inputGroup}>
+                          <ThemedText style={styles.label}>عنوان الهدف</ThemedText>
+                          <TextInput
+                            style={styles.textInput}
+                            value={newGoal.title}
+                            onChangeText={(text) => setNewGoal({...newGoal, title: text})}
+                            placeholder="أدخل عنوان الهدف"
+                            textAlign="right"
+                          />
+                        </ThemedView>
+
+                        <ThemedView style={styles.inputGroup}>
+                          <ThemedText style={styles.label}>وصف الهدف</ThemedText>
+                          <TextInput
+                            style={[styles.textInput, styles.textArea]}
+                            value={newGoal.description}
+                            onChangeText={(text) => setNewGoal({...newGoal, description: text})}
+                            placeholder="وصف تفصيلي للهدف"
+                            textAlign="right"
+                            multiline
+                            numberOfLines={3}
+                          />
+                        </ThemedView>
+
+                        <ThemedView style={styles.inputGroup}>
+                          <ThemedText style={styles.label}>نسبة التحقق (%)</ThemedText>
+                          <TextInput
+                            style={styles.textInput}
+                            value={newGoal.progress.toString()}
+                            onChangeText={(text) => setNewGoal({...newGoal, progress: parseInt(text) || 0})}
+                            placeholder="0-100"
+                            keyboardType="numeric"
+                            textAlign="right"
+                          />
+                        </ThemedView>
+
+                        <ThemedView style={styles.buttonRow}>
+                          <TouchableOpacity style={styles.saveSmallButton} onPress={addGoal}>
+                            <ThemedText style={styles.saveSmallButtonText}>حفظ</ThemedText>
+                          </TouchableOpacity>
+                          <TouchableOpacity 
+                            style={styles.cancelSmallButton} 
+                            onPress={() => setShowGoalForm(false)}
+                          >
+                            <ThemedText style={styles.cancelSmallButtonText}>إلغاء</ThemedText>
+                          </TouchableOpacity>
+                        </ThemedView>
+                      </ThemedView>
+                    )}
+
+                    {studentData.goals.map((goal) => (
+                      <ThemedView key={goal.id} style={styles.itemCard}>
+                        <ThemedView style={styles.itemHeader}>
+                          <TouchableOpacity onPress={() => removeGoal(goal.id)}>
+                            <IconSymbol size={20} name="xmark.circle.fill" color="#F44336" />
+                          </TouchableOpacity>
+                          <ThemedText style={styles.itemTitle}>{goal.title}</ThemedText>
+                        </ThemedView>
+                        <ThemedText style={styles.itemDescription}>{goal.description}</ThemedText>
+                        <ThemedView style={styles.progressContainer}>
+                          <ThemedText style={styles.progressText}>{goal.progress}%</ThemedText>
+                          <ThemedView style={styles.progressBar}>
+                            <ThemedView 
+                              style={[styles.progressFill, { width: `${goal.progress}%` }]} 
+                            />
+                          </ThemedView>
+                        </ThemedView>
+                      </ThemedView>
+                    ))}
+                  </ThemedView>
+
+                  {/* احتياجات المتعلم */}
+                  <ThemedView style={styles.sectionContainer}>
+                    <ThemedText style={styles.sectionTitle}>احتياجات المتعلم</ThemedText>
+                    
+                    <ThemedView style={styles.inputGroup}>
+                      <ThemedView style={styles.inputWithButton}>
+                        <TouchableOpacity style={styles.addSmallButton} onPress={addNeed}>
+                          <IconSymbol size={16} name="plus" color="#1c1f33" />
+                        </TouchableOpacity>
+                        <TextInput
+                          style={[styles.textInput, { flex: 1 }]}
+                          value={newNeed}
+                          onChangeText={setNewNeed}
+                          placeholder="أدخل احتياج المتعلم"
+                          textAlign="right"
+                        />
+                      </ThemedView>
+                    </ThemedView>
+
+                    {studentData.needs.map((need, index) => (
+                      <ThemedView key={index} style={styles.needItem}>
+                        <TouchableOpacity onPress={() => removeNeed(index)}>
+                          <IconSymbol size={18} name="xmark.circle.fill" color="#F44336" />
+                        </TouchableOpacity>
+                        <ThemedText style={styles.needText}>{need}</ThemedText>
+                      </ThemedView>
+                    ))}
+                  </ThemedView>
+
+                  {/* شواهد الأداء */}
+                  <ThemedView style={styles.sectionContainer}>
+                    <ThemedView style={styles.sectionHeader}>
+                      <TouchableOpacity 
+                        style={styles.addButton}
+                        onPress={() => setShowEvidenceForm(true)}
+                      >
+                        <IconSymbol size={16} name="plus.circle.fill" color="#1c1f33" />
+                        <ThemedText style={styles.addButtonText}>إضافة شاهد</ThemedText>
+                      </TouchableOpacity>
+                      <ThemedText style={styles.sectionTitle}>شواهد الأداء</ThemedText>
+                    </ThemedView>
+
+                    {showEvidenceForm && (
+                      <ThemedView style={styles.formCard}>
+                        <ThemedView style={styles.inputGroup}>
+                          <ThemedText style={styles.label}>نوع الشاهد</ThemedText>
+                          <ThemedView style={styles.typeGrid}>
+                            {evidenceTypes.map((type) => (
+                              <TouchableOpacity
+                                key={type.value}
+                                style={[
+                                  styles.typeOption,
+                                  newEvidence.type === type.value && styles.selectedType
+                                ]}
+                                onPress={() => setNewEvidence({...newEvidence, type: type.value as PerformanceEvidence['type']})}
+                              >
+                                <IconSymbol size={16} name={type.icon} color="#1c1f33" />
+                                <ThemedText style={styles.typeText}>{type.label}</ThemedText>
+                              </TouchableOpacity>
+                            ))}
+                          </ThemedView>
+                        </ThemedView>
+
+                        <ThemedView style={styles.inputGroup}>
+                          <ThemedText style={styles.label}>عنوان الشاهد</ThemedText>
+                          <TextInput
+                            style={styles.textInput}
+                            value={newEvidence.title}
+                            onChangeText={(text) => setNewEvidence({...newEvidence, title: text})}
+                            placeholder="أدخل عنوان الشاهد"
+                            textAlign="right"
+                          />
+                        </ThemedView>
+
+                        <ThemedView style={styles.inputGroup}>
+                          <ThemedText style={styles.label}>الدرجة أو التقدير</ThemedText>
+                          <TextInput
+                            style={styles.textInput}
+                            value={newEvidence.score.toString()}
+                            onChangeText={(text) => setNewEvidence({...newEvidence, score: parseFloat(text) || 0})}
+                            placeholder="الدرجة أو التقدير"
+                            keyboardType="numeric"
+                            textAlign="right"
+                          />
+                        </ThemedView>
+
+                        <ThemedView style={styles.buttonRow}>
+                          <TouchableOpacity style={styles.saveSmallButton} onPress={addEvidence}>
+                            <ThemedText style={styles.saveSmallButtonText}>حفظ</ThemedText>
+                          </TouchableOpacity>
+                          <TouchableOpacity 
+                            style={styles.cancelSmallButton} 
+                            onPress={() => setShowEvidenceForm(false)}
+                          >
+                            <ThemedText style={styles.cancelSmallButtonText}>إلغاء</ThemedText>
+                          </TouchableOpacity>
+                        </ThemedView>
+                      </ThemedView>
+                    )}
+
+                    {studentData.performanceEvidence.map((evidence) => (
+                      <ThemedView key={evidence.id} style={styles.evidenceCard}>
+                        <ThemedView style={styles.itemHeader}>
+                          <TouchableOpacity onPress={() => removeEvidence(evidence.id)}>
+                            <IconSymbol size={20} name="xmark.circle.fill" color="#F44336" />
+                          </TouchableOpacity>
+                          <ThemedView style={styles.evidenceInfo}>
+                            <ThemedText style={styles.itemTitle}>{evidence.title}</ThemedText>
+                            <ThemedText style={styles.evidenceType}>{evidence.type}</ThemedText>
+                          </ThemedView>
+                        </ThemedView>
+                        <ThemedView style={styles.evidenceScore}>
+                          <ThemedText style={styles.scoreText}>الدرجة: {evidence.score}</ThemedText>
+                          <ThemedText style={styles.dateText}>{evidence.date}</ThemedText>
+                        </ThemedView>
+                      </ThemedView>
+                    ))}
+                  </ThemedView>
+
+                  {/* ملاحظات إضافية */}
+                  <ThemedView style={styles.sectionContainer}>
+                    <ThemedText style={styles.sectionTitle}>ملاحظات إضافية</ThemedText>
                     <TextInput
                       style={[styles.textInput, styles.textArea]}
                       value={studentData.notes}
                       onChangeText={(text) => setStudentData({...studentData, notes: text})}
-                      placeholder="أدخل أي ملاحظات أو تفاصيل إضافية عن المتعلم"
+                      placeholder="أدخل أي ملاحظات إضافية"
                       textAlign="right"
                       multiline
                       numberOfLines={4}
@@ -255,8 +611,26 @@ const styles = StyleSheet.create({
     padding: 20,
     backgroundColor: 'transparent',
   },
+  sectionContainer: {
+    marginBottom: 30,
+    backgroundColor: 'transparent',
+  },
+  sectionTitle: {
+    fontSize: 18,
+    fontWeight: 'bold',
+    color: '#1c1f33',
+    marginBottom: 15,
+    textAlign: 'right',
+    writingDirection: 'rtl',
+  },
+  sectionHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 15,
+  },
   inputGroup: {
-    marginBottom: 25,
+    marginBottom: 20,
     backgroundColor: 'transparent',
   },
   label: {
@@ -314,6 +688,206 @@ const styles = StyleSheet.create({
     fontSize: 14,
     fontWeight: '600',
     textAlign: 'center',
+  },
+  addButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#add4ce',
+    paddingVertical: 8,
+    paddingHorizontal: 15,
+    borderRadius: 20,
+    gap: 5,
+  },
+  addButtonText: {
+    color: '#1c1f33',
+    fontSize: 14,
+    fontWeight: '600',
+  },
+  formCard: {
+    backgroundColor: '#F8F9FA',
+    borderRadius: 12,
+    padding: 15,
+    marginBottom: 15,
+    borderWidth: 1,
+    borderColor: '#E5E5EA',
+  },
+  buttonRow: {
+    flexDirection: 'row',
+    gap: 10,
+    marginTop: 10,
+  },
+  saveSmallButton: {
+    flex: 1,
+    backgroundColor: '#4CAF50',
+    paddingVertical: 10,
+    borderRadius: 8,
+    alignItems: 'center',
+  },
+  saveSmallButtonText: {
+    color: '#fff',
+    fontSize: 14,
+    fontWeight: '600',
+  },
+  cancelSmallButton: {
+    flex: 1,
+    backgroundColor: '#F44336',
+    paddingVertical: 10,
+    borderRadius: 8,
+    alignItems: 'center',
+  },
+  cancelSmallButtonText: {
+    color: '#fff',
+    fontSize: 14,
+    fontWeight: '600',
+  },
+  itemCard: {
+    backgroundColor: '#fff',
+    borderRadius: 12,
+    padding: 15,
+    marginBottom: 10,
+    borderWidth: 1,
+    borderColor: '#E5E5EA',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    elevation: 3,
+  },
+  itemHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 8,
+  },
+  itemTitle: {
+    fontSize: 16,
+    fontWeight: 'bold',
+    color: '#1c1f33',
+    flex: 1,
+    textAlign: 'right',
+    writingDirection: 'rtl',
+  },
+  itemDescription: {
+    fontSize: 14,
+    color: '#666',
+    textAlign: 'right',
+    writingDirection: 'rtl',
+    marginBottom: 10,
+  },
+  progressContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 10,
+  },
+  progressText: {
+    fontSize: 14,
+    fontWeight: 'bold',
+    color: '#4CAF50',
+    minWidth: 40,
+  },
+  progressBar: {
+    flex: 1,
+    height: 8,
+    backgroundColor: '#E5E5EA',
+    borderRadius: 4,
+    overflow: 'hidden',
+  },
+  progressFill: {
+    height: '100%',
+    backgroundColor: '#4CAF50',
+    borderRadius: 4,
+  },
+  inputWithButton: {
+    flexDirection: 'row',
+    gap: 10,
+    alignItems: 'center',
+  },
+  addSmallButton: {
+    backgroundColor: '#add4ce',
+    padding: 10,
+    borderRadius: 8,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  needItem: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#fff',
+    padding: 12,
+    borderRadius: 8,
+    marginBottom: 8,
+    gap: 10,
+    borderWidth: 1,
+    borderColor: '#E5E5EA',
+  },
+  needText: {
+    flex: 1,
+    fontSize: 14,
+    color: '#1c1f33',
+    textAlign: 'right',
+    writingDirection: 'rtl',
+  },
+  typeGrid: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 8,
+  },
+  typeOption: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#E5E5EA',
+    paddingVertical: 8,
+    paddingHorizontal: 12,
+    borderRadius: 8,
+    gap: 5,
+  },
+  selectedType: {
+    backgroundColor: '#add4ce',
+  },
+  typeText: {
+    fontSize: 12,
+    color: '#1c1f33',
+    fontWeight: '500',
+  },
+  evidenceCard: {
+    backgroundColor: '#fff',
+    borderRadius: 12,
+    padding: 15,
+    marginBottom: 10,
+    borderWidth: 1,
+    borderColor: '#E5E5EA',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    elevation: 3,
+  },
+  evidenceInfo: {
+    flex: 1,
+  },
+  evidenceType: {
+    fontSize: 12,
+    color: '#999',
+    textAlign: 'right',
+    writingDirection: 'rtl',
+  },
+  evidenceScore: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginTop: 8,
+    paddingTop: 8,
+    borderTopWidth: 1,
+    borderTopColor: '#E5E5EA',
+  },
+  scoreText: {
+    fontSize: 14,
+    fontWeight: 'bold',
+    color: '#4CAF50',
+  },
+  dateText: {
+    fontSize: 12,
+    color: '#999',
   },
   buttonContainer: {
     marginTop: 30,
