@@ -389,7 +389,6 @@ export default function PerformanceScreen() {
                   <ThemedText style={styles.detailsText}>{item.details}</ThemedText>
 
                   <ThemedView style={styles.evidenceHeader}>
-                    <ThemedText style={styles.evidenceTitle}>الشواهد المطلوبة:</ThemedText>
                     <TouchableOpacity 
                       style={styles.addEvidenceButton}
                       onPress={() => addEvidence(item.id)}
@@ -401,6 +400,7 @@ export default function PerformanceScreen() {
                       />
                       <ThemedText style={styles.addEvidenceText}>إضافة شاهد</ThemedText>
                     </TouchableOpacity>
+                    <ThemedText style={styles.evidenceTitle}>الشواهد المطلوبة:</ThemedText>
                   </ThemedView>
                   <ThemedView style={styles.evidenceList}>
                     {item.evidence.map((evidenceItem, index) => (
