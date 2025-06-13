@@ -449,6 +449,15 @@ export default function AlertsManagementScreen() {
                                 />
                               </TouchableOpacity>
 
+                               <TouchableOpacity
+                                style={styles.editButton}
+                                onPress={() => {
+                                  router.push(`/edit-alert?id=${alert.id}`);
+                                }}
+                              >
+                                <IconSymbol size={18} name="pencil.fill" color="#2196F3" />
+                              </TouchableOpacity>
+
                               <TouchableOpacity
                                 style={styles.deleteButton}
                                 onPress={() => deleteAlert(alert.id)}
@@ -652,7 +661,7 @@ export default function AlertsManagementScreen() {
                                 return acc;
                               }, {} as Record<string, number>)
                             };
-                            
+
                             const statsText = `
 إجمالي التنبيهات: ${stats.total}
 نشطة: ${stats.active}
@@ -661,7 +670,7 @@ export default function AlertsManagementScreen() {
 التوزيع حسب النوع:
 ${Object.entries(stats.byType).map(([type, count]) => `${type}: ${count}`).join('\n')}
                             `;
-                            
+
                             Alert.alert('إحصائيات التنبيهات', statsText);
                           }
                         },
@@ -825,7 +834,7 @@ const styles = StyleSheet.create({
     fontWeight: '600',
     writingDirection: 'rtl',
   },
-  filterSection: {
+  filterSection:{
     marginBottom: 25,
     backgroundColor: 'transparent',
   },
@@ -1040,6 +1049,9 @@ const styles = StyleSheet.create({
     writingDirection: 'rtl',
   },
   toggleButton: {
+    padding: 8,
+  },
+  editButton: {
     padding: 8,
   },
   deleteButton: {
