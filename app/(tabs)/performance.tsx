@@ -570,23 +570,7 @@ export default function PerformanceScreen() {
           ))}
         </ThemedView>
 
-        <ThemedView style={styles.actionButtons}>
-          <TouchableOpacity 
-            style={styles.reportButton}
-            onPress={() => router.push('/detailed-report')}
-          >
-            <IconSymbol size={20} name="doc.text.fill" color="#1c1f33" />
-            <ThemedText style={[styles.buttonText, { color: '#1c1f33' }]}>التقرير التفصيلي</ThemedText>
-          </TouchableOpacity>
-
-          <TouchableOpacity 
-            style={styles.improveButton}
-            onPress={() => router.push('/improvement-plan')}
-          >
-            <IconSymbol size={20} name="target" color="#1c1f33" />
-            <ThemedText style={[styles.buttonText, { color: '#1c1f33' }]}>خطة التحسين</ThemedText>
-          </TouchableOpacity>
-        </ThemedView>
+        
       </ThemedView>
           </ScrollView>
         </ExpoLinearGradient>
