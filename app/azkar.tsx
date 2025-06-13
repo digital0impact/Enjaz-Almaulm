@@ -387,8 +387,8 @@ export default function AzkarScreen() {
                       onPress={() => setSelectedCategory(category.id)}
                     >
                       <ThemedView style={styles.categoryContent}>
-                        <ThemedView style={[styles.categoryIcon, { backgroundColor: category.color }]}>
-                          <IconSymbol size={24} name={category.icon as any} color="white" />
+                        <ThemedView style={styles.categoryIconContainer}>
+                          <IconSymbol size={24} name={category.icon as any} color="#1c1f33" />
                         </ThemedView>
                         
                         <ThemedView style={styles.categoryInfo}>
@@ -525,7 +525,7 @@ const styles = StyleSheet.create({
     flexDirection: I18nManager.isRTL ? 'row-reverse' : 'row',
     alignItems: 'center',
   },
-  categoryIcon: {
+  categoryIconContainer: {
     width: 50,
     height: 50,
     borderRadius: 25,
@@ -533,6 +533,14 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     marginRight: I18nManager.isRTL ? 0 : 15,
     marginLeft: I18nManager.isRTL ? 15 : 0,
+    backgroundColor: '#F8F9FA',
+    borderWidth: 1,
+    borderColor: '#E5E5EA',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 6 },
+    shadowOpacity: 0.25,
+    shadowRadius: 12,
+    elevation: 10,
   },
   categoryInfo: {
     flex: 1,
