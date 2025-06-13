@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { StyleSheet, ScrollView, TextInput, TouchableOpacity, Alert, ImageBackground, KeyboardAvoidingView, Platform } from 'react-native';
+import { StyleSheet, ScrollView, TouchableOpacity, TextInput, Alert, ImageBackground, KeyboardAvoidingView, Platform } from 'react-native';
 import { LinearGradient as ExpoLinearGradient } from 'expo-linear-gradient';
 import { ThemedText } from '@/components/ThemedText';
 import { ThemedView } from '@/components/ThemedView';
@@ -141,7 +141,7 @@ export default function AddStudentScreen() {
       if (!result.canceled && result.assets[0]) {
         const file = result.assets[0];
         let fileType = 'ملف';
-        
+
         if (file.mimeType?.startsWith('image/')) {
           fileType = 'صورة';
         } else if (file.mimeType?.startsWith('video/')) {
