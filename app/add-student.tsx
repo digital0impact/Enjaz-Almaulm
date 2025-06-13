@@ -6,6 +6,8 @@ import { ThemedView } from '@/components/ThemedView';
 import { IconSymbol } from '@/components/ui/IconSymbol';
 import { useRouter } from 'expo-router';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import * as DocumentPicker from 'expo-document-picker';
+import * as ImagePicker from 'expo-image-picker';
 
 interface Student {
   id: string;
@@ -127,6 +129,82 @@ export default function AddStudentScreen() {
     }));
 
     setNewNeed('');
+  };
+
+  const pickDocument = async () => {
+    try {
+      const result = await DocumentPicker.getDocumentAsync({
+        type: '*/*',
+        copyToCacheDirectory: true,
+      });
+
+      if (!result.canceled && result.assets[0]) {
+        const file = result.assets[0];
+        let fileType = 'ملف';
+        
+        if (file.mimeType?.startsWith('image/')) {
+          fileType = 'صورة';
+        } else if (file.mimeType?.startsWith('video/')) {
+          fileType = 'فيديو';
+        }
+
+        setNewEvidence(prev => ({
+          ...prev,
+          fileName: file.name,
+          fileType: fileType
+        }));
+
+        Alert.alert('تم التحميل', `تم تحميل ${fileType}: ${file.name}`);
+      }
+    } catch (error) {
+      Alert.alert('خطأ', 'فشل في تحميل الملف');
+    }
+  };
+
+  const pickImage = async () => {
+    try {
+      const result = await ImagePicker.launchImageLibraryAsync({
+        mediaTypes: ImagePicker.MediaTypeOptions.Images,
+        allowsEditing: true,
+        quality: 1,
+      });
+
+      if (!result.canceled && result.assets[0]) {
+        const image = result.assets[0];
+        setNewEvidence(prev => ({
+          ...prev,
+          fileName: `صورة_${Date.now()}.jpg`,
+          fileType: 'صورة'
+        }));
+
+        Alert.alert('تم التحميل', 'تم تحميل الصورة بنجاح');
+      }
+    } catch (error) {
+      Alert.alert('خطأ', 'فشل في تحميل الصورة');
+    }
+  };
+
+  const pickVideo = async () => {
+    try {
+      const result = await ImagePicker.launchImageLibraryAsync({
+        mediaTypes: ImagePicker.MediaTypeOptions.Videos,
+        allowsEditing: true,
+        quality: 1,
+      });
+
+      if (!result.canceled && result.assets[0]) {
+        const video = result.assets[0];
+        setNewEvidence(prev => ({
+          ...prev,
+          fileName: `فيديو_${Date.now()}.mp4`,
+          fileType: 'فيديو'
+        }));
+
+        Alert.alert('تم التحميل', 'تم تحميل الفيديو بنجاح');
+      }
+    } catch (error) {
+      Alert.alert('خطأ', 'فشل في تحميل الفيديو');
+    }
   };
 
   const addEvidence = () => {
@@ -474,36 +552,15 @@ export default function AddStudentScreen() {
                                 [
                                   {
                                     text: 'صورة',
-                                    onPress: () => {
-                                      setNewEvidence(prev => ({
-                                        ...prev,
-                                        fileType: 'صورة',
-                                        fileName: 'صورة_شاهد_' + Date.now() + '.jpg'
-                                      }));
-                                      Alert.alert('تم التحميل', 'تم تحميل الصورة بنجاح');
-                                    }
+                                    onPress: pickImage
                                   },
                                   {
                                     text: 'فيديو',
-                                    onPress: () => {
-                                      setNewEvidence(prev => ({
-                                        ...prev,
-                                        fileType: 'فيديو',
-                                        fileName: 'فيديو_شاهد_' + Date.now() + '.mp4'
-                                      }));
-                                      Alert.alert('تم التحميل', 'تم تحميل الفيديو بنجاح');
-                                    }
+                                    onPress: pickVideo
                                   },
                                   {
-                                    text: 'ملف PDF',
-                                    onPress: () => {
-                                      setNewEvidence(prev => ({
-                                        ...prev,
-                                        fileType: 'ملف',
-                                        fileName: 'ملف_شاهد_' + Date.now() + '.pdf'
-                                      }));
-                                      Alert.alert('تم التحميل', 'تم تحميل الملف بنجاح');
-                                    }
+                                    text: 'ملف',
+                                    onPress: pickDocument
                                   },
                                   { text: 'إلغاء', style: 'cancel' }
                                 ]
