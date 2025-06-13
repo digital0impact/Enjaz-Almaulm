@@ -1,5 +1,5 @@
 import React from 'react';
-import { StyleSheet, ScrollView, ImageBackground, Platform } from 'react-native';
+import { StyleSheet, ScrollView, TouchableOpacity, ImageBackground, Platform } from 'react-native';
 import { LinearGradient as ExpoLinearGradient } from 'expo-linear-gradient';
 import { ThemedText } from '@/components/ThemedText';
 import { ThemedView } from '@/components/ThemedView';
@@ -34,7 +34,51 @@ export default function ExploreScreen() {
             </ThemedView>
 
             <ThemedView style={styles.content}>
-              {/* المحتوى سيضاف هنا لاحقاً */}
+              <ThemedView style={styles.toolsGrid}>
+                <TouchableOpacity 
+                  style={styles.toolCard}
+                  onPress={() => router.push('/calendar')}
+                >
+                  <ThemedView style={styles.toolIconWrapper}>
+                    <IconSymbol size={28} name="calendar" color="#007AFF" />
+                  </ThemedView>
+                  <ThemedText style={styles.toolTitle}>التقويم الهجري والميلادي</ThemedText>
+                  <ThemedText style={styles.toolDescription}>عرض التقويم بالتاريخين الهجري والميلادي</ThemedText>
+                </TouchableOpacity>
+
+                <TouchableOpacity 
+                  style={styles.toolCard}
+                  onPress={() => router.push('/official-holidays')}
+                >
+                  <ThemedView style={styles.toolIconWrapper}>
+                    <IconSymbol size={28} name="calendar.badge.plus" color="#4CAF50" />
+                  </ThemedView>
+                  <ThemedText style={styles.toolTitle}>الإجازات الرسمية</ThemedText>
+                  <ThemedText style={styles.toolDescription}>جدول الإجازات والعطل الرسمية</ThemedText>
+                </TouchableOpacity>
+
+                <TouchableOpacity 
+                  style={styles.toolCard}
+                  onPress={() => router.push('/absence-management')}
+                >
+                  <ThemedView style={styles.toolIconWrapper}>
+                    <IconSymbol size={28} name="calendar.badge.minus" color="#FF9500" />
+                  </ThemedView>
+                  <ThemedText style={styles.toolTitle}>إدارة غيابي</ThemedText>
+                  <ThemedText style={styles.toolDescription}>تسجيل ومتابعة أيام الغياب الشخصية</ThemedText>
+                </TouchableOpacity>
+
+                <TouchableOpacity 
+                  style={styles.toolCard}
+                  onPress={() => router.push('/alerts-management')}
+                >
+                  <ThemedView style={styles.toolIconWrapper}>
+                    <IconSymbol size={28} name="bell.fill" color="#FF6B6B" />
+                  </ThemedView>
+                  <ThemedText style={styles.toolTitle}>التنبيهات المهمة</ThemedText>
+                  <ThemedText style={styles.toolDescription}>إنشاء وإدارة التنبيهات والتذكيرات</ThemedText>
+                </TouchableOpacity>
+              </ThemedView>
             </ThemedView>
           </ScrollView>
         </ExpoLinearGradient>
@@ -98,5 +142,54 @@ const styles = StyleSheet.create({
   content: {
     backgroundColor: 'transparent',
     gap: 15,
+  },
+  toolsGrid: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    justifyContent: 'space-between',
+    gap: 15,
+  },
+  toolCard: {
+    width: '48%',
+    alignItems: 'center',
+    padding: 20,
+    backgroundColor: '#F8F9FA',
+    borderRadius: 15,
+    borderWidth: 1,
+    borderColor: '#E5E5EA',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 6 },
+    shadowOpacity: 0.25,
+    shadowRadius: 12,
+    elevation: 10,
+    marginBottom: 15,
+  },
+  toolIconWrapper: {
+    marginBottom: 15,
+    padding: 15,
+    backgroundColor: '#FFFFFF',
+    borderRadius: 30,
+    borderWidth: 1,
+    borderColor: '#E5E5EA',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.15,
+    shadowRadius: 8,
+    elevation: 6,
+  },
+  toolTitle: {
+    fontSize: 16,
+    fontWeight: 'bold',
+    color: '#1C1C1E',
+    textAlign: 'center',
+    writingDirection: 'rtl',
+    marginBottom: 8,
+  },
+  toolDescription: {
+    fontSize: 12,
+    color: '#8E8E93',
+    textAlign: 'center',
+    writingDirection: 'rtl',
+    lineHeight: 18,
   },
 });
