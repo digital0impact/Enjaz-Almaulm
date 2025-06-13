@@ -504,7 +504,7 @@ export default function ScheduleScreen() {
               style={styles.addButton}
               onPress={() => setShowAddForm(true)}
             >
-              <IconSymbol size={20} name="plus.circle.fill" color="#4CAF50" />
+              <IconSymbol size={20} name="plus.circle.fill" color="#1c1f33" />
               <ThemedText style={styles.addButtonText}>إضافة حصة</ThemedText>
             </TouchableOpacity>
             <ThemedText style={styles.scheduleTitle}>الجدول الأسبوعي الشامل</ThemedText>
@@ -848,18 +848,23 @@ const styles = StyleSheet.create({
   addButton: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 5,
-    paddingHorizontal: 12,
-    paddingVertical: 6,
-    backgroundColor: '#E8F5E8',
-    borderRadius: 15,
-    borderWidth: 1,
-    borderColor: '#4CAF50',
+    justifyContent: 'center',
+    backgroundColor: '#add4ce',
+    paddingVertical: 15,
+    paddingHorizontal: 25,
+    borderRadius: 25,
+    gap: 10,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 6 },
+    shadowOpacity: 0.4,
+    shadowRadius: 12,
+    elevation: 12,
   },
   addButtonText: {
-    fontSize: 14,
-    color: '#4CAF50',
+    color: '#1c1f33',
+    fontSize: 16,
     fontWeight: '600',
+    textAlign: 'center',
   },
   scheduleList: {
     gap: 10,
