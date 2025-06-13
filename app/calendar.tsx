@@ -160,7 +160,7 @@ export default function CalendarScreen() {
               <ThemedView style={styles.dateContainer}>
                 <ThemedView style={styles.dateCard}>
                   <ThemedView style={styles.dateIconWrapper}>
-                    <IconSymbol size={24} name="calendar" color="#4CAF50" />
+                    <IconSymbol size={24} name="calendar" color="#1c1f33" />
                   </ThemedView>
                   <ThemedView style={styles.dateInfo}>
                     <ThemedText style={styles.dateLabel}>التاريخ الميلادي</ThemedText>
@@ -177,7 +177,7 @@ export default function CalendarScreen() {
 
                 <ThemedView style={styles.dateCard}>
                   <ThemedView style={styles.dateIconWrapper}>
-                    <IconSymbol size={24} name="moon.fill" color="#FF9500" />
+                    <IconSymbol size={24} name="moon.fill" color="#1c1f33" />
                   </ThemedView>
                   <ThemedView style={styles.dateInfo}>
                     <ThemedText style={styles.dateLabel}>التاريخ الهجري</ThemedText>
