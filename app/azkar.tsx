@@ -248,6 +248,13 @@ export default function AzkarScreen() {
           >
             <ScrollView style={styles.scrollContainer}>
               <ThemedView style={styles.header}>
+                <TouchableOpacity 
+                  style={styles.backButton}
+                  onPress={() => router.back()}
+                >
+                  <IconSymbol size={20} name="arrow.right" color="#1c1f33" />
+                </TouchableOpacity>
+
                 <ThemedView style={styles.iconContainer}>
                   <IconSymbol size={60} name="book.fill" color="#1c1f33" />
                 </ThemedView>
@@ -380,6 +387,24 @@ const styles = StyleSheet.create({
     paddingHorizontal: 30,
     paddingBottom: 30,
     backgroundColor: 'transparent',
+    position: 'relative',
+  },
+  backButton: {
+    position: 'absolute',
+    top: Platform.OS === 'ios' ? 60 : 50,
+    left: 20,
+    backgroundColor: '#add4ce',
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    justifyContent: 'center',
+    alignItems: 'center',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.2,
+    shadowRadius: 8,
+    elevation: 8,
+    zIndex: 1,
   },
   iconContainer: {
     marginBottom: 20,
