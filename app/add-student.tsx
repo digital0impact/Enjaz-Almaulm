@@ -591,14 +591,16 @@ export default function AddStudentScreen() {
                         </ThemedView>
 
                         <ThemedView style={styles.buttonRow}>
-                          <TouchableOpacity style={styles.saveSmallButton} onPress={addEvidence}>
-                            <ThemedText style={styles.saveSmallButtonText}>حفظ</ThemedText>
+                          <TouchableOpacity style={styles.addButton} onPress={addEvidence}>
+                            <IconSymbol size={16} name="checkmark.circle.fill" color="#1c1f33" />
+                            <ThemedText style={styles.addButtonText}>حفظ</ThemedText>
                           </TouchableOpacity>
                           <TouchableOpacity 
-                            style={styles.cancelSmallButton} 
+                            style={styles.addButton} 
                             onPress={() => setShowEvidenceForm(false)}
                           >
-                            <ThemedText style={styles.cancelSmallButtonText}>إلغاء</ThemedText>
+                            <IconSymbol size={16} name="xmark.circle.fill" color="#1c1f33" />
+                            <ThemedText style={styles.addButtonText}>إلغاء</ThemedText>
                           </TouchableOpacity>
                         </ThemedView>
                       </ThemedView>
