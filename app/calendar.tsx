@@ -74,34 +74,6 @@ export default function CalendarScreen() {
                   </ThemedView>
                 </ThemedView>
               </ThemedView>
-
-              <ThemedView style={styles.calendarSection}>
-                <ThemedText type="subtitle" style={styles.sectionTitle}>
-                  معلومات إضافية
-                </ThemedText>
-
-                <ThemedView style={styles.infoCard}>
-                  <ThemedView style={styles.infoRow}>
-                    <ThemedView style={styles.infoIconWrapper}>
-                      <IconSymbol size={20} name="info.circle" color="#FF9500" />
-                    </ThemedView>
-                    <ThemedText style={styles.infoText}>
-                      التقويم الهجري يعتمد على دورة القمر
-                    </ThemedText>
-                  </ThemedView>
-                </ThemedView>
-
-                <ThemedView style={styles.infoCard}>
-                  <ThemedView style={styles.infoRow}>
-                    <ThemedView style={styles.infoIconWrapper}>
-                      <IconSymbol size={20} name="info.circle" color="#FF9500" />
-                    </ThemedView>
-                    <ThemedText style={styles.infoText}>
-                      التقويم الميلادي يعتمد على دورة الشمس
-                    </ThemedText>
-                  </ThemedView>
-                </ThemedView>
-              </ThemedView>
             </ThemedView>
           </ScrollView>
         </ExpoLinearGradient>
@@ -223,41 +195,5 @@ const styles = StyleSheet.create({
     textAlign: 'right',
     writingDirection: 'rtl',
   },
-  infoCard: {
-    marginBottom: 12,
-    padding: 15,
-    backgroundColor: '#e0f0f1',
-    borderRadius: 12,
-    borderWidth: 1,
-    borderColor: '#E5E5EA',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
-    elevation: 3,
-  },
-  infoRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 12,
-  },
-  infoIconWrapper: {
-    padding: 8,
-    backgroundColor: '#FFFFFF',
-    borderRadius: 20,
-    borderWidth: 1,
-    borderColor: '#E5E5EA',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.1,
-    shadowRadius: 2,
-    elevation: 1,
-  },
-  infoText: {
-    fontSize: 14,
-    color: '#000000',
-    textAlign: 'right',
-    writingDirection: 'rtl',
-    flex: 1,
-  },
+  
 });
