@@ -325,29 +325,7 @@ export default function ScheduleScreen() {
               </ThemedView>
             </ThemedView>
 
-            <ThemedView style={styles.formGroup}>
-              <ThemedText style={styles.label}>نوع النشاط</ThemedText>
-              <ThemedView style={styles.typeGrid}>
-                {entryTypes.map(type => (
-                  <TouchableOpacity
-                    key={type.value}
-                    style={[
-                      styles.typeButton,
-                      { borderColor: type.color },
-                      formData.type === type.value && { backgroundColor: type.color + '20' }
-                    ]}
-                    onPress={() => setFormData(prev => ({ ...prev, type: type.value }))}
-                  >
-                    <IconSymbol size={20} name={type.icon} color={type.color} />
-                    <ThemedText style={[styles.typeText, { color: type.color }]}>
-                      {type.value}
-                    </ThemedText>
-                  </TouchableOpacity>
-                ))}
-              </ThemedView>
-            </ThemedView>
-
-            {formData.type === 'حصة' && (
+            {(
               <>
                 <ThemedView style={styles.formGroup}>
                   <ThemedText style={styles.label}>المادة</ThemedText>
