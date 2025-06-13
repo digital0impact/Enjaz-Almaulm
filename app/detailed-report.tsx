@@ -282,8 +282,6 @@ export default function DetailedReportScreen() {
 
   const renderCurrentTab = () => {
     switch (selectedView) {
-      case 'detailed':
-        return renderDetailedTab();
       case 'recommendations':
         return renderRecommendationsTab();
       default:
@@ -357,12 +355,12 @@ export default function DetailedReportScreen() {
             </TouchableOpacity>
 
             <TouchableOpacity
-              style={[styles.tabButton, selectedView === 'detailed' && styles.activeTabButton]}
-              onPress={() => setSelectedView('detailed')}
+              style={[styles.tabButton, false && styles.activeTabButton]}
+              onPress={() => router.push('/improvement-plan')}
             >
-              <IconSymbol size={16} name="list.bullet.rectangle" color={selectedView === 'detailed' ? '#fff' : '#666'} />
-              <ThemedText style={[styles.tabButtonText, selectedView === 'detailed' && styles.activeTabButtonText]}>
-                تفصيلي
+              <IconSymbol size={16} name="target" color="#666" />
+              <ThemedText style={[styles.tabButtonText, false && styles.activeTabButtonText]}>
+                خطة التحسين
               </ThemedText>
             </TouchableOpacity>
 
