@@ -327,14 +327,12 @@ export default function PerformanceScreen() {
           <ThemedText type="subtitle" style={[styles.summaryTitle, { textAlign: 'center' }]}>
             المتوسط العام للأداء
           </ThemedText>
-          <ThemedView style={styles.averageContainer}>
-            <ThemedText style={[styles.averageScore, { color: getScoreColor(calculateOverallAverage()) }]}>
-              {calculateOverallAverage()}%
-            </ThemedText>
-            <ThemedText style={styles.averageLevel}>
-              {getScoreLevel(calculateOverallAverage())}
-            </ThemedText>
-          </ThemedView>
+          <ThemedText style={[styles.averageScore, { color: getScoreColor(calculateOverallAverage()) }]}>
+            {calculateOverallAverage()}%
+          </ThemedText>
+          <ThemedText style={styles.averageLevel}>
+            {getScoreLevel(calculateOverallAverage())}
+          </ThemedText>
         </ThemedView>
 
         <ThemedView style={styles.performanceList}>
