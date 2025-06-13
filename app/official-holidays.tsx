@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { StyleSheet, ScrollView, TouchableOpacity, Alert, I18nManager } from 'react-native';
 import { ThemedText } from '@/components/ThemedText';
@@ -165,197 +166,224 @@ export default function OfficialHolidaysScreen() {
   };
 
   return (
-    <ScrollView style={styles.container}>
-      <ThemedView style={styles.header}>
-        <TouchableOpacity 
-          style={styles.backButton}
-          onPress={() => router.back()}
-        >
-          <IconSymbol size={24} name="chevron.right" color="#fff" />
-        </TouchableOpacity>
-        <IconSymbol size={60} name="calendar.badge.clock" color="#fff" />
-        <ThemedText type="title" style={styles.title}>
-          الإجازات الرسمية
-        </ThemedText>
-        <ThemedText style={styles.subtitle}>
-          تقويم شامل للإجازات والمناسبات الرسمية
-        </ThemedText>
-      </ThemedView>
-
-      <ThemedView style={styles.content}>
-        {/* الإجازة القادمة */}
-        {nextHoliday && (
-          <ThemedView style={styles.nextHolidayCard}>
-            <ThemedView style={styles.nextHolidayHeader}>
-              <IconSymbol size={32} name={getHolidayIcon(nextHoliday.category, nextHoliday.type)} color={getHolidayColor(nextHoliday.category)} />
-              <ThemedView style={styles.nextHolidayInfo}>
-                <ThemedText style={styles.nextHolidayLabel}>الإجازة القادمة</ThemedText>
-                <ThemedText style={styles.nextHolidayName}>{nextHoliday.nameAr}</ThemedText>
-                <ThemedText style={styles.nextHolidayDate}>
-                  {new Date(nextHoliday.date).toLocaleDateString('ar-SA')}
-                  {nextHoliday.hijriDate && ` - ${nextHoliday.hijriDate}`}
-                </ThemedText>
-              </ThemedView>
-              <ThemedView style={styles.countdownContainer}>
-                <ThemedText style={styles.countdownNumber}>{getDaysUntilHoliday(nextHoliday.date)}</ThemedText>
-                <ThemedText style={styles.countdownLabel}>يوم</ThemedText>
-              </ThemedView>
-            </ThemedView>
-            <ThemedText style={styles.nextHolidayDescription}>
-              {nextHoliday.description}
-            </ThemedText>
+    <ThemedView style={styles.container}>
+      <ScrollView style={styles.scrollView}>
+        <ThemedView style={styles.header}>
+          <TouchableOpacity 
+            style={styles.backButton}
+            onPress={() => router.back()}
+          >
+            <IconSymbol size={24} name="chevron.right" color="#fff" />
+          </TouchableOpacity>
+          <ThemedView style={styles.iconContainer}>
+            <IconSymbol size={48} name="calendar.badge.clock" color="#1c1f33" />
           </ThemedView>
-        )}
-
-        {/* فلترة الفئات */}
-        <ThemedView style={styles.filterSection}>
-          <ThemedText type="subtitle" style={styles.sectionTitle}>
-            تصفية الإجازات
+          <ThemedText type="title" style={styles.title}>
+            الإجازات الرسمية
           </ThemedText>
-          <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.filterContainer}>
-            {[
-              { key: 'all', label: 'الكل', icon: 'list.bullet' },
-              { key: 'national', label: 'وطنية', icon: 'flag.fill' },
-              { key: 'religious', label: 'دينية', icon: 'moon.stars.fill' },
-              { key: 'international', label: 'دولية', icon: 'globe' },
-            ].map((filter) => (
-              <TouchableOpacity
-                key={filter.key}
-                style={[
-                  styles.filterButton,
-                  selectedCategory === filter.key && styles.filterButtonActive
-                ]}
-                onPress={() => setSelectedCategory(filter.key as any)}
-              >
-                <IconSymbol 
-                  size={20} 
-                  name={filter.icon as any} 
-                  color={selectedCategory === filter.key ? '#fff' : '#666'} 
-                />
-                <ThemedText style={[
-                  styles.filterButtonText,
-                  selectedCategory === filter.key && styles.filterButtonTextActive
-                ]}>
-                  {filter.label}
-                </ThemedText>
-              </TouchableOpacity>
-            ))}
-          </ScrollView>
+          <ThemedText style={styles.subtitle}>
+            تقويم شامل للإجازات والمناسبات الرسمية
+          </ThemedText>
         </ThemedView>
 
-        {/* قائمة الإجازات */}
-        <ThemedView style={styles.holidaysSection}>
-          <ThemedView style={styles.holidaysHeader}>
+        <ThemedView style={styles.content}>
+          {/* الإجازة القادمة */}
+          {nextHoliday && (
+            <ThemedView style={styles.nextHolidayCard}>
+              <ThemedView style={styles.nextHolidayHeader}>
+                <ThemedView style={styles.toolIconWrapper}>
+                  <IconSymbol size={32} name={getHolidayIcon(nextHoliday.category, nextHoliday.type)} color="#1c1f33" />
+                </ThemedView>
+                <ThemedView style={styles.nextHolidayInfo}>
+                  <ThemedText style={styles.nextHolidayLabel}>الإجازة القادمة</ThemedText>
+                  <ThemedText style={styles.nextHolidayName}>{nextHoliday.nameAr}</ThemedText>
+                  <ThemedText style={styles.nextHolidayDate}>
+                    {new Date(nextHoliday.date).toLocaleDateString('ar-SA')}
+                    {nextHoliday.hijriDate && ` - ${nextHoliday.hijriDate}`}
+                  </ThemedText>
+                </ThemedView>
+                <ThemedView style={styles.countdownContainer}>
+                  <ThemedText style={styles.countdownNumber}>{getDaysUntilHoliday(nextHoliday.date)}</ThemedText>
+                  <ThemedText style={styles.countdownLabel}>يوم</ThemedText>
+                </ThemedView>
+              </ThemedView>
+              <ThemedText style={styles.nextHolidayDescription}>
+                {nextHoliday.description}
+              </ThemedText>
+            </ThemedView>
+          )}
+
+          {/* فلترة الفئات */}
+          <ThemedView style={styles.filterSection}>
             <ThemedText type="subtitle" style={styles.sectionTitle}>
-              إجازات العام 2025 ({filteredHolidays.length})
+              تصفية الإجازات
             </ThemedText>
-            <TouchableOpacity onPress={exportCalendar}>
-              <IconSymbol size={20} name="square.and.arrow.up.fill" color="#007AFF" />
-            </TouchableOpacity>
+            <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.filterContainer}>
+              {[
+                { key: 'all', label: 'الكل', icon: 'list.bullet' },
+                { key: 'national', label: 'وطنية', icon: 'flag.fill' },
+                { key: 'religious', label: 'دينية', icon: 'moon.stars.fill' },
+                { key: 'international', label: 'دولية', icon: 'globe' },
+              ].map((filter) => (
+                <TouchableOpacity
+                  key={filter.key}
+                  style={[
+                    styles.filterButton,
+                    selectedCategory === filter.key && styles.filterButtonActive
+                  ]}
+                  onPress={() => setSelectedCategory(filter.key as any)}
+                >
+                  <IconSymbol 
+                    size={20} 
+                    name={filter.icon as any} 
+                    color={selectedCategory === filter.key ? '#fff' : '#1c1f33'} 
+                  />
+                  <ThemedText style={[
+                    styles.filterButtonText,
+                    selectedCategory === filter.key && styles.filterButtonTextActive
+                  ]}>
+                    {filter.label}
+                  </ThemedText>
+                </TouchableOpacity>
+              ))}
+            </ScrollView>
           </ThemedView>
 
-          <ThemedView style={styles.holidaysList}>
-            {filteredHolidays.map((holiday) => {
-              const daysUntil = getDaysUntilHoliday(holiday.date);
-              const isPast = daysUntil < 0;
-              const isToday = daysUntil === 0;
+          {/* قائمة الإجازات */}
+          <ThemedView style={styles.holidaysSection}>
+            <ThemedView style={styles.holidaysHeader}>
+              <ThemedText type="subtitle" style={styles.sectionTitle}>
+                إجازات العام 2025 ({filteredHolidays.length})
+              </ThemedText>
+              <TouchableOpacity onPress={exportCalendar}>
+                <IconSymbol size={20} name="square.and.arrow.up.fill" color="#1c1f33" />
+              </TouchableOpacity>
+            </ThemedView>
 
-              return (
-                <TouchableOpacity
-                  key={holiday.id}
-                  style={[
-                    styles.holidayCard,
-                    isPast && styles.pastHolidayCard,
-                    isToday && styles.todayHolidayCard
-                  ]}
-                  onPress={() => Alert.alert(
-                    holiday.nameAr,
-                    `${holiday.description}\n\nالتاريخ: ${new Date(holiday.date).toLocaleDateString('ar-SA')}\n${holiday.hijriDate ? `الهجري: ${holiday.hijriDate}\n` : ''}المدة: ${holiday.duration} ${holiday.duration === 1 ? 'يوم' : 'أيام'}\nالنوع: ${holiday.type === 'fixed' ? 'ثابت' : 'متغير'}`
-                  )}
-                >
-                  <ThemedView style={styles.holidayHeader}>
-                    <ThemedView style={[styles.holidayIcon, { backgroundColor: `${getHolidayColor(holiday.category)}15` }]}>
-                      <IconSymbol 
-                        size={24} 
-                        name={getHolidayIcon(holiday.category, holiday.type)} 
-                        color={getHolidayColor(holiday.category)} 
-                      />
+            <ThemedView style={styles.holidaysList}>
+              {filteredHolidays.map((holiday) => {
+                const daysUntil = getDaysUntilHoliday(holiday.date);
+                const isPast = daysUntil < 0;
+                const isToday = daysUntil === 0;
+
+                return (
+                  <TouchableOpacity
+                    key={holiday.id}
+                    style={[
+                      styles.holidayCard,
+                      isPast && styles.pastHolidayCard,
+                      isToday && styles.todayHolidayCard
+                    ]}
+                    onPress={() => Alert.alert(
+                      holiday.nameAr,
+                      `${holiday.description}\n\nالتاريخ: ${new Date(holiday.date).toLocaleDateString('ar-SA')}\n${holiday.hijriDate ? `الهجري: ${holiday.hijriDate}\n` : ''}المدة: ${holiday.duration} ${holiday.duration === 1 ? 'يوم' : 'أيام'}\nالنوع: ${holiday.type === 'fixed' ? 'ثابت' : 'متغير'}`
+                    )}
+                  >
+                    <ThemedView style={styles.holidayHeader}>
+                      <ThemedView style={styles.toolIconWrapper}>
+                        <IconSymbol 
+                          size={24} 
+                          name={getHolidayIcon(holiday.category, holiday.type)} 
+                          color="#1c1f33" 
+                        />
+                      </ThemedView>
+
+                      <ThemedView style={styles.holidayInfo}>
+                        <ThemedText style={[styles.holidayName, isPast && styles.pastText]}>
+                          {holiday.nameAr}
+                        </ThemedText>
+                        <ThemedText style={[styles.holidayDate, isPast && styles.pastText]}>
+                          {new Date(holiday.date).toLocaleDateString('ar-SA')}
+                          {holiday.hijriDate && ` • ${holiday.hijriDate}`}
+                        </ThemedText>
+                        <ThemedText style={[styles.holidayDescription, isPast && styles.pastText]}>
+                          {holiday.description}
+                        </ThemedText>
+                      </ThemedView>
+
+                      <ThemedView style={styles.holidayMeta}>
+                        {isToday ? (
+                          <ThemedView style={styles.todayBadge}>
+                            <ThemedText style={styles.todayText}>اليوم</ThemedText>
+                          </ThemedView>
+                        ) : isPast ? (
+                          <ThemedText style={styles.pastLabel}>انتهت</ThemedText>
+                        ) : (
+                          <ThemedView style={styles.countdownSmall}>
+                            <ThemedText style={styles.countdownSmallNumber}>{daysUntil}</ThemedText>
+                            <ThemedText style={styles.countdownSmallLabel}>يوم</ThemedText>
+                          </ThemedView>
+                        )}
+
+                        {holiday.duration > 1 && (
+                          <ThemedView style={styles.durationBadge}>
+                            <ThemedText style={styles.durationText}>
+                              {holiday.duration} أيام
+                            </ThemedText>
+                          </ThemedView>
+                        )}
+                      </ThemedView>
                     </ThemedView>
-
-                    <ThemedView style={styles.holidayInfo}>
-                      <ThemedText style={[styles.holidayName, isPast && styles.pastText]}>
-                        {holiday.nameAr}
-                      </ThemedText>
-                      <ThemedText style={[styles.holidayDate, isPast && styles.pastText]}>
-                        {new Date(holiday.date).toLocaleDateString('ar-SA')}
-                        {holiday.hijriDate && ` • ${holiday.hijriDate}`}
-                      </ThemedText>
-                      <ThemedText style={[styles.holidayDescription, isPast && styles.pastText]}>
-                        {holiday.description}
-                      </ThemedText>
-                    </ThemedView>
-
-                    <ThemedView style={styles.holidayMeta}>
-                      {isToday ? (
-                        <ThemedView style={styles.todayBadge}>
-                          <ThemedText style={styles.todayText}>اليوم</ThemedText>
-                        </ThemedView>
-                      ) : isPast ? (
-                        <ThemedText style={styles.pastLabel}>انتهت</ThemedText>
-                      ) : (
-                        <ThemedView style={styles.countdownSmall}>
-                          <ThemedText style={styles.countdownSmallNumber}>{daysUntil}</ThemedText>
-                          <ThemedText style={styles.countdownSmallLabel}>يوم</ThemedText>
-                        </ThemedView>
-                      )}
-
-                      {holiday.duration > 1 && (
-                        <ThemedView style={styles.durationBadge}>
-                          <ThemedText style={styles.durationText}>
-                            {holiday.duration} أيام
-                          </ThemedText>
-                        </ThemedView>
-                      )}
-                    </ThemedView>
-                  </ThemedView>
-                </TouchableOpacity>
-              );
-            })}
+                  </TouchableOpacity>
+                );
+              })}
+            </ThemedView>
           </ThemedView>
         </ThemedView>
-      </ThemedView>
-    </ScrollView>
+      </ScrollView>
+    </ThemedView>
   );
 }
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#f8f9fa',
+    backgroundColor: '#f0f2f5',
+  },
+  scrollView: {
+    flex: 1,
   },
   header: {
-    backgroundColor: '#FF9800',
-    padding: 20,
-    paddingTop: 40,
+    backgroundColor: '#1c1f33',
+    padding: 30,
+    paddingTop: 50,
     alignItems: 'center',
     position: 'relative',
+    borderBottomLeftRadius: 20,
+    borderBottomRightRadius: 20,
   },
   backButton: {
     position: 'absolute',
-    top: 40,
+    top: 50,
     right: 20,
     padding: 10,
+  },
+  iconContainer: {
+    marginBottom: 20,
+    padding: 20,
+    backgroundColor: '#f8f9fa',
+    borderRadius: 50,
+    borderWidth: 1,
+    borderColor: '#e5e5ea',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 6 },
+    shadowOpacity: 0.25,
+    shadowRadius: 12,
+    elevation: 10,
   },
   title: {
     color: '#fff',
     textAlign: 'center',
     marginVertical: 15,
+    fontSize: 28,
+    fontWeight: 'bold',
   },
   subtitle: {
     color: '#fff',
     textAlign: 'center',
     opacity: 0.9,
     marginBottom: 10,
+    fontSize: 16,
   },
   content: {
     flex: 1,
@@ -367,12 +395,12 @@ const styles = StyleSheet.create({
     padding: 20,
     marginBottom: 25,
     elevation: 3,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
+    shadowColor: '#1c1f33',
+    shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.15,
-    shadowRadius: 4,
-    borderLeftWidth: 4,
-    borderLeftColor: '#4CAF50',
+    shadowRadius: 8,
+    borderWidth: 1,
+    borderColor: '#e8e9ea',
   },
   nextHolidayHeader: {
     flexDirection: 'row',
@@ -385,24 +413,24 @@ const styles = StyleSheet.create({
   },
   nextHolidayLabel: {
     fontSize: 12,
-    color: '#666',
+    color: '#8e9aaf',
     textAlign: 'right',
   },
   nextHolidayName: {
     fontSize: 18,
     fontWeight: 'bold',
-    color: '#333',
+    color: '#1c1f33',
     textAlign: 'right',
     marginVertical: 2,
   },
   nextHolidayDate: {
     fontSize: 14,
-    color: '#666',
+    color: '#8e9aaf',
     textAlign: 'right',
   },
   countdownContainer: {
     alignItems: 'center',
-    backgroundColor: '#4CAF5015',
+    backgroundColor: '#1c1f3315',
     borderRadius: 12,
     paddingVertical: 8,
     paddingHorizontal: 12,
@@ -410,15 +438,15 @@ const styles = StyleSheet.create({
   countdownNumber: {
     fontSize: 20,
     fontWeight: 'bold',
-    color: '#4CAF50',
+    color: '#1c1f33',
   },
   countdownLabel: {
     fontSize: 12,
-    color: '#4CAF50',
+    color: '#1c1f33',
   },
   nextHolidayDescription: {
     fontSize: 14,
-    color: '#666',
+    color: '#8e9aaf',
     textAlign: 'right',
     lineHeight: 20,
   },
@@ -428,7 +456,9 @@ const styles = StyleSheet.create({
   sectionTitle: {
     marginBottom: 15,
     textAlign: 'right',
-    color: '#333',
+    color: '#1c1f33',
+    fontSize: 18,
+    fontWeight: '600',
   },
   filterContainer: {
     flexDirection: 'row',
@@ -442,18 +472,20 @@ const styles = StyleSheet.create({
     backgroundColor: '#fff',
     marginRight: 10,
     gap: 6,
-    elevation: 1,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 1 },
+    elevation: 2,
+    shadowColor: '#1c1f33',
+    shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.1,
-    shadowRadius: 2,
+    shadowRadius: 4,
+    borderWidth: 1,
+    borderColor: '#e8e9ea',
   },
   filterButtonActive: {
-    backgroundColor: '#007AFF',
+    backgroundColor: '#1c1f33',
   },
   filterButtonText: {
     fontSize: 14,
-    color: '#666',
+    color: '#1c1f33',
   },
   filterButtonTextActive: {
     color: '#fff',
@@ -472,13 +504,15 @@ const styles = StyleSheet.create({
   },
   holidayCard: {
     backgroundColor: '#fff',
-    borderRadius: 12,
-    padding: 15,
-    elevation: 1,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.05,
-    shadowRadius: 2,
+    borderRadius: 16,
+    padding: 20,
+    elevation: 2,
+    shadowColor: '#1c1f33',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    borderWidth: 1,
+    borderColor: '#e8e9ea',
   },
   pastHolidayCard: {
     opacity: 0.6,
@@ -486,20 +520,23 @@ const styles = StyleSheet.create({
   },
   todayHolidayCard: {
     borderWidth: 2,
-    borderColor: '#4CAF50',
-    backgroundColor: '#4CAF5005',
+    borderColor: '#1c1f33',
+    backgroundColor: '#1c1f3305',
   },
   holidayHeader: {
     flexDirection: 'row',
     alignItems: 'flex-start',
   },
-  holidayIcon: {
+  toolIconWrapper: {
     width: 48,
     height: 48,
     borderRadius: 24,
+    backgroundColor: '#f8f9fa',
     alignItems: 'center',
     justifyContent: 'center',
-    marginRight: 12,
+    marginRight: 15,
+    borderWidth: 1,
+    borderColor: '#e8e9ea',
   },
   holidayInfo: {
     flex: 1,
@@ -507,19 +544,19 @@ const styles = StyleSheet.create({
   holidayName: {
     fontSize: 16,
     fontWeight: '600',
-    color: '#333',
+    color: '#1c1f33',
     textAlign: 'right',
     marginBottom: 4,
   },
   holidayDate: {
     fontSize: 14,
-    color: '#666',
+    color: '#8e9aaf',
     textAlign: 'right',
     marginBottom: 4,
   },
   holidayDescription: {
     fontSize: 12,
-    color: '#999',
+    color: '#8e9aaf',
     textAlign: 'right',
     lineHeight: 16,
   },
@@ -529,7 +566,7 @@ const styles = StyleSheet.create({
   },
   countdownSmall: {
     alignItems: 'center',
-    backgroundColor: '#007AFF15',
+    backgroundColor: '#1c1f3315',
     borderRadius: 8,
     paddingVertical: 4,
     paddingHorizontal: 8,
@@ -537,14 +574,14 @@ const styles = StyleSheet.create({
   countdownSmallNumber: {
     fontSize: 14,
     fontWeight: 'bold',
-    color: '#007AFF',
+    color: '#1c1f33',
   },
   countdownSmallLabel: {
     fontSize: 10,
-    color: '#007AFF',
+    color: '#1c1f33',
   },
   todayBadge: {
-    backgroundColor: '#4CAF50',
+    backgroundColor: '#1c1f33',
     borderRadius: 12,
     paddingHorizontal: 12,
     paddingVertical: 4,
@@ -556,21 +593,23 @@ const styles = StyleSheet.create({
   },
   pastLabel: {
     fontSize: 12,
-    color: '#999',
+    color: '#8e9aaf',
     fontStyle: 'italic',
   },
   durationBadge: {
-    backgroundColor: '#FF980015',
+    backgroundColor: '#f8f9fa',
     borderRadius: 8,
     paddingHorizontal: 8,
     paddingVertical: 2,
+    borderWidth: 1,
+    borderColor: '#e8e9ea',
   },
   durationText: {
     fontSize: 10,
-    color: '#FF9800',
+    color: '#1c1f33',
     fontWeight: '600',
   },
   pastText: {
-    color: '#999',
+    color: '#8e9aaf',
   },
 });
