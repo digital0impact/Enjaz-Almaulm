@@ -265,7 +265,7 @@ export default function ImprovementPlanScreen() {
                   style={styles.addGoalButton}
                   onPress={addNewGoal}
                 >
-                  <IconSymbol size={16} name="plus.circle.fill" color="#4CAF50" />
+                  <IconSymbol size={16} name="plus.circle.fill" color="#1c1f33" />
                   <ThemedText style={styles.addGoalText}>إضافة هدف</ThemedText>
                 </TouchableOpacity>
                 <ThemedText style={styles.sectionTitle}>
@@ -543,16 +543,24 @@ const styles = StyleSheet.create({
   addGoalButton: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#E8F5E8',
-    paddingHorizontal: 12,
-    paddingVertical: 8,
-    borderRadius: 20,
-    gap: 5,
+    justifyContent: 'center',
+    backgroundColor: '#add4ce',
+    paddingVertical: 12,
+    paddingHorizontal: 20,
+    borderRadius: 25,
+    gap: 8,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 6 },
+    shadowOpacity: 0.4,
+    shadowRadius: 12,
+    elevation: 12,
   },
   addGoalText: {
     fontSize: 14,
-    color: '#4CAF50',
+    color: '#1c1f33',
     fontWeight: '600',
+    writingDirection: 'rtl',
+    textAlign: 'center',
   },
   goalCard: {
     backgroundColor: '#fff',
