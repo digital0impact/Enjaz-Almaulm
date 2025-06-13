@@ -15,7 +15,7 @@ interface ScheduleEntry {
   time: string;
   subject: string;
   class: string;
-  type: 'حصة' | 'مناوبة' | 'انتظار' | 'فراغ';
+  type: 'حصة' | 'مناوبة' | 'انتظار' | 'حصص انتظار' | 'فراغ';
   color: string;
 }
 
@@ -32,7 +32,7 @@ export default function ScheduleScreen() {
     time: '',
     subject: '',
     class: '',
-    type: 'حصة' as 'حصة' | 'مناوبة' | 'انتظار' | 'فراغ'
+    type: 'حصة' as 'حصة' | 'مناوبة' | 'انتظار' | 'حصص انتظار' | 'فراغ'
   });
 
   const days = ['الخميس', 'الأربعاء', 'الثلاثاء', 'الاثنين', 'الأحد'];
@@ -52,6 +52,7 @@ export default function ScheduleScreen() {
     { value: 'حصة', color: '#4CAF50', icon: 'book.fill' },
     { value: 'مناوبة', color: '#2196F3', icon: 'eye.fill' },
     { value: 'انتظار', color: '#FF9800', icon: 'clock.fill' },
+    { value: 'حصص انتظار', color: '#9C27B0', icon: 'hourglass.fill' },
     { value: 'فراغ', color: '#9E9E9E', icon: 'pause.circle.fill' }
   ];
 
@@ -253,9 +254,10 @@ export default function ScheduleScreen() {
   const getScheduleStats = () => {
     const totalClasses = schedule.filter(entry => entry.type === 'حصة' && entry.subject).length;
     const totalAdditional = schedule.filter(entry => entry.type === 'انتظار').length;
+    const totalWaitingClasses = schedule.filter(entry => entry.type === 'حصص انتظار').length;
     const freeSlots = schedule.filter(entry => entry.type === 'فراغ' && entry.subject !== 'استراحة').length;
 
-    return { totalClasses, totalAdditional, freeSlots };
+    return { totalClasses, totalAdditional, totalWaitingClasses, freeSlots };
   };
 
   const stats = getScheduleStats();
@@ -434,6 +436,12 @@ export default function ScheduleScreen() {
               <IconSymbol size={24} name="plus.circle.fill" color="#FF9800" />
               <ThemedText style={styles.statNumber}>{stats.totalAdditional}</ThemedText>
               <ThemedText style={styles.statLabel}>حصص إضافية</ThemedText>
+            </ThemedView>
+
+            <ThemedView style={[styles.statItem, { backgroundColor: '#9C27B015' }]}>
+              <IconSymbol size={24} name="hourglass.fill" color="#9C27B0" />
+              <ThemedText style={styles.statNumber}>{stats.totalWaitingClasses}</ThemedText>
+              <ThemedText style={styles.statLabel}>حصص انتظار</ThemedText>
             </ThemedView>
 
             <ThemedView style={[styles.statItem, { backgroundColor: '#9E9E9E15' }]}>
