@@ -230,47 +230,6 @@ export default function CalendarScreen() {
               <ThemedView style={styles.calendarGrid}>
                 {calendarData.days.map((day, index) => renderCalendarDay(day, index))}
               </ThemedView>
-
-              {/* Quick Actions */}
-              <ThemedView style={styles.quickActions}>
-                <ThemedText style={styles.sectionTitle}>
-                  ⚡ إجراءات سريعة
-                </ThemedText>
-                
-                <TouchableOpacity
-                  style={styles.actionButton}
-                  onPress={() => {
-                    setCurrentDate(new Date());
-                    setSelectedDate(null);
-                    Alert.alert('اليوم', 'تم الانتقال إلى تاريخ اليوم');
-                  }}
-                >
-                  <IconSymbol size={20} name="calendar.badge.clock" color="#fff" />
-                  <ThemedText style={styles.actionButtonText}>
-                    الانتقال لليوم
-                  </ThemedText>
-                </TouchableOpacity>
-
-                <TouchableOpacity
-                  style={[styles.actionButton, styles.secondaryButton]}
-                  onPress={() => Alert.alert('إضافة حدث', 'إضافة حدث جديد للتقويم')}
-                >
-                  <IconSymbol size={20} name="plus.circle" color="#4CAF50" />
-                  <ThemedText style={[styles.actionButtonText, styles.secondaryButtonText]}>
-                    إضافة حدث جديد
-                  </ThemedText>
-                </TouchableOpacity>
-
-                <TouchableOpacity
-                  style={[styles.actionButton, styles.secondaryButton]}
-                  onPress={() => Alert.alert('عرض الأحداث', 'عرض جميع أحداث الشهر')}
-                >
-                  <IconSymbol size={20} name="list.bullet" color="#4CAF50" />
-                  <ThemedText style={[styles.actionButtonText, styles.secondaryButtonText]}>
-                    عرض أحداث الشهر
-                  </ThemedText>
-                </TouchableOpacity>
-              </ThemedView>
             </ThemedView>
           </ScrollView>
         </ExpoLinearGradient>
@@ -482,51 +441,5 @@ const styles = StyleSheet.create({
   selectedText: {
     color: '#333',
     fontWeight: 'bold',
-  },
-  quickActions: {
-    padding: 16,
-    backgroundColor: '#e0f0f1',
-    borderRadius: 12,
-    borderWidth: 1,
-    borderColor: '#E5E5EA',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.1,
-    shadowRadius: 2,
-    elevation: 1,
-    gap: 12,
-  },
-  sectionTitle: {
-    fontSize: 16,
-    fontWeight: '600',
-    textAlign: 'right',
-    writingDirection: 'rtl',
-    marginBottom: 8,
-    color: '#000000',
-  },
-  actionButton: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    gap: 8,
-    paddingVertical: 12,
-    paddingHorizontal: 16,
-    borderRadius: 8,
-    backgroundColor: '#4CAF50',
-  },
-  secondaryButton: {
-    backgroundColor: '#FFFFFF',
-    borderWidth: 1,
-    borderColor: '#4CAF50',
-  },
-  actionButtonText: {
-    fontSize: 14,
-    fontWeight: '600',
-    textAlign: 'center',
-    color: '#fff',
-    writingDirection: 'rtl',
-  },
-  secondaryButtonText: {
-    color: '#4CAF50',
   },
 });
