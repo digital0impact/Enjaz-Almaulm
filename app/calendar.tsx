@@ -141,7 +141,7 @@ export default function CalendarScreen() {
           <ScrollView style={styles.scrollContainer}>
             <ThemedView style={styles.header}>
               <ThemedView style={styles.iconContainer}>
-                <IconSymbol size={60} name="calendar" color="#1a237e" />
+                <IconSymbol size={60} name="calendar" color="#1c1f33" />
               </ThemedView>
               <ThemedText type="title" style={styles.title}>
                 التقويم الشهري
