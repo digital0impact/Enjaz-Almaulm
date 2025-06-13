@@ -402,15 +402,15 @@ export default function PerformanceScreen() {
 
                   <ThemedView style={styles.evidenceHeaderRow}>
                     <TouchableOpacity 
-                      style={styles.addEvidenceButtonSmall}
+                      style={styles.addButton}
                       onPress={() => addEvidence(item.id)}
                     >
                       <IconSymbol 
-                        size={12} 
+                        size={16} 
                         name="plus.circle.fill" 
-                        color="#4CAF50" 
+                        color="#1c1f33" 
                       />
-                      <ThemedText style={styles.addEvidenceTextSmall}>إضافة شاهد</ThemedText>
+                      <ThemedText style={styles.addButtonText}>إضافة شاهد</ThemedText>
                     </TouchableOpacity>
                     <ThemedText style={styles.evidenceTitle}>الشواهد المطلوبة:</ThemedText>
                   </ThemedView>
@@ -752,23 +752,19 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     marginBottom: 8,
   },
-  addEvidenceButtonSmall: {
-    flexDirection: I18nManager.isRTL ? 'row-reverse' : 'row',
+  addButton: {
+    flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#E8F5E8',
-    paddingHorizontal: 6,
-    paddingVertical: 3,
-    borderRadius: 10,
-    borderWidth: 1,
-    borderColor: '#4CAF50',
-    gap: 3,
+    backgroundColor: '#add4ce',
+    paddingVertical: 8,
+    paddingHorizontal: 15,
+    borderRadius: 20,
+    gap: 5,
   },
-  addEvidenceTextSmall: {
-    fontSize: 10,
-    color: '#4CAF50',
+  addButtonText: {
+    color: '#1c1f33',
+    fontSize: 14,
     fontWeight: '600',
-    textAlign: 'right',
-    writingDirection: 'rtl',
   },
   addEvidenceButton: {
     flexDirection: I18nManager.isRTL ? 'row-reverse' : 'row',
