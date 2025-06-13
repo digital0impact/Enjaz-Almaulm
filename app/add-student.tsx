@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { StyleSheet, ScrollView, TextInput, TouchableOpacity, Alert, ImageBackground, KeyboardAvoidingView, Platform } from 'react-native';
 import { LinearGradient as ExpoLinearGradient } from 'expo-linear-gradient';
@@ -31,9 +30,10 @@ interface Goal {
 
 interface PerformanceEvidence {
   id: string;
-  type: 'اختبار' | 'مشروع' | 'واجب' | 'مشاركة' | 'سلوك';
+  type: string;
   title: string;
-  score: number;
+  fileName?: string;
+  fileType?: string;
   date: string;
   notes: string;
 }
@@ -59,10 +59,11 @@ export default function AddStudentScreen() {
   });
 
   const [newNeed, setNewNeed] = useState('');
-  const [newEvidence, setNewEvidence] = useState({
-    type: 'اختبار' as PerformanceEvidence['type'],
+  const [newEvidence, setNewEvidence] = useState<Partial<PerformanceEvidence>>({
+    type: 'اختبار',
     title: '',
-    score: 0,
+    fileName: '',
+    fileType: '',
     date: '',
     notes: ''
   });
@@ -136,10 +137,12 @@ export default function AddStudentScreen() {
 
     const evidence: PerformanceEvidence = {
       id: Date.now().toString(),
-      ...newEvidence,
+      type: newEvidence.type as string,
       title: newEvidence.title.trim(),
-      notes: newEvidence.notes.trim(),
-      date: newEvidence.date || new Date().toLocaleDateString('ar-SA')
+      fileName: newEvidence.fileName,
+      fileType: newEvidence.fileType,
+      date: newEvidence.date || new Date().toLocaleDateString('ar-SA'),
+      notes: newEvidence.notes?.trim() || ''
     };
 
     setStudentData(prev => ({
@@ -150,7 +153,8 @@ export default function AddStudentScreen() {
     setNewEvidence({
       type: 'اختبار',
       title: '',
-      score: 0,
+      fileName: '',
+      fileType: '',
       date: '',
       notes: ''
     });
@@ -237,11 +241,11 @@ export default function AddStudentScreen() {
                   >
                     <IconSymbol size={24} name="chevron.right" color="#1c1f33" />
                   </TouchableOpacity>
-                  
+
                   <ThemedView style={styles.iconContainer}>
                     <IconSymbol size={60} name="person.crop.circle.badge.plus" color="#1c1f33" />
                   </ThemedView>
-                  
+
                   <ThemedText type="title" style={styles.title}>
                     إضافة متعلم جديد
                   </ThemedText>
@@ -255,7 +259,7 @@ export default function AddStudentScreen() {
                   {/* البيانات الأساسية */}
                   <ThemedView style={styles.sectionContainer}>
                     <ThemedText style={styles.sectionTitle}>البيانات الأساسية</ThemedText>
-                    
+
                     <ThemedView style={styles.inputGroup}>
                       <ThemedText style={styles.label}>اسم المتعلم *</ThemedText>
                       <TextInput
@@ -388,7 +392,7 @@ export default function AddStudentScreen() {
                   {/* احتياجات المتعلم */}
                   <ThemedView style={styles.sectionContainer}>
                     <ThemedText style={styles.sectionTitle}>احتياجات المتعلم</ThemedText>
-                    
+
                     <ThemedView style={styles.inputGroup}>
                       <ThemedView style={styles.inputWithButton}>
                         <TouchableOpacity style={styles.addSmallButton} onPress={addNeed}>
@@ -460,15 +464,73 @@ export default function AddStudentScreen() {
                         </ThemedView>
 
                         <ThemedView style={styles.inputGroup}>
-                          <ThemedText style={styles.label}>الدرجة أو التقدير</ThemedText>
-                          <TextInput
-                            style={styles.textInput}
-                            value={newEvidence.score.toString()}
-                            onChangeText={(text) => setNewEvidence({...newEvidence, score: parseFloat(text) || 0})}
-                            placeholder="الدرجة أو التقدير"
-                            keyboardType="numeric"
-                            textAlign="right"
-                          />
+                          <ThemedText style={styles.label}>تحميل الشاهد</ThemedText>
+                          <TouchableOpacity 
+                            style={styles.uploadButton}
+                            onPress={() => {
+                              Alert.alert(
+                                'تحميل شاهد',
+                                'اختر نوع الملف:',
+                                [
+                                  {
+                                    text: 'صورة',
+                                    onPress: () => {
+                                      setNewEvidence(prev => ({
+                                        ...prev,
+                                        fileType: 'صورة',
+                                        fileName: 'صورة_شاهد_' + Date.now() + '.jpg'
+                                      }));
+                                      Alert.alert('تم التحميل', 'تم تحميل الصورة بنجاح');
+                                    }
+                                  },
+                                  {
+                                    text: 'فيديو',
+                                    onPress: () => {
+                                      setNewEvidence(prev => ({
+                                        ...prev,
+                                        fileType: 'فيديو',
+                                        fileName: 'فيديو_شاهد_' + Date.now() + '.mp4'
+                                      }));
+                                      Alert.alert('تم التحميل', 'تم تحميل الفيديو بنجاح');
+                                    }
+                                  },
+                                  {
+                                    text: 'ملف PDF',
+                                    onPress: () => {
+                                      setNewEvidence(prev => ({
+                                        ...prev,
+                                        fileType: 'ملف',
+                                        fileName: 'ملف_شاهد_' + Date.now() + '.pdf'
+                                      }));
+                                      Alert.alert('تم التحميل', 'تم تحميل الملف بنجاح');
+                                    }
+                                  },
+                                  { text: 'إلغاء', style: 'cancel' }
+                                ]
+                              );
+                            }}
+                          >
+                            <IconSymbol size={20} name="plus.circle.fill" color="#1c1f33" />
+                            <ThemedText style={styles.uploadButtonText}>
+                              {newEvidence.fileName ? newEvidence.fileName : 'اختر ملف للتحميل'}
+                            </ThemedText>
+                          </TouchableOpacity>
+                          {newEvidence.fileName && (
+                            <ThemedView style={styles.fileInfo}>
+                              <IconSymbol 
+                                size={16} 
+                                name={
+                                  newEvidence.fileType === 'صورة' ? 'photo.fill' :
+                                  newEvidence.fileType === 'فيديو' ? 'video.fill' :
+                                  'doc.fill'
+                                } 
+                                color="#4CAF50" 
+                              />
+                              <ThemedText style={styles.fileInfoText}>
+                                {newEvidence.fileType}: {newEvidence.fileName}
+                              </ThemedText>
+                            </ThemedView>
+                          )}
                         </ThemedView>
 
                         <ThemedView style={styles.buttonRow}>
@@ -496,9 +558,41 @@ export default function AddStudentScreen() {
                             <ThemedText style={styles.evidenceType}>{evidence.type}</ThemedText>
                           </ThemedView>
                         </ThemedView>
-                        <ThemedView style={styles.evidenceScore}>
-                          <ThemedText style={styles.scoreText}>الدرجة: {evidence.score}</ThemedText>
-                          <ThemedText style={styles.dateText}>{evidence.date}</ThemedText>
+                        <ThemedView style={styles.evidenceDetails}>
+                          <ThemedText style={styles.evidenceDetailText}>
+                            النوع: {evidence.type}
+                          </ThemedText>
+                          {evidence.fileName && (
+                            <ThemedView style={styles.fileDisplayInfo}>
+                              <IconSymbol 
+                                size={16} 
+                                name={
+                                  evidence.fileType === 'صورة' ? 'photo.fill' :
+                                  evidence.fileType === 'فيديو' ? 'video.fill' :
+                                  'doc.fill'
+                                } 
+                                color="#4CAF50" 
+                              />
+                              <ThemedText style={styles.evidenceDetailText}>
+                                الملف: {evidence.fileName}
+                              </ThemedText>
+                              <TouchableOpacity 
+                                style={styles.viewFileBtn}
+                                onPress={() => Alert.alert('عرض الملف', `فتح: ${evidence.fileName}`)}
+                              >
+                                <IconSymbol size={14} name="eye.fill" color="#2196F3" />
+                                <ThemedText style={styles.viewFileBtnText}>عرض</ThemedText>
+                              </TouchableOpacity>
+                            </ThemedView>
+                          )}
+                          <ThemedText style={styles.evidenceDetailText}>
+                            التاريخ: {evidence.date}
+                          </ThemedText>
+                          {evidence.notes && (
+                            <ThemedText style={styles.evidenceDetailText}>
+                              الملاحظات: {evidence.notes}
+                            </ThemedText>
+                          )}
                         </ThemedView>
                       </ThemedView>
                     ))}
@@ -932,5 +1026,60 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: '500',
     textAlign: 'center',
+  },
+  uploadButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#E5E5EA',
+    paddingVertical: 12,
+    paddingHorizontal: 15,
+    borderRadius: 12,
+    gap: 10,
+  },
+  uploadButtonText: {
+    fontSize: 14,
+    color: '#1c1f33',
+    fontWeight: '500',
+    textAlign: 'right',
+  },
+  fileInfo: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 5,
+    marginTop: 5,
+  },
+  fileInfoText: {
+    fontSize: 12,
+    color: '#4CAF50',
+  },
+  evidenceDetails: {
+    marginTop: 8,
+    paddingTop: 8,
+    borderTopWidth: 1,
+    borderTopColor: '#E5E5EA',
+  },
+  evidenceDetailText: {
+    fontSize: 14,
+    color: '#666',
+    textAlign: 'right',
+    writingDirection: 'rtl',
+  },
+  fileDisplayInfo: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 5,
+  },
+  viewFileBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#E5E5EA',
+    paddingVertical: 5,
+    paddingHorizontal: 8,
+    borderRadius: 8,
+    gap: 3,
+  },
+  viewFileBtnText: {
+    fontSize: 12,
+    color: '#2196F3',
   },
 });
