@@ -252,11 +252,10 @@ export default function ScheduleScreen() {
 
   const getScheduleStats = () => {
     const totalClasses = schedule.filter(entry => entry.type === 'حصة' && entry.subject).length;
-    const totalSupervision = schedule.filter(entry => entry.type === 'مناوبة').length;
-    const totalWaiting = schedule.filter(entry => entry.type === 'انتظار').length;
+    const totalAdditional = schedule.filter(entry => entry.type === 'انتظار').length;
     const freeSlots = schedule.filter(entry => entry.type === 'فراغ' && entry.subject !== 'استراحة').length;
 
-    return { totalClasses, totalSupervision, totalWaiting, freeSlots };
+    return { totalClasses, totalAdditional, freeSlots };
   };
 
   const stats = getScheduleStats();
@@ -431,16 +430,10 @@ export default function ScheduleScreen() {
               <ThemedText style={styles.statLabel}>حصص دراسية</ThemedText>
             </ThemedView>
 
-            <ThemedView style={[styles.statItem, { backgroundColor: '#2196F315' }]}>
-              <IconSymbol size={24} name="eye.fill" color="#2196F3" />
-              <ThemedText style={styles.statNumber}>{stats.totalSupervision}</ThemedText>
-              <ThemedText style={styles.statLabel}>مناوبات</ThemedText>
-            </ThemedView>
-
             <ThemedView style={[styles.statItem, { backgroundColor: '#FF980015' }]}>
-              <IconSymbol size={24} name="clock.fill" color="#FF9800" />
-              <ThemedText style={styles.statNumber}>{stats.totalWaiting}</ThemedText>
-              <ThemedText style={styles.statLabel}>انتظار</ThemedText>
+              <IconSymbol size={24} name="plus.circle.fill" color="#FF9800" />
+              <ThemedText style={styles.statNumber}>{stats.totalAdditional}</ThemedText>
+              <ThemedText style={styles.statLabel}>حصص إضافية</ThemedText>
             </ThemedView>
 
             <ThemedView style={[styles.statItem, { backgroundColor: '#9E9E9E15' }]}>
