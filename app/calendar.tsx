@@ -151,6 +151,48 @@ export default function CalendarScreen() {
               </ThemedText>
             </ThemedView>
 
+            {/* عرض التاريخ الحالي */}
+            <ThemedView style={styles.currentDateSection}>
+              <ThemedText style={styles.sectionTitle}>
+                📅 التاريخ اليوم
+              </ThemedText>
+              
+              <ThemedView style={styles.dateContainer}>
+                <ThemedView style={styles.dateCard}>
+                  <ThemedView style={styles.dateIconWrapper}>
+                    <IconSymbol size={24} name="calendar" color="#4CAF50" />
+                  </ThemedView>
+                  <ThemedView style={styles.dateInfo}>
+                    <ThemedText style={styles.dateLabel}>التاريخ الميلادي</ThemedText>
+                    <ThemedText style={styles.dateValue}>
+                      {new Date().toLocaleDateString('ar-SA', {
+                        year: 'numeric',
+                        month: 'long',
+                        day: 'numeric',
+                        calendar: 'gregory'
+                      })}
+                    </ThemedText>
+                  </ThemedView>
+                </ThemedView>
+
+                <ThemedView style={styles.dateCard}>
+                  <ThemedView style={styles.dateIconWrapper}>
+                    <IconSymbol size={24} name="moon.fill" color="#FF9500" />
+                  </ThemedView>
+                  <ThemedView style={styles.dateInfo}>
+                    <ThemedText style={styles.dateLabel}>التاريخ الهجري</ThemedText>
+                    <ThemedText style={styles.dateValue}>
+                      {new Date().toLocaleDateString('ar-SA-u-ca-islamic', {
+                        year: 'numeric',
+                        month: 'long',
+                        day: 'numeric'
+                      })}
+                    </ThemedText>
+                  </ThemedView>
+                </ThemedView>
+              </ThemedView>
+            </ThemedView>
+
             <ThemedView style={styles.content}>
               {/* Month Navigation */}
               <ThemedView style={styles.monthNavigation}>
@@ -307,6 +349,57 @@ const styles = StyleSheet.create({
     padding: 20,
     backgroundColor: 'transparent',
     gap: 15,
+  },
+  currentDateSection: {
+    padding: 20,
+    backgroundColor: 'transparent',
+  },
+  dateContainer: {
+    gap: 12,
+  },
+  dateCard: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    padding: 16,
+    backgroundColor: '#e0f0f1',
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: '#E5E5EA',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    elevation: 3,
+    gap: 12,
+  },
+  dateIconWrapper: {
+    padding: 12,
+    backgroundColor: '#FFFFFF',
+    borderRadius: 25,
+    borderWidth: 1,
+    borderColor: '#E5E5EA',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.1,
+    shadowRadius: 2,
+    elevation: 1,
+  },
+  dateInfo: {
+    flex: 1,
+  },
+  dateLabel: {
+    fontSize: 14,
+    color: '#666666',
+    textAlign: 'right',
+    writingDirection: 'rtl',
+    marginBottom: 4,
+  },
+  dateValue: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: '#000000',
+    textAlign: 'right',
+    writingDirection: 'rtl',
   },
   monthNavigation: {
     flexDirection: 'row',
