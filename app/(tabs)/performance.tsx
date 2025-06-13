@@ -419,7 +419,7 @@ export default function PerformanceScreen() {
                           <IconSymbol 
                             size={20} 
                             name="arrow.up.doc.fill" 
-                            color="#007AFF" 
+                            color="#424242" 
                           />
                         </TouchableOpacity>
                         <IconSymbol 
