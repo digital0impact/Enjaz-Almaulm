@@ -667,7 +667,7 @@ const styles = StyleSheet.create({
     backgroundColor: '#F0F7FF',
   },
   evidenceHeader: {
-    flexDirection: I18nManager.isRTL ? 'row-reverse' : 'row',
+    flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
     marginBottom: 8,
