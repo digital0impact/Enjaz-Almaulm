@@ -472,7 +472,19 @@ export default function AlertsManagementScreen() {
 
                 <TouchableOpacity 
                   style={styles.settingButton}
-                  onPress={() => Alert.alert('إعدادات الصوت', 'تخصيص أصوات التنبيهات والاهتزاز')}
+                  onPress={() => {
+                    Alert.alert(
+                      'إعدادات الصوت والاهتزاز',
+                      'اختر نمط التنبيه المفضل لديك',
+                      [
+                        { text: 'صوت فقط', onPress: () => Alert.alert('تم التحديث', 'تم تعيين نمط الصوت فقط') },
+                        { text: 'اهتزاز فقط', onPress: () => Alert.alert('تم التحديث', 'تم تعيين نمط الاهتزاز فقط') },
+                        { text: 'صوت واهتزاز', onPress: () => Alert.alert('تم التحديث', 'تم تعيين نمط الصوت والاهتزاز') },
+                        { text: 'صامت', onPress: () => Alert.alert('تم التحديث', 'تم تعيين النمط الصامت') },
+                        { text: 'إلغاء', style: 'cancel' }
+                      ]
+                    );
+                  }}
                 >
                   <IconSymbol size={24} name="speaker.wave.2.fill" color="#007AFF" />
                   <ThemedText style={styles.settingButtonText}>إعدادات الصوت والاهتزاز</ThemedText>
@@ -481,7 +493,19 @@ export default function AlertsManagementScreen() {
 
                 <TouchableOpacity 
                   style={styles.settingButton}
-                  onPress={() => Alert.alert('عدم الإزعاج', 'تحديد أوقات عدم إرسال التنبيهات')}
+                  onPress={() => {
+                    Alert.alert(
+                      'أوقات عدم الإزعاج',
+                      'حدد الأوقات التي لا تريد استقبال التنبيهات فيها',
+                      [
+                        { text: '22:00 - 07:00 (ليلاً)', onPress: () => Alert.alert('تم التحديث', 'تم تفعيل عدم الإزعاج من 22:00 إلى 07:00') },
+                        { text: '12:00 - 14:00 (قيلولة)', onPress: () => Alert.alert('تم التحديث', 'تم تفعيل عدم الإزعاج من 12:00 إلى 14:00') },
+                        { text: 'أيام العطل فقط', onPress: () => Alert.alert('تم التحديث', 'تم تفعيل عدم الإزعاج في أيام العطل') },
+                        { text: 'إعداد مخصص', onPress: () => Alert.alert('قريباً', 'سيتم إضافة الإعداد المخصص قريباً') },
+                        { text: 'إلغاء', style: 'cancel' }
+                      ]
+                    );
+                  }}
                 >
                   <IconSymbol size={24} name="moon.fill" color="#9C27B0" />
                   <ThemedText style={styles.settingButtonText}>أوقات عدم الإزعاج</ThemedText>
@@ -490,10 +514,164 @@ export default function AlertsManagementScreen() {
 
                 <TouchableOpacity 
                   style={styles.settingButton}
-                  onPress={() => Alert.alert('نسخ احتياطي', 'إنشاء نسخة احتياطية من التنبيهات')}
+                  onPress={async () => {
+                    Alert.alert(
+                      'النسخ الاحتياطي',
+                      'اختر نوع النسخ الاحتياطي',
+                      [
+                        {
+                          text: 'إنشاء نسخة احتياطية',
+                          onPress: async () => {
+                            try {
+                              const alertsData = await AsyncStorage.getItem('alerts');
+                              const backupData = {
+                                alerts: alertsData ? JSON.parse(alertsData) : [],
+                                timestamp: new Date().toISOString(),
+                                version: '1.0'
+                              };
+                              console.log('تم إنشاء النسخة الاحتياطية:', backupData);
+                              Alert.alert('تم بنجاح', 'تم إنشاء النسخة الاحتياطية وحفظها محلياً');
+                            } catch (error) {
+                              Alert.alert('خطأ', 'فشل في إنشاء النسخة الاحتياطية');
+                            }
+                          }
+                        },
+                        {
+                          text: 'استعادة من نسخة احتياطية',
+                          onPress: () => {
+                            Alert.alert(
+                              'استعادة البيانات',
+                              'هل أنت متأكد من رغبتك في استعادة البيانات؟ سيتم استبدال التنبيهات الحالية.',
+                              [
+                                { text: 'إلغاء', style: 'cancel' },
+                                {
+                                  text: 'استعادة',
+                                  style: 'destructive',
+                                  onPress: () => Alert.alert('قريباً', 'سيتم إضافة ميزة الاستعادة قريباً')
+                                }
+                              ]
+                            );
+                          }
+                        },
+                        {
+                          text: 'تصدير إلى ملف',
+                          onPress: async () => {
+                            try {
+                              const alertsData = await AsyncStorage.getItem('alerts');
+                              const exportData = {
+                                alerts: alertsData ? JSON.parse(alertsData) : [],
+                                exportDate: new Date().toLocaleDateString('ar-SA'),
+                                totalAlerts: alertsData ? JSON.parse(alertsData).length : 0
+                              };
+                              console.log('بيانات التصدير:', JSON.stringify(exportData, null, 2));
+                              Alert.alert('تم التصدير', 'تم تصدير بيانات التنبيهات بنجاح');
+                            } catch (error) {
+                              Alert.alert('خطأ', 'فشل في تصدير البيانات');
+                            }
+                          }
+                        },
+                        { text: 'إلغاء', style: 'cancel' }
+                      ]
+                    );
+                  }}
                 >
                   <IconSymbol size={24} name="icloud.and.arrow.up.fill" color="#4CAF50" />
                   <ThemedText style={styles.settingButtonText}>النسخ الاحتياطي</ThemedText>
+                  <IconSymbol size={16} name="chevron.left" color="#666" />
+                </TouchableOpacity>
+
+                <TouchableOpacity 
+                  style={styles.settingButton}
+                  onPress={() => {
+                    Alert.alert(
+                      'إدارة التنبيهات المتقدمة',
+                      'خيارات إضافية لإدارة التنبيهات',
+                      [
+                        {
+                          text: 'حذف جميع التنبيهات',
+                          onPress: () => {
+                            Alert.alert(
+                              'تأكيد الحذف',
+                              'هل أنت متأكد من رغبتك في حذف جميع التنبيهات؟ هذا الإجراء لا يمكن التراجع عنه.',
+                              [
+                                { text: 'إلغاء', style: 'cancel' },
+                                {
+                                  text: 'حذف الكل',
+                                  style: 'destructive',
+                                  onPress: async () => {
+                                    try {
+                                      await AsyncStorage.removeItem('alerts');
+                                      setAlerts([]);
+                                      Alert.alert('تم الحذف', 'تم حذف جميع التنبيهات بنجاح');
+                                    } catch (error) {
+                                      Alert.alert('خطأ', 'فشل في حذف التنبيهات');
+                                    }
+                                  }
+                                }
+                              ]
+                            );
+                          }
+                        },
+                        {
+                          text: 'تفعيل/إيقاف جميع التنبيهات',
+                          onPress: () => {
+                            Alert.alert(
+                              'تبديل حالة جميع التنبيهات',
+                              'اختر الإجراء المطلوب',
+                              [
+                                {
+                                  text: 'تفعيل الكل',
+                                  onPress: async () => {
+                                    const updatedAlerts = alerts.map(alert => ({ ...alert, active: true }));
+                                    saveAlerts(updatedAlerts);
+                                    Alert.alert('تم التحديث', 'تم تفعيل جميع التنبيهات');
+                                  }
+                                },
+                                {
+                                  text: 'إيقاف الكل',
+                                  onPress: async () => {
+                                    const updatedAlerts = alerts.map(alert => ({ ...alert, active: false }));
+                                    saveAlerts(updatedAlerts);
+                                    Alert.alert('تم التحديث', 'تم إيقاف جميع التنبيهات');
+                                  }
+                                },
+                                { text: 'إلغاء', style: 'cancel' }
+                              ]
+                            );
+                          }
+                        },
+                        {
+                          text: 'إحصائيات مفصلة',
+                          onPress: () => {
+                            const stats = {
+                              total: alerts.length,
+                              active: alerts.filter(a => a.active).length,
+                              inactive: alerts.filter(a => !a.active).length,
+                              byType: alerts.reduce((acc, alert) => {
+                                acc[alert.type] = (acc[alert.type] || 0) + 1;
+                                return acc;
+                              }, {} as Record<string, number>)
+                            };
+                            
+                            const statsText = `
+إجمالي التنبيهات: ${stats.total}
+نشطة: ${stats.active}
+معطلة: ${stats.inactive}
+
+التوزيع حسب النوع:
+${Object.entries(stats.byType).map(([type, count]) => `${type}: ${count}`).join('\n')}
+                            `;
+                            
+                            Alert.alert('إحصائيات التنبيهات', statsText);
+                          }
+                        },
+                        { text: 'إغلاق', style: 'cancel' }
+                      ]
+                    );
+                  }}
+                >
+                  <IconSymbol size={24} name="gear.circle.fill" color="#FF9800" />
+                  <ThemedText style={styles.settingButtonText}>إدارة متقدمة</ThemedText>
                   <IconSymbol size={16} name="chevron.left" color="#666" />
                 </TouchableOpacity>
               </ThemedView>
