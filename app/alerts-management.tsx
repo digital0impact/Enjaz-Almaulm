@@ -272,12 +272,12 @@ export default function AlertsManagementScreen() {
                   style={styles.addButtonsContainer}
                   contentContainerStyle={styles.addButtonsContent}
                 >
-                  {[
-                    { type: 'اختبار', icon: 'doc.text.fill', color: '#FF5722' },
-                    { type: 'اجتماع', icon: 'person.3.fill', color: '#2196F3' },
-                    { type: 'مهمة', icon: 'checkmark.circle.fill', color: '#4CAF50' },
-                    { type: 'تدريب', icon: 'graduationcap.fill', color: '#9C27B0' },
+                  [
                     { type: 'شخصي', icon: 'person.fill', color: '#607D8B' },
+                    { type: 'تدريب', icon: 'graduationcap.fill', color: '#9C27B0' },
+                    { type: 'مهمة', icon: 'checkmark.circle.fill', color: '#4CAF50' },
+                    { type: 'اجتماع', icon: 'person.3.fill', color: '#2196F3' },
+                    { type: 'اختبار', icon: 'doc.text.fill', color: '#FF5722' },
                   ].map((item) => (
                     <TouchableOpacity
                       key={item.type}
