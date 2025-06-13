@@ -424,7 +424,7 @@ export default function PerformanceScreen() {
                         </TouchableOpacity>
                         <IconSymbol 
                           size={16} 
-                          name={evidenceItem.available ? "checkmark.square.fill" : "xmark.square.fill"} 
+                          name={evidenceItem.available ? "checkmark.circle" : "xmark.circle"} 
                           color={evidenceItem.available ? "#4CAF50" : "#F44336"} 
                         />
                         <ThemedText style={[
