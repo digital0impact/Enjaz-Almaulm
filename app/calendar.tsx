@@ -11,7 +11,12 @@ export default function CalendarScreen() {
 
   const getCurrentDate = () => {
     const today = new Date();
-    const gregorian = today.toLocaleDateString('ar-SA');
+    const gregorian = today.toLocaleDateString('ar-SA', {
+      year: 'numeric',
+      month: '2-digit',
+      day: '2-digit',
+      calendar: 'gregory'
+    });
     const hijri = today.toLocaleDateString('ar-SA-u-ca-islamic');
     return { gregorian, hijri };
   };
