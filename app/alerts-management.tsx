@@ -1,11 +1,14 @@
 
 import React, { useState, useEffect } from 'react';
-import { StyleSheet, ScrollView, TouchableOpacity, Alert, I18nManager } from 'react-native';
+import { StyleSheet, ScrollView, TouchableOpacity, Alert, I18nManager, ImageBackground, Dimensions } from 'react-native';
+import { LinearGradient as ExpoLinearGradient } from 'expo-linear-gradient';
 import { ThemedText } from '@/components/ThemedText';
 import { ThemedView } from '@/components/ThemedView';
 import { IconSymbol } from '@/components/ui/IconSymbol';
 import { useRouter } from 'expo-router';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+
+const { width } = Dimensions.get('window');
 
 interface AlertItem {
   id: string;
@@ -205,278 +208,302 @@ export default function AlertsManagementScreen() {
   const alertTypes = [...new Set(alerts.map(alert => alert.type))];
 
   return (
-    <ScrollView style={styles.container}>
-      <ThemedView style={styles.header}>
-        <TouchableOpacity 
-          style={styles.backButton}
-          onPress={() => router.back()}
+    <ThemedView style={styles.container}>
+      <ImageBackground
+        source={require('@/assets/images/background.png')}
+        style={styles.backgroundImage}
+        resizeMode="cover"
+      >
+        <ExpoLinearGradient
+          colors={['rgba(255,255,255,0.9)', 'rgba(225,245,244,0.95)', 'rgba(173,212,206,0.8)']}
+          style={styles.gradientOverlay}
         >
-          <IconSymbol size={24} name="chevron.right" color="#fff" />
-        </TouchableOpacity>
-        <IconSymbol size={60} name="bell.fill" color="#fff" />
-        <ThemedText type="title" style={styles.title}>
-          إدارة التنبيهات
-        </ThemedText>
-        <ThemedText style={styles.subtitle}>
-          منظم شامل للتنبيهات والمذكرات المهمة
-        </ThemedText>
-      </ThemedView>
-
-      <ThemedView style={styles.content}>
-        {/* إحصائيات سريعة */}
-        <ThemedView style={styles.statsContainer}>
-          <ThemedView style={styles.statsGrid}>
-            <ThemedView style={[styles.statCard, { backgroundColor: '#007AFF15' }]}>
-              <IconSymbol size={28} name="bell.badge.fill" color="#007AFF" />
-              <ThemedText style={styles.statNumber}>{alerts.length}</ThemedText>
-              <ThemedText style={styles.statLabel}>إجمالي التنبيهات</ThemedText>
-            </ThemedView>
-            
-            <ThemedView style={[styles.statCard, { backgroundColor: '#4CAF5015' }]}>
-              <IconSymbol size={28} name="bell.fill" color="#4CAF50" />
-              <ThemedText style={styles.statNumber}>{activeAlerts}</ThemedText>
-              <ThemedText style={styles.statLabel}>نشطة</ThemedText>
-            </ThemedView>
-            
-            <ThemedView style={[styles.statCard, { backgroundColor: '#FF980015' }]}>
-              <IconSymbol size={28} name="clock.fill" color="#FF9800" />
-              <ThemedText style={styles.statNumber}>{upcomingAlerts}</ThemedText>
-              <ThemedText style={styles.statLabel}>قادمة</ThemedText>
-            </ThemedView>
-          </ThemedView>
-        </ThemedView>
-
-        {/* إضافة تنبيه جديد */}
-        <ThemedView style={styles.addSection}>
-          <ThemedText type="subtitle" style={styles.sectionTitle}>
-            إضافة تنبيه جديد
-          </ThemedText>
-          
-          <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.addButtonsContainer}>
-            {[
-              { type: 'اختبار', icon: 'doc.text.fill', color: '#FF5722' },
-              { type: 'اجتماع', icon: 'person.3.fill', color: '#2196F3' },
-              { type: 'مهمة', icon: 'checkmark.circle.fill', color: '#4CAF50' },
-              { type: 'تدريب', icon: 'graduationcap.fill', color: '#9C27B0' },
-              { type: 'شخصي', icon: 'person.fill', color: '#607D8B' },
-            ].map((item) => (
-              <TouchableOpacity
-                key={item.type}
-                style={[styles.addButton, { backgroundColor: item.color }]}
-                onPress={() => addNewAlert(item.type)}
+          <ScrollView style={styles.scrollContainer}>
+            <ThemedView style={styles.header}>
+              <TouchableOpacity 
+                style={styles.backButton}
+                onPress={() => router.back()}
               >
-                <IconSymbol size={24} name={item.icon as any} color="#fff" />
-                <ThemedText style={styles.addButtonText}>{item.type}</ThemedText>
+                <IconSymbol size={24} name="chevron.right" color="#1c1f33" />
               </TouchableOpacity>
-            ))}
-          </ScrollView>
-        </ThemedView>
-
-        {/* تصفية التنبيهات */}
-        <ThemedView style={styles.filterSection}>
-          <ThemedText type="subtitle" style={styles.sectionTitle}>
-            تصفية التنبيهات
-          </ThemedText>
-          
-          <ThemedView style={styles.filterRow}>
-            <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.filterContainer}>
-              {[
-                { key: 'all', label: 'الكل' },
-                { key: 'active', label: 'نشطة' },
-                { key: 'inactive', label: 'معطلة' },
-              ].map((item) => (
-                <TouchableOpacity
-                  key={item.key}
-                  style={[
-                    styles.filterButton,
-                    filter === item.key && styles.filterButtonActive
-                  ]}
-                  onPress={() => setFilter(item.key as any)}
-                >
-                  <ThemedText style={[
-                    styles.filterButtonText,
-                    filter === item.key && styles.filterButtonTextActive
-                  ]}>
-                    {item.label}
-                  </ThemedText>
-                </TouchableOpacity>
-              ))}
-            </ScrollView>
-          </ThemedView>
-          
-          <ThemedView style={styles.filterRow}>
-            <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.filterContainer}>
-              {['all', ...alertTypes].map((type) => (
-                <TouchableOpacity
-                  key={type}
-                  style={[
-                    styles.typeFilterButton,
-                    typeFilter === type && styles.typeFilterButtonActive
-                  ]}
-                  onPress={() => setTypeFilter(type)}
-                >
-                  {type !== 'all' && (
-                    <IconSymbol 
-                      size={16} 
-                      name={getAlertIcon(type)} 
-                      color={typeFilter === type ? '#fff' : getAlertColor(type)} 
-                    />
-                  )}
-                  <ThemedText style={[
-                    styles.typeFilterButtonText,
-                    typeFilter === type && styles.typeFilterButtonTextActive
-                  ]}>
-                    {type === 'all' ? 'جميع الأنواع' : type}
-                  </ThemedText>
-                </TouchableOpacity>
-              ))}
-            </ScrollView>
-          </ThemedView>
-        </ThemedView>
-
-        {/* قائمة التنبيهات */}
-        <ThemedView style={styles.alertsSection}>
-          <ThemedView style={styles.alertsHeader}>
-            <ThemedText type="subtitle" style={styles.sectionTitle}>
-              التنبيهات ({filteredAlerts.length})
-            </ThemedText>
-            <TouchableOpacity onPress={() => Alert.alert('تصدير', 'سيتم تصدير قائمة التنبيهات')}>
-              <IconSymbol size={20} name="square.and.arrow.up.fill" color="#007AFF" />
-            </TouchableOpacity>
-          </ThemedView>
-
-          {filteredAlerts.length === 0 ? (
-            <ThemedView style={styles.emptyState}>
-              <IconSymbol size={48} name="bell.slash.fill" color="#ccc" />
-              <ThemedText style={styles.emptyText}>لا توجد تنبيهات</ThemedText>
-              <ThemedText style={styles.emptySubtext}>ابدأ بإضافة تنبيه جديد</ThemedText>
+              <ThemedView style={styles.iconContainer}>
+                <IconSymbol size={60} name="bell.fill" color="#1c1f33" />
+              </ThemedView>
+              <ThemedText type="title" style={styles.title}>
+                إدارة التنبيهات
+              </ThemedText>
+              <ThemedText style={styles.subtitle}>
+                منظم شامل للتنبيهات والمذكرات المهمة
+              </ThemedText>
             </ThemedView>
-          ) : (
-            <ThemedView style={styles.alertsList}>
-              {filteredAlerts.map((alert) => {
-                const daysUntil = getDaysUntilAlert(alert.date, alert.time);
-                const isPast = daysUntil < 0;
-                const isToday = daysUntil === 0;
+
+            <ThemedView style={styles.content}>
+              {/* إحصائيات سريعة */}
+              <ThemedView style={styles.statsContainer}>
+                <ThemedView style={styles.statsGrid}>
+                  <ThemedView style={[styles.statCard, { backgroundColor: '#007AFF15' }]}>
+                    <IconSymbol size={28} name="bell.badge.fill" color="#007AFF" />
+                    <ThemedText style={styles.statNumber}>{alerts.length}</ThemedText>
+                    <ThemedText style={styles.statLabel}>إجمالي التنبيهات</ThemedText>
+                  </ThemedView>
+                  
+                  <ThemedView style={[styles.statCard, { backgroundColor: '#4CAF5015' }]}>
+                    <IconSymbol size={28} name="bell.fill" color="#4CAF50" />
+                    <ThemedText style={styles.statNumber}>{activeAlerts}</ThemedText>
+                    <ThemedText style={styles.statLabel}>نشطة</ThemedText>
+                  </ThemedView>
+                  
+                  <ThemedView style={[styles.statCard, { backgroundColor: '#FF980015' }]}>
+                    <IconSymbol size={28} name="clock.fill" color="#FF9800" />
+                    <ThemedText style={styles.statNumber}>{upcomingAlerts}</ThemedText>
+                    <ThemedText style={styles.statLabel}>قادمة</ThemedText>
+                  </ThemedView>
+                </ThemedView>
+              </ThemedView>
+
+              {/* إضافة تنبيه جديد */}
+              <ThemedView style={styles.addSection}>
+                <ThemedText type="subtitle" style={styles.sectionTitle}>
+                  إضافة تنبيه جديد
+                </ThemedText>
                 
-                return (
-                  <ThemedView key={alert.id} style={[
-                    styles.alertCard,
-                    !alert.active && styles.inactiveAlertCard,
-                    isToday && styles.todayAlertCard
-                  ]}>
-                    <ThemedView style={styles.alertHeader}>
-                      <ThemedView style={[styles.alertIcon, { backgroundColor: `${getAlertColor(alert.type)}15` }]}>
-                        <IconSymbol 
-                          size={20} 
-                          name={getAlertIcon(alert.type)} 
-                          color={getAlertColor(alert.type)} 
-                        />
-                      </ThemedView>
-                      
-                      <ThemedView style={styles.alertInfo}>
-                        <ThemedText style={styles.alertTitle}>{alert.title}</ThemedText>
-                        {alert.description && (
-                          <ThemedText style={styles.alertDescription}>{alert.description}</ThemedText>
+                <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.addButtonsContainer}>
+                  {[
+                    { type: 'اختبار', icon: 'doc.text.fill', color: '#FF5722' },
+                    { type: 'اجتماع', icon: 'person.3.fill', color: '#2196F3' },
+                    { type: 'مهمة', icon: 'checkmark.circle.fill', color: '#4CAF50' },
+                    { type: 'تدريب', icon: 'graduationcap.fill', color: '#9C27B0' },
+                    { type: 'شخصي', icon: 'person.fill', color: '#607D8B' },
+                  ].map((item) => (
+                    <TouchableOpacity
+                      key={item.type}
+                      style={[styles.addButton, { backgroundColor: item.color }]}
+                      onPress={() => addNewAlert(item.type)}
+                    >
+                      <IconSymbol size={24} name={item.icon as any} color="#fff" />
+                      <ThemedText style={styles.addButtonText}>{item.type}</ThemedText>
+                    </TouchableOpacity>
+                  ))}
+                </ScrollView>
+              </ThemedView>
+
+              {/* تصفية التنبيهات */}
+              <ThemedView style={styles.filterSection}>
+                <ThemedText type="subtitle" style={styles.sectionTitle}>
+                  تصفية التنبيهات
+                </ThemedText>
+                
+                <ThemedView style={styles.filterRow}>
+                  <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.filterContainer}>
+                    {[
+                      { key: 'all', label: 'الكل' },
+                      { key: 'active', label: 'نشطة' },
+                      { key: 'inactive', label: 'معطلة' },
+                    ].map((item) => (
+                      <TouchableOpacity
+                        key={item.key}
+                        style={[
+                          styles.filterButton,
+                          filter === item.key && styles.filterButtonActive
+                        ]}
+                        onPress={() => setFilter(item.key as any)}
+                      >
+                        <ThemedText style={[
+                          styles.filterButtonText,
+                          filter === item.key && styles.filterButtonTextActive
+                        ]}>
+                          {item.label}
+                        </ThemedText>
+                      </TouchableOpacity>
+                    ))}
+                  </ScrollView>
+                </ThemedView>
+                
+                <ThemedView style={styles.filterRow}>
+                  <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.filterContainer}>
+                    {['all', ...alertTypes].map((type) => (
+                      <TouchableOpacity
+                        key={type}
+                        style={[
+                          styles.typeFilterButton,
+                          typeFilter === type && styles.typeFilterButtonActive
+                        ]}
+                        onPress={() => setTypeFilter(type)}
+                      >
+                        {type !== 'all' && (
+                          <IconSymbol 
+                            size={16} 
+                            name={getAlertIcon(type)} 
+                            color={typeFilter === type ? '#fff' : getAlertColor(type)} 
+                          />
                         )}
-                        <ThemedView style={styles.alertMeta}>
-                          <ThemedText style={styles.alertDateTime}>
-                            {new Date(alert.date).toLocaleDateString('ar-SA')} • {alert.time}
-                          </ThemedText>
-                          <ThemedView style={[styles.priorityBadge, { backgroundColor: getPriorityColor(alert.priority) + '20' }]}>
-                            <ThemedText style={[styles.priorityText, { color: getPriorityColor(alert.priority) }]}>
-                              {alert.priority}
-                            </ThemedText>
+                        <ThemedText style={[
+                          styles.typeFilterButtonText,
+                          typeFilter === type && styles.typeFilterButtonTextActive
+                        ]}>
+                          {type === 'all' ? 'جميع الأنواع' : type}
+                        </ThemedText>
+                      </TouchableOpacity>
+                    ))}
+                  </ScrollView>
+                </ThemedView>
+              </ThemedView>
+
+              {/* قائمة التنبيهات */}
+              <ThemedView style={styles.alertsSection}>
+                <ThemedView style={styles.alertsHeader}>
+                  <ThemedText type="subtitle" style={styles.sectionTitle}>
+                    التنبيهات ({filteredAlerts.length})
+                  </ThemedText>
+                  <TouchableOpacity onPress={() => Alert.alert('تصدير', 'سيتم تصدير قائمة التنبيهات')}>
+                    <IconSymbol size={20} name="square.and.arrow.up.fill" color="#007AFF" />
+                  </TouchableOpacity>
+                </ThemedView>
+
+                {filteredAlerts.length === 0 ? (
+                  <ThemedView style={styles.emptyState}>
+                    <IconSymbol size={48} name="bell.slash.fill" color="#ccc" />
+                    <ThemedText style={styles.emptyText}>لا توجد تنبيهات</ThemedText>
+                    <ThemedText style={styles.emptySubtext}>ابدأ بإضافة تنبيه جديد</ThemedText>
+                  </ThemedView>
+                ) : (
+                  <ThemedView style={styles.alertsList}>
+                    {filteredAlerts.map((alert) => {
+                      const daysUntil = getDaysUntilAlert(alert.date, alert.time);
+                      const isPast = daysUntil < 0;
+                      const isToday = daysUntil === 0;
+                      
+                      return (
+                        <ThemedView key={alert.id} style={[
+                          styles.alertCard,
+                          !alert.active && styles.inactiveAlertCard,
+                          isToday && styles.todayAlertCard
+                        ]}>
+                          <ThemedView style={styles.alertHeader}>
+                            <ThemedView style={[styles.alertIcon, { backgroundColor: `${getAlertColor(alert.type)}15` }]}>
+                              <IconSymbol 
+                                size={20} 
+                                name={getAlertIcon(alert.type)} 
+                                color={getAlertColor(alert.type)} 
+                              />
+                            </ThemedView>
+                            
+                            <ThemedView style={styles.alertInfo}>
+                              <ThemedText style={styles.alertTitle}>{alert.title}</ThemedText>
+                              {alert.description && (
+                                <ThemedText style={styles.alertDescription}>{alert.description}</ThemedText>
+                              )}
+                              <ThemedView style={styles.alertMeta}>
+                                <ThemedText style={styles.alertDateTime}>
+                                  {new Date(alert.date).toLocaleDateString('ar-SA')} • {alert.time}
+                                </ThemedText>
+                                <ThemedView style={[styles.priorityBadge, { backgroundColor: getPriorityColor(alert.priority) + '20' }]}>
+                                  <ThemedText style={[styles.priorityText, { color: getPriorityColor(alert.priority) }]}>
+                                    {alert.priority}
+                                  </ThemedText>
+                                </ThemedView>
+                              </ThemedView>
+                            </ThemedView>
+                            
+                            <ThemedView style={styles.alertActions}>
+                              {isToday ? (
+                                <ThemedView style={styles.todayBadge}>
+                                  <ThemedText style={styles.todayText}>اليوم</ThemedText>
+                                </ThemedView>
+                              ) : isPast ? (
+                                <ThemedText style={styles.pastText}>انتهى</ThemedText>
+                              ) : (
+                                <ThemedText style={styles.daysUntilText}>
+                                  {daysUntil} {daysUntil === 1 ? 'يوم' : 'أيام'}
+                                </ThemedText>
+                              )}
+                              
+                              <TouchableOpacity
+                                style={styles.toggleButton}
+                                onPress={() => toggleAlert(alert.id)}
+                              >
+                                <IconSymbol 
+                                  size={20} 
+                                  name={alert.active ? 'bell.fill' : 'bell.slash.fill'} 
+                                  color={alert.active ? '#4CAF50' : '#999'} 
+                                />
+                              </TouchableOpacity>
+                              
+                              <TouchableOpacity
+                                style={styles.deleteButton}
+                                onPress={() => deleteAlert(alert.id)}
+                              >
+                                <IconSymbol size={18} name="trash.fill" color="#F44336" />
+                              </TouchableOpacity>
+                            </ThemedView>
                           </ThemedView>
                         </ThemedView>
-                      </ThemedView>
-                      
-                      <ThemedView style={styles.alertActions}>
-                        {isToday ? (
-                          <ThemedView style={styles.todayBadge}>
-                            <ThemedText style={styles.todayText}>اليوم</ThemedText>
-                          </ThemedView>
-                        ) : isPast ? (
-                          <ThemedText style={styles.pastText}>انتهى</ThemedText>
-                        ) : (
-                          <ThemedText style={styles.daysUntilText}>
-                            {daysUntil} {daysUntil === 1 ? 'يوم' : 'أيام'}
-                          </ThemedText>
-                        )}
-                        
-                        <TouchableOpacity
-                          style={styles.toggleButton}
-                          onPress={() => toggleAlert(alert.id)}
-                        >
-                          <IconSymbol 
-                            size={20} 
-                            name={alert.active ? 'bell.fill' : 'bell.slash.fill'} 
-                            color={alert.active ? '#4CAF50' : '#999'} 
-                          />
-                        </TouchableOpacity>
-                        
-                        <TouchableOpacity
-                          style={styles.deleteButton}
-                          onPress={() => deleteAlert(alert.id)}
-                        >
-                          <IconSymbol size={18} name="trash.fill" color="#F44336" />
-                        </TouchableOpacity>
-                      </ThemedView>
-                    </ThemedView>
+                      );
+                    })}
                   </ThemedView>
-                );
-              })}
-            </ThemedView>
-          )}
-        </ThemedView>
+                )}
+              </ThemedView>
 
-        {/* إعدادات التنبيهات */}
-        <ThemedView style={styles.settingsSection}>
-          <ThemedText type="subtitle" style={styles.sectionTitle}>
-            إعدادات التنبيهات
-          </ThemedText>
-          
-          <TouchableOpacity 
-            style={styles.settingButton}
-            onPress={() => Alert.alert('إعدادات الصوت', 'تخصيص أصوات التنبيهات والاهتزاز')}
-          >
-            <IconSymbol size={24} name="speaker.wave.2.fill" color="#007AFF" />
-            <ThemedText style={styles.settingButtonText}>إعدادات الصوت والاهتزاز</ThemedText>
-            <IconSymbol size={16} name="chevron.left" color="#666" />
-          </TouchableOpacity>
-          
-          <TouchableOpacity 
-            style={styles.settingButton}
-            onPress={() => Alert.alert('عدم الإزعاج', 'تحديد أوقات عدم إرسال التنبيهات')}
-          >
-            <IconSymbol size={24} name="moon.fill" color="#9C27B0" />
-            <ThemedText style={styles.settingButtonText}>أوقات عدم الإزعاج</ThemedText>
-            <IconSymbol size={16} name="chevron.left" color="#666" />
-          </TouchableOpacity>
-          
-          <TouchableOpacity 
-            style={styles.settingButton}
-            onPress={() => Alert.alert('نسخ احتياطي', 'إنشاء نسخة احتياطية من التنبيهات')}
-          >
-            <IconSymbol size={24} name="icloud.and.arrow.up.fill" color="#4CAF50" />
-            <ThemedText style={styles.settingButtonText}>النسخ الاحتياطي</ThemedText>
-            <IconSymbol size={16} name="chevron.left" color="#666" />
-          </TouchableOpacity>
-        </ThemedView>
-      </ThemedView>
-    </ScrollView>
+              {/* إعدادات التنبيهات */}
+              <ThemedView style={styles.settingsSection}>
+                <ThemedText type="subtitle" style={styles.sectionTitle}>
+                  إعدادات التنبيهات
+                </ThemedText>
+                
+                <TouchableOpacity 
+                  style={styles.settingButton}
+                  onPress={() => Alert.alert('إعدادات الصوت', 'تخصيص أصوات التنبيهات والاهتزاز')}
+                >
+                  <IconSymbol size={24} name="speaker.wave.2.fill" color="#007AFF" />
+                  <ThemedText style={styles.settingButtonText}>إعدادات الصوت والاهتزاز</ThemedText>
+                  <IconSymbol size={16} name="chevron.left" color="#666" />
+                </TouchableOpacity>
+                
+                <TouchableOpacity 
+                  style={styles.settingButton}
+                  onPress={() => Alert.alert('عدم الإزعاج', 'تحديد أوقات عدم إرسال التنبيهات')}
+                >
+                  <IconSymbol size={24} name="moon.fill" color="#9C27B0" />
+                  <ThemedText style={styles.settingButtonText}>أوقات عدم الإزعاج</ThemedText>
+                  <IconSymbol size={16} name="chevron.left" color="#666" />
+                </TouchableOpacity>
+                
+                <TouchableOpacity 
+                  style={styles.settingButton}
+                  onPress={() => Alert.alert('نسخ احتياطي', 'إنشاء نسخة احتياطية من التنبيهات')}
+                >
+                  <IconSymbol size={24} name="icloud.and.arrow.up.fill" color="#4CAF50" />
+                  <ThemedText style={styles.settingButtonText}>النسخ الاحتياطي</ThemedText>
+                  <IconSymbol size={16} name="chevron.left" color="#666" />
+                </TouchableOpacity>
+              </ThemedView>
+            </ThemedView>
+          </ScrollView>
+        </ExpoLinearGradient>
+      </ImageBackground>
+    </ThemedView>
   );
 }
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#f8f9fa',
+  },
+  backgroundImage: {
+    flex: 1,
+    width: '100%',
+    height: '100%',
+  },
+  gradientOverlay: {
+    flex: 1,
+  },
+  scrollContainer: {
+    flex: 1,
   },
   header: {
-    backgroundColor: '#F44336',
-    padding: 20,
-    paddingTop: 40,
     alignItems: 'center',
+    padding: 30,
+    backgroundColor: 'transparent',
     position: 'relative',
   },
   backButton: {
@@ -485,23 +512,42 @@ const styles = StyleSheet.create({
     right: 20,
     padding: 10,
   },
+  iconContainer: {
+    marginBottom: 20,
+    padding: 20,
+    backgroundColor: '#F8F9FA',
+    borderRadius: 50,
+    borderWidth: 1,
+    borderColor: '#E5E5EA',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 6 },
+    shadowOpacity: 0.25,
+    shadowRadius: 12,
+    elevation: 10,
+  },
   title: {
-    color: '#fff',
+    fontSize: 28,
+    fontWeight: 'bold',
+    marginTop: 15,
+    marginBottom: 10,
     textAlign: 'center',
-    marginVertical: 15,
+    writingDirection: 'rtl',
+    color: '#000000',
   },
   subtitle: {
-    color: '#fff',
+    fontSize: 16,
+    color: '#666666',
     textAlign: 'center',
-    opacity: 0.9,
-    marginBottom: 10,
+    writingDirection: 'rtl',
+    marginBottom: 20,
   },
   content: {
-    flex: 1,
-    padding: 15,
+    padding: 20,
+    backgroundColor: 'transparent',
   },
   statsContainer: {
     marginBottom: 25,
+    backgroundColor: 'transparent',
   },
   statsGrid: {
     flexDirection: 'row',
@@ -509,34 +555,41 @@ const styles = StyleSheet.create({
   },
   statCard: {
     flex: 1,
-    backgroundColor: '#fff',
+    backgroundColor: '#e0f0f1',
     borderRadius: 12,
     padding: 15,
     alignItems: 'center',
-    elevation: 2,
+    borderWidth: 1,
+    borderColor: '#E5E5EA',
     shadowColor: '#000',
-    shadowOffset: { width: 0, height: 1 },
+    shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.1,
-    shadowRadius: 3,
+    shadowRadius: 4,
+    elevation: 3,
   },
   statNumber: {
     fontSize: 20,
     fontWeight: 'bold',
     marginVertical: 5,
-    color: '#333',
+    color: '#1c1f33',
   },
   statLabel: {
     fontSize: 12,
     color: '#666',
     textAlign: 'center',
+    writingDirection: 'rtl',
   },
   addSection: {
     marginBottom: 25,
+    backgroundColor: 'transparent',
   },
   sectionTitle: {
+    fontSize: 20,
+    fontWeight: 'bold',
     marginBottom: 15,
-    textAlign: 'right',
-    color: '#333',
+    color: '#1c1f33',
+    textAlign: 'center',
+    writingDirection: 'rtl',
   },
   addButtonsContainer: {
     flexDirection: 'row',
@@ -554,9 +607,11 @@ const styles = StyleSheet.create({
     color: '#fff',
     fontSize: 12,
     fontWeight: '600',
+    writingDirection: 'rtl',
   },
   filterSection: {
     marginBottom: 25,
+    backgroundColor: 'transparent',
   },
   filterRow: {
     marginBottom: 10,
@@ -568,23 +623,27 @@ const styles = StyleSheet.create({
     paddingHorizontal: 16,
     paddingVertical: 8,
     borderRadius: 20,
-    backgroundColor: '#fff',
+    backgroundColor: '#e0f0f1',
     marginRight: 10,
-    elevation: 1,
+    borderWidth: 1,
+    borderColor: '#E5E5EA',
     shadowColor: '#000',
-    shadowOffset: { width: 0, height: 1 },
+    shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.1,
-    shadowRadius: 2,
+    shadowRadius: 4,
+    elevation: 3,
   },
   filterButtonActive: {
-    backgroundColor: '#007AFF',
+    backgroundColor: '#add4ce',
   },
   filterButtonText: {
     fontSize: 14,
-    color: '#666',
+    color: '#1c1f33',
+    writingDirection: 'rtl',
   },
   filterButtonTextActive: {
-    color: '#fff',
+    color: '#1c1f33',
+    fontWeight: 'bold',
   },
   typeFilterButton: {
     flexDirection: 'row',
@@ -592,27 +651,32 @@ const styles = StyleSheet.create({
     paddingHorizontal: 12,
     paddingVertical: 6,
     borderRadius: 16,
-    backgroundColor: '#fff',
+    backgroundColor: '#e0f0f1',
     marginRight: 8,
     gap: 6,
-    elevation: 1,
+    borderWidth: 1,
+    borderColor: '#E5E5EA',
     shadowColor: '#000',
-    shadowOffset: { width: 0, height: 1 },
+    shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.1,
-    shadowRadius: 2,
+    shadowRadius: 4,
+    elevation: 3,
   },
   typeFilterButtonActive: {
-    backgroundColor: '#007AFF',
+    backgroundColor: '#add4ce',
   },
   typeFilterButtonText: {
     fontSize: 12,
-    color: '#666',
+    color: '#1c1f33',
+    writingDirection: 'rtl',
   },
   typeFilterButtonTextActive: {
-    color: '#fff',
+    color: '#1c1f33',
+    fontWeight: 'bold',
   },
   alertsSection: {
     marginBottom: 25,
+    backgroundColor: 'transparent',
   },
   alertsHeader: {
     flexDirection: 'row',
@@ -621,34 +685,45 @@ const styles = StyleSheet.create({
     marginBottom: 15,
   },
   emptyState: {
-    backgroundColor: '#fff',
+    backgroundColor: '#e0f0f1',
     borderRadius: 12,
     padding: 40,
     alignItems: 'center',
     gap: 10,
+    borderWidth: 1,
+    borderColor: '#E5E5EA',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    elevation: 3,
   },
   emptyText: {
     fontSize: 16,
     color: '#666',
     textAlign: 'center',
+    writingDirection: 'rtl',
   },
   emptySubtext: {
     fontSize: 14,
     color: '#999',
     textAlign: 'center',
+    writingDirection: 'rtl',
   },
   alertsList: {
     gap: 12,
   },
   alertCard: {
-    backgroundColor: '#fff',
+    backgroundColor: '#e0f0f1',
     borderRadius: 12,
     padding: 15,
-    elevation: 1,
+    borderWidth: 1,
+    borderColor: '#E5E5EA',
     shadowColor: '#000',
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.05,
-    shadowRadius: 2,
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    elevation: 3,
   },
   inactiveAlertCard: {
     opacity: 0.6,
@@ -677,9 +752,10 @@ const styles = StyleSheet.create({
   alertTitle: {
     fontSize: 16,
     fontWeight: '600',
-    color: '#333',
+    color: '#1c1f33',
     textAlign: 'right',
     marginBottom: 4,
+    writingDirection: 'rtl',
   },
   alertDescription: {
     fontSize: 14,
@@ -687,6 +763,7 @@ const styles = StyleSheet.create({
     textAlign: 'right',
     marginBottom: 8,
     lineHeight: 18,
+    writingDirection: 'rtl',
   },
   alertMeta: {
     flexDirection: 'row',
@@ -696,6 +773,7 @@ const styles = StyleSheet.create({
   alertDateTime: {
     fontSize: 12,
     color: '#999',
+    writingDirection: 'rtl',
   },
   priorityBadge: {
     paddingHorizontal: 8,
@@ -705,6 +783,7 @@ const styles = StyleSheet.create({
   priorityText: {
     fontSize: 10,
     fontWeight: '600',
+    writingDirection: 'rtl',
   },
   alertActions: {
     alignItems: 'flex-end',
@@ -720,16 +799,19 @@ const styles = StyleSheet.create({
     color: '#fff',
     fontSize: 10,
     fontWeight: '600',
+    writingDirection: 'rtl',
   },
   pastText: {
     fontSize: 10,
     color: '#999',
     fontStyle: 'italic',
+    writingDirection: 'rtl',
   },
   daysUntilText: {
     fontSize: 10,
     color: '#007AFF',
     fontWeight: '600',
+    writingDirection: 'rtl',
   },
   toggleButton: {
     padding: 8,
@@ -739,25 +821,29 @@ const styles = StyleSheet.create({
   },
   settingsSection: {
     marginBottom: 20,
+    backgroundColor: 'transparent',
   },
   settingButton: {
-    backgroundColor: '#fff',
+    backgroundColor: '#e0f0f1',
     borderRadius: 12,
     padding: 15,
     flexDirection: 'row',
     alignItems: 'center',
     gap: 15,
     marginBottom: 10,
-    elevation: 1,
+    borderWidth: 1,
+    borderColor: '#E5E5EA',
     shadowColor: '#000',
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.05,
-    shadowRadius: 2,
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    elevation: 3,
   },
   settingButtonText: {
     flex: 1,
     fontSize: 16,
-    color: '#333',
+    color: '#1c1f33',
     textAlign: 'right',
+    writingDirection: 'rtl',
   },
 });
