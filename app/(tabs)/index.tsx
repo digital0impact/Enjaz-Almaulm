@@ -297,11 +297,11 @@ export default function HomeScreen() {
                 <ThemedView style={styles.content}>
                   <ThemedView style={[styles.actionButtons, { backgroundColor: 'transparent' }]}>
                     <TouchableOpacity onPress={() => router.push('/settings')} style={styles.editButton}>
-                      <IconSymbol size={20} name="wrench.fill" color="white" />
+                      <IconSymbol size={20} name="wrench.fill" color="#1c1f33" />
                       <ThemedText style={styles.buttonText}>الإعدادات</ThemedText>
                     </TouchableOpacity>
-                    <TouchableOpacity onPress={handleLogout} style={styles.cancelButton}>
-                      <IconSymbol size={20} name="arrow.right.square" color="white" />
+                    <TouchableOpacity onPress={handleLogout} style={styles.editButton}>
+                      <IconSymbol size={20} name="arrow.right.square" color="#1c1f33" />
                       <ThemedText style={styles.buttonText}>تسجيل الخروج</ThemedText>
                     </TouchableOpacity>
                   </ThemedView>
