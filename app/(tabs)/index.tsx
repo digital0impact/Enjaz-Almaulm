@@ -21,8 +21,8 @@ export default function HomeScreen() {
   }, []);
 
   useEffect(() => {
-    // إخفاء شريط التنقل في شاشات الترحيب وتسجيل الدخول
-    if (!isLoggedIn) {
+    // إخفاء شريط التنقل في شاشات الترحيب وتسجيل الدخول فقط
+    if (currentScreen === 'welcome' || currentScreen === 'login') {
       navigation.setOptions({
         tabBarStyle: { display: 'none' }
       });
@@ -31,7 +31,7 @@ export default function HomeScreen() {
         tabBarStyle: { display: 'flex' }
       });
     }
-  }, [isLoggedIn, navigation]);
+  }, [currentScreen, navigation]);
 
   const loadTeacherName = async () => {
     try {
