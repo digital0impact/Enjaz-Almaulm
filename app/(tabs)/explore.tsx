@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { StyleSheet, ScrollView, TouchableOpacity, ImageBackground, Platform } from 'react-native';
 import { LinearGradient as ExpoLinearGradient } from 'expo-linear-gradient';
@@ -101,32 +102,32 @@ export default function ExploreScreen() {
             </ThemedView>
 
             <ThemedView style={styles.content}>
-              <ThemedView style={styles.toolsGrid}>
-                {tools.map((tool) => (
-                  <TouchableOpacity
-                    key={tool.id}
-                    style={styles.toolCard}
-                    onPress={() => router.push(tool.route)}
-                  >
-                    <ThemedView style={styles.toolCardContent}>
-                      <ThemedView style={[styles.toolIconContainer, { backgroundColor: tool.color + '20' }]}>
-                        <IconSymbol size={32} name={tool.icon} color={tool.color} />
-                      </ThemedView>
-                      <ThemedView style={styles.toolInfo}>
-                        <ThemedText style={styles.toolTitle}>
-                          {tool.title}
-                        </ThemedText>
-                        <ThemedText style={styles.toolDescription}>
-                          {tool.description}
-                        </ThemedText>
-                      </ThemedView>
-                      <ThemedView style={styles.toolArrow}>
-                        <IconSymbol size={16} name="chevron.left" color="#666" />
+              {tools.map((tool) => (
+                <TouchableOpacity
+                  key={tool.id}
+                  style={styles.dataCard}
+                  onPress={() => router.push(tool.route)}
+                >
+                  <ThemedView style={styles.cardContent}>
+                    <ThemedView style={styles.cardIconContainer}>
+                      <ThemedView style={[styles.iconBackground, { backgroundColor: tool.color + '20' }]}>
+                        <IconSymbol size={28} name={tool.icon} color={tool.color} />
                       </ThemedView>
                     </ThemedView>
-                  </TouchableOpacity>
-                ))}
-              </ThemedView>
+                    <ThemedView style={styles.cardTextContainer}>
+                      <ThemedText style={styles.cardTitle}>
+                        {tool.title}
+                      </ThemedText>
+                      <ThemedText style={styles.cardDescription}>
+                        {tool.description}
+                      </ThemedText>
+                    </ThemedView>
+                    <ThemedView style={styles.cardArrow}>
+                      <IconSymbol size={16} name="chevron.left" color="#8E8E93" />
+                    </ThemedView>
+                  </ThemedView>
+                </TouchableOpacity>
+              ))}
 
               <ThemedView style={styles.helpSection}>
                 <ThemedText type="subtitle" style={styles.helpTitle}>
@@ -165,10 +166,14 @@ const styles = StyleSheet.create({
   },
   scrollContainer: {
     flex: 1,
+    paddingHorizontal: 30,
+    paddingBottom: 30,
+    backgroundColor: 'transparent',
   },
   header: {
     alignItems: 'center',
-    padding: 30,
+    paddingTop: Platform.OS === 'ios' ? 60 : 40,
+    paddingBottom: 30,
     backgroundColor: 'transparent',
   },
   iconContainer: {
@@ -187,7 +192,6 @@ const styles = StyleSheet.create({
   title: {
     fontSize: 28,
     fontWeight: 'bold',
-    marginTop: 15,
     marginBottom: 10,
     textAlign: 'center',
     writingDirection: 'rtl',
@@ -201,68 +205,74 @@ const styles = StyleSheet.create({
     marginBottom: 20,
   },
   content: {
-    padding: 20,
     backgroundColor: 'transparent',
-  },
-  toolsGrid: {
     gap: 15,
-    marginBottom: 30,
   },
-  toolCard: {
-    backgroundColor: '#e0f0f1',
-    borderRadius: 12,
+  dataCard: {
+    backgroundColor: '#FFFFFF',
+    borderRadius: 15,
+    marginBottom: 12,
     borderWidth: 1,
     borderColor: '#E5E5EA',
     shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
-    elevation: 3,
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.15,
+    shadowRadius: 8,
+    elevation: 6,
   },
-  toolCardContent: {
+  cardContent: {
     flexDirection: 'row',
     alignItems: 'center',
-    padding: 15,
+    padding: 20,
     gap: 15,
   },
-  toolIconContainer: {
-    width: 60,
-    height: 60,
-    borderRadius: 30,
-    justifyContent: 'center',
+  cardIconContainer: {
     alignItems: 'center',
+    justifyContent: 'center',
   },
-  toolInfo: {
+  iconBackground: {
+    width: 55,
+    height: 55,
+    borderRadius: 27.5,
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderWidth: 1,
+    borderColor: 'rgba(0,0,0,0.08)',
+  },
+  cardTextContainer: {
     flex: 1,
+    alignItems: 'flex-end',
   },
-  toolTitle: {
-    fontSize: 16,
+  cardTitle: {
+    fontSize: 18,
     fontWeight: 'bold',
-    color: '#1c1f33',
+    color: '#1C1C1E',
     textAlign: 'right',
     writingDirection: 'rtl',
     marginBottom: 4,
   },
-  toolDescription: {
+  cardDescription: {
     fontSize: 14,
-    color: '#666',
+    color: '#8E8E93',
     textAlign: 'right',
     writingDirection: 'rtl',
+    lineHeight: 20,
   },
-  toolArrow: {
+  cardArrow: {
     padding: 8,
   },
   helpSection: {
     backgroundColor: '#add4ce',
-    borderRadius: 12,
-    padding: 20,
+    borderRadius: 15,
+    padding: 25,
+    marginTop: 20,
     borderWidth: 1,
     borderColor: '#E5E5EA',
     shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
-    elevation: 3,
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.15,
+    shadowRadius: 8,
+    elevation: 6,
   },
   helpTitle: {
     fontSize: 20,
@@ -277,23 +287,23 @@ const styles = StyleSheet.create({
     color: '#666',
     textAlign: 'center',
     writingDirection: 'rtl',
-    marginBottom: 15,
-    lineHeight: 20,
+    marginBottom: 20,
+    lineHeight: 22,
   },
   helpButton: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
     backgroundColor: '#F8F9FA',
-    paddingVertical: 12,
-    paddingHorizontal: 20,
+    paddingVertical: 15,
+    paddingHorizontal: 25,
     borderRadius: 25,
-    gap: 8,
+    gap: 10,
     shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
-    elevation: 3,
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.15,
+    shadowRadius: 8,
+    elevation: 6,
   },
   helpButtonText: {
     color: '#1c1f33',
