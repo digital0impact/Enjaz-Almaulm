@@ -105,7 +105,7 @@ export default function ExploreScreen() {
               {tools.map((tool) => (
                 <TouchableOpacity
                   key={tool.id}
-                  style={styles.dataCard}
+                  style={styles.toolCard}
                   onPress={() => router.push(tool.route)}
                 >
                   <ThemedView style={styles.cardContent}>
@@ -166,7 +166,7 @@ const styles = StyleSheet.create({
   },
   scrollContainer: {
     flex: 1,
-    paddingHorizontal: 30,
+    paddingHorizontal: 20,
     paddingBottom: 30,
     backgroundColor: 'transparent',
   },
@@ -208,7 +208,7 @@ const styles = StyleSheet.create({
     backgroundColor: 'transparent',
     gap: 15,
   },
-  dataCard: {
+  toolCard: {
     backgroundColor: '#FFFFFF',
     borderRadius: 15,
     marginBottom: 12,
