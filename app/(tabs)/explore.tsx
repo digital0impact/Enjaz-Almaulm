@@ -37,17 +37,6 @@ export default function ExploreScreen() {
               <ThemedView style={styles.toolsGrid}>
                 <TouchableOpacity 
                   style={styles.toolCard}
-                  onPress={() => router.push('/calendar')}
-                >
-                  <ThemedView style={styles.toolIconWrapper}>
-                    <IconSymbol size={28} name="calendar" color="#007AFF" />
-                  </ThemedView>
-                  <ThemedText style={styles.toolTitle}>التقويم الهجري والميلادي</ThemedText>
-                  <ThemedText style={styles.toolDescription}>عرض التقويم بالتاريخين الهجري والميلادي</ThemedText>
-                </TouchableOpacity>
-
-                <TouchableOpacity 
-                  style={styles.toolCard}
                   onPress={() => router.push('/official-holidays')}
                 >
                   <ThemedView style={styles.toolIconWrapper}>
@@ -55,6 +44,17 @@ export default function ExploreScreen() {
                   </ThemedView>
                   <ThemedText style={styles.toolTitle}>الإجازات الرسمية</ThemedText>
                   <ThemedText style={styles.toolDescription}>جدول الإجازات والعطل الرسمية</ThemedText>
+                </TouchableOpacity>
+
+                <TouchableOpacity 
+                  style={styles.toolCard}
+                  onPress={() => router.push('/calendar')}
+                >
+                  <ThemedView style={styles.toolIconWrapper}>
+                    <IconSymbol size={28} name="calendar" color="#007AFF" />
+                  </ThemedView>
+                  <ThemedText style={styles.toolTitle}>التقويم الهجري والميلادي</ThemedText>
+                  <ThemedText style={styles.toolDescription}>عرض التقويم بالتاريخين الهجري والميلادي</ThemedText>
                 </TouchableOpacity>
 
                 <TouchableOpacity 
