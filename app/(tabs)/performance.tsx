@@ -494,33 +494,6 @@ export default function PerformanceScreen() {
                           {selectedEvidence?.performanceId === item.id && selectedEvidence?.evidenceIndex === index && (
                             <ThemedView style={styles.evidenceDropdown}>
                               <ThemedText style={styles.evidenceDropdownTitle}>تفاصيل الشاهد:</ThemedText>
-                              <ThemedView style={styles.evidenceDropdownActions}>
-                                <TouchableOpacity 
-                                  style={styles.statusToggleButton}
-                                  onPress={() => toggleEvidenceStatus(item.id, index)}
-                                >
-                                  <IconSymbol 
-                                    size={16} 
-                                    name={evidenceItem.available ? "xmark.circle" : "checkmark.circle"} 
-                                    color={evidenceItem.available ? "#F44336" : "#4CAF50"} 
-                                  />
-                                  <ThemedText style={styles.statusToggleText}>
-                                    {evidenceItem.available ? 'تعيين كغير متوفر' : 'تعيين كمتوفر'}
-                                  </ThemedText>
-                                </TouchableOpacity>
-                                
-                                <TouchableOpacity 
-                                  style={styles.viewFileButton}
-                                  onPress={() => Alert.alert('عرض الملف', `عرض ملف: ${evidenceItem.name}`)}
-                                >
-                                  <IconSymbol 
-                                    size={16} 
-                                    name="eye.fill" 
-                                    color="#2196F3" 
-                                  />
-                                  <ThemedText style={styles.viewFileText}>عرض الملف</ThemedText>
-                                </TouchableOpacity>
-                              </ThemedView>
                             </ThemedView>
                           )}
                         </ThemedView>
