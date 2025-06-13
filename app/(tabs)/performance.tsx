@@ -573,10 +573,10 @@ export default function PerformanceScreen() {
         <ThemedView style={styles.actionButtons}>
           <TouchableOpacity 
             style={styles.reportButton}
-            onPress={() => router.push('/interactive-report')}
+            onPress={() => router.push('/detailed-report')}
           >
             <IconSymbol size={20} name="doc.text.fill" color="#1c1f33" />
-            <ThemedText style={[styles.buttonText, { color: '#1c1f33' }]}>تقرير تفاعلي</ThemedText>
+            <ThemedText style={[styles.buttonText, { color: '#1c1f33' }]}>التقرير التفصيلي</ThemedText>
           </TouchableOpacity>
 
           <TouchableOpacity 

@@ -312,11 +312,14 @@ export default function HomeScreen() {
                     </ThemedText>
 
                     <ThemedView style={styles.actionsGrid}>
-                      <TouchableOpacity style={styles.dataItem}>
+                      <TouchableOpacity 
+                        style={styles.dataItem}
+                        onPress={() => router.push('/detailed-report')}
+                      >
                         <ThemedView style={styles.iconWrapper}>
-                          <IconSymbol size={28} name="plus.circle.fill" color="#1c1f33" />
+                          <IconSymbol size={28} name="doc.text.fill" color="#1c1f33" />
                         </ThemedView>
-                        <ThemedText style={styles.actionText}>عرض التقرير التفاعلي</ThemedText>
+                        <ThemedText style={styles.actionText}>عرض التقرير التفصيلي</ThemedText>
                       </TouchableOpacity>
 
                       <TouchableOpacity 
