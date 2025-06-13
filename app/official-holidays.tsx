@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { StyleSheet, ScrollView, TouchableOpacity, Alert, I18nManager } from 'react-native';
 import { ThemedText } from '@/components/ThemedText';
@@ -260,7 +259,7 @@ export default function OfficialHolidaysScreen() {
               const daysUntil = getDaysUntilHoliday(holiday.date);
               const isPast = daysUntil < 0;
               const isToday = daysUntil === 0;
-              
+
               return (
                 <TouchableOpacity
                   key={holiday.id}
@@ -282,7 +281,7 @@ export default function OfficialHolidaysScreen() {
                         color={getHolidayColor(holiday.category)} 
                       />
                     </ThemedView>
-                    
+
                     <ThemedView style={styles.holidayInfo}>
                       <ThemedText style={[styles.holidayName, isPast && styles.pastText]}>
                         {holiday.nameAr}
@@ -295,7 +294,7 @@ export default function OfficialHolidaysScreen() {
                         {holiday.description}
                       </ThemedText>
                     </ThemedView>
-                    
+
                     <ThemedView style={styles.holidayMeta}>
                       {isToday ? (
                         <ThemedView style={styles.todayBadge}>
@@ -309,7 +308,7 @@ export default function OfficialHolidaysScreen() {
                           <ThemedText style={styles.countdownSmallLabel}>يوم</ThemedText>
                         </ThemedView>
                       )}
-                      
+
                       {holiday.duration > 1 && (
                         <ThemedView style={styles.durationBadge}>
                           <ThemedText style={styles.durationText}>
@@ -323,40 +322,6 @@ export default function OfficialHolidaysScreen() {
               );
             })}
           </ThemedView>
-        </ThemedView>
-
-        {/* أدوات إضافية */}
-        <ThemedView style={styles.toolsSection}>
-          <ThemedText type="subtitle" style={styles.sectionTitle}>
-            أدوات مفيدة
-          </ThemedText>
-          
-          <TouchableOpacity 
-            style={styles.toolButton}
-            onPress={() => Alert.alert('محول التاريخ', 'أداة تحويل التواريخ بين الهجري والميلادي')}
-          >
-            <IconSymbol size={24} name="arrow.triangle.2.circlepath" color="#007AFF" />
-            <ThemedText style={styles.toolButtonText}>محول التاريخ الهجري/الميلادي</ThemedText>
-            <IconSymbol size={16} name="chevron.left" color="#666" />
-          </TouchableOpacity>
-          
-          <TouchableOpacity 
-            style={styles.toolButton}
-            onPress={() => Alert.alert('تذكير الإجازات', 'إعداد تنبيهات للإجازات القادمة')}
-          >
-            <IconSymbol size={24} name="bell.badge.fill" color="#FF9800" />
-            <ThemedText style={styles.toolButtonText}>تذكير الإجازات</ThemedText>
-            <IconSymbol size={16} name="chevron.left" color="#666" />
-          </TouchableOpacity>
-          
-          <TouchableOpacity 
-            style={styles.toolButton}
-            onPress={() => Alert.alert('إحصائيات سنوية', 'عرض إحصائيات مفصلة عن الإجازات')}
-          >
-            <IconSymbol size={24} name="chart.bar.xaxis" color="#4CAF50" />
-            <ThemedText style={styles.toolButtonText}>الإحصائيات السنوية</ThemedText>
-            <IconSymbol size={16} name="chevron.left" color="#666" />
-          </TouchableOpacity>
         </ThemedView>
       </ThemedView>
     </ScrollView>
@@ -607,28 +572,5 @@ const styles = StyleSheet.create({
   },
   pastText: {
     color: '#999',
-  },
-  toolsSection: {
-    marginBottom: 20,
-  },
-  toolButton: {
-    backgroundColor: '#fff',
-    borderRadius: 12,
-    padding: 15,
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 15,
-    marginBottom: 10,
-    elevation: 1,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.05,
-    shadowRadius: 2,
-  },
-  toolButtonText: {
-    flex: 1,
-    fontSize: 16,
-    color: '#333',
-    textAlign: 'right',
   },
 });
