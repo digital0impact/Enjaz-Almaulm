@@ -192,6 +192,7 @@ export default function CommentsScreen() {
                     value={newComment.title}
                     onChangeText={(text) => setNewComment({ ...newComment, title: text })}
                     textAlign="right"
+                    writingDirection="rtl"
                   />
 
                   <TextInput
@@ -202,6 +203,7 @@ export default function CommentsScreen() {
                     multiline
                     numberOfLines={4}
                     textAlign="right"
+                    writingDirection="rtl"
                   />
 
                   <ThemedView style={styles.selectionRow}>
@@ -451,6 +453,8 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.1,
     shadowRadius: 4,
     elevation: 3,
+    textAlign: 'right',
+    writingDirection: 'rtl',
   },
   textArea: {
     height: 100,
