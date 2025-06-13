@@ -1,6 +1,6 @@
 
 import React, { useState } from 'react';
-import { StyleSheet, ScrollView, TouchableOpacity, I18nManager, ImageBackground, KeyboardAvoidingView, Platform } from 'react-native';
+import { StyleSheet, ScrollView, TouchableOpacity, I18nManager, ImageBackground, KeyboardAvoidingView, Platform, StatusBar } from 'react-native';
 import { LinearGradient as ExpoLinearGradient } from 'expo-linear-gradient';
 import { ThemedText } from '@/components/ThemedText';
 import { ThemedView } from '@/components/ThemedView';
@@ -236,6 +236,11 @@ export default function AzkarScreen() {
 
   return (
     <ThemedView style={styles.container}>
+      <StatusBar 
+        barStyle="dark-content" 
+        backgroundColor="transparent" 
+        translucent={true}
+      />
       <ImageBackground
         source={require('@/assets/images/background.png')}
         style={styles.backgroundImage}
@@ -388,7 +393,9 @@ const styles = StyleSheet.create({
   },
   header: {
     alignItems: 'center',
-    padding: 30,
+    paddingTop: Platform.OS === 'ios' ? 60 : 50,
+    paddingHorizontal: 30,
+    paddingBottom: 30,
     backgroundColor: 'transparent',
   },
   iconContainer: {
