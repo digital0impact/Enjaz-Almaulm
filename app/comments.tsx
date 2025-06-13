@@ -161,12 +161,14 @@ export default function CommentsScreen() {
               </TouchableOpacity>
 
               <ThemedView style={styles.headerContent}>
-                <ThemedView style={styles.iconContainer}>
-                  <IconSymbol size={50} name="text.bubble.fill" color="#1c1f33" />
+                <ThemedView style={styles.titleRow}>
+                  <ThemedView style={styles.headerIcon}>
+                    <IconSymbol size={32} name="text.bubble.fill" color="#1c1f33" />
+                  </ThemedView>
+                  <ThemedText type="title" style={styles.title}>
+                    التعليقات والملاحظات
+                  </ThemedText>
                 </ThemedView>
-                <ThemedText type="title" style={styles.title}>
-                  التعليقات والملاحظات
-                </ThemedText>
                 <ThemedText style={styles.subtitle}>
                   إدارة التعليقات والملاحظات المهنية
                 </ThemedText>
@@ -364,18 +366,24 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     flex: 1,
   },
-  iconContainer: {
-    marginBottom: 15,
-    padding: 20,
-    backgroundColor: '#F8F9FA',
-    borderRadius: 50,
+  titleRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 15,
+    marginBottom: 10,
+  },
+  headerIcon: {
+    padding: 12,
+    backgroundColor: '#add4ce',
+    borderRadius: 25,
     borderWidth: 1,
     borderColor: '#E5E5EA',
     shadowColor: '#000',
-    shadowOffset: { width: 0, height: 6 },
-    shadowOpacity: 0.25,
-    shadowRadius: 12,
-    elevation: 10,
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.2,
+    shadowRadius: 8,
+    elevation: 8,
   },
   backButton: {
     padding: 10,
