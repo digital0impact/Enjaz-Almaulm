@@ -521,7 +521,7 @@ export default function AddStudentScreen() {
                   {/* أزرار الحفظ والإلغاء */}
                   <ThemedView style={styles.buttonContainer}>
                     <TouchableOpacity style={styles.saveButton} onPress={saveStudent}>
-                      <IconSymbol size={20} name="checkmark.circle.fill" color="#fff" />
+                      <IconSymbol size={16} name="checkmark.circle.fill" color="#1c1f33" />
                       <ThemedText style={styles.saveButtonText}>حفظ البيانات</ThemedText>
                     </TouchableOpacity>
 
@@ -897,21 +897,22 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: '#4CAF50',
-    paddingVertical: 15,
-    paddingHorizontal: 25,
-    borderRadius: 12,
-    gap: 10,
+    backgroundColor: '#add4ce',
+    paddingVertical: 12,
+    paddingHorizontal: 20,
+    borderRadius: 25,
+    gap: 8,
     shadowColor: '#000',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.2,
-    shadowRadius: 8,
-    elevation: 5,
+    shadowOffset: { width: 0, height: 6 },
+    shadowOpacity: 0.4,
+    shadowRadius: 12,
+    elevation: 12,
   },
   saveButtonText: {
-    color: '#fff',
-    fontSize: 16,
+    color: '#1c1f33',
+    fontSize: 14,
     fontWeight: '600',
+    writingDirection: 'rtl',
     textAlign: 'center',
   },
   cancelButton: {
