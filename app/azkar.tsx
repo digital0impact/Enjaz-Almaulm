@@ -204,8 +204,16 @@ const azkarData = [
 
 export default function AzkarScreen() {
   const router = useRouter();
-  const [selectedCategory, setSelectedCategory] = useState<number | null>(null);
+  const [expandedCategories, setExpandedCategories] = useState<number[]>([]);
   const [currentCounts, setCurrentCounts] = useState<{[key: string]: number}>({});
+
+  const toggleCategory = (categoryId: number) => {
+    setExpandedCategories(prev => 
+      prev.includes(categoryId) 
+        ? prev.filter(id => id !== categoryId)
+        : [...prev, categoryId]
+    );
+  };
 
   const handleCountIncrement = (categoryId: number, azkarIndex: number, maxCount: number) => {
     const key = `${categoryId}-${azkarIndex}`;
@@ -225,116 +233,6 @@ export default function AzkarScreen() {
       [key]: 0
     }));
   };
-
-  if (selectedCategory) {
-    const category = azkarData.find(cat => cat.id === selectedCategory);
-    if (!category) return null;
-
-    return (
-      <ThemedView style={styles.container}>
-        <ImageBackground
-          source={require('@/assets/images/background.png')}
-          style={styles.backgroundImage}
-          resizeMode="cover"
-        >
-          <ExpoLinearGradient
-            colors={['rgba(255,255,255,0.9)', 'rgba(225,245,244,0.95)', 'rgba(173,212,206,0.8)']}
-            style={styles.gradientOverlay}
-          >
-            <KeyboardAvoidingView
-              style={{ flex: 1 }}
-              behavior={Platform.OS === 'ios' ? 'padding' : undefined}
-            >
-              <ScrollView style={styles.scrollContainer}>
-                <ThemedView style={styles.header}>
-                  <ThemedView style={styles.iconContainer}>
-                    <IconSymbol size={60} name={category.icon as any} color="#1c1f33" />
-                  </ThemedView>
-                  <ThemedText type="title" style={styles.title}>
-                    {category.category}
-                  </ThemedText>
-                  <ThemedText style={styles.subtitle}>
-                    اختر الذكر لبدء العد
-                  </ThemedText>
-                </ThemedView>
-
-                <ThemedView style={styles.content}>
-                  <ThemedView style={[styles.actionButtons, { backgroundColor: 'transparent' }]}>
-                    <TouchableOpacity 
-                      style={styles.editButton}
-                      onPress={() => setSelectedCategory(null)}
-                    >
-                      <IconSymbol size={20} name="arrow.right" color="#1c1f33" />
-                      <ThemedText style={styles.buttonText}>العودة للفئات</ThemedText>
-                    </TouchableOpacity>
-                    <TouchableOpacity 
-                      style={styles.editButton}
-                      onPress={() => router.back()}
-                    >
-                      <IconSymbol size={20} name="house.fill" color="#1c1f33" />
-                      <ThemedText style={styles.buttonText}>الرئيسية</ThemedText>
-                    </TouchableOpacity>
-                  </ThemedView>
-
-                  <ThemedView style={[styles.dataSection, { backgroundColor: 'transparent' }]}>
-                    {category.azkar.map((zikr, index) => {
-                      const key = `${selectedCategory}-${index}`;
-                      const currentCount = currentCounts[key] || 0;
-                      const isCompleted = currentCount >= zikr.count;
-
-                      return (
-                        <ThemedView 
-                          key={index} 
-                          style={[
-                            styles.dataItem,
-                            isCompleted && styles.completedCard
-                          ]}
-                        >
-                          <ThemedText style={styles.azkarText}>
-                            {zikr.text}
-                          </ThemedText>
-                          
-                          <ThemedView style={styles.counterContainer}>
-                            <ThemedText style={styles.counterText}>
-                              {currentCount} / {zikr.count}
-                            </ThemedText>
-                            
-                            <ThemedView style={styles.counterButtons}>
-                              <TouchableOpacity 
-                                style={[
-                                  styles.counterButton,
-                                  isCompleted && styles.completedButton
-                                ]}
-                                onPress={() => handleCountIncrement(selectedCategory, index, zikr.count)}
-                                disabled={isCompleted}
-                              >
-                                <IconSymbol 
-                                  size={20} 
-                                  name={isCompleted ? "checkmark" : "plus"} 
-                                  color={isCompleted ? "#34C759" : "#1c1f33"} 
-                                />
-                              </TouchableOpacity>
-                              
-                              <TouchableOpacity 
-                                style={styles.resetButton}
-                                onPress={() => resetCount(selectedCategory, index)}
-                              >
-                                <IconSymbol size={16} name="arrow.clockwise" color="#FF3B30" />
-                              </TouchableOpacity>
-                            </ThemedView>
-                          </ThemedView>
-                        </ThemedView>
-                      );
-                    })}
-                  </ThemedView>
-                </ThemedView>
-              </ScrollView>
-            </KeyboardAvoidingView>
-          </ExpoLinearGradient>
-        </ImageBackground>
-      </ThemedView>
-    );
-  }
 
   return (
     <ThemedView style={styles.container}>
@@ -381,28 +279,87 @@ export default function AzkarScreen() {
                   </ThemedText>
                   
                   {azkarData.map((category) => (
-                    <TouchableOpacity
-                      key={category.id}
-                      style={[styles.dataItem, { borderLeftColor: category.color, borderLeftWidth: 4 }]}
-                      onPress={() => setSelectedCategory(category.id)}
-                    >
-                      <ThemedView style={styles.categoryContent}>
-                        <ThemedView style={styles.categoryIconContainer}>
-                          <IconSymbol size={24} name={category.icon as any} color="#1c1f33" />
+                    <ThemedView key={category.id} style={styles.categoryContainer}>
+                      <TouchableOpacity
+                        style={[styles.dataItem, { borderLeftColor: category.color, borderLeftWidth: 4 }]}
+                        onPress={() => toggleCategory(category.id)}
+                      >
+                        <ThemedView style={styles.categoryContent}>
+                          <ThemedView style={styles.categoryIconContainer}>
+                            <IconSymbol size={24} name={category.icon as any} color="#1c1f33" />
+                          </ThemedView>
+                          
+                          <ThemedView style={styles.categoryInfo}>
+                            <ThemedText style={styles.categoryTitle}>
+                              {category.category}
+                            </ThemedText>
+                            <ThemedText style={styles.categoryCount}>
+                              {category.azkar.length} {category.azkar.length === 1 ? 'ذكر' : 'أذكار'}
+                            </ThemedText>
+                          </ThemedView>
+                          
+                          <IconSymbol 
+                            size={20} 
+                            name={expandedCategories.includes(category.id) ? "chevron.up" : "chevron.down"} 
+                            color="#C7C7CC" 
+                          />
                         </ThemedView>
-                        
-                        <ThemedView style={styles.categoryInfo}>
-                          <ThemedText style={styles.categoryTitle}>
-                            {category.category}
-                          </ThemedText>
-                          <ThemedText style={styles.categoryCount}>
-                            {category.azkar.length} {category.azkar.length === 1 ? 'ذكر' : 'أذكار'}
-                          </ThemedText>
+                      </TouchableOpacity>
+
+                      {expandedCategories.includes(category.id) && (
+                        <ThemedView style={styles.azkarDropdown}>
+                          {category.azkar.map((zikr, index) => {
+                            const key = `${category.id}-${index}`;
+                            const currentCount = currentCounts[key] || 0;
+                            const isCompleted = currentCount >= zikr.count;
+
+                            return (
+                              <ThemedView 
+                                key={index} 
+                                style={[
+                                  styles.azkarItem,
+                                  isCompleted && styles.completedCard
+                                ]}
+                              >
+                                <ThemedText style={styles.azkarText}>
+                                  {zikr.text}
+                                </ThemedText>
+                                
+                                <ThemedView style={styles.counterContainer}>
+                                  <ThemedText style={styles.counterText}>
+                                    {currentCount} / {zikr.count}
+                                  </ThemedText>
+                                  
+                                  <ThemedView style={styles.counterButtons}>
+                                    <TouchableOpacity 
+                                      style={[
+                                        styles.counterButton,
+                                        isCompleted && styles.completedButton
+                                      ]}
+                                      onPress={() => handleCountIncrement(category.id, index, zikr.count)}
+                                      disabled={isCompleted}
+                                    >
+                                      <IconSymbol 
+                                        size={20} 
+                                        name={isCompleted ? "checkmark" : "plus"} 
+                                        color={isCompleted ? "#34C759" : "#1c1f33"} 
+                                      />
+                                    </TouchableOpacity>
+                                    
+                                    <TouchableOpacity 
+                                      style={styles.resetButton}
+                                      onPress={() => resetCount(category.id, index)}
+                                    >
+                                      <IconSymbol size={16} name="arrow.clockwise" color="#FF3B30" />
+                                    </TouchableOpacity>
+                                  </ThemedView>
+                                </ThemedView>
+                              </ThemedView>
+                            );
+                          })}
                         </ThemedView>
-                        
-                        <IconSymbol size={20} name="chevron.left" color="#C7C7CC" />
-                      </ThemedView>
-                    </TouchableOpacity>
+                      )}
+                    </ThemedView>
                   ))}
                 </ThemedView>
               </ThemedView>
@@ -503,8 +460,10 @@ const styles = StyleSheet.create({
     textAlign: 'center',
     writingDirection: 'rtl',
   },
+  categoryContainer: {
+    marginBottom: 10,
+  },
   dataItem: {
-    marginBottom: 20,
     padding: 15,
     backgroundColor: '#e0f0f1',
     borderRadius: 12,
@@ -515,11 +474,6 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.1,
     shadowRadius: 4,
     elevation: 3,
-  },
-  completedCard: {
-    backgroundColor: '#F0F9F0',
-    borderWidth: 2,
-    borderColor: '#34C759',
   },
   categoryContent: {
     flexDirection: I18nManager.isRTL ? 'row-reverse' : 'row',
@@ -558,6 +512,29 @@ const styles = StyleSheet.create({
     color: '#8E8E93',
     textAlign: 'right',
     writingDirection: 'rtl',
+  },
+  azkarDropdown: {
+    marginTop: 10,
+    backgroundColor: 'transparent',
+    paddingHorizontal: 10,
+  },
+  azkarItem: {
+    marginBottom: 15,
+    padding: 15,
+    backgroundColor: '#f7f9fa',
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: '#E5E5EA',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    elevation: 3,
+  },
+  completedCard: {
+    backgroundColor: '#F0F9F0',
+    borderWidth: 2,
+    borderColor: '#34C759',
   },
   azkarText: {
     fontSize: 16,
