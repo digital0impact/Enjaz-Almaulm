@@ -391,7 +391,7 @@ export default function PerformanceScreen() {
                   <ThemedView style={styles.evidenceTitleSection}>
                     <ThemedText style={styles.evidenceTitle}>الشواهد المطلوبة:</ThemedText>
                   </ThemedView>
-                  
+
                   <ThemedView style={styles.addEvidenceSection}>
                     <TouchableOpacity 
                       style={styles.addEvidenceButton}
@@ -452,7 +452,7 @@ export default function PerformanceScreen() {
                             />
                           </TouchableOpacity>
                           <IconSymbol 
-                            size={10} 
+                            size={8} 
                             name={evidenceItem.available ? "checkmark" : "xmark"} 
                             color={evidenceItem.available ? "#4CAF50" : "#F44336"} 
                           />
