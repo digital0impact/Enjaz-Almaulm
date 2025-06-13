@@ -153,8 +153,8 @@ export default function CalendarScreen() {
 
             {/* عرض التاريخ الحالي */}
             <ThemedView style={styles.currentDateSection}>
-              <ThemedText style={styles.sectionTitle}>
-                📅 التاريخ اليوم
+              <ThemedText style={[styles.sectionTitle, { textAlign: 'center' }]}>
+                📅 تاريخ اليوم
               </ThemedText>
               
               <ThemedView style={styles.dateContainer}>
