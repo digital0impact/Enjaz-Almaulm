@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { StyleSheet, ScrollView, TouchableOpacity, Alert, I18nManager, ImageBackground, Dimensions } from 'react-native';
 import { LinearGradient as ExpoLinearGradient } from 'expo-linear-gradient';
@@ -136,23 +135,23 @@ export default function AlertsManagementScreen() {
 
     const updatedAlerts = [...alerts, newAlert];
     saveAlerts(updatedAlerts);
-    
+
     Alert.alert('تم الإضافة', `تم إضافة تنبيه ${type} جديد بنجاح`);
   };
 
   const getFilteredAlerts = () => {
     let filtered = alerts;
-    
+
     if (filter === 'active') {
       filtered = filtered.filter(alert => alert.active);
     } else if (filter === 'inactive') {
       filtered = filtered.filter(alert => !alert.active);
     }
-    
+
     if (typeFilter !== 'all') {
       filtered = filtered.filter(alert => alert.type === typeFilter);
     }
-    
+
     return filtered.sort((a, b) => new Date(a.date + ' ' + a.time).getTime() - new Date(b.date + ' ' + b.time).getTime());
   };
 
@@ -246,13 +245,13 @@ export default function AlertsManagementScreen() {
                     <ThemedText style={styles.statNumber}>{alerts.length}</ThemedText>
                     <ThemedText style={styles.statLabel}>إجمالي التنبيهات</ThemedText>
                   </ThemedView>
-                  
+
                   <ThemedView style={[styles.statCard, { backgroundColor: '#4CAF5015' }]}>
                     <IconSymbol size={28} name="bell.fill" color="#4CAF50" />
                     <ThemedText style={styles.statNumber}>{activeAlerts}</ThemedText>
                     <ThemedText style={styles.statLabel}>نشطة</ThemedText>
                   </ThemedView>
-                  
+
                   <ThemedView style={[styles.statCard, { backgroundColor: '#FF980015' }]}>
                     <IconSymbol size={28} name="clock.fill" color="#FF9800" />
                     <ThemedText style={styles.statNumber}>{upcomingAlerts}</ThemedText>
@@ -266,7 +265,7 @@ export default function AlertsManagementScreen() {
                 <ThemedText type="subtitle" style={styles.sectionTitle}>
                   إضافة تنبيه جديد
                 </ThemedText>
-                
+
                 <ScrollView 
                   horizontal 
                   showsHorizontalScrollIndicator={false} 
@@ -297,9 +296,14 @@ export default function AlertsManagementScreen() {
                 <ThemedText type="subtitle" style={styles.sectionTitle}>
                   تصفية التنبيهات
                 </ThemedText>
-                
+
                 <ThemedView style={styles.filterRow}>
-                  <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.filterContainer}>
+                  <ScrollView 
+                    horizontal 
+                    showsHorizontalScrollIndicator={false} 
+                    style={styles.filterContainer}
+                    contentContainerStyle={{ justifyContent: 'flex-end' }}
+                  >
                     {[
                       { key: 'all', label: 'الكل' },
                       { key: 'active', label: 'نشطة' },
@@ -323,9 +327,14 @@ export default function AlertsManagementScreen() {
                     ))}
                   </ScrollView>
                 </ThemedView>
-                
+
                 <ThemedView style={styles.filterRow}>
-                  <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.filterContainer}>
+                  <ScrollView 
+                    horizontal 
+                    showsHorizontalScrollIndicator={false} 
+                    style={styles.filterContainer}
+                    contentContainerStyle={{ justifyContent: 'flex-end' }}
+                  >
                     {['all', ...alertTypes].map((type) => (
                       <TouchableOpacity
                         key={type}
@@ -377,7 +386,7 @@ export default function AlertsManagementScreen() {
                       const daysUntil = getDaysUntilAlert(alert.date, alert.time);
                       const isPast = daysUntil < 0;
                       const isToday = daysUntil === 0;
-                      
+
                       return (
                         <ThemedView key={alert.id} style={[
                           styles.alertCard,
@@ -392,7 +401,7 @@ export default function AlertsManagementScreen() {
                                 color={getAlertColor(alert.type)} 
                               />
                             </ThemedView>
-                            
+
                             <ThemedView style={styles.alertInfo}>
                               <ThemedText style={styles.alertTitle}>{alert.title}</ThemedText>
                               {alert.description && (
@@ -409,7 +418,7 @@ export default function AlertsManagementScreen() {
                                 </ThemedView>
                               </ThemedView>
                             </ThemedView>
-                            
+
                             <ThemedView style={styles.alertActions}>
                               {isToday ? (
                                 <ThemedView style={styles.todayBadge}>
@@ -422,7 +431,7 @@ export default function AlertsManagementScreen() {
                                   {daysUntil} {daysUntil === 1 ? 'يوم' : 'أيام'}
                                 </ThemedText>
                               )}
-                              
+
                               <TouchableOpacity
                                 style={styles.toggleButton}
                                 onPress={() => toggleAlert(alert.id)}
@@ -433,7 +442,7 @@ export default function AlertsManagementScreen() {
                                   color={alert.active ? '#4CAF50' : '#999'} 
                                 />
                               </TouchableOpacity>
-                              
+
                               <TouchableOpacity
                                 style={styles.deleteButton}
                                 onPress={() => deleteAlert(alert.id)}
@@ -454,7 +463,7 @@ export default function AlertsManagementScreen() {
                 <ThemedText type="subtitle" style={styles.sectionTitle}>
                   إعدادات التنبيهات
                 </ThemedText>
-                
+
                 <TouchableOpacity 
                   style={styles.settingButton}
                   onPress={() => Alert.alert('إعدادات الصوت', 'تخصيص أصوات التنبيهات والاهتزاز')}
@@ -463,7 +472,7 @@ export default function AlertsManagementScreen() {
                   <ThemedText style={styles.settingButtonText}>إعدادات الصوت والاهتزاز</ThemedText>
                   <IconSymbol size={16} name="chevron.left" color="#666" />
                 </TouchableOpacity>
-                
+
                 <TouchableOpacity 
                   style={styles.settingButton}
                   onPress={() => Alert.alert('عدم الإزعاج', 'تحديد أوقات عدم إرسال التنبيهات')}
@@ -472,7 +481,7 @@ export default function AlertsManagementScreen() {
                   <ThemedText style={styles.settingButtonText}>أوقات عدم الإزعاج</ThemedText>
                   <IconSymbol size={16} name="chevron.left" color="#666" />
                 </TouchableOpacity>
-                
+
                 <TouchableOpacity 
                   style={styles.settingButton}
                   onPress={() => Alert.alert('نسخ احتياطي', 'إنشاء نسخة احتياطية من التنبيهات')}
