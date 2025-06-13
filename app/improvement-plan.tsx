@@ -1,11 +1,14 @@
 
 import React, { useState, useEffect } from 'react';
-import { StyleSheet, ScrollView, TouchableOpacity, Alert, TextInput, I18nManager } from 'react-native';
+import { StyleSheet, ScrollView, TouchableOpacity, Alert, TextInput, I18nManager, ImageBackground, Dimensions } from 'react-native';
+import { LinearGradient as ExpoLinearGradient } from 'expo-linear-gradient';
 import { ThemedText } from '@/components/ThemedText';
 import { ThemedView } from '@/components/ThemedView';
 import { IconSymbol } from '@/components/ui/IconSymbol';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useRouter } from 'expo-router';
+
+const { width } = Dimensions.get('window');
 
 interface ImprovementGoal {
   id: number;
@@ -201,258 +204,285 @@ export default function ImprovementPlanScreen() {
   };
 
   return (
-    <ScrollView style={styles.container}>
-      <ThemedView style={styles.header}>
-        <TouchableOpacity 
-          style={styles.backButton} 
-          onPress={() => router.back()}
+    <ThemedView style={styles.container}>
+      <ImageBackground
+        source={require('@/assets/images/background.png')}
+        style={styles.backgroundImage}
+        resizeMode="cover"
+      >
+        <ExpoLinearGradient
+          colors={['rgba(255,255,255,0.9)', 'rgba(225,245,244,0.95)', 'rgba(173,212,206,0.8)']}
+          style={styles.gradientOverlay}
         >
-          <IconSymbol size={24} name="chevron.left" color="#fff" />
-        </TouchableOpacity>
-        <IconSymbol size={60} name="chart.line.uptrend.xyaxis" color="#fff" />
-        <ThemedText type="title" style={styles.title}>
-          خطة التحسين المهني
-        </ThemedText>
-        <ThemedText style={styles.subtitle}>
-          خطة شاملة لتطوير أدائك المهني وتحقيق أهدافك التعليمية
-        </ThemedText>
-      </ThemedView>
-
-      <ThemedView style={styles.content}>
-        <ThemedView style={styles.overviewCard}>
-          <ThemedText type="subtitle" style={styles.overviewTitle}>
-            نظرة عامة على الأهداف
-          </ThemedText>
-          <ThemedView style={styles.statsRow}>
-            <ThemedView style={styles.statItem}>
-              <ThemedText style={styles.statNumber}>
-                {improvementGoals.filter(goal => goal.completed).length}
-              </ThemedText>
-              <ThemedText style={styles.statLabel}>مكتملة</ThemedText>
-            </ThemedView>
-            <ThemedView style={styles.statItem}>
-              <ThemedText style={styles.statNumber}>
-                {improvementGoals.filter(goal => !goal.completed).length}
-              </ThemedText>
-              <ThemedText style={styles.statLabel}>قيد التنفيذ</ThemedText>
-            </ThemedView>
-            <ThemedView style={styles.statItem}>
-              <ThemedText style={styles.statNumber}>
-                {improvementGoals.length}
-              </ThemedText>
-              <ThemedText style={styles.statLabel}>إجمالي الأهداف</ThemedText>
-            </ThemedView>
-          </ThemedView>
-        </ThemedView>
-
-        <ThemedView style={styles.goalsSection}>
-          <ThemedView style={styles.sectionHeader}>
-            <ThemedText type="subtitle" style={styles.sectionTitle}>
-              أهداف التحسين
-            </ThemedText>
+          <ThemedView style={styles.header}>
             <TouchableOpacity 
-              style={styles.addGoalButton}
-              onPress={addNewGoal}
+              style={styles.backButton}
+              onPress={() => router.back()}
             >
-              <IconSymbol size={16} name="plus.circle.fill" color="#4CAF50" />
-              <ThemedText style={styles.addGoalText}>إضافة هدف</ThemedText>
+              <IconSymbol size={24} name="chevron.right" color="#1c1f33" />
             </TouchableOpacity>
+            <ThemedView style={styles.headerContent}>
+              <IconSymbol size={50} name="chart.line.uptrend.xyaxis" color="#1c1f33" />
+              <ThemedText type="title" style={styles.headerTitle}>
+                خطة التحسين المهني
+              </ThemedText>
+              <ThemedText style={styles.headerSubtitle}>
+                خطة شاملة لتطوير أدائك المهني وتحقيق أهدافك التعليمية
+              </ThemedText>
+            </ThemedView>
           </ThemedView>
 
-          {improvementGoals.map((goal) => (
-            <ThemedView key={goal.id} style={[
-              styles.goalCard,
-              goal.completed && styles.completedGoalCard
-            ]}>
-              <ThemedView style={styles.goalHeader}>
-                <TouchableOpacity
-                  onPress={() => toggleGoalCompletion(goal.id)}
-                  style={styles.checkboxContainer}
-                >
-                  <IconSymbol 
-                    size={20} 
-                    name={goal.completed ? "checkmark.circle.fill" : "circle"} 
-                    color={goal.completed ? "#4CAF50" : "#666"} 
-                  />
-                </TouchableOpacity>
-                <ThemedView style={styles.goalInfo}>
-                  <ThemedText style={[
-                    styles.goalTitle,
-                    goal.completed && styles.completedGoalTitle
-                  ]}>
-                    {goal.title}
+          <ScrollView style={styles.content}>
+            <ThemedView style={styles.overviewCard}>
+              <ThemedText style={styles.overviewTitle}>
+                نظرة عامة على الأهداف
+              </ThemedText>
+              <ThemedView style={styles.statsRow}>
+                <ThemedView style={styles.statItem}>
+                  <ThemedText style={styles.statNumber}>
+                    {improvementGoals.filter(goal => goal.completed).length}
                   </ThemedText>
-                  <ThemedText style={styles.goalDescription}>
-                    {goal.description}
-                  </ThemedText>
+                  <ThemedText style={styles.statLabel}>مكتملة</ThemedText>
                 </ThemedView>
-                <TouchableOpacity
-                  onPress={() => setEditingGoal(editingGoal === goal.id ? null : goal.id)}
-                  style={styles.editButton}
-                >
-                  <IconSymbol 
-                    size={18} 
-                    name="pencil.circle.fill" 
-                    color="#007AFF" 
-                  />
-                </TouchableOpacity>
+                <ThemedView style={styles.statItem}>
+                  <ThemedText style={styles.statNumber}>
+                    {improvementGoals.filter(goal => !goal.completed).length}
+                  </ThemedText>
+                  <ThemedText style={styles.statLabel}>قيد التنفيذ</ThemedText>
+                </ThemedView>
+                <ThemedView style={styles.statItem}>
+                  <ThemedText style={styles.statNumber}>
+                    {improvementGoals.length}
+                  </ThemedText>
+                  <ThemedText style={styles.statLabel}>إجمالي الأهداف</ThemedText>
+                </ThemedView>
               </ThemedView>
-
-              <ThemedView style={styles.progressSection}>
-                <ThemedView style={styles.progressInfo}>
-                  <ThemedText style={styles.progressLabel}>
-                    التقدم: {goal.currentScore} / {goal.targetScore}
-                  </ThemedText>
-                  <ThemedText style={[
-                    styles.progressPercentage,
-                    { color: getProgressColor(goal.currentScore, goal.targetScore) }
-                  ]}>
-                    {getProgressPercentage(goal.currentScore, goal.targetScore)}%
-                  </ThemedText>
-                </ThemedView>
-                <ThemedView style={styles.progressBar}>
-                  <ThemedView 
-                    style={[
-                      styles.progressFill,
-                      { 
-                        width: `${getProgressPercentage(goal.currentScore, goal.targetScore)}%`,
-                        backgroundColor: getProgressColor(goal.currentScore, goal.targetScore)
-                      }
-                    ]}
-                  />
-                </ThemedView>
-                {goal.deadline && (
-                  <ThemedText style={styles.deadline}>
-                    الموعد المستهدف: {goal.deadline}
-                  </ThemedText>
-                )}
-              </ThemedView>
-
-              {editingGoal === goal.id && (
-                <ThemedView style={styles.editingSection}>
-                  <ThemedView style={styles.actionsSection}>
-                    <ThemedText style={styles.subsectionTitle}>الإجراءات المطلوبة:</ThemedText>
-                    {goal.actions.map((action, index) => (
-                      <ThemedView key={index} style={styles.actionItem}>
-                        <ThemedText style={styles.actionText}>• {action}</ThemedText>
-                        <TouchableOpacity
-                          onPress={() => removeAction(goal.id, index)}
-                          style={styles.removeButton}
-                        >
-                          <IconSymbol size={14} name="xmark.circle.fill" color="#F44336" />
-                        </TouchableOpacity>
-                      </ThemedView>
-                    ))}
-                    <ThemedView style={styles.addItemRow}>
-                      <TextInput
-                        style={styles.addItemInput}
-                        placeholder="إضافة إجراء جديد..."
-                        value={newAction}
-                        onChangeText={setNewAction}
-                        multiline
-                      />
-                      <TouchableOpacity
-                        onPress={() => addAction(goal.id)}
-                        style={styles.addItemButton}
-                      >
-                        <IconSymbol size={16} name="plus" color="#4CAF50" />
-                      </TouchableOpacity>
-                    </ThemedView>
-                  </ThemedView>
-
-                  <ThemedView style={styles.resourcesSection}>
-                    <ThemedText style={styles.subsectionTitle}>الموارد المطلوبة:</ThemedText>
-                    {goal.resources.map((resource, index) => (
-                      <ThemedView key={index} style={styles.resourceItem}>
-                        <ThemedText style={styles.resourceText}>• {resource}</ThemedText>
-                        <TouchableOpacity
-                          onPress={() => removeResource(goal.id, index)}
-                          style={styles.removeButton}
-                        >
-                          <IconSymbol size={14} name="xmark.circle.fill" color="#F44336" />
-                        </TouchableOpacity>
-                      </ThemedView>
-                    ))}
-                    <ThemedView style={styles.addItemRow}>
-                      <TextInput
-                        style={styles.addItemInput}
-                        placeholder="إضافة مورد جديد..."
-                        value={newResource}
-                        onChangeText={setNewResource}
-                        multiline
-                      />
-                      <TouchableOpacity
-                        onPress={() => addResource(goal.id)}
-                        style={styles.addItemButton}
-                      >
-                        <IconSymbol size={16} name="plus" color="#4CAF50" />
-                      </TouchableOpacity>
-                    </ThemedView>
-                  </ThemedView>
-                </ThemedView>
-              )}
             </ThemedView>
-          ))}
-        </ThemedView>
 
-        <ThemedView style={styles.actionButtons}>
-          <TouchableOpacity 
-            style={styles.saveButton}
-            onPress={() => {
-              Alert.alert('تم الحفظ', 'تم حفظ خطة التحسين بنجاح');
-            }}
-          >
-            <IconSymbol size={20} name="checkmark.circle.fill" color="white" />
-            <ThemedText style={styles.buttonText}>حفظ الخطة</ThemedText>
-          </TouchableOpacity>
+            <ThemedView style={styles.goalsSection}>
+              <ThemedView style={styles.sectionHeader}>
+                <ThemedText style={styles.sectionTitle}>
+                  أهداف التحسين
+                </ThemedText>
+                <TouchableOpacity 
+                  style={styles.addGoalButton}
+                  onPress={addNewGoal}
+                >
+                  <IconSymbol size={16} name="plus.circle.fill" color="#4CAF50" />
+                  <ThemedText style={styles.addGoalText}>إضافة هدف</ThemedText>
+                </TouchableOpacity>
+              </ThemedView>
 
-          <TouchableOpacity 
-            style={styles.exportButton}
-            onPress={() => {
-              Alert.alert('تصدير', 'سيتم تصدير خطة التحسين قريباً');
-            }}
-          >
-            <IconSymbol size={20} name="square.and.arrow.up" color="white" />
-            <ThemedText style={styles.buttonText}>تصدير الخطة</ThemedText>
-          </TouchableOpacity>
-        </ThemedView>
-      </ThemedView>
-    </ScrollView>
+              {improvementGoals.map((goal) => (
+                <ThemedView key={goal.id} style={[
+                  styles.goalCard,
+                  goal.completed && styles.completedGoalCard
+                ]}>
+                  <ThemedView style={styles.goalHeader}>
+                    <TouchableOpacity
+                      onPress={() => toggleGoalCompletion(goal.id)}
+                      style={styles.checkboxContainer}
+                    >
+                      <IconSymbol 
+                        size={20} 
+                        name={goal.completed ? "checkmark.circle.fill" : "circle"} 
+                        color={goal.completed ? "#4CAF50" : "#666"} 
+                      />
+                    </TouchableOpacity>
+                    <ThemedView style={styles.goalInfo}>
+                      <ThemedText style={[
+                        styles.goalTitle,
+                        goal.completed && styles.completedGoalTitle
+                      ]}>
+                        {goal.title}
+                      </ThemedText>
+                      <ThemedText style={styles.goalDescription}>
+                        {goal.description}
+                      </ThemedText>
+                    </ThemedView>
+                    <TouchableOpacity
+                      onPress={() => setEditingGoal(editingGoal === goal.id ? null : goal.id)}
+                      style={styles.editButton}
+                    >
+                      <IconSymbol 
+                        size={18} 
+                        name="pencil.circle.fill" 
+                        color="#007AFF" 
+                      />
+                    </TouchableOpacity>
+                  </ThemedView>
+
+                  <ThemedView style={styles.progressSection}>
+                    <ThemedView style={styles.progressInfo}>
+                      <ThemedText style={styles.progressLabel}>
+                        التقدم: {goal.currentScore} / {goal.targetScore}
+                      </ThemedText>
+                      <ThemedText style={[
+                        styles.progressPercentage,
+                        { color: getProgressColor(goal.currentScore, goal.targetScore) }
+                      ]}>
+                        {getProgressPercentage(goal.currentScore, goal.targetScore)}%
+                      </ThemedText>
+                    </ThemedView>
+                    <ThemedView style={styles.progressBar}>
+                      <ThemedView 
+                        style={[
+                          styles.progressFill,
+                          { 
+                            width: `${getProgressPercentage(goal.currentScore, goal.targetScore)}%`,
+                            backgroundColor: getProgressColor(goal.currentScore, goal.targetScore)
+                          }
+                        ]}
+                      />
+                    </ThemedView>
+                    {goal.deadline && (
+                      <ThemedText style={styles.deadline}>
+                        الموعد المستهدف: {goal.deadline}
+                      </ThemedText>
+                    )}
+                  </ThemedView>
+
+                  {editingGoal === goal.id && (
+                    <ThemedView style={styles.editingSection}>
+                      <ThemedView style={styles.actionsSection}>
+                        <ThemedText style={styles.subsectionTitle}>الإجراءات المطلوبة:</ThemedText>
+                        {goal.actions.map((action, index) => (
+                          <ThemedView key={index} style={styles.actionItem}>
+                            <ThemedText style={styles.actionText}>• {action}</ThemedText>
+                            <TouchableOpacity
+                              onPress={() => removeAction(goal.id, index)}
+                              style={styles.removeButton}
+                            >
+                              <IconSymbol size={14} name="xmark.circle.fill" color="#F44336" />
+                            </TouchableOpacity>
+                          </ThemedView>
+                        ))}
+                        <ThemedView style={styles.addItemRow}>
+                          <TextInput
+                            style={styles.addItemInput}
+                            placeholder="إضافة إجراء جديد..."
+                            value={newAction}
+                            onChangeText={setNewAction}
+                            multiline
+                          />
+                          <TouchableOpacity
+                            onPress={() => addAction(goal.id)}
+                            style={styles.addItemButton}
+                          >
+                            <IconSymbol size={16} name="plus" color="#4CAF50" />
+                          </TouchableOpacity>
+                        </ThemedView>
+                      </ThemedView>
+
+                      <ThemedView style={styles.resourcesSection}>
+                        <ThemedText style={styles.subsectionTitle}>الموارد المطلوبة:</ThemedText>
+                        {goal.resources.map((resource, index) => (
+                          <ThemedView key={index} style={styles.resourceItem}>
+                            <ThemedText style={styles.resourceText}>• {resource}</ThemedText>
+                            <TouchableOpacity
+                              onPress={() => removeResource(goal.id, index)}
+                              style={styles.removeButton}
+                            >
+                              <IconSymbol size={14} name="xmark.circle.fill" color="#F44336" />
+                            </TouchableOpacity>
+                          </ThemedView>
+                        ))}
+                        <ThemedView style={styles.addItemRow}>
+                          <TextInput
+                            style={styles.addItemInput}
+                            placeholder="إضافة مورد جديد..."
+                            value={newResource}
+                            onChangeText={setNewResource}
+                            multiline
+                          />
+                          <TouchableOpacity
+                            onPress={() => addResource(goal.id)}
+                            style={styles.addItemButton}
+                          >
+                            <IconSymbol size={16} name="plus" color="#4CAF50" />
+                          </TouchableOpacity>
+                        </ThemedView>
+                      </ThemedView>
+                    </ThemedView>
+                  )}
+                </ThemedView>
+              ))}
+            </ThemedView>
+
+            <ThemedView style={styles.actionButtons}>
+              <TouchableOpacity 
+                style={styles.saveButton}
+                onPress={() => {
+                  Alert.alert('تم الحفظ', 'تم حفظ خطة التحسين بنجاح');
+                }}
+              >
+                <IconSymbol size={20} name="checkmark.circle.fill" color="#1c1f33" />
+                <ThemedText style={styles.buttonText}>حفظ الخطة</ThemedText>
+              </TouchableOpacity>
+
+              <TouchableOpacity 
+                style={styles.exportButton}
+                onPress={() => {
+                  Alert.alert('تصدير', 'سيتم تصدير خطة التحسين قريباً');
+                }}
+              >
+                <IconSymbol size={20} name="square.and.arrow.up.fill" color="#1c1f33" />
+                <ThemedText style={styles.buttonText}>تصدير الخطة</ThemedText>
+              </TouchableOpacity>
+            </ThemedView>
+          </ScrollView>
+        </ExpoLinearGradient>
+      </ImageBackground>
+    </ThemedView>
   );
 }
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#f8f9fa',
+  },
+  backgroundImage: {
+    flex: 1,
+    width: '100%',
+    height: '100%',
+  },
+  gradientOverlay: {
+    flex: 1,
   },
   header: {
-    backgroundColor: '#4CAF50',
     padding: 20,
-    paddingTop: 40,
+    paddingTop: 50,
+    flexDirection: 'row',
     alignItems: 'center',
-    position: 'relative',
+    backgroundColor: 'transparent',
   },
   backButton: {
-    position: 'absolute',
-    top: 40,
-    right: 15,
-    padding: 5,
+    padding: 8,
+    marginRight: 10,
+    backgroundColor: '#F8F9FA',
+    borderRadius: 20,
+    borderWidth: 1,
+    borderColor: '#E5E5EA',
   },
-  title: {
-    color: '#fff',
+  headerContent: {
+    flex: 1,
+    alignItems: 'center',
+  },
+  headerTitle: {
+    color: '#1c1f33',
     fontSize: 24,
     fontWeight: 'bold',
     textAlign: 'center',
     writingDirection: 'rtl',
-    marginBottom: 10,
+    marginTop: 10,
   },
-  subtitle: {
-    color: '#fff',
-    fontSize: 16,
+  headerSubtitle: {
+    color: '#1c1f33',
+    fontSize: 14,
     textAlign: 'center',
     writingDirection: 'rtl',
-    opacity: 0.9,
+    opacity: 0.8,
+    marginTop: 5,
   },
   content: {
     flex: 1,
@@ -460,7 +490,7 @@ const styles = StyleSheet.create({
   },
   overviewCard: {
     backgroundColor: '#fff',
-    borderRadius: 12,
+    borderRadius: 15,
     padding: 20,
     marginBottom: 20,
     elevation: 2,
@@ -473,7 +503,7 @@ const styles = StyleSheet.create({
     fontSize: 18,
     fontWeight: 'bold',
     color: '#333',
-    textAlign: 'right',
+    textAlign: 'center',
     writingDirection: 'rtl',
     marginBottom: 15,
   },
@@ -690,30 +720,46 @@ const styles = StyleSheet.create({
   actionButtons: {
     flexDirection: 'row',
     gap: 10,
+    marginTop: 20,
+    marginBottom: 20,
   },
   saveButton: {
     flex: 1,
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: '#4CAF50',
+    backgroundColor: '#add4ce',
     paddingVertical: 15,
-    borderRadius: 12,
-    gap: 8,
+    paddingHorizontal: 25,
+    borderRadius: 25,
+    gap: 10,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 6 },
+    shadowOpacity: 0.4,
+    shadowRadius: 12,
+    elevation: 12,
   },
   exportButton: {
     flex: 1,
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: '#007AFF',
+    backgroundColor: '#add4ce',
     paddingVertical: 15,
-    borderRadius: 12,
-    gap: 8,
+    paddingHorizontal: 25,
+    borderRadius: 25,
+    gap: 10,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 6 },
+    shadowOpacity: 0.4,
+    shadowRadius: 12,
+    elevation: 12,
   },
   buttonText: {
-    color: 'white',
+    color: '#1c1f33',
     fontSize: 16,
     fontWeight: '600',
+    writingDirection: 'rtl',
+    textAlign: 'center',
   },
 });
