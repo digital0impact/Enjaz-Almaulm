@@ -602,6 +602,7 @@ const styles = StyleSheet.create({
   addButtonsContent: {
     flexDirection: 'row-reverse',
     paddingHorizontal: 10,
+    justifyContent: 'flex-end',
   },
   addButton: {
     alignItems: 'center',
@@ -626,14 +627,15 @@ const styles = StyleSheet.create({
     marginBottom: 10,
   },
   filterContainer: {
-    flexDirection: 'row',
+    flexDirection: 'row-reverse',
+    justifyContent: 'flex-end',
   },
   filterButton: {
     paddingHorizontal: 16,
     paddingVertical: 8,
     borderRadius: 20,
     backgroundColor: '#e0f0f1',
-    marginRight: 10,
+    marginLeft: 10,
     borderWidth: 1,
     borderColor: '#E5E5EA',
     shadowColor: '#000',
@@ -661,7 +663,7 @@ const styles = StyleSheet.create({
     paddingVertical: 6,
     borderRadius: 16,
     backgroundColor: '#e0f0f1',
-    marginRight: 8,
+    marginLeft: 8,
     gap: 6,
     borderWidth: 1,
     borderColor: '#E5E5EA',
@@ -688,7 +690,7 @@ const styles = StyleSheet.create({
     backgroundColor: 'transparent',
   },
   alertsHeader: {
-    flexDirection: 'row',
+    flexDirection: 'row-reverse',
     justifyContent: 'space-between',
     alignItems: 'center',
     marginBottom: 15,
