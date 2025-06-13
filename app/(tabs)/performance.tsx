@@ -151,6 +151,7 @@ export default function PerformanceScreen() {
   ]);
 
   const [selectedPerformance, setSelectedPerformance] = useState<number | null>(null);
+  const [selectedEvidence, setSelectedEvidence] = useState<{performanceId: number, evidenceIndex: number} | null>(null);
 
   useEffect(() => {
     loadPerformanceData();
@@ -202,6 +203,16 @@ export default function PerformanceScreen() {
           : item
       )
     );
+  };
+
+  const toggleEvidenceDetails = (performanceId: number, evidenceIndex: number) => {
+    if (selectedEvidence && 
+        selectedEvidence.performanceId === performanceId && 
+        selectedEvidence.evidenceIndex === evidenceIndex) {
+      setSelectedEvidence(null);
+    } else {
+      setSelectedEvidence({ performanceId, evidenceIndex });
+    }
   };
 
   const addEvidence = (performanceId: number) => {
@@ -409,64 +420,120 @@ export default function PerformanceScreen() {
                     {/* قائمة الشواهد */}
                     <ThemedView style={styles.evidenceList}>
                       {item.evidence.map((evidenceItem, index) => (
-                        <TouchableOpacity 
-                          key={index} 
-                          style={[
-                            styles.evidenceItem,
-                            evidenceItem.available ? styles.evidenceAvailable : styles.evidenceUnavailable
-                          ]}
-                          onPress={() => toggleEvidenceStatus(item.id, index)}
-                        >
+                        <ThemedView key={index}>
                           <TouchableOpacity 
-                            style={styles.uploadIcon}
-                            onPress={() => Alert.alert('تحميل ملف', `سيتم تحميل ملف لـ: ${evidenceItem.name}`)}
+                            style={[
+                              styles.evidenceItem,
+                              evidenceItem.available ? styles.evidenceAvailable : styles.evidenceUnavailable
+                            ]}
+                            onPress={() => toggleEvidenceDetails(item.id, index)}
                           >
+                            <TouchableOpacity 
+                              style={styles.uploadIcon}
+                              onPress={(e) => {
+                                e.stopPropagation();
+                                Alert.alert('تحميل ملف', `سيتم تحميل ملف لـ: ${evidenceItem.name}`);
+                              }}
+                            >
+                              <IconSymbol 
+                                size={14} 
+                                name="arrow.up.doc.fill" 
+                                color="#424242" 
+                              />
+                            </TouchableOpacity>
                             <IconSymbol 
-                              size={14} 
-                              name="arrow.up.doc.fill" 
-                              color="#424242" 
+                              size={8} 
+                              name={evidenceItem.available ? "checkmark" : "xmark"} 
+                              color={evidenceItem.available ? "#4CAF50" : "#F44336"} 
+                            />
+                            <ThemedText style={[
+                              styles.evidenceText,
+                              evidenceItem.available ? styles.evidenceAvailableText : styles.evidenceUnavailableText
+                            ]}>
+                              {evidenceItem.name}
+                            </ThemedText>
+                            <ThemedText style={[
+                              styles.evidenceStatus,
+                              evidenceItem.available ? styles.evidenceAvailableStatus : styles.evidenceUnavailableStatus
+                            ]}>
+                              {evidenceItem.available ? 'متوفر' : 'غير متوفر'}
+                            </ThemedText>
+                            <ThemedView style={styles.evidenceActions}>
+                              <TouchableOpacity 
+                                style={styles.editButton}
+                                onPress={(e) => {
+                                  e.stopPropagation();
+                                  editEvidence(item.id, index, evidenceItem.name);
+                                }}
+                              >
+                                <IconSymbol 
+                                  size={10} 
+                                  name="pencil.circle.fill" 
+                                  color="#FF9800" 
+                                />
+                              </TouchableOpacity>
+                              <TouchableOpacity 
+                                style={styles.deleteButton}
+                                onPress={(e) => {
+                                  e.stopPropagation();
+                                  deleteEvidence(item.id, index);
+                                }}
+                              >
+                                <IconSymbol 
+                                  size={10} 
+                                  name="trash.circle.fill" 
+                                  color="#F44336" 
+                                />
+                              </TouchableOpacity>
+                            </ThemedView>
+                            <IconSymbol 
+                              size={12} 
+                              name={selectedEvidence?.performanceId === item.id && selectedEvidence?.evidenceIndex === index ? "chevron.up" : "chevron.down"} 
+                              color="#666666" 
+                              style={styles.evidenceExpandIcon}
                             />
                           </TouchableOpacity>
-                          <IconSymbol 
-                            size={8} 
-                            name={evidenceItem.available ? "checkmark" : "xmark"} 
-                            color={evidenceItem.available ? "#4CAF50" : "#F44336"} 
-                          />
-                          <ThemedText style={[
-                            styles.evidenceText,
-                            evidenceItem.available ? styles.evidenceAvailableText : styles.evidenceUnavailableText
-                          ]}>
-                            {evidenceItem.name}
-                          </ThemedText>
-                          <ThemedText style={[
-                            styles.evidenceStatus,
-                            evidenceItem.available ? styles.evidenceAvailableStatus : styles.evidenceUnavailableStatus
-                          ]}>
-                            {evidenceItem.available ? 'متوفر' : 'غير متوفر'}
-                          </ThemedText>
-                          <ThemedView style={styles.evidenceActions}>
-                            <TouchableOpacity 
-                              style={styles.editButton}
-                              onPress={() => editEvidence(item.id, index, evidenceItem.name)}
-                            >
-                              <IconSymbol 
-                                size={10} 
-                                name="pencil.circle.fill" 
-                                color="#FF9800" 
-                              />
-                            </TouchableOpacity>
-                            <TouchableOpacity 
-                              style={styles.deleteButton}
-                              onPress={() => deleteEvidence(item.id, index)}
-                            >
-                              <IconSymbol 
-                                size={10} 
-                                name="trash.circle.fill" 
-                                color="#F44336" 
-                              />
-                            </TouchableOpacity>
-                          </ThemedView>
-                        </TouchableOpacity>
+                          
+                          {selectedEvidence?.performanceId === item.id && selectedEvidence?.evidenceIndex === index && (
+                            <ThemedView style={styles.evidenceDropdown}>
+                              <ThemedText style={styles.evidenceDropdownTitle}>تفاصيل الشاهد:</ThemedText>
+                              <ThemedText style={styles.evidenceDropdownText}>
+                                اسم الشاهد: {evidenceItem.name}
+                              </ThemedText>
+                              <ThemedText style={styles.evidenceDropdownText}>
+                                الحالة: {evidenceItem.available ? 'متوفر' : 'غير متوفر'}
+                              </ThemedText>
+                              
+                              <ThemedView style={styles.evidenceDropdownActions}>
+                                <TouchableOpacity 
+                                  style={styles.statusToggleButton}
+                                  onPress={() => toggleEvidenceStatus(item.id, index)}
+                                >
+                                  <IconSymbol 
+                                    size={16} 
+                                    name={evidenceItem.available ? "xmark.circle" : "checkmark.circle"} 
+                                    color={evidenceItem.available ? "#F44336" : "#4CAF50"} 
+                                  />
+                                  <ThemedText style={styles.statusToggleText}>
+                                    {evidenceItem.available ? 'تعيين كغير متوفر' : 'تعيين كمتوفر'}
+                                  </ThemedText>
+                                </TouchableOpacity>
+                                
+                                <TouchableOpacity 
+                                  style={styles.viewFileButton}
+                                  onPress={() => Alert.alert('عرض الملف', `عرض ملف: ${evidenceItem.name}`)}
+                                >
+                                  <IconSymbol 
+                                    size={16} 
+                                    name="eye.fill" 
+                                    color="#2196F3" 
+                                  />
+                                  <ThemedText style={styles.viewFileText}>عرض الملف</ThemedText>
+                                </TouchableOpacity>
+                              </ThemedView>
+                            </ThemedView>
+                          )}
+                        </ThemedView>
                       ))}
                     </ThemedView>
                   </ThemedView>
@@ -948,5 +1015,70 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.12,
     shadowRadius: 6,
     elevation: 4,
+  },
+  evidenceExpandIcon: {
+    marginLeft: 8,
+  },
+  evidenceDropdown: {
+    backgroundColor: '#f8f9fa',
+    marginTop: 5,
+    padding: 12,
+    borderRadius: 8,
+    borderWidth: 1,
+    borderColor: '#e9ecef',
+  },
+  evidenceDropdownTitle: {
+    fontSize: 12,
+    fontWeight: 'bold',
+    color: '#333',
+    marginBottom: 8,
+    textAlign: 'right',
+    writingDirection: 'rtl',
+  },
+  evidenceDropdownText: {
+    fontSize: 11,
+    color: '#666',
+    marginBottom: 4,
+    textAlign: 'right',
+    writingDirection: 'rtl',
+  },
+  evidenceDropdownActions: {
+    flexDirection: 'column',
+    gap: 8,
+    marginTop: 8,
+  },
+  statusToggleButton: {
+    flexDirection: I18nManager.isRTL ? 'row-reverse' : 'row',
+    alignItems: 'center',
+    backgroundColor: '#fff',
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+    borderRadius: 6,
+    borderWidth: 1,
+    borderColor: '#ddd',
+    gap: 6,
+  },
+  statusToggleText: {
+    fontSize: 11,
+    color: '#333',
+    textAlign: 'right',
+    writingDirection: 'rtl',
+  },
+  viewFileButton: {
+    flexDirection: I18nManager.isRTL ? 'row-reverse' : 'row',
+    alignItems: 'center',
+    backgroundColor: '#E3F2FD',
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+    borderRadius: 6,
+    borderWidth: 1,
+    borderColor: '#2196F3',
+    gap: 6,
+  },
+  viewFileText: {
+    fontSize: 11,
+    color: '#2196F3',
+    textAlign: 'right',
+    writingDirection: 'rtl',
   },
 });
