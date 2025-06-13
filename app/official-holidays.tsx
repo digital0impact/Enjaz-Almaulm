@@ -262,32 +262,27 @@ export default function OfficialHolidaysScreen() {
           {/* قائمة الإجازات */}
           <ThemedView style={styles.holidaysSection}>
             <ThemedView style={styles.holidaysHeader}>
-              <ThemedView style={styles.headerActions}>
-                <TouchableOpacity 
-                  style={styles.addButton}
-                  onPress={() => Alert.alert(
-                    'إضافة إجازة جديدة',
-                    'هل تريد إضافة إجازة شخصية أم إجازة رسمية جديدة؟',
-                    [
-                      {
-                        text: 'إجازة شخصية',
-                        onPress: () => Alert.alert('إجازة شخصية', 'سيتم فتح نموذج إضافة إجازة شخصية')
-                      },
-                      {
-                        text: 'إجازة رسمية',
-                        onPress: () => Alert.alert('إجازة رسمية', 'سيتم فتح نموذج إضافة إجازة رسمية جديدة')
-                      },
-                      { text: 'إلغاء', style: 'cancel' }
-                    ]
-                  )}
-                >
-                  <IconSymbol size={18} name="plus" color="#fff" />
-                  <ThemedText style={styles.addButtonText}>إضافة إجازة</ThemedText>
-                </TouchableOpacity>
-                <TouchableOpacity onPress={exportCalendar} style={styles.exportButton}>
-                  <IconSymbol size={20} name="square.and.arrow.up.fill" color="#1c1f33" />
-                </TouchableOpacity>
-              </ThemedView>
+              <TouchableOpacity 
+                style={styles.addButton}
+                onPress={() => Alert.alert(
+                  'إضافة إجازة جديدة',
+                  'هل تريد إضافة إجازة شخصية أم إجازة رسمية جديدة؟',
+                  [
+                    {
+                      text: 'إجازة شخصية',
+                      onPress: () => Alert.alert('إجازة شخصية', 'سيتم فتح نموذج إضافة إجازة شخصية')
+                    },
+                    {
+                      text: 'إجازة رسمية',
+                      onPress: () => Alert.alert('إجازة رسمية', 'سيتم فتح نموذج إضافة إجازة رسمية جديدة')
+                    },
+                    { text: 'إلغاء', style: 'cancel' }
+                  ]
+                )}
+              >
+                <IconSymbol size={18} name="plus" color="#fff" />
+                <ThemedText style={styles.addButtonText}>إضافة إجازة</ThemedText>
+              </TouchableOpacity>
               <ThemedText type="subtitle" style={styles.sectionTitle}>
                 إجازات العام 2025 ({filteredHolidays.length})
               </ThemedText>
@@ -544,11 +539,6 @@ const styles = StyleSheet.create({
     marginBottom: 15,
     width: '100%',
   },
-  headerActions: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 10,
-  },
   addButton: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -567,13 +557,6 @@ const styles = StyleSheet.create({
     color: '#fff',
     fontSize: 12,
     fontWeight: '600',
-  },
-  exportButton: {
-    padding: 8,
-    borderRadius: 8,
-    backgroundColor: '#f8f9fa',
-    borderWidth: 1,
-    borderColor: '#e5e5ea',
   },
   holidaysList: {
     gap: 12,
