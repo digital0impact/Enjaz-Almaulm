@@ -262,9 +262,6 @@ export default function OfficialHolidaysScreen() {
           {/* قائمة الإجازات */}
           <ThemedView style={styles.holidaysSection}>
             <ThemedView style={styles.holidaysHeader}>
-              <ThemedText type="subtitle" style={styles.sectionTitle}>
-                إجازات العام 2025 ({filteredHolidays.length})
-              </ThemedText>
               <ThemedView style={styles.headerActions}>
                 <TouchableOpacity 
                   style={styles.addButton}
@@ -291,6 +288,9 @@ export default function OfficialHolidaysScreen() {
                   <IconSymbol size={20} name="square.and.arrow.up.fill" color="#1c1f33" />
                 </TouchableOpacity>
               </ThemedView>
+              <ThemedText type="subtitle" style={styles.sectionTitle}>
+                إجازات العام 2025 ({filteredHolidays.length})
+              </ThemedText>
             </ThemedView>
 
             <ThemedView style={styles.holidaysList}>
