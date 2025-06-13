@@ -1,6 +1,7 @@
 
 import React, { useState } from 'react';
-import { StyleSheet, ScrollView, TouchableOpacity, Alert, I18nManager } from 'react-native';
+import { StyleSheet, ScrollView, TouchableOpacity, Alert, I18nManager, ImageBackground } from 'react-native';
+import { LinearGradient as ExpoLinearGradient } from 'expo-linear-gradient';
 import { ThemedText } from '@/components/ThemedText';
 import { ThemedView } from '@/components/ThemedView';
 import { IconSymbol } from '@/components/ui/IconSymbol';
@@ -167,24 +168,33 @@ export default function OfficialHolidaysScreen() {
 
   return (
     <ThemedView style={styles.container}>
-      <ScrollView style={styles.scrollView}>
-        <ThemedView style={styles.header}>
-          <TouchableOpacity 
-            style={styles.backButton}
-            onPress={() => router.back()}
-          >
-            <IconSymbol size={24} name="chevron.right" color="#fff" />
-          </TouchableOpacity>
-          <ThemedView style={styles.iconContainer}>
-            <IconSymbol size={48} name="calendar.badge.clock" color="#1c1f33" />
-          </ThemedView>
-          <ThemedText type="title" style={styles.title}>
-            الإجازات الرسمية
-          </ThemedText>
-          <ThemedText style={styles.subtitle}>
-            تقويم شامل للإجازات والمناسبات الرسمية
-          </ThemedText>
-        </ThemedView>
+      <ImageBackground
+        source={require('@/assets/images/background.png')}
+        style={styles.backgroundImage}
+        resizeMode="cover"
+      >
+        <ExpoLinearGradient
+          colors={['rgba(255,255,255,0.9)', 'rgba(225,245,244,0.95)', 'rgba(173,212,206,0.8)']}
+          style={styles.gradientOverlay}
+        >
+          <ScrollView style={styles.scrollView}>
+            <ThemedView style={styles.header}>
+              <TouchableOpacity 
+                style={styles.backButton}
+                onPress={() => router.back()}
+              >
+                <IconSymbol size={24} name="chevron.right" color="#1c1f33" />
+              </TouchableOpacity>
+              <ThemedView style={styles.iconContainer}>
+                <IconSymbol size={48} name="calendar.badge.clock" color="#1c1f33" />
+              </ThemedView>
+              <ThemedText type="title" style={styles.title}>
+                الإجازات الرسمية
+              </ThemedText>
+              <ThemedText style={styles.subtitle}>
+                تقويم شامل للإجازات والمناسبات الرسمية
+              </ThemedText>
+            </ThemedView>
 
         <ThemedView style={styles.content}>
           {/* الإجازة القادمة */}
@@ -330,7 +340,9 @@ export default function OfficialHolidaysScreen() {
             </ThemedView>
           </ThemedView>
         </ThemedView>
-      </ScrollView>
+          </ScrollView>
+        </ExpoLinearGradient>
+      </ImageBackground>
     </ThemedView>
   );
 }
@@ -338,19 +350,24 @@ export default function OfficialHolidaysScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#f0f2f5',
+  },
+  backgroundImage: {
+    flex: 1,
+    width: '100%',
+    height: '100%',
+  },
+  gradientOverlay: {
+    flex: 1,
   },
   scrollView: {
     flex: 1,
   },
   header: {
-    backgroundColor: '#1c1f33',
+    alignItems: 'center',
     padding: 30,
     paddingTop: 50,
-    alignItems: 'center',
+    backgroundColor: 'transparent',
     position: 'relative',
-    borderBottomLeftRadius: 20,
-    borderBottomRightRadius: 20,
   },
   backButton: {
     position: 'absolute',
@@ -372,35 +389,37 @@ const styles = StyleSheet.create({
     elevation: 10,
   },
   title: {
-    color: '#fff',
+    color: '#000000',
     textAlign: 'center',
     marginVertical: 15,
     fontSize: 28,
     fontWeight: 'bold',
+    writingDirection: 'rtl',
   },
   subtitle: {
-    color: '#fff',
+    color: '#666666',
     textAlign: 'center',
-    opacity: 0.9,
     marginBottom: 10,
     fontSize: 16,
+    writingDirection: 'rtl',
   },
   content: {
     flex: 1,
     padding: 15,
+    backgroundColor: 'transparent',
   },
   nextHolidayCard: {
-    backgroundColor: '#fff',
+    backgroundColor: '#e0f0f1',
     borderRadius: 16,
     padding: 20,
     marginBottom: 25,
-    elevation: 3,
-    shadowColor: '#1c1f33',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.15,
-    shadowRadius: 8,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 6 },
+    shadowOpacity: 0.25,
+    shadowRadius: 12,
+    elevation: 10,
     borderWidth: 1,
-    borderColor: '#e8e9ea',
+    borderColor: '#E5E5EA',
   },
   nextHolidayHeader: {
     flexDirection: 'row',
@@ -469,19 +488,19 @@ const styles = StyleSheet.create({
     paddingHorizontal: 16,
     paddingVertical: 8,
     borderRadius: 20,
-    backgroundColor: '#fff',
+    backgroundColor: '#e0f0f1',
     marginRight: 10,
     gap: 6,
-    elevation: 2,
-    shadowColor: '#1c1f33',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 6 },
+    shadowOpacity: 0.25,
+    shadowRadius: 12,
+    elevation: 10,
     borderWidth: 1,
-    borderColor: '#e8e9ea',
+    borderColor: '#E5E5EA',
   },
   filterButtonActive: {
-    backgroundColor: '#1c1f33',
+    backgroundColor: '#add4ce',
   },
   filterButtonText: {
     fontSize: 14,
@@ -503,16 +522,16 @@ const styles = StyleSheet.create({
     gap: 12,
   },
   holidayCard: {
-    backgroundColor: '#fff',
+    backgroundColor: '#e0f0f1',
     borderRadius: 16,
     padding: 20,
-    elevation: 2,
-    shadowColor: '#1c1f33',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 6 },
+    shadowOpacity: 0.25,
+    shadowRadius: 12,
+    elevation: 10,
     borderWidth: 1,
-    borderColor: '#e8e9ea',
+    borderColor: '#E5E5EA',
   },
   pastHolidayCard: {
     opacity: 0.6,
@@ -520,8 +539,8 @@ const styles = StyleSheet.create({
   },
   todayHolidayCard: {
     borderWidth: 2,
-    borderColor: '#1c1f33',
-    backgroundColor: '#1c1f3305',
+    borderColor: '#add4ce',
+    backgroundColor: '#add4ce15',
   },
   holidayHeader: {
     flexDirection: 'row',
@@ -531,12 +550,17 @@ const styles = StyleSheet.create({
     width: 48,
     height: 48,
     borderRadius: 24,
-    backgroundColor: '#f8f9fa',
+    backgroundColor: '#F8F9FA',
     alignItems: 'center',
     justifyContent: 'center',
     marginRight: 15,
     borderWidth: 1,
-    borderColor: '#e8e9ea',
+    borderColor: '#E5E5EA',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.15,
+    shadowRadius: 8,
+    elevation: 5,
   },
   holidayInfo: {
     flex: 1,
