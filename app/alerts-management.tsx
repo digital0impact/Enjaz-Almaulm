@@ -272,7 +272,7 @@ export default function AlertsManagementScreen() {
                   style={styles.addButtonsContainer}
                   contentContainerStyle={styles.addButtonsContent}
                 >
-                  [
+                  {[
                     { type: 'شخصي', icon: 'person.fill', color: '#607D8B' },
                     { type: 'تدريب', icon: 'graduationcap.fill', color: '#9C27B0' },
                     { type: 'مهمة', icon: 'checkmark.circle.fill', color: '#4CAF50' },
