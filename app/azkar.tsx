@@ -281,7 +281,7 @@ export default function AzkarScreen() {
                   {azkarData.map((category) => (
                     <ThemedView key={category.id} style={styles.categoryContainer}>
                       <TouchableOpacity
-                        style={[styles.dataItem, { borderLeftColor: category.color, borderLeftWidth: 4 }]}
+                        style={styles.dataItem}
                         onPress={() => toggleCategory(category.id)}
                       >
                         <ThemedView style={styles.categoryContent}>
@@ -464,6 +464,7 @@ const styles = StyleSheet.create({
     marginBottom: 10,
   },
   dataItem: {
+    marginBottom: 20,
     padding: 15,
     backgroundColor: '#e0f0f1',
     borderRadius: 12,
