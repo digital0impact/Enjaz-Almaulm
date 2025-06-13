@@ -417,13 +417,13 @@ export default function PerformanceScreen() {
                           onPress={() => Alert.alert('تحميل ملف', `سيتم تحميل ملف لـ: ${evidenceItem.name}`)}
                         >
                           <IconSymbol 
-                            size={20} 
+                            size={16} 
                             name="arrow.up.doc.fill" 
                             color="#424242" 
                           />
                         </TouchableOpacity>
                         <IconSymbol 
-                          size={16} 
+                          size={12} 
                           name={evidenceItem.available ? "checkmark" : "xmark"} 
                           color={evidenceItem.available ? "#4CAF50" : "#F44336"} 
                         />
@@ -445,7 +445,7 @@ export default function PerformanceScreen() {
                             onPress={() => editEvidence(item.id, index, evidenceItem.name)}
                           >
                             <IconSymbol 
-                              size={14} 
+                              size={12} 
                               name="pencil.circle.fill" 
                               color="#FF9800" 
                             />
@@ -455,7 +455,7 @@ export default function PerformanceScreen() {
                             onPress={() => deleteEvidence(item.id, index)}
                           >
                             <IconSymbol 
-                              size={14} 
+                              size={12} 
                               name="trash.circle.fill" 
                               color="#F44336" 
                             />
@@ -613,9 +613,9 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     alignItems: 'center',
     backgroundColor: '#f8f9fa',
-    padding: 12,
-    borderRadius: 8,
-    marginBottom: 8,
+    padding: 6,
+    borderRadius: 6,
+    marginBottom: 4,
   },
   evidenceName: {
     fontSize: 14,
@@ -625,11 +625,11 @@ const styles = StyleSheet.create({
     writingDirection: 'rtl',
   },
   evidenceStatus: {
-    fontSize: 12,
+    fontSize: 10,
     fontWeight: '600',
-    paddingHorizontal: 8,
-    paddingVertical: 4,
-    borderRadius: 12,
+    paddingHorizontal: 6,
+    paddingVertical: 2,
+    borderRadius: 8,
     textAlign: 'center',
   },
   scoreContainer: {
@@ -700,13 +700,13 @@ const styles = StyleSheet.create({
     marginLeft: I18nManager.isRTL ? 0 : 8,
   },
   editButton: {
-    padding: 4,
-    borderRadius: 8,
+    padding: 2,
+    borderRadius: 6,
     backgroundColor: '#FFF3E0',
   },
   deleteButton: {
-    padding: 4,
-    borderRadius: 8,
+    padding: 2,
+    borderRadius: 6,
     backgroundColor: '#FFEBEE',
   },
   weightText: {
@@ -883,11 +883,10 @@ const styles = StyleSheet.create({
     borderTopColor: '#E5E5EA',
   },
   evidenceText: {
-    fontSize: 14,
+    fontSize: 12,
     flex: 1,
-    marginHorizontal: 8,
+    marginHorizontal: 6,
     textAlign: 'right',
-    writingDirection: 'rtl',
     writingDirection: 'rtl',
   },
   evidenceAvailable: {
@@ -917,8 +916,8 @@ const styles = StyleSheet.create({
     textAlign: 'center',
   },
   uploadIcon: {
-    padding: 4,
-    borderRadius: 8,
+    padding: 2,
+    borderRadius: 6,
     backgroundColor: '#E8E9EB',
   },
   summaryCard: {
