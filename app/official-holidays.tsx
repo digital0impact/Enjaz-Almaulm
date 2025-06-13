@@ -478,6 +478,8 @@ const styles = StyleSheet.create({
     color: '#1c1f33',
     fontSize: 18,
     fontWeight: '600',
+    width: '100%',
+    paddingRight: 0,
   },
   filterContainer: {
     flexDirection: 'row',
@@ -515,8 +517,9 @@ const styles = StyleSheet.create({
   holidaysHeader: {
     flexDirection: 'row',
     justifyContent: 'space-between',
-    alignItems: 'center',
+    alignItems: 'flex-start',
     marginBottom: 15,
+    width: '100%',
   },
   holidaysList: {
     gap: 12,
