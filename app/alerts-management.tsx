@@ -455,7 +455,7 @@ export default function AlertsManagementScreen() {
                                   router.push(`/edit-alert?id=${alert.id}`);
                                 }}
                               >
-                                <IconSymbol size={18} name="pencil.fill" color="#2196F3" />
+                                <IconSymbol size={18} name="gear.fill" color="#2196F3" />
                               </TouchableOpacity>
 
                               <TouchableOpacity

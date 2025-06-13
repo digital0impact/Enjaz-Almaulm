@@ -211,7 +211,7 @@ export default function EditAlertScreen() {
               </TouchableOpacity>
               
               <ThemedView style={styles.iconContainer}>
-                <IconSymbol size={60} name="pencil.fill" color="#1c1f33" />
+                <IconSymbol size={60} name="gear.fill" color="#1c1f33" />
               </ThemedView>
               
               <ThemedText type="title" style={styles.title}>
