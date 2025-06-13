@@ -267,7 +267,12 @@ export default function AlertsManagementScreen() {
                   إضافة تنبيه جديد
                 </ThemedText>
                 
-                <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.addButtonsContainer}>
+                <ScrollView 
+                  horizontal 
+                  showsHorizontalScrollIndicator={false} 
+                  style={styles.addButtonsContainer}
+                  contentContainerStyle={styles.addButtonsContent}
+                >
                   {[
                     { type: 'اختبار', icon: 'doc.text.fill', color: '#FF5722' },
                     { type: 'اجتماع', icon: 'person.3.fill', color: '#2196F3' },
@@ -594,12 +599,16 @@ const styles = StyleSheet.create({
   addButtonsContainer: {
     flexDirection: 'row',
   },
+  addButtonsContent: {
+    flexDirection: 'row-reverse',
+    paddingHorizontal: 10,
+  },
   addButton: {
     alignItems: 'center',
     paddingVertical: 15,
     paddingHorizontal: 20,
     borderRadius: 12,
-    marginRight: 10,
+    marginLeft: 10,
     gap: 8,
     minWidth: 80,
   },
