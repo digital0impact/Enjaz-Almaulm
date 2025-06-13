@@ -251,24 +251,23 @@ export default function AzkarScreen() {
                 <ThemedView style={styles.iconContainer}>
                   <IconSymbol size={60} name="book.fill" color="#1c1f33" />
                 </ThemedView>
-                <ThemedText type="title" style={styles.title}>
-                  أذكاري
-                </ThemedText>
+                <ThemedView style={styles.titleRow}>
+                  <TouchableOpacity 
+                    style={styles.backButton}
+                    onPress={() => router.back()}
+                  >
+                    <IconSymbol size={16} name="arrow.right" color="#1c1f33" />
+                  </TouchableOpacity>
+                  <ThemedText type="title" style={styles.title}>
+                    أذكاري
+                  </ThemedText>
+                </ThemedView>
                 <ThemedText style={styles.subtitle}>
                   اختر فئة الأذكار للبدء في التسبيح والذكر
                 </ThemedText>
               </ThemedView>
 
               <ThemedView style={styles.content}>
-                <ThemedView style={[styles.actionButtons, { backgroundColor: 'transparent' }]}>
-                  <TouchableOpacity 
-                    style={styles.editButton}
-                    onPress={() => router.back()}
-                  >
-                    <IconSymbol size={20} name="arrow.right" color="#1c1f33" />
-                    <ThemedText style={styles.buttonText}>العودة</ThemedText>
-                  </TouchableOpacity>
-                </ThemedView>
 
                 <ThemedView style={[styles.dataSection, { backgroundColor: 'transparent' }]}>
                   <ThemedText type="subtitle" style={styles.sectionTitle}>
@@ -403,14 +402,30 @@ const styles = StyleSheet.create({
     shadowRadius: 12,
     elevation: 10,
   },
+  titleRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 15,
+    marginTop: 15,
+    marginBottom: 10,
+  },
   title: {
     fontSize: 28,
     fontWeight: 'bold',
-    marginTop: 15,
-    marginBottom: 10,
     textAlign: 'center',
     writingDirection: 'rtl',
     color: '#000000',
+  },
+  backButton: {
+    backgroundColor: '#add4ce',
+    padding: 8,
+    borderRadius: 20,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.2,
+    shadowRadius: 4,
+    elevation: 4,
   },
   subtitle: {
     fontSize: 16,
@@ -423,31 +438,7 @@ const styles = StyleSheet.create({
     padding: 20,
     backgroundColor: 'transparent',
   },
-  actionButtons: {
-    marginBottom: 20,
-  },
-  editButton: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    backgroundColor: '#add4ce',
-    paddingVertical: 15,
-    paddingHorizontal: 25,
-    borderRadius: 25,
-    gap: 10,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 6 },
-    shadowOpacity: 0.4,
-    shadowRadius: 12,
-    elevation: 12,
-  },
-  buttonText: {
-    color: '#1c1f33',
-    fontSize: 16,
-    fontWeight: '600',
-    writingDirection: 'rtl',
-    textAlign: 'center',
-  },
+  
   dataSection: {
     marginBottom: 30,
   },
