@@ -241,19 +241,25 @@ export default function AlertsManagementScreen() {
               <ThemedView style={styles.statsContainer}>
                 <ThemedView style={styles.statsGrid}>
                   <ThemedView style={[styles.statCard, { backgroundColor: '#007AFF15' }]}>
-                    <IconSymbol size={28} name="bell.badge.fill" color="#007AFF" />
+                    <ThemedView style={styles.statIconContainer}>
+                      <IconSymbol size={28} name="bell.badge.fill" color="#007AFF" />
+                    </ThemedView>
                     <ThemedText style={styles.statNumber}>{alerts.length}</ThemedText>
                     <ThemedText style={styles.statLabel}>إجمالي التنبيهات</ThemedText>
                   </ThemedView>
 
                   <ThemedView style={[styles.statCard, { backgroundColor: '#4CAF5015' }]}>
-                    <IconSymbol size={28} name="bell.fill" color="#4CAF50" />
+                    <ThemedView style={styles.statIconContainer}>
+                      <IconSymbol size={28} name="bell.fill" color="#4CAF50" />
+                    </ThemedView>
                     <ThemedText style={styles.statNumber}>{activeAlerts}</ThemedText>
                     <ThemedText style={styles.statLabel}>نشطة</ThemedText>
                   </ThemedView>
 
                   <ThemedView style={[styles.statCard, { backgroundColor: '#FF980015' }]}>
-                    <IconSymbol size={28} name="clock.fill" color="#FF9800" />
+                    <ThemedView style={styles.statIconContainer}>
+                      <IconSymbol size={28} name="clock.fill" color="#FF9800" />
+                    </ThemedView>
                     <ThemedText style={styles.statNumber}>{upcomingAlerts}</ThemedText>
                     <ThemedText style={styles.statLabel}>قادمة</ThemedText>
                   </ThemedView>
@@ -394,7 +400,7 @@ export default function AlertsManagementScreen() {
                           isToday && styles.todayAlertCard
                         ]}>
                           <ThemedView style={styles.alertHeader}>
-                            <ThemedView style={[styles.alertIcon, { backgroundColor: `${getAlertColor(alert.type)}15` }]}>
+                            <ThemedView style={[styles.alertIcon, { backgroundColor: '#F8F9FA' }]}>
                               <IconSymbol 
                                 size={20} 
                                 name={getAlertIcon(alert.type)} 
@@ -576,10 +582,10 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: '#E5E5EA',
     shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
-    elevation: 3,
+    shadowOffset: { width: 0, height: 6 },
+    shadowOpacity: 0.25,
+    shadowRadius: 12,
+    elevation: 10,
   },
   statNumber: {
     fontSize: 20,
@@ -592,6 +598,19 @@ const styles = StyleSheet.create({
     color: '#666',
     textAlign: 'center',
     writingDirection: 'rtl',
+  },
+  statIconContainer: {
+    padding: 10,
+    backgroundColor: '#F8F9FA',
+    borderRadius: 30,
+    borderWidth: 1,
+    borderColor: '#E5E5EA',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 6 },
+    shadowOpacity: 0.25,
+    shadowRadius: 12,
+    elevation: 10,
+    marginBottom: 10,
   },
   addSection: {
     marginBottom: 25,
@@ -767,6 +786,13 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     marginRight: 12,
+    borderWidth: 1,
+    borderColor: '#E5E5EA',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 6 },
+    shadowOpacity: 0.25,
+    shadowRadius: 12,
+    elevation: 10,
   },
   alertInfo: {
     flex: 1,
