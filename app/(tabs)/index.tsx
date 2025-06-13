@@ -508,7 +508,7 @@ const styles = StyleSheet.create({
     writingDirection: 'rtl',
   },
   dashboardHeader: {
-    flexDirection: 'row',
+    flexDirection: 'row-reverse',
     justifyContent: 'space-between',
     alignItems: 'center',
     marginBottom: 25,
