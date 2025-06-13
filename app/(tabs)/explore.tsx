@@ -40,7 +40,7 @@ export default function ExploreScreen() {
                   onPress={() => router.push('/official-holidays')}
                 >
                   <ThemedView style={styles.toolIconWrapper}>
-                    <IconSymbol size={28} name="calendar.badge.plus" color="#4CAF50" />
+                    <IconSymbol size={28} name="calendar.badge.plus" color="#1c1f33" />
                   </ThemedView>
                   <ThemedText style={styles.toolTitle}>الإجازات الرسمية</ThemedText>
                   <ThemedText style={styles.toolDescription}>جدول الإجازات والعطل الرسمية</ThemedText>
@@ -51,7 +51,7 @@ export default function ExploreScreen() {
                   onPress={() => router.push('/calendar')}
                 >
                   <ThemedView style={styles.toolIconWrapper}>
-                    <IconSymbol size={28} name="calendar" color="#007AFF" />
+                    <IconSymbol size={28} name="calendar" color="#1c1f33" />
                   </ThemedView>
                   <ThemedText style={styles.toolTitle}>التقويم الهجري والميلادي</ThemedText>
                   <ThemedText style={styles.toolDescription}>عرض التقويم بالتاريخين الهجري والميلادي</ThemedText>
@@ -62,7 +62,7 @@ export default function ExploreScreen() {
                   onPress={() => router.push('/absence-management')}
                 >
                   <ThemedView style={styles.toolIconWrapper}>
-                    <IconSymbol size={28} name="calendar.badge.minus" color="#FF9500" />
+                    <IconSymbol size={28} name="calendar.badge.minus" color="#1c1f33" />
                   </ThemedView>
                   <ThemedText style={styles.toolTitle}>إدارة غيابي</ThemedText>
                   <ThemedText style={styles.toolDescription}>تسجيل ومتابعة أيام الغياب الشخصية</ThemedText>
@@ -73,7 +73,7 @@ export default function ExploreScreen() {
                   onPress={() => router.push('/alerts-management')}
                 >
                   <ThemedView style={styles.toolIconWrapper}>
-                    <IconSymbol size={28} name="bell.fill" color="#FF6B6B" />
+                    <IconSymbol size={28} name="bell.fill" color="#1c1f33" />
                   </ThemedView>
                   <ThemedText style={styles.toolTitle}>التنبيهات المهمة</ThemedText>
                   <ThemedText style={styles.toolDescription}>إنشاء وإدارة التنبيهات والتذكيرات</ThemedText>
