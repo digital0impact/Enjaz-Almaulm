@@ -231,23 +231,6 @@ export default function CalendarScreen() {
                 {calendarData.days.map((day, index) => renderCalendarDay(day, index))}
               </ThemedView>
 
-              {/* Legend */}
-              <ThemedView style={styles.legend}>
-                <ThemedText style={styles.legendTitle}>
-                  📋 مفتاح الألوان:
-                </ThemedText>
-                <ThemedView style={styles.legendItems}>
-                  <ThemedView style={styles.legendItem}>
-                    <View style={[styles.legendColor, { backgroundColor: '#4CAF50' }]} />
-                    <ThemedText style={styles.legendText}>اليوم الحالي</ThemedText>
-                  </ThemedView>
-                  <ThemedView style={styles.legendItem}>
-                    <View style={[styles.legendColor, { backgroundColor: '#BDC3C7' }]} />
-                    <ThemedText style={styles.legendText}>اليوم المحدد</ThemedText>
-                  </ThemedView>
-                </ThemedView>
-              </ThemedView>
-
               {/* Quick Actions */}
               <ThemedView style={styles.quickActions}>
                 <ThemedText style={styles.sectionTitle}>
@@ -499,45 +482,6 @@ const styles = StyleSheet.create({
   selectedText: {
     color: '#333',
     fontWeight: 'bold',
-  },
-  legend: {
-    padding: 16,
-    backgroundColor: '#e0f0f1',
-    borderRadius: 12,
-    borderWidth: 1,
-    borderColor: '#E5E5EA',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.1,
-    shadowRadius: 2,
-    elevation: 1,
-  },
-  legendTitle: {
-    fontSize: 16,
-    fontWeight: '600',
-    marginBottom: 12,
-    textAlign: 'right',
-    writingDirection: 'rtl',
-    color: '#000000',
-  },
-  legendItems: {
-    gap: 8,
-  },
-  legendItem: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 8,
-  },
-  legendColor: {
-    width: 16,
-    height: 16,
-    borderRadius: 8,
-  },
-  legendText: {
-    fontSize: 14,
-    textAlign: 'right',
-    writingDirection: 'rtl',
-    color: '#000000',
   },
   quickActions: {
     padding: 16,
