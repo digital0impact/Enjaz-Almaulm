@@ -302,7 +302,7 @@ export default function AlertsManagementScreen() {
                     horizontal 
                     showsHorizontalScrollIndicator={false} 
                     style={styles.filterContainer}
-                    contentContainerStyle={{ justifyContent: 'flex-end' }}
+                    contentContainerStyle={styles.filterContainerContent}
                   >
                     {[
                       { key: 'all', label: 'الكل' },
@@ -333,7 +333,7 @@ export default function AlertsManagementScreen() {
                     horizontal 
                     showsHorizontalScrollIndicator={false} 
                     style={styles.filterContainer}
-                    contentContainerStyle={{ justifyContent: 'flex-end' }}
+                    contentContainerStyle={styles.filterContainerContent}
                   >
                     {['all', ...alertTypes].map((type) => (
                       <TouchableOpacity
@@ -637,6 +637,8 @@ const styles = StyleSheet.create({
   },
   filterContainer: {
     flexDirection: 'row-reverse',
+  },
+  filterContainerContent: {
     justifyContent: 'flex-end',
   },
   filterButton: {
