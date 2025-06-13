@@ -1,6 +1,7 @@
 
 import React, { useState, useEffect } from 'react';
-import { StyleSheet, ScrollView, TouchableOpacity, Alert, Switch, I18nManager } from 'react-native';
+import { StyleSheet, ScrollView, TouchableOpacity, Alert, Switch, I18nManager, ImageBackground } from 'react-native';
+import { LinearGradient as ExpoLinearGradient } from 'expo-linear-gradient';
 import { ThemedText } from '@/components/ThemedText';
 import { ThemedView } from '@/components/ThemedView';
 import { IconSymbol } from '@/components/ui/IconSymbol';
@@ -102,7 +103,6 @@ export default function SettingsScreen() {
         {
           text: 'إنشاء النسخة',
           onPress: () => {
-            // محاكاة عملية النسخ الاحتياطي
             Alert.alert('تم بنجاح', 'تم إنشاء النسخة الاحتياطية وحفظها في التخزين السحابي');
           }
         }
@@ -152,149 +152,165 @@ export default function SettingsScreen() {
 
   return (
     <ThemedView style={styles.container}>
-      <ThemedView style={styles.header}>
-        <TouchableOpacity onPress={() => router.back()} style={styles.backButton}>
-          <IconSymbol size={24} name="arrow.right" color="#007AFF" />
-        </TouchableOpacity>
-        <ThemedText type="title" style={styles.headerTitle}>الإعدادات</ThemedText>
-        <ThemedView style={styles.placeholder} />
-      </ThemedView>
-
-      <ScrollView style={styles.content}>
-        {/* معلومات المستخدم */}
-        <ThemedView style={styles.section}>
-          <ThemedView style={styles.userInfo}>
-            <ThemedView style={styles.userAvatar}>
-              <IconSymbol size={40} name="person.circle.fill" color="#007AFF" />
+      <ImageBackground
+        source={require('@/assets/images/background.png')}
+        style={styles.backgroundImage}
+        resizeMode="cover"
+      >
+        <ExpoLinearGradient
+          colors={['rgba(255,255,255,0.9)', 'rgba(225,245,244,0.95)', 'rgba(173,212,206,0.8)']}
+          style={styles.gradientOverlay}
+        >
+          <ScrollView style={styles.scrollContainer}>
+            <ThemedView style={styles.header}>
+              <TouchableOpacity onPress={() => router.back()} style={styles.backButton}>
+                <IconSymbol size={24} name="arrow.right" color="#1c1f33" />
+              </TouchableOpacity>
+              <ThemedView style={styles.iconContainer}>
+                <IconSymbol size={60} name="gearshape.fill" color="#1c1f33" />
+              </ThemedView>
+              <ThemedText type="title" style={styles.title}>الإعدادات</ThemedText>
+              <ThemedText style={styles.subtitle}>إعدادات التطبيق والحساب</ThemedText>
             </ThemedView>
-            <ThemedView style={styles.userDetails}>
-              <ThemedText style={styles.userName}>{userInfo?.name || 'المستخدم'}</ThemedText>
-              <ThemedText style={styles.userEmail}>{userInfo?.email || 'user@example.com'}</ThemedText>
-            </ThemedView>
-          </ThemedView>
-        </ThemedView>
 
-        {/* المظهر والثيمات */}
-        <ThemedView style={styles.section}>
-          <ThemedText style={styles.sectionTitle}>المظهر والثيمات</ThemedText>
-          
-          <ThemedView style={styles.settingItem}>
-            <ThemedView style={styles.settingInfo}>
-              <IconSymbol size={24} name="moon.fill" color="#8A2BE2" />
-              <ThemedView style={styles.settingText}>
-                <ThemedText style={styles.settingTitle}>الوضع الليلي</ThemedText>
-                <ThemedText style={styles.settingDescription}>تفعيل المظهر الداكن</ThemedText>
+            <ThemedView style={styles.content}>
+              {/* معلومات المستخدم */}
+              <ThemedView style={[styles.section, { backgroundColor: 'transparent' }]}>
+                <ThemedView style={styles.userInfo}>
+                  <ThemedView style={styles.userAvatar}>
+                    <IconSymbol size={40} name="person.circle.fill" color="#1c1f33" />
+                  </ThemedView>
+                  <ThemedView style={styles.userDetails}>
+                    <ThemedText style={styles.userName}>{userInfo?.name || 'المستخدم'}</ThemedText>
+                    <ThemedText style={styles.userEmail}>{userInfo?.email || 'user@example.com'}</ThemedText>
+                  </ThemedView>
+                </ThemedView>
+              </ThemedView>
+
+              {/* المظهر والثيمات */}
+              <ThemedView style={[styles.section, { backgroundColor: 'transparent' }]}>
+                <ThemedText style={styles.sectionTitle}>المظهر والثيمات</ThemedText>
+                
+                <ThemedView style={styles.settingItem}>
+                  <ThemedView style={styles.settingInfo}>
+                    <IconSymbol size={24} name="moon.fill" color="#8A2BE2" />
+                    <ThemedView style={styles.settingText}>
+                      <ThemedText style={styles.settingTitle}>الوضع الليلي</ThemedText>
+                      <ThemedText style={styles.settingDescription}>تفعيل المظهر الداكن</ThemedText>
+                    </ThemedView>
+                  </ThemedView>
+                  <Switch
+                    value={darkTheme}
+                    onValueChange={handleThemeChange}
+                    trackColor={{ false: '#E5E5EA', true: '#add4ce' }}
+                    thumbColor="#FFFFFF"
+                  />
+                </ThemedView>
+
+                <TouchableOpacity style={styles.settingItem}>
+                  <ThemedView style={styles.settingInfo}>
+                    <IconSymbol size={24} name="paintbrush.fill" color="#FF6B6B" />
+                    <ThemedView style={styles.settingText}>
+                      <ThemedText style={styles.settingTitle}>ألوان التطبيق</ThemedText>
+                      <ThemedText style={styles.settingDescription}>تخصيص الألوان والخطوط</ThemedText>
+                    </ThemedView>
+                  </ThemedView>
+                  <IconSymbol size={16} name="chevron.left" color="#666666" />
+                </TouchableOpacity>
+              </ThemedView>
+
+              {/* الحساب والأمان */}
+              <ThemedView style={[styles.section, { backgroundColor: 'transparent' }]}>
+                <ThemedText style={styles.sectionTitle}>الحساب والأمان</ThemedText>
+                
+                <TouchableOpacity style={styles.settingItem} onPress={handleChangePassword}>
+                  <ThemedView style={styles.settingInfo}>
+                    <IconSymbol size={24} name="key.fill" color="#FF9500" />
+                    <ThemedView style={styles.settingText}>
+                      <ThemedText style={styles.settingTitle}>تغيير كلمة المرور</ThemedText>
+                      <ThemedText style={styles.settingDescription}>تحديث كلمة المرور الخاصة بك</ThemedText>
+                    </ThemedView>
+                  </ThemedView>
+                  <IconSymbol size={16} name="chevron.left" color="#666666" />
+                </TouchableOpacity>
+
+                <ThemedView style={styles.settingItem}>
+                  <ThemedView style={styles.settingInfo}>
+                    <IconSymbol size={24} name="bell.fill" color="#34C759" />
+                    <ThemedView style={styles.settingText}>
+                      <ThemedText style={styles.settingTitle}>التنبيهات</ThemedText>
+                      <ThemedText style={styles.settingDescription}>تفعيل الإشعارات</ThemedText>
+                    </ThemedView>
+                  </ThemedView>
+                  <Switch
+                    value={notifications}
+                    onValueChange={handleNotificationChange}
+                    trackColor={{ false: '#E5E5EA', true: '#add4ce' }}
+                    thumbColor="#FFFFFF"
+                  />
+                </ThemedView>
+              </ThemedView>
+
+              {/* النسخ الاحتياطي */}
+              <ThemedView style={[styles.section, { backgroundColor: 'transparent' }]}>
+                <ThemedText style={styles.sectionTitle}>النسخ الاحتياطي</ThemedText>
+                
+                <ThemedView style={styles.settingItem}>
+                  <ThemedView style={styles.settingInfo}>
+                    <IconSymbol size={24} name="icloud.fill" color="#007AFF" />
+                    <ThemedView style={styles.settingText}>
+                      <ThemedText style={styles.settingTitle}>النسخ التلقائي</ThemedText>
+                      <ThemedText style={styles.settingDescription}>نسخ احتياطي يومي للبيانات</ThemedText>
+                    </ThemedView>
+                  </ThemedView>
+                  <Switch
+                    value={autoBackup}
+                    onValueChange={handleAutoBackupChange}
+                    trackColor={{ false: '#E5E5EA', true: '#add4ce' }}
+                    thumbColor="#FFFFFF"
+                  />
+                </ThemedView>
+
+                <TouchableOpacity style={styles.settingItem} onPress={handleBackup}>
+                  <ThemedView style={styles.settingInfo}>
+                    <IconSymbol size={24} name="arrow.up.circle.fill" color="#32D74B" />
+                    <ThemedView style={styles.settingText}>
+                      <ThemedText style={styles.settingTitle}>إنشاء نسخة احتياطية</ThemedText>
+                      <ThemedText style={styles.settingDescription}>حفظ نسخة من بياناتك الآن</ThemedText>
+                    </ThemedView>
+                  </ThemedView>
+                  <IconSymbol size={16} name="chevron.left" color="#666666" />
+                </TouchableOpacity>
+
+                <TouchableOpacity style={styles.settingItem} onPress={handleRestoreBackup}>
+                  <ThemedView style={styles.settingInfo}>
+                    <IconSymbol size={24} name="arrow.down.circle.fill" color="#FF9500" />
+                    <ThemedView style={styles.settingText}>
+                      <ThemedText style={styles.settingTitle}>استعادة النسخة الاحتياطية</ThemedText>
+                      <ThemedText style={styles.settingDescription}>استرجاع البيانات المحفوظة</ThemedText>
+                    </ThemedView>
+                  </ThemedView>
+                  <IconSymbol size={16} name="chevron.left" color="#666666" />
+                </TouchableOpacity>
+              </ThemedView>
+
+              {/* تسجيل الخروج */}
+              <ThemedView style={[styles.section, { backgroundColor: 'transparent' }]}>
+                <TouchableOpacity style={[styles.settingItem, styles.logoutItem]} onPress={handleLogout}>
+                  <ThemedView style={styles.settingInfo}>
+                    <IconSymbol size={24} name="arrow.right.square" color="#FF3B30" />
+                    <ThemedText style={[styles.settingTitle, styles.logoutText]}>تسجيل الخروج</ThemedText>
+                  </ThemedView>
+                </TouchableOpacity>
+              </ThemedView>
+
+              <ThemedView style={[styles.footer, { backgroundColor: 'transparent' }]}>
+                <ThemedText style={styles.versionText}>الإصدار 1.0.0</ThemedText>
               </ThemedView>
             </ThemedView>
-            <Switch
-              value={darkTheme}
-              onValueChange={handleThemeChange}
-              trackColor={{ false: '#E5E5EA', true: '#007AFF' }}
-              thumbColor="#FFFFFF"
-            />
-          </ThemedView>
-
-          <TouchableOpacity style={styles.settingItem}>
-            <ThemedView style={styles.settingInfo}>
-              <IconSymbol size={24} name="paintbrush.fill" color="#FF6B6B" />
-              <ThemedView style={styles.settingText}>
-                <ThemedText style={styles.settingTitle}>ألوان التطبيق</ThemedText>
-                <ThemedText style={styles.settingDescription}>تخصيص الألوان والخطوط</ThemedText>
-              </ThemedView>
-            </ThemedView>
-            <IconSymbol size={16} name="chevron.left" color="#C7C7CC" />
-          </TouchableOpacity>
-        </ThemedView>
-
-        {/* الحساب والأمان */}
-        <ThemedView style={styles.section}>
-          <ThemedText style={styles.sectionTitle}>الحساب والأمان</ThemedText>
-          
-          <TouchableOpacity style={styles.settingItem} onPress={handleChangePassword}>
-            <ThemedView style={styles.settingInfo}>
-              <IconSymbol size={24} name="key.fill" color="#FF9500" />
-              <ThemedView style={styles.settingText}>
-                <ThemedText style={styles.settingTitle}>تغيير كلمة المرور</ThemedText>
-                <ThemedText style={styles.settingDescription}>تحديث كلمة المرور الخاصة بك</ThemedText>
-              </ThemedView>
-            </ThemedView>
-            <IconSymbol size={16} name="chevron.left" color="#C7C7CC" />
-          </TouchableOpacity>
-
-          <ThemedView style={styles.settingItem}>
-            <ThemedView style={styles.settingInfo}>
-              <IconSymbol size={24} name="bell.fill" color="#34C759" />
-              <ThemedView style={styles.settingText}>
-                <ThemedText style={styles.settingTitle}>التنبيهات</ThemedText>
-                <ThemedText style={styles.settingDescription}>تفعيل الإشعارات</ThemedText>
-              </ThemedView>
-            </ThemedView>
-            <Switch
-              value={notifications}
-              onValueChange={handleNotificationChange}
-              trackColor={{ false: '#E5E5EA', true: '#007AFF' }}
-              thumbColor="#FFFFFF"
-            />
-          </ThemedView>
-        </ThemedView>
-
-        {/* النسخ الاحتياطي */}
-        <ThemedView style={styles.section}>
-          <ThemedText style={styles.sectionTitle}>النسخ الاحتياطي</ThemedText>
-          
-          <ThemedView style={styles.settingItem}>
-            <ThemedView style={styles.settingInfo}>
-              <IconSymbol size={24} name="icloud.fill" color="#007AFF" />
-              <ThemedView style={styles.settingText}>
-                <ThemedText style={styles.settingTitle}>النسخ التلقائي</ThemedText>
-                <ThemedText style={styles.settingDescription}>نسخ احتياطي يومي للبيانات</ThemedText>
-              </ThemedView>
-            </ThemedView>
-            <Switch
-              value={autoBackup}
-              onValueChange={handleAutoBackupChange}
-              trackColor={{ false: '#E5E5EA', true: '#007AFF' }}
-              thumbColor="#FFFFFF"
-            />
-          </ThemedView>
-
-          <TouchableOpacity style={styles.settingItem} onPress={handleBackup}>
-            <ThemedView style={styles.settingInfo}>
-              <IconSymbol size={24} name="arrow.up.circle.fill" color="#32D74B" />
-              <ThemedView style={styles.settingText}>
-                <ThemedText style={styles.settingTitle}>إنشاء نسخة احتياطية</ThemedText>
-                <ThemedText style={styles.settingDescription}>حفظ نسخة من بياناتك الآن</ThemedText>
-              </ThemedView>
-            </ThemedView>
-            <IconSymbol size={16} name="chevron.left" color="#C7C7CC" />
-          </TouchableOpacity>
-
-          <TouchableOpacity style={styles.settingItem} onPress={handleRestoreBackup}>
-            <ThemedView style={styles.settingInfo}>
-              <IconSymbol size={24} name="arrow.down.circle.fill" color="#FF9500" />
-              <ThemedView style={styles.settingText}>
-                <ThemedText style={styles.settingTitle}>استعادة النسخة الاحتياطية</ThemedText>
-                <ThemedText style={styles.settingDescription}>استرجاع البيانات المحفوظة</ThemedText>
-              </ThemedView>
-            </ThemedView>
-            <IconSymbol size={16} name="chevron.left" color="#C7C7CC" />
-          </TouchableOpacity>
-        </ThemedView>
-
-        {/* تسجيل الخروج */}
-        <ThemedView style={styles.section}>
-          <TouchableOpacity style={[styles.settingItem, styles.logoutItem]} onPress={handleLogout}>
-            <ThemedView style={styles.settingInfo}>
-              <IconSymbol size={24} name="arrow.right.square" color="#FF3B30" />
-              <ThemedText style={[styles.settingTitle, styles.logoutText]}>تسجيل الخروج</ThemedText>
-            </ThemedView>
-          </TouchableOpacity>
-        </ThemedView>
-
-        <ThemedView style={styles.footer}>
-          <ThemedText style={styles.versionText}>الإصدار 1.0.0</ThemedText>
-        </ThemedView>
-      </ScrollView>
+          </ScrollView>
+        </ExpoLinearGradient>
+      </ImageBackground>
     </ThemedView>
   );
 }
@@ -302,55 +318,97 @@ export default function SettingsScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#F2F2F7',
+  },
+  backgroundImage: {
+    flex: 1,
+    width: '100%',
+    height: '100%',
+  },
+  gradientOverlay: {
+    flex: 1,
+  },
+  scrollContainer: {
+    flex: 1,
   },
   header: {
-    flexDirection: I18nManager.isRTL ? 'row-reverse' : 'row',
     alignItems: 'center',
-    justifyContent: 'space-between',
-    paddingHorizontal: 20,
-    paddingTop: 50,
-    paddingBottom: 20,
-    backgroundColor: '#FFFFFF',
-    borderBottomWidth: 1,
-    borderBottomColor: '#E5E5EA',
+    padding: 30,
+    backgroundColor: 'transparent',
+    position: 'relative',
   },
   backButton: {
-    padding: 8,
+    position: 'absolute',
+    top: 50,
+    right: 20,
+    padding: 10,
+    backgroundColor: '#e0f0f1',
+    borderRadius: 20,
+    borderWidth: 1,
+    borderColor: '#E5E5EA',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    elevation: 3,
   },
-  headerTitle: {
-    fontSize: 20,
+  iconContainer: {
+    marginBottom: 20,
+    padding: 20,
+    backgroundColor: '#e0f0f1',
+    borderRadius: 50,
+    borderWidth: 1,
+    borderColor: '#E5E5EA',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 6 },
+    shadowOpacity: 0.25,
+    shadowRadius: 12,
+    elevation: 10,
+  },
+  title: {
+    fontSize: 28,
     fontWeight: 'bold',
-    color: '#000000',
+    marginTop: 15,
+    marginBottom: 10,
     textAlign: 'center',
+    writingDirection: 'rtl',
+    color: '#1c1f33',
   },
-  placeholder: {
-    width: 40,
+  subtitle: {
+    fontSize: 16,
+    color: '#666666',
+    textAlign: 'center',
+    writingDirection: 'rtl',
+    marginBottom: 20,
   },
   content: {
-    flex: 1,
-    paddingVertical: 20,
+    padding: 20,
+    backgroundColor: 'transparent',
   },
   section: {
-    backgroundColor: '#FFFFFF',
-    marginBottom: 20,
-    marginHorizontal: 20,
+    marginBottom: 30,
+    padding: 15,
+    backgroundColor: '#e0f0f1',
     borderRadius: 12,
-    paddingVertical: 8,
+    borderWidth: 1,
+    borderColor: '#E5E5EA',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    elevation: 3,
   },
   sectionTitle: {
-    fontSize: 16,
-    fontWeight: '600',
-    color: '#8E8E93',
-    paddingHorizontal: 16,
-    paddingVertical: 12,
-    textAlign: 'right',
+    fontSize: 20,
+    fontWeight: 'bold',
+    marginBottom: 15,
+    color: '#1c1f33',
+    textAlign: 'center',
     writingDirection: 'rtl',
   },
   userInfo: {
     flexDirection: I18nManager.isRTL ? 'row-reverse' : 'row',
     alignItems: 'center',
-    padding: 16,
+    padding: 10,
   },
   userAvatar: {
     marginLeft: I18nManager.isRTL ? 0 : 12,
@@ -362,13 +420,13 @@ const styles = StyleSheet.create({
   userName: {
     fontSize: 18,
     fontWeight: '600',
-    color: '#000000',
+    color: '#1c1f33',
     textAlign: 'right',
     writingDirection: 'rtl',
   },
   userEmail: {
     fontSize: 14,
-    color: '#8E8E93',
+    color: '#666666',
     marginTop: 2,
     textAlign: 'right',
     writingDirection: 'rtl',
@@ -377,10 +435,18 @@ const styles = StyleSheet.create({
     flexDirection: I18nManager.isRTL ? 'row-reverse' : 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    paddingHorizontal: 16,
-    paddingVertical: 12,
-    borderBottomWidth: 1,
-    borderBottomColor: '#F2F2F7',
+    paddingHorizontal: 10,
+    paddingVertical: 15,
+    marginBottom: 10,
+    backgroundColor: '#FFFFFF',
+    borderRadius: 8,
+    borderWidth: 1,
+    borderColor: '#E5E5EA',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.05,
+    shadowRadius: 2,
+    elevation: 1,
   },
   settingInfo: {
     flexDirection: I18nManager.isRTL ? 'row-reverse' : 'row',
@@ -395,13 +461,13 @@ const styles = StyleSheet.create({
   settingTitle: {
     fontSize: 16,
     fontWeight: '500',
-    color: '#000000',
+    color: '#1c1f33',
     textAlign: 'right',
     writingDirection: 'rtl',
   },
   settingDescription: {
     fontSize: 13,
-    color: '#8E8E93',
+    color: '#666666',
     marginTop: 2,
     textAlign: 'right',
     writingDirection: 'rtl',
@@ -418,6 +484,6 @@ const styles = StyleSheet.create({
   },
   versionText: {
     fontSize: 14,
-    color: '#8E8E93',
+    color: '#666666',
   },
 });
