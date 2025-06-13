@@ -251,17 +251,9 @@ export default function AzkarScreen() {
                 <ThemedView style={styles.iconContainer}>
                   <IconSymbol size={60} name="book.fill" color="#1c1f33" />
                 </ThemedView>
-                <ThemedView style={styles.titleRow}>
-                  <ThemedText type="title" style={styles.title}>
-                    أذكاري
-                  </ThemedText>
-                  <TouchableOpacity 
-                    style={styles.backButton}
-                    onPress={() => router.back()}
-                  >
-                    <IconSymbol size={16} name="arrow.right" color="#1c1f33" />
-                  </TouchableOpacity>
-                </ThemedView>
+                <ThemedText type="title" style={styles.title}>
+                  أذكاري
+                </ThemedText>
                 <ThemedText style={styles.subtitle}>
                   اختر فئة الأذكار للبدء في التسبيح والذكر
                 </ThemedText>
@@ -402,30 +394,14 @@ const styles = StyleSheet.create({
     shadowRadius: 12,
     elevation: 10,
   },
-  titleRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    marginTop: 15,
-    marginBottom: 10,
-    paddingHorizontal: 20,
-  },
   title: {
     fontSize: 28,
     fontWeight: 'bold',
+    marginTop: 15,
+    marginBottom: 10,
     textAlign: 'center',
     writingDirection: 'rtl',
     color: '#000000',
-  },
-  backButton: {
-    backgroundColor: '#add4ce',
-    padding: 8,
-    borderRadius: 20,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.2,
-    shadowRadius: 4,
-    elevation: 4,
   },
   subtitle: {
     fontSize: 16,
