@@ -598,7 +598,6 @@ export default function ScheduleScreen() {
         <ThemedView style={styles.actionButtons}>
           <TouchableOpacity style={styles.exportButton} onPress={exportSchedule}>
             <IconSymbol size={20} name="square.and.arrow.up" color="#1c1f33" />
-            <ThemedText style={styles.buttonText}>تصدير الجدول</ThemedText>
           </TouchableOpacity>
         </ThemedView>
           </ThemedView>
