@@ -167,8 +167,8 @@ export default function CalendarScreen() {
                     <ThemedText style={styles.dateValue}>
                       {new Date().toLocaleDateString('ar-SA', {
                         year: 'numeric',
-                        month: 'long',
-                        day: 'numeric',
+                        month: '2-digit',
+                        day: '2-digit',
                         calendar: 'gregory'
                       })}
                     </ThemedText>
