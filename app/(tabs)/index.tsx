@@ -276,9 +276,12 @@ export default function HomeScreen() {
             <ThemedView style={styles.dashboardContent}>
           <ThemedView style={styles.dashboardHeader}>
             <ThemedView style={{ flex: 1 }}>
-              <ThemedText type="title" style={[styles.welcomeTitle, { textAlign: 'center', marginTop: 15 }]}>
-                مرحباً {teacherName}
-              </ThemedText>
+              <ThemedView style={styles.welcomeContainer}>
+                <IconSymbol size={40} name="person.circle.fill" color="#1B2951" />
+                <ThemedText type="title" style={[styles.welcomeTitle, { textAlign: 'center', marginTop: 10 }]}>
+                  مرحباً {teacherName}
+                </ThemedText>
+              </ThemedView>
             </ThemedView>
             <ThemedView style={styles.headerButtons}>
               <TouchableOpacity onPress={() => router.push('/settings')} style={styles.settingsButton}>
@@ -513,6 +516,10 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     marginBottom: 25,
     padding: 20,
+  },
+  welcomeContainer: {
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   welcomeTitle: {
     fontSize: 22,
