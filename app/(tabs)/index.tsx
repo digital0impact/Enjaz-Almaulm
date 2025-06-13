@@ -313,7 +313,9 @@ export default function HomeScreen() {
 
                     <ThemedView style={styles.actionsGrid}>
                       <TouchableOpacity style={styles.dataItem}>
-                        <IconSymbol size={28} name="plus.circle.fill" color="#4CAF50" />
+                        <ThemedView style={styles.iconWrapper}>
+                          <IconSymbol size={28} name="plus.circle.fill" color="#1c1f33" />
+                        </ThemedView>
                         <ThemedText style={styles.actionText}>عرض التقرير التفاعلي</ThemedText>
                       </TouchableOpacity>
 
@@ -321,7 +323,7 @@ export default function HomeScreen() {
                         style={styles.dataItem}
                         onPress={() => router.push('/azkar')}
                       >
-                        <ThemedView style={styles.azkarIconContainer}>
+                        <ThemedView style={styles.iconWrapper}>
                           <IconSymbol size={28} name="doc.text.fill" color="#1c1f33" />
                         </ThemedView>
                         <ThemedText style={styles.actionText}>أذكاري</ThemedText>
@@ -331,7 +333,9 @@ export default function HomeScreen() {
                         style={styles.dataItem}
                         onPress={() => router.push('/password-tracker')}
                       >
-                        <IconSymbol size={28} name="lock.shield.fill" color="#6A1B9A" />
+                        <ThemedView style={styles.iconWrapper}>
+                          <IconSymbol size={28} name="lock.shield.fill" color="#1c1f33" />
+                        </ThemedView>
                         <ThemedText style={styles.actionText}>متتبع المواقع وكلمات المرور</ThemedText>
                       </TouchableOpacity>
 
@@ -339,12 +343,16 @@ export default function HomeScreen() {
                         style={styles.dataItem}
                         onPress={() => router.push('/student-tracking')}
                       >
-                        <IconSymbol size={28} name="person.crop.circle.badge.plus" color="#E91E63" />
+                        <ThemedView style={styles.iconWrapper}>
+                          <IconSymbol size={28} name="person.crop.circle.badge.plus" color="#1c1f33" />
+                        </ThemedView>
                         <ThemedText style={styles.actionText}>تتبع حالة متعلم</ThemedText>
                       </TouchableOpacity>
 
                       <TouchableOpacity style={styles.dataItem}>
-                        <IconSymbol size={28} name="envelope.fill" color="#2196F3" />
+                        <ThemedView style={styles.iconWrapper}>
+                          <IconSymbol size={28} name="envelope.fill" color="#1c1f33" />
+                        </ThemedView>
                         <ThemedText style={styles.actionText}>التعليقات</ThemedText>
                       </TouchableOpacity>
 
@@ -352,7 +360,9 @@ export default function HomeScreen() {
                         style={styles.dataItem}
                         onPress={() => router.push('/schedule')}
                       >
-                        <IconSymbol size={28} name="calendar" color="#9C27B0" />
+                        <ThemedView style={styles.iconWrapper}>
+                          <IconSymbol size={28} name="calendar" color="#1c1f33" />
+                        </ThemedView>
                         <ThemedText style={styles.actionText}>الجدول</ThemedText>
                       </TouchableOpacity>
                     </ThemedView>
@@ -736,7 +746,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     width: '48%',
   },
-  azkarIconContainer: {
+  iconWrapper: {
     marginBottom: 10,
     padding: 15,
     backgroundColor: '#F8F9FA',
