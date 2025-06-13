@@ -677,7 +677,7 @@ const styles = StyleSheet.create({
     marginTop: 10,
   },
   weeklyTable: {
-    minWidth: 780,
+    minWidth: 1100,
   },
   tableHeader: {
     flexDirection: 'row',
@@ -686,8 +686,8 @@ const styles = StyleSheet.create({
     borderTopRightRadius: 8,
   },
   timeColumnHeader: {
-    width: 55,
-    padding: 4,
+    width: 85,
+    padding: 8,
     backgroundColor: '#1F5F3F',
     justifyContent: 'center',
     alignItems: 'center',
@@ -729,9 +729,9 @@ const styles = StyleSheet.create({
     textAlign: 'center',
   },
   scheduleCell: {
-    width: 55,
-    minHeight: 60,
-    padding: 2,
+    width: 85,
+    minHeight: 80,
+    padding: 6,
     borderLeftWidth: 1,
     borderLeftColor: '#E0E0E0',
     justifyContent: 'center',
@@ -752,18 +752,18 @@ const styles = StyleSheet.create({
     width: '100%',
   },
   cellSubject: {
-    fontSize: 8,
+    fontSize: 12,
     fontWeight: 'bold',
     color: '#fff',
     textAlign: 'center',
-    marginBottom: 1,
+    marginBottom: 3,
   },
   cellClass: {
-    fontSize: 6,
+    fontSize: 10,
     color: '#fff',
     textAlign: 'center',
     opacity: 0.9,
-    marginBottom: 1,
+    marginBottom: 2,
   },
   cellTypeBadge: {
     backgroundColor: 'rgba(255,255,255,0.2)',
@@ -772,7 +772,7 @@ const styles = StyleSheet.create({
     borderRadius: 4,
   },
   cellTypeText: {
-    fontSize: 6,
+    fontSize: 8,
     color: '#fff',
     fontWeight: '600',
   },
@@ -782,10 +782,10 @@ const styles = StyleSheet.create({
     opacity: 0.5,
   },
   emptyCellText: {
-    fontSize: 10,
+    fontSize: 12,
     color: '#999',
     textAlign: 'center',
-    marginTop: 2,
+    marginTop: 4,
   },
   scheduleHeader: {
     flexDirection: 'row',
