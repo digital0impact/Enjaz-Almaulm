@@ -293,7 +293,7 @@ export default function ScheduleScreen() {
           <ThemedView style={styles.formCard}>
             <ThemedView style={styles.formGroup}>
               <ThemedText style={styles.label}>اليوم</ThemedText>
-              <ThemedView style={styles.radioGroup}>
+              <ThemedView style={[styles.radioGroup, { justifyContent: 'flex-end', flexDirection: 'row-reverse' }]}>
                 {days.map(day => (
                   <TouchableOpacity
                     key={day}
