@@ -152,6 +152,7 @@ export default function PerformanceScreen() {
 
   const [selectedPerformance, setSelectedPerformance] = useState<number | null>(null);
   const [selectedEvidence, setSelectedEvidence] = useState<{performanceId: number, evidenceIndex: number} | null>(null);
+  const [uploadedFiles, setUploadedFiles] = useState<{[key: string]: {name: string, size: string, date: string}}>({});
 
   useEffect(() => {
     loadPerformanceData();
@@ -429,7 +430,30 @@ export default function PerformanceScreen() {
                               style={styles.uploadIcon}
                               onPress={(e) => {
                                 e.stopPropagation();
-                                Alert.alert('تحميل ملف', `سيتم تحميل ملف لـ: ${evidenceItem.name}`);
+                                const fileKey = `${item.id}-${index}`;
+                                Alert.alert(
+                                  'تحميل ملف',
+                                  `سيتم تحميل ملف لـ: ${evidenceItem.name}`,
+                                  [
+                                    { text: 'إلغاء', style: 'cancel' },
+                                    { 
+                                      text: 'تحميل',
+                                      onPress: () => {
+                                        // محاكاة رفع ملف
+                                        const newFile = {
+                                          name: `${evidenceItem.name}.pdf`,
+                                          size: '2.5 ميجابايت',
+                                          date: new Date().toLocaleDateString('ar-SA')
+                                        };
+                                        setUploadedFiles(prev => ({
+                                          ...prev,
+                                          [fileKey]: newFile
+                                        }));
+                                        Alert.alert('نجح التحميل', `تم تحميل الملف بنجاح: ${newFile.name}`);
+                                      }
+                                    }
+                                  ]
+                                );
                               }}
                             >
                               <IconSymbol 
@@ -494,6 +518,39 @@ export default function PerformanceScreen() {
                           {selectedEvidence?.performanceId === item.id && selectedEvidence?.evidenceIndex === index && (
                             <ThemedView style={styles.evidenceDropdown}>
                               <ThemedText style={styles.evidenceDropdownTitle}>تفاصيل الشاهد:</ThemedText>
+                              
+                              {uploadedFiles[`${item.id}-${index}`] ? (
+                                <ThemedView style={styles.fileDetailsContainer}>
+                                  <ThemedText style={styles.fileDetailsTitle}>الملف المحمل:</ThemedText>
+                                  <ThemedView style={styles.fileInfoRow}>
+                                    <IconSymbol size={16} name="doc.fill" color="#2196F3" />
+                                    <ThemedView style={styles.fileInfo}>
+                                      <ThemedText style={styles.fileName}>
+                                        {uploadedFiles[`${item.id}-${index}`].name}
+                                      </ThemedText>
+                                      <ThemedText style={styles.fileSize}>
+                                        الحجم: {uploadedFiles[`${item.id}-${index}`].size}
+                                      </ThemedText>
+                                      <ThemedText style={styles.fileDate}>
+                                        تاريخ التحميل: {uploadedFiles[`${item.id}-${index}`].date}
+                                      </ThemedText>
+                                    </ThemedView>
+                                  </ThemedView>
+                                  <TouchableOpacity 
+                                    style={styles.viewFileButton}
+                                    onPress={() => Alert.alert('عرض الملف', `فتح ملف: ${uploadedFiles[`${item.id}-${index}`].name}`)}
+                                  >
+                                    <IconSymbol size={14} name="eye.fill" color="#2196F3" />
+                                    <ThemedText style={styles.viewFileButtonText}>عرض الملف</ThemedText>
+                                  </TouchableOpacity>
+                                </ThemedView>
+                              ) : (
+                                <ThemedView style={styles.noFileContainer}>
+                                  <IconSymbol size={20} name="doc.badge.plus" color="#999" />
+                                  <ThemedText style={styles.noFileText}>لم يتم تحميل ملف بعد</ThemedText>
+                                  <ThemedText style={styles.noFileHint}>اضغط على أيقونة التحميل لرفع ملف</ThemedText>
+                                </ThemedView>
+                              )}
                             </ThemedView>
                           )}
                         </ThemedView>
@@ -1053,6 +1110,96 @@ const styles = StyleSheet.create({
     fontSize: 11,
     color: '#2196F3',
     textAlign: 'right',
+    writingDirection: 'rtl',
+  },
+  fileDetailsContainer: {
+    backgroundColor: '#f0f8ff',
+    padding: 10,
+    borderRadius: 8,
+    marginTop: 8,
+    borderWidth: 1,
+    borderColor: '#e3f2fd',
+  },
+  fileDetailsTitle: {
+    fontSize: 12,
+    fontWeight: 'bold',
+    color: '#1976d2',
+    marginBottom: 8,
+    textAlign: 'right',
+    writingDirection: 'rtl',
+  },
+  fileInfoRow: {
+    flexDirection: I18nManager.isRTL ? 'row-reverse' : 'row',
+    alignItems: 'flex-start',
+    gap: 8,
+    marginBottom: 10,
+  },
+  fileInfo: {
+    flex: 1,
+  },
+  fileName: {
+    fontSize: 11,
+    fontWeight: '600',
+    color: '#333',
+    marginBottom: 2,
+    textAlign: 'right',
+    writingDirection: 'rtl',
+  },
+  fileSize: {
+    fontSize: 10,
+    color: '#666',
+    marginBottom: 2,
+    textAlign: 'right',
+    writingDirection: 'rtl',
+  },
+  fileDate: {
+    fontSize: 10,
+    color: '#666',
+    textAlign: 'right',
+    writingDirection: 'rtl',
+  },
+  viewFileButton: {
+    flexDirection: I18nManager.isRTL ? 'row-reverse' : 'row',
+    alignItems: 'center',
+    backgroundColor: '#e3f2fd',
+    paddingHorizontal: 8,
+    paddingVertical: 6,
+    borderRadius: 6,
+    borderWidth: 1,
+    borderColor: '#2196F3',
+    gap: 4,
+    alignSelf: 'flex-end',
+  },
+  viewFileButtonText: {
+    fontSize: 10,
+    color: '#2196F3',
+    fontWeight: '600',
+    textAlign: 'right',
+    writingDirection: 'rtl',
+  },
+  noFileContainer: {
+    alignItems: 'center',
+    padding: 15,
+    backgroundColor: '#f9f9f9',
+    borderRadius: 8,
+    marginTop: 8,
+    borderWidth: 1,
+    borderColor: '#e0e0e0',
+    borderStyle: 'dashed',
+  },
+  noFileText: {
+    fontSize: 11,
+    color: '#999',
+    marginTop: 5,
+    fontWeight: '600',
+    textAlign: 'center',
+    writingDirection: 'rtl',
+  },
+  noFileHint: {
+    fontSize: 9,
+    color: '#ccc',
+    marginTop: 2,
+    textAlign: 'center',
     writingDirection: 'rtl',
   },
 });
