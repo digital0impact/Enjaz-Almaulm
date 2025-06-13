@@ -346,26 +346,14 @@ export default function ScheduleScreen() {
                   <ThemedText style={styles.label}>الصف</ThemedText>
                   <ThemedView style={styles.inputContainer}>
                     <IconSymbol size={20} name="person.2.fill" color="#666" />
-                    <ThemedText 
+                    <TextInput
                       style={styles.textInput}
-                      onPress={() => {
-                        Alert.prompt(
-                          'الصف',
-                          'أدخل اسم الصف:',
-                          [
-                            { text: 'إلغاء', style: 'cancel' },
-                            { 
-                              text: 'تأكيد', 
-                              onPress: (text) => text && setFormData(prev => ({ ...prev, class: text }))
-                            }
-                          ],
-                          'plain-text',
-                          formData.class
-                        );
-                      }}
-                    >
-                      {formData.class || 'اضغط لإدخال الصف'}
-                    </ThemedText>
+                      value={formData.class}
+                      onChangeText={(text) => setFormData(prev => ({ ...prev, class: text }))}
+                      placeholder="أدخل اسم الصف..."
+                      placeholderTextColor="#999"
+                      textAlign="right"
+                    />
                   </ThemedView>
                 </ThemedView>
 
