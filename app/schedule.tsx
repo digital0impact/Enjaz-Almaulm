@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { StyleSheet, ScrollView, TouchableOpacity, Alert, I18nManager, ImageBackground, Dimensions } from 'react-native';
+import { StyleSheet, ScrollView, TouchableOpacity, Alert, I18nManager, ImageBackground, Dimensions, TextInput } from 'react-native';
 import { LinearGradient as ExpoLinearGradient } from 'expo-linear-gradient';
 import { ThemedText } from '@/components/ThemedText';
 import { ThemedView } from '@/components/ThemedView';
@@ -331,26 +331,14 @@ export default function ScheduleScreen() {
                   <ThemedText style={styles.label}>المادة</ThemedText>
                   <ThemedView style={styles.inputContainer}>
                     <IconSymbol size={20} name="book.fill" color="#666" />
-                    <ThemedText 
+                    <TextInput
                       style={styles.textInput}
-                      onPress={() => {
-                        Alert.prompt(
-                          'اسم المادة',
-                          'أدخل اسم المادة:',
-                          [
-                            { text: 'إلغاء', style: 'cancel' },
-                            { 
-                              text: 'تأكيد', 
-                              onPress: (text) => text && setFormData(prev => ({ ...prev, subject: text }))
-                            }
-                          ],
-                          'plain-text',
-                          formData.subject
-                        );
-                      }}
-                    >
-                      {formData.subject || 'اضغط لإدخال المادة'}
-                    </ThemedText>
+                      value={formData.subject}
+                      onChangeText={(text) => setFormData(prev => ({ ...prev, subject: text }))}
+                      placeholder="أدخل اسم المادة..."
+                      placeholderTextColor="#999"
+                      textAlign="right"
+                    />
                   </ThemedView>
                 </ThemedView>
 
