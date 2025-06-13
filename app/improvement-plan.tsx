@@ -261,9 +261,6 @@ export default function ImprovementPlanScreen() {
 
             <ThemedView style={styles.goalsSection}>
               <ThemedView style={styles.sectionHeader}>
-                <ThemedText style={styles.sectionTitle}>
-                  أهداف التحسين
-                </ThemedText>
                 <TouchableOpacity 
                   style={styles.addGoalButton}
                   onPress={addNewGoal}
@@ -271,6 +268,9 @@ export default function ImprovementPlanScreen() {
                   <IconSymbol size={16} name="plus.circle.fill" color="#4CAF50" />
                   <ThemedText style={styles.addGoalText}>إضافة هدف</ThemedText>
                 </TouchableOpacity>
+                <ThemedText style={styles.sectionTitle}>
+                  أهداف التحسين
+                </ThemedText>
               </ThemedView>
 
               {improvementGoals.map((goal) => (
