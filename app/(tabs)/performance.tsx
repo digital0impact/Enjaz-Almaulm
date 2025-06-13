@@ -406,31 +406,7 @@ export default function PerformanceScreen() {
                     </TouchableOpacity>
                   </ThemedView>
                   <ThemedView style={styles.evidenceContainer}>
-                    {/* القائمة العمودية للاستعراض المصغر */}
-                    <ThemedView style={styles.evidenceSummary}>
-                      <ThemedText style={styles.summaryTitle}>استعراض الشواهد</ThemedText>
-                      <ThemedView style={styles.summaryIndicators}>
-                        {item.evidence.map((evidenceItem, index) => (
-                          <ThemedView key={index} style={styles.summaryIndicator}>
-                            <ThemedView style={[
-                              styles.indicatorDot,
-                              evidenceItem.available ? styles.indicatorAvailable : styles.indicatorUnavailable
-                            ]} />
-                            <ThemedText style={styles.indicatorLabel}>
-                              {evidenceItem.name.slice(0, 15)}...
-                            </ThemedText>
-                          </ThemedView>
-                        ))}
-                      </ThemedView>
-                      <ThemedView style={styles.summaryStats}>
-                        <ThemedText style={styles.statsText}>
-                          {item.evidence.filter(e => e.available).length} / {item.evidence.length}
-                        </ThemedText>
-                        <ThemedText style={styles.statsLabel}>متوفر</ThemedText>
-                      </ThemedView>
-                    </ThemedView>
-
-                    {/* قائمة الشواهد المفصلة */}
+                    {/* قائمة الشواهد */}
                     <ThemedView style={styles.evidenceList}>
                       {item.evidence.map((evidenceItem, index) => (
                         <TouchableOpacity 
@@ -636,70 +612,10 @@ const styles = StyleSheet.create({
     writingDirection: 'rtl',
   },
   evidenceContainer: {
-    flexDirection: 'row',
     marginBottom: 15,
-    gap: 10,
-  },
-  evidenceSummary: {
-    flex: 1,
-    backgroundColor: '#f0f4f8',
-    borderRadius: 8,
-    padding: 8,
-    borderWidth: 1,
-    borderColor: '#e1e8ed',
-  },
-  summaryTitle: {
-    fontSize: 11,
-    fontWeight: 'bold',
-    color: '#333',
-    marginBottom: 6,
-    textAlign: 'center',
-  },
-  summaryIndicators: {
-    marginBottom: 6,
-  },
-  summaryIndicator: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginBottom: 3,
-    gap: 6,
-  },
-  indicatorDot: {
-    width: 8,
-    height: 8,
-    borderRadius: 4,
-  },
-  indicatorAvailable: {
-    backgroundColor: '#4CAF50',
-  },
-  indicatorUnavailable: {
-    backgroundColor: '#F44336',
-  },
-  indicatorLabel: {
-    fontSize: 9,
-    color: '#666',
-    flex: 1,
-    textAlign: 'right',
-  },
-  summaryStats: {
-    alignItems: 'center',
-    paddingTop: 6,
-    borderTopWidth: 1,
-    borderTopColor: '#e1e8ed',
-  },
-  statsText: {
-    fontSize: 12,
-    fontWeight: 'bold',
-    color: '#333',
-    textAlign: 'center',
-  },
-  statsLabel: {
-    fontSize: 9,
-    color: '#666',
-    textAlign: 'center',
   },
   evidenceList: {
-    flex: 2,
+    flex: 1,
   },
   evidenceItem: {
     flexDirection: I18nManager.isRTL ? 'row-reverse' : 'row',
