@@ -1,11 +1,14 @@
 
 import React, { useState, useEffect } from 'react';
-import { StyleSheet, ScrollView, TouchableOpacity, Alert, I18nManager } from 'react-native';
+import { StyleSheet, ScrollView, TouchableOpacity, Alert, I18nManager, ImageBackground, Dimensions } from 'react-native';
+import { LinearGradient as ExpoLinearGradient } from 'expo-linear-gradient';
 import { ThemedText } from '@/components/ThemedText';
 import { ThemedView } from '@/components/ThemedView';
 import { IconSymbol } from '@/components/ui/IconSymbol';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useRouter } from 'expo-router';
+
+const { width } = Dimensions.get('window');
 
 interface ScheduleEntry {
   id: string;
@@ -261,21 +264,33 @@ export default function ScheduleScreen() {
 
   if (showAddForm) {
     return (
-      <ScrollView style={styles.container}>
-        <ThemedView style={styles.header}>
-          <TouchableOpacity 
-            style={styles.backButton}
-            onPress={() => setShowAddForm(false)}
+      <ThemedView style={styles.container}>
+        <ImageBackground
+          source={require('@/assets/images/background.png')}
+          style={styles.backgroundImage}
+          resizeMode="cover"
+        >
+          <ExpoLinearGradient
+            colors={['rgba(255,255,255,0.9)', 'rgba(225,245,244,0.95)', 'rgba(173,212,206,0.8)']}
+            style={styles.gradientOverlay}
           >
-            <IconSymbol size={24} name="chevron.right" color="#fff" />
-          </TouchableOpacity>
-          <IconSymbol size={50} name="plus.circle.fill" color="#fff" />
-          <ThemedText type="title" style={styles.headerTitle}>
-            {editingEntry ? 'تعديل الحصة' : 'إضافة حصة جديدة'}
-          </ThemedText>
-        </ThemedView>
+            <ScrollView style={styles.scrollContainer}>
+              <ThemedView style={styles.header}>
+                <TouchableOpacity 
+                  style={styles.backButton}
+                  onPress={() => setShowAddForm(false)}
+                >
+                  <IconSymbol size={24} name="chevron.right" color="#1c1f33" />
+                </TouchableOpacity>
+                <ThemedView style={styles.headerContent}>
+                  <IconSymbol size={50} name="plus.circle.fill" color="#1c1f33" />
+                  <ThemedText type="title" style={styles.headerTitle}>
+                    {editingEntry ? 'تعديل الحصة' : 'إضافة حصة جديدة'}
+                  </ThemedText>
+                </ThemedView>
+              </ThemedView>
 
-        <ThemedView style={styles.content}>
+              <ThemedView style={styles.content}>
           <ThemedView style={styles.formCard}>
             <ThemedView style={styles.formGroup}>
               <ThemedText style={styles.label}>اليوم</ThemedText>
@@ -414,30 +429,44 @@ export default function ScheduleScreen() {
               </TouchableOpacity>
             </ThemedView>
           </ThemedView>
-        </ThemedView>
-      </ScrollView>
+            </ScrollView>
+          </ExpoLinearGradient>
+        </ImageBackground>
+      </ThemedView>
     );
   }
 
   return (
-    <ScrollView style={styles.container}>
-      <ThemedView style={styles.header}>
-        <TouchableOpacity 
-          style={styles.backButton}
-          onPress={() => router.back()}
+    <ThemedView style={styles.container}>
+      <ImageBackground
+        source={require('@/assets/images/background.png')}
+        style={styles.backgroundImage}
+        resizeMode="cover"
+      >
+        <ExpoLinearGradient
+          colors={['rgba(255,255,255,0.9)', 'rgba(225,245,244,0.95)', 'rgba(173,212,206,0.8)']}
+          style={styles.gradientOverlay}
         >
-          <IconSymbol size={24} name="chevron.right" color="#fff" />
-        </TouchableOpacity>
-        <IconSymbol size={60} name="calendar.badge.clock" color="#fff" />
-        <ThemedText type="title" style={styles.headerTitle}>
-          الجدول الدراسي
-        </ThemedText>
-        <ThemedText style={styles.headerSubtitle}>
-          إدارة وتنظيم جدولك الأسبوعي
-        </ThemedText>
-      </ThemedView>
+          <ScrollView style={styles.scrollContainer}>
+            <ThemedView style={styles.header}>
+              <TouchableOpacity 
+                style={styles.backButton}
+                onPress={() => router.back()}
+              >
+                <IconSymbol size={24} name="chevron.right" color="#1c1f33" />
+              </TouchableOpacity>
+              <ThemedView style={styles.headerContent}>
+                <IconSymbol size={60} name="calendar.badge.clock" color="#1c1f33" />
+                <ThemedText type="title" style={styles.headerTitle}>
+                  الجدول الدراسي
+                </ThemedText>
+                <ThemedText style={styles.headerSubtitle}>
+                  إدارة وتنظيم جدولك الأسبوعي
+                </ThemedText>
+              </ThemedView>
+            </ThemedView>
 
-      <ThemedView style={styles.content}>
+            <ThemedView style={styles.content}>
         {/* إحصائيات سريعة */}
         <ThemedView style={styles.statsCard}>
           <ThemedText style={styles.statsTitle}>إحصائيات الجدول</ThemedText>
@@ -589,31 +618,49 @@ export default function ScheduleScreen() {
             <ThemedText style={styles.buttonText}>عرض شامل</ThemedText>
           </TouchableOpacity>
         </ThemedView>
-      </ThemedView>
-    </ScrollView>
+          </ScrollView>
+        </ExpoLinearGradient>
+      </ImageBackground>
+    </ThemedView>
   );
 }
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#f8f9fa',
+  },
+  backgroundImage: {
+    flex: 1,
+    width: '100%',
+    height: '100%',
+  },
+  gradientOverlay: {
+    flex: 1,
+  },
+  scrollContainer: {
+    flex: 1,
   },
   header: {
-    backgroundColor: '#2E8B57',
     padding: 20,
     paddingTop: 50,
+    flexDirection: 'row',
     alignItems: 'center',
-    position: 'relative',
+    backgroundColor: 'transparent',
   },
   backButton: {
-    position: 'absolute',
-    top: 50,
-    right: 20,
     padding: 8,
+    marginRight: 10,
+    backgroundColor: '#F8F9FA',
+    borderRadius: 20,
+    borderWidth: 1,
+    borderColor: '#E5E5EA',
+  },
+  headerContent: {
+    flex: 1,
+    alignItems: 'center',
   },
   headerTitle: {
-    color: '#fff',
+    color: '#1c1f33',
     fontSize: 24,
     fontWeight: 'bold',
     textAlign: 'center',
@@ -621,16 +668,17 @@ const styles = StyleSheet.create({
     marginTop: 10,
   },
   headerSubtitle: {
-    color: '#fff',
+    color: '#1c1f33',
     fontSize: 14,
     textAlign: 'center',
     writingDirection: 'rtl',
-    opacity: 0.9,
+    opacity: 0.8,
     marginTop: 5,
   },
   content: {
     flex: 1,
     padding: 15,
+    backgroundColor: 'transparent',
   },
   statsCard: {
     backgroundColor: '#fff',
