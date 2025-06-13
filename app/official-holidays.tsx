@@ -1,6 +1,6 @@
 
 import React, { useState } from 'react';
-import { StyleSheet, ScrollView, TouchableOpacity, Alert, I18nManager, ImageBackground } from 'react-native';
+import { StyleSheet, ScrollView, TouchableOpacity, Alert, I18nManager, ImageBackground, Modal, TextInput } from 'react-native';
 import { LinearGradient as ExpoLinearGradient } from 'expo-linear-gradient';
 import { ThemedText } from '@/components/ThemedText';
 import { ThemedView } from '@/components/ThemedView';
@@ -23,8 +23,19 @@ interface Holiday {
 export default function OfficialHolidaysScreen() {
   const router = useRouter();
   const [selectedCategory, setSelectedCategory] = useState<'all' | 'national' | 'religious' | 'international'>('all');
-
-  const holidays: Holiday[] = [
+  const [showAddModal, setShowAddModal] = useState(false);
+  const [newHoliday, setNewHoliday] = useState({
+    nameAr: '',
+    nameEn: '',
+    date: '',
+    hijriDate: '',
+    duration: 1,
+    type: 'fixed' as 'fixed' | 'variable',
+    category: 'national' as 'national' | 'religious' | 'international',
+    description: '',
+    isOfficial: true
+  });
+  const [holidays, setHolidays] = useState<Holiday[]>([
     {
       id: '1',
       nameAr: 'رأس السنة الميلادية',
@@ -105,7 +116,34 @@ export default function OfficialHolidaysScreen() {
       description: 'ذكرى توحيد المملكة العربية السعودية',
       isOfficial: true,
     },
-  ];
+  ]);
+
+  const addNewHoliday = () => {
+    if (!newHoliday.nameAr || !newHoliday.date || !newHoliday.description) {
+      Alert.alert('خطأ', 'يرجى ملء جميع الحقول المطلوبة');
+      return;
+    }
+
+    const holiday: Holiday = {
+      id: Date.now().toString(),
+      ...newHoliday
+    };
+
+    setHolidays([...holidays, holiday]);
+    setNewHoliday({
+      nameAr: '',
+      nameEn: '',
+      date: '',
+      hijriDate: '',
+      duration: 1,
+      type: 'fixed',
+      category: 'national',
+      description: '',
+      isOfficial: true
+    });
+    setShowAddModal(false);
+    Alert.alert('تم بنجاح', 'تم إضافة الإجازة الجديدة');
+  };
 
   const filteredHolidays = selectedCategory === 'all' 
     ? holidays 
@@ -264,21 +302,7 @@ export default function OfficialHolidaysScreen() {
             <ThemedView style={styles.holidaysHeader}>
               <TouchableOpacity 
                 style={styles.addButton}
-                onPress={() => Alert.alert(
-                  'إضافة إجازة جديدة',
-                  'هل تريد إضافة إجازة شخصية أم إجازة رسمية جديدة؟',
-                  [
-                    {
-                      text: 'إجازة شخصية',
-                      onPress: () => Alert.alert('إجازة شخصية', 'سيتم فتح نموذج إضافة إجازة شخصية')
-                    },
-                    {
-                      text: 'إجازة رسمية',
-                      onPress: () => Alert.alert('إجازة رسمية', 'سيتم فتح نموذج إضافة إجازة رسمية جديدة')
-                    },
-                    { text: 'إلغاء', style: 'cancel' }
-                  ]
-                )}
+                onPress={() => setShowAddModal(true)}
               >
                 <IconSymbol size={18} name="plus" color="#fff" />
                 <ThemedText style={styles.addButtonText}>إضافة إجازة</ThemedText>
@@ -359,6 +383,150 @@ export default function OfficialHolidaysScreen() {
           </ThemedView>
         </ThemedView>
           </ScrollView>
+
+          {/* Modal إضافة إجازة جديدة */}
+          <Modal
+            visible={showAddModal}
+            animationType="slide"
+            presentationStyle="pageSheet"
+          >
+            <ThemedView style={styles.modalContainer}>
+              <ThemedView style={styles.modalHeader}>
+                <TouchableOpacity 
+                  style={styles.cancelButton}
+                  onPress={() => setShowAddModal(false)}
+                >
+                  <ThemedText style={styles.cancelButtonText}>إلغاء</ThemedText>
+                </TouchableOpacity>
+                <ThemedText type="title" style={styles.modalTitle}>
+                  إضافة إجازة جديدة
+                </ThemedText>
+                <TouchableOpacity 
+                  style={styles.saveButton}
+                  onPress={addNewHoliday}
+                >
+                  <ThemedText style={styles.saveButtonText}>حفظ</ThemedText>
+                </TouchableOpacity>
+              </ThemedView>
+
+              <ScrollView style={styles.modalContent}>
+                <ThemedView style={styles.inputGroup}>
+                  <ThemedText style={styles.inputLabel}>اسم الإجازة (بالعربية) *</ThemedText>
+                  <TextInput
+                    style={styles.textInput}
+                    value={newHoliday.nameAr}
+                    onChangeText={(text) => setNewHoliday({...newHoliday, nameAr: text})}
+                    placeholder="مثل: يوم التأسيس"
+                    textAlign="right"
+                  />
+                </ThemedView>
+
+                <ThemedView style={styles.inputGroup}>
+                  <ThemedText style={styles.inputLabel}>اسم الإجازة (بالإنجليزية)</ThemedText>
+                  <TextInput
+                    style={styles.textInput}
+                    value={newHoliday.nameEn}
+                    onChangeText={(text) => setNewHoliday({...newHoliday, nameEn: text})}
+                    placeholder="Founding Day"
+                    textAlign="left"
+                  />
+                </ThemedView>
+
+                <ThemedView style={styles.inputGroup}>
+                  <ThemedText style={styles.inputLabel}>التاريخ *</ThemedText>
+                  <TextInput
+                    style={styles.textInput}
+                    value={newHoliday.date}
+                    onChangeText={(text) => setNewHoliday({...newHoliday, date: text})}
+                    placeholder="YYYY-MM-DD"
+                    textAlign="right"
+                  />
+                </ThemedView>
+
+                <ThemedView style={styles.inputGroup}>
+                  <ThemedText style={styles.inputLabel}>التاريخ الهجري</ThemedText>
+                  <TextInput
+                    style={styles.textInput}
+                    value={newHoliday.hijriDate}
+                    onChangeText={(text) => setNewHoliday({...newHoliday, hijriDate: text})}
+                    placeholder="مثل: 1 شوال 1446"
+                    textAlign="right"
+                  />
+                </ThemedView>
+
+                <ThemedView style={styles.inputGroup}>
+                  <ThemedText style={styles.inputLabel}>عدد الأيام</ThemedText>
+                  <TextInput
+                    style={styles.textInput}
+                    value={newHoliday.duration.toString()}
+                    onChangeText={(text) => setNewHoliday({...newHoliday, duration: parseInt(text) || 1})}
+                    placeholder="1"
+                    keyboardType="numeric"
+                    textAlign="right"
+                  />
+                </ThemedView>
+
+                <ThemedView style={styles.inputGroup}>
+                  <ThemedText style={styles.inputLabel}>الفئة</ThemedText>
+                  <ThemedView style={styles.categoryButtons}>
+                    {(['national', 'religious', 'international'] as const).map((cat) => (
+                      <TouchableOpacity
+                        key={cat}
+                        style={[
+                          styles.categoryButton,
+                          newHoliday.category === cat && styles.categoryButtonActive
+                        ]}
+                        onPress={() => setNewHoliday({...newHoliday, category: cat})}
+                      >
+                        <ThemedText style={[
+                          styles.categoryButtonText,
+                          newHoliday.category === cat && styles.categoryButtonTextActive
+                        ]}>
+                          {cat === 'national' ? 'وطنية' : cat === 'religious' ? 'دينية' : 'دولية'}
+                        </ThemedText>
+                      </TouchableOpacity>
+                    ))}
+                  </ThemedView>
+                </ThemedView>
+
+                <ThemedView style={styles.inputGroup}>
+                  <ThemedText style={styles.inputLabel}>النوع</ThemedText>
+                  <ThemedView style={styles.categoryButtons}>
+                    {(['fixed', 'variable'] as const).map((type) => (
+                      <TouchableOpacity
+                        key={type}
+                        style={[
+                          styles.categoryButton,
+                          newHoliday.type === type && styles.categoryButtonActive
+                        ]}
+                        onPress={() => setNewHoliday({...newHoliday, type: type})}
+                      >
+                        <ThemedText style={[
+                          styles.categoryButtonText,
+                          newHoliday.type === type && styles.categoryButtonTextActive
+                        ]}>
+                          {type === 'fixed' ? 'ثابت' : 'متغير'}
+                        </ThemedText>
+                      </TouchableOpacity>
+                    ))}
+                  </ThemedView>
+                </ThemedView>
+
+                <ThemedView style={styles.inputGroup}>
+                  <ThemedText style={styles.inputLabel}>الوصف *</ThemedText>
+                  <TextInput
+                    style={[styles.textInput, styles.textArea]}
+                    value={newHoliday.description}
+                    onChangeText={(text) => setNewHoliday({...newHoliday, description: text})}
+                    placeholder="وصف الإجازة..."
+                    multiline
+                    numberOfLines={3}
+                    textAlign="right"
+                  />
+                </ThemedView>
+              </ScrollView>
+            </ThemedView>
+          </Modal>
         </ExpoLinearGradient>
       </ImageBackground>
     </ThemedView>
@@ -679,5 +847,94 @@ const styles = StyleSheet.create({
   },
   pastText: {
     color: '#8e9aaf',
+  },
+  modalContainer: {
+    flex: 1,
+    backgroundColor: '#f8f9fa',
+  },
+  modalHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    padding: 20,
+    paddingTop: 50,
+    backgroundColor: '#fff',
+    borderBottomWidth: 1,
+    borderBottomColor: '#e5e5ea',
+  },
+  modalTitle: {
+    fontSize: 18,
+    fontWeight: 'bold',
+    color: '#1c1f33',
+  },
+  cancelButton: {
+    padding: 8,
+  },
+  cancelButtonText: {
+    color: '#FF3B30',
+    fontSize: 16,
+  },
+  saveButton: {
+    backgroundColor: '#1c1f33',
+    paddingHorizontal: 16,
+    paddingVertical: 8,
+    borderRadius: 8,
+  },
+  saveButtonText: {
+    color: '#fff',
+    fontSize: 16,
+    fontWeight: '600',
+  },
+  modalContent: {
+    flex: 1,
+    padding: 20,
+  },
+  inputGroup: {
+    marginBottom: 20,
+  },
+  inputLabel: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: '#1c1f33',
+    marginBottom: 8,
+    textAlign: 'right',
+  },
+  textInput: {
+    backgroundColor: '#fff',
+    borderWidth: 1,
+    borderColor: '#e5e5ea',
+    borderRadius: 12,
+    padding: 15,
+    fontSize: 16,
+    color: '#1c1f33',
+  },
+  textArea: {
+    height: 80,
+    textAlignVertical: 'top',
+  },
+  categoryButtons: {
+    flexDirection: 'row',
+    gap: 10,
+  },
+  categoryButton: {
+    flex: 1,
+    backgroundColor: '#fff',
+    borderWidth: 1,
+    borderColor: '#e5e5ea',
+    borderRadius: 8,
+    padding: 12,
+    alignItems: 'center',
+  },
+  categoryButtonActive: {
+    backgroundColor: '#1c1f33',
+    borderColor: '#1c1f33',
+  },
+  categoryButtonText: {
+    fontSize: 14,
+    color: '#1c1f33',
+    fontWeight: '500',
+  },
+  categoryButtonTextActive: {
+    color: '#fff',
   },
 });
