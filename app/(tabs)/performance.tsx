@@ -493,6 +493,7 @@ export default function PerformanceScreen() {
                           
                           {selectedEvidence?.performanceId === item.id && selectedEvidence?.evidenceIndex === index && (
                             <ThemedView style={styles.evidenceDropdown}>
+                              <ThemedText style={styles.evidenceDropdownTitle}>تفاصيل الشاهد:</ThemedText>
                               <ThemedView style={styles.evidenceDropdownActions}>
                                 <TouchableOpacity 
                                   style={styles.statusToggleButton}
