@@ -399,22 +399,19 @@ export default function PerformanceScreen() {
                   <ThemedText style={styles.detailsTitle}>تفاصيل التقييم:</ThemedText>
                   <ThemedText style={styles.detailsText}>{item.details}</ThemedText>
 
-                  <ThemedView style={styles.evidenceTitleSection}>
-                    <ThemedText style={styles.evidenceTitle}>الشواهد المطلوبة:</ThemedText>
-                  </ThemedView>
-
-                  <ThemedView style={styles.addEvidenceSection}>
+                  <ThemedView style={styles.evidenceHeaderRow}>
                     <TouchableOpacity 
-                      style={styles.addEvidenceButton}
+                      style={styles.addEvidenceButtonSmall}
                       onPress={() => addEvidence(item.id)}
                     >
                       <IconSymbol 
-                        size={16} 
+                        size={12} 
                         name="plus.circle.fill" 
                         color="#4CAF50" 
                       />
-                      <ThemedText style={styles.addEvidenceText}>إضافة شاهد</ThemedText>
+                      <ThemedText style={styles.addEvidenceTextSmall}>إضافة شاهد</ThemedText>
                     </TouchableOpacity>
+                    <ThemedText style={styles.evidenceTitle}>الشواهد المطلوبة:</ThemedText>
                   </ThemedView>
                   <ThemedView style={styles.evidenceContainer}>
                     {/* قائمة الشواهد */}
@@ -742,18 +739,29 @@ const styles = StyleSheet.create({
     borderRadius: 12,
     backgroundColor: '#F0F7FF',
   },
-  evidenceTitleSection: {
-    marginBottom: 8,
-  },
-  addEvidenceSection: {
-    alignItems: 'flex-start',
-    marginBottom: 8,
-  },
-  evidenceHeader: {
+  evidenceHeaderRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
     marginBottom: 8,
+  },
+  addEvidenceButtonSmall: {
+    flexDirection: I18nManager.isRTL ? 'row-reverse' : 'row',
+    alignItems: 'center',
+    backgroundColor: '#E8F5E8',
+    paddingHorizontal: 6,
+    paddingVertical: 3,
+    borderRadius: 10,
+    borderWidth: 1,
+    borderColor: '#4CAF50',
+    gap: 3,
+  },
+  addEvidenceTextSmall: {
+    fontSize: 10,
+    color: '#4CAF50',
+    fontWeight: '600',
+    textAlign: 'right',
+    writingDirection: 'rtl',
   },
   addEvidenceButton: {
     flexDirection: I18nManager.isRTL ? 'row-reverse' : 'row',
