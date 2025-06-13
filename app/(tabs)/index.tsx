@@ -352,7 +352,10 @@ export default function HomeScreen() {
                         <ThemedText style={styles.actionText}>تتبع حالة متعلم</ThemedText>
                       </TouchableOpacity>
 
-                      <TouchableOpacity style={styles.dataItem}>
+                      <TouchableOpacity 
+                        style={styles.dataItem}
+                        onPress={() => router.push('/comments')}
+                      >
                         <ThemedView style={styles.iconWrapper}>
                           <IconSymbol size={28} name="envelope.fill" color="#1c1f33" />
                         </ThemedView>
