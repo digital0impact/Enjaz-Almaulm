@@ -513,10 +513,6 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     marginBottom: 25,
     padding: 20,
-    backgroundColor: '#F8F9FA',
-    borderRadius: 15,
-    borderWidth: 1,
-    borderColor: '#E5E5EA',
   },
   welcomeTitle: {
     fontSize: 22,
