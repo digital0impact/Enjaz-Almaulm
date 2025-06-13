@@ -322,19 +322,19 @@ export default function PerformanceScreen() {
               </ThemedText>
             </ThemedView>
 
-            <ThemedView style={styles.content}>
-        <ThemedView style={styles.summaryCard}>
-          <ThemedText type="subtitle" style={[styles.summaryTitle, { textAlign: 'center' }]}>
-            المتوسط العام للأداء
-          </ThemedText>
-          <ThemedText style={[styles.averageScore, { color: getScoreColor(calculateOverallAverage()) }]}>
-            {calculateOverallAverage()}%
-          </ThemedText>
-          <ThemedText style={styles.averageLevel}>
-            {getScoreLevel(calculateOverallAverage())}
-          </ThemedText>
-        </ThemedView>
+            <ThemedView style={styles.summaryCard}>
+              <ThemedText type="subtitle" style={[styles.summaryTitle, { textAlign: 'center' }]}>
+                المتوسط العام للأداء
+              </ThemedText>
+              <ThemedText style={[styles.averageScore, { color: getScoreColor(calculateOverallAverage()) }]}>
+                {calculateOverallAverage()}%
+              </ThemedText>
+              <ThemedText style={styles.averageLevel}>
+                {getScoreLevel(calculateOverallAverage())}
+              </ThemedText>
+            </ThemedView>
 
+            <ThemedView style={styles.content}>
         <ThemedView style={styles.performanceList}>
           {performanceData.map((item, index) => (
             <TouchableOpacity
