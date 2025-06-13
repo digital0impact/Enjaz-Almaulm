@@ -310,7 +310,7 @@ export default function ScheduleScreen() {
 
             <ThemedView style={styles.formGroup}>
               <ThemedText style={styles.label}>الحصة</ThemedText>
-              <ThemedView style={styles.timeGrid}>
+              <ThemedView style={[styles.timeGrid, { justifyContent: 'flex-end', flexDirection: 'row' }]}>
                 {timeSlots.map(time => (
                   <TouchableOpacity
                     key={time}
