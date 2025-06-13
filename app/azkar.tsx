@@ -1,6 +1,7 @@
 
 import React, { useState } from 'react';
-import { StyleSheet, ScrollView, TouchableOpacity, I18nManager } from 'react-native';
+import { StyleSheet, ScrollView, TouchableOpacity, I18nManager, ImageBackground, KeyboardAvoidingView, Platform } from 'react-native';
+import { LinearGradient as ExpoLinearGradient } from 'expo-linear-gradient';
 import { ThemedText } from '@/components/ThemedText';
 import { ThemedView } from '@/components/ThemedView';
 import { IconSymbol } from '@/components/ui/IconSymbol';
@@ -231,124 +232,184 @@ export default function AzkarScreen() {
 
     return (
       <ThemedView style={styles.container}>
-        <ThemedView style={styles.header}>
-          <TouchableOpacity 
-            style={styles.backButton}
-            onPress={() => setSelectedCategory(null)}
+        <ImageBackground
+          source={require('@/assets/images/background.png')}
+          style={styles.backgroundImage}
+          resizeMode="cover"
+        >
+          <ExpoLinearGradient
+            colors={['rgba(255,255,255,0.9)', 'rgba(225,245,244,0.95)', 'rgba(173,212,206,0.8)']}
+            style={styles.gradientOverlay}
           >
-            <IconSymbol size={24} name="arrow.right" color="#007AFF" />
-          </TouchableOpacity>
-          <ThemedText type="title" style={styles.headerTitle}>
-            {category.category}
-          </ThemedText>
-          <TouchableOpacity 
-            style={styles.homeButton}
-            onPress={() => router.back()}
-          >
-            <IconSymbol size={24} name="house.fill" color="#007AFF" />
-          </TouchableOpacity>
-        </ThemedView>
-
-        <ScrollView style={styles.azkarContainer} showsVerticalScrollIndicator={false}>
-          {category.azkar.map((zikr, index) => {
-            const key = `${selectedCategory}-${index}`;
-            const currentCount = currentCounts[key] || 0;
-            const isCompleted = currentCount >= zikr.count;
-
-            return (
-              <ThemedView 
-                key={index} 
-                style={[
-                  styles.azkarCard,
-                  isCompleted && styles.completedCard
-                ]}
-              >
-                <ThemedText style={styles.azkarText}>
-                  {zikr.text}
-                </ThemedText>
-                
-                <ThemedView style={styles.counterContainer}>
-                  <ThemedText style={styles.counterText}>
-                    {currentCount} / {zikr.count}
+            <KeyboardAvoidingView
+              style={{ flex: 1 }}
+              behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+            >
+              <ScrollView style={styles.scrollContainer}>
+                <ThemedView style={styles.header}>
+                  <ThemedView style={styles.iconContainer}>
+                    <IconSymbol size={60} name={category.icon as any} color="#1c1f33" />
+                  </ThemedView>
+                  <ThemedText type="title" style={styles.title}>
+                    {category.category}
                   </ThemedText>
-                  
-                  <ThemedView style={styles.counterButtons}>
+                  <ThemedText style={styles.subtitle}>
+                    اختر الذكر لبدء العد
+                  </ThemedText>
+                </ThemedView>
+
+                <ThemedView style={styles.content}>
+                  <ThemedView style={[styles.actionButtons, { backgroundColor: 'transparent' }]}>
                     <TouchableOpacity 
-                      style={[
-                        styles.counterButton,
-                        isCompleted && styles.completedButton
-                      ]}
-                      onPress={() => handleCountIncrement(selectedCategory, index, zikr.count)}
-                      disabled={isCompleted}
+                      style={styles.editButton}
+                      onPress={() => setSelectedCategory(null)}
                     >
-                      <IconSymbol 
-                        size={20} 
-                        name={isCompleted ? "checkmark" : "plus"} 
-                        color={isCompleted ? "#34C759" : "white"} 
-                      />
+                      <IconSymbol size={20} name="arrow.right" color="#1c1f33" />
+                      <ThemedText style={styles.buttonText}>العودة للفئات</ThemedText>
                     </TouchableOpacity>
-                    
                     <TouchableOpacity 
-                      style={styles.resetButton}
-                      onPress={() => resetCount(selectedCategory, index)}
+                      style={styles.editButton}
+                      onPress={() => router.back()}
                     >
-                      <IconSymbol size={16} name="arrow.clockwise" color="#FF3B30" />
+                      <IconSymbol size={20} name="house.fill" color="#1c1f33" />
+                      <ThemedText style={styles.buttonText}>الرئيسية</ThemedText>
                     </TouchableOpacity>
                   </ThemedView>
+
+                  <ThemedView style={[styles.dataSection, { backgroundColor: 'transparent' }]}>
+                    {category.azkar.map((zikr, index) => {
+                      const key = `${selectedCategory}-${index}`;
+                      const currentCount = currentCounts[key] || 0;
+                      const isCompleted = currentCount >= zikr.count;
+
+                      return (
+                        <ThemedView 
+                          key={index} 
+                          style={[
+                            styles.dataItem,
+                            isCompleted && styles.completedCard
+                          ]}
+                        >
+                          <ThemedText style={styles.azkarText}>
+                            {zikr.text}
+                          </ThemedText>
+                          
+                          <ThemedView style={styles.counterContainer}>
+                            <ThemedText style={styles.counterText}>
+                              {currentCount} / {zikr.count}
+                            </ThemedText>
+                            
+                            <ThemedView style={styles.counterButtons}>
+                              <TouchableOpacity 
+                                style={[
+                                  styles.counterButton,
+                                  isCompleted && styles.completedButton
+                                ]}
+                                onPress={() => handleCountIncrement(selectedCategory, index, zikr.count)}
+                                disabled={isCompleted}
+                              >
+                                <IconSymbol 
+                                  size={20} 
+                                  name={isCompleted ? "checkmark" : "plus"} 
+                                  color={isCompleted ? "#34C759" : "#1c1f33"} 
+                                />
+                              </TouchableOpacity>
+                              
+                              <TouchableOpacity 
+                                style={styles.resetButton}
+                                onPress={() => resetCount(selectedCategory, index)}
+                              >
+                                <IconSymbol size={16} name="arrow.clockwise" color="#FF3B30" />
+                              </TouchableOpacity>
+                            </ThemedView>
+                          </ThemedView>
+                        </ThemedView>
+                      );
+                    })}
+                  </ThemedView>
                 </ThemedView>
-              </ThemedView>
-            );
-          })}
-        </ScrollView>
+              </ScrollView>
+            </KeyboardAvoidingView>
+          </ExpoLinearGradient>
+        </ImageBackground>
       </ThemedView>
     );
   }
 
   return (
     <ThemedView style={styles.container}>
-      <ThemedView style={styles.header}>
-        <TouchableOpacity 
-          style={styles.backButton}
-          onPress={() => router.back()}
+      <ImageBackground
+        source={require('@/assets/images/background.png')}
+        style={styles.backgroundImage}
+        resizeMode="cover"
+      >
+        <ExpoLinearGradient
+          colors={['rgba(255,255,255,0.9)', 'rgba(225,245,244,0.95)', 'rgba(173,212,206,0.8)']}
+          style={styles.gradientOverlay}
         >
-          <IconSymbol size={24} name="arrow.right" color="#007AFF" />
-        </TouchableOpacity>
-        <ThemedText type="title" style={styles.headerTitle}>
-          أذكاري
-        </ThemedText>
-        <ThemedView style={styles.placeholder} />
-      </ThemedView>
-
-      <ScrollView style={styles.categoriesContainer} showsVerticalScrollIndicator={false}>
-        <ThemedText style={styles.sectionTitle}>
-          اختر فئة الأذكار
-        </ThemedText>
-        
-        {azkarData.map((category) => (
-          <TouchableOpacity
-            key={category.id}
-            style={[styles.categoryCard, { borderLeftColor: category.color }]}
-            onPress={() => setSelectedCategory(category.id)}
+          <KeyboardAvoidingView
+            style={{ flex: 1 }}
+            behavior={Platform.OS === 'ios' ? 'padding' : undefined}
           >
-            <ThemedView style={styles.categoryContent}>
-              <ThemedView style={[styles.categoryIcon, { backgroundColor: category.color }]}>
-                <IconSymbol size={24} name={category.icon as any} color="white" />
-              </ThemedView>
-              
-              <ThemedView style={styles.categoryInfo}>
-                <ThemedText style={styles.categoryTitle}>
-                  {category.category}
+            <ScrollView style={styles.scrollContainer}>
+              <ThemedView style={styles.header}>
+                <ThemedView style={styles.iconContainer}>
+                  <IconSymbol size={60} name="book.fill" color="#1c1f33" />
+                </ThemedView>
+                <ThemedText type="title" style={styles.title}>
+                  أذكاري
                 </ThemedText>
-                <ThemedText style={styles.categoryCount}>
-                  {category.azkar.length} {category.azkar.length === 1 ? 'ذكر' : 'أذكار'}
+                <ThemedText style={styles.subtitle}>
+                  اختر فئة الأذكار للبدء في التسبيح والذكر
                 </ThemedText>
               </ThemedView>
-              
-              <IconSymbol size={20} name="chevron.left" color="#C7C7CC" />
-            </ThemedView>
-          </TouchableOpacity>
-        ))}
-      </ScrollView>
+
+              <ThemedView style={styles.content}>
+                <ThemedView style={[styles.actionButtons, { backgroundColor: 'transparent' }]}>
+                  <TouchableOpacity 
+                    style={styles.editButton}
+                    onPress={() => router.back()}
+                  >
+                    <IconSymbol size={20} name="arrow.right" color="#1c1f33" />
+                    <ThemedText style={styles.buttonText}>العودة</ThemedText>
+                  </TouchableOpacity>
+                </ThemedView>
+
+                <ThemedView style={[styles.dataSection, { backgroundColor: 'transparent' }]}>
+                  <ThemedText type="subtitle" style={styles.sectionTitle}>
+                    فئات الأذكار
+                  </ThemedText>
+                  
+                  {azkarData.map((category) => (
+                    <TouchableOpacity
+                      key={category.id}
+                      style={[styles.dataItem, { borderLeftColor: category.color, borderLeftWidth: 4 }]}
+                      onPress={() => setSelectedCategory(category.id)}
+                    >
+                      <ThemedView style={styles.categoryContent}>
+                        <ThemedView style={[styles.categoryIcon, { backgroundColor: category.color }]}>
+                          <IconSymbol size={24} name={category.icon as any} color="white" />
+                        </ThemedView>
+                        
+                        <ThemedView style={styles.categoryInfo}>
+                          <ThemedText style={styles.categoryTitle}>
+                            {category.category}
+                          </ThemedText>
+                          <ThemedText style={styles.categoryCount}>
+                            {category.azkar.length} {category.azkar.length === 1 ? 'ذكر' : 'أذكار'}
+                          </ThemedText>
+                        </ThemedView>
+                        
+                        <IconSymbol size={20} name="chevron.left" color="#C7C7CC" />
+                      </ThemedView>
+                    </TouchableOpacity>
+                  ))}
+                </ThemedView>
+              </ThemedView>
+            </ScrollView>
+          </KeyboardAvoidingView>
+        </ExpoLinearGradient>
+      </ImageBackground>
     </ThemedView>
   );
 }
@@ -356,68 +417,113 @@ export default function AzkarScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#F2F2F7',
+  },
+  backgroundImage: {
+    flex: 1,
+    width: '100%',
+    height: '100%',
+  },
+  gradientOverlay: {
+    flex: 1,
+  },
+  scrollContainer: {
+    flex: 1,
   },
   header: {
+    alignItems: 'center',
+    padding: 30,
+    backgroundColor: 'transparent',
+  },
+  iconContainer: {
+    marginBottom: 20,
+    padding: 20,
+    backgroundColor: '#F8F9FA',
+    borderRadius: 50,
+    borderWidth: 1,
+    borderColor: '#E5E5EA',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 6 },
+    shadowOpacity: 0.25,
+    shadowRadius: 12,
+    elevation: 10,
+  },
+  title: {
+    fontSize: 28,
+    fontWeight: 'bold',
+    marginTop: 15,
+    marginBottom: 10,
+    textAlign: 'center',
+    writingDirection: 'rtl',
+    color: '#000000',
+  },
+  subtitle: {
+    fontSize: 16,
+    color: '#666666',
+    textAlign: 'center',
+    writingDirection: 'rtl',
+    marginBottom: 20,
+  },
+  content: {
+    padding: 20,
+    backgroundColor: 'transparent',
+  },
+  actionButtons: {
+    marginBottom: 20,
+  },
+  editButton: {
     flexDirection: 'row',
     alignItems: 'center',
-    justifyContent: 'space-between',
-    padding: 20,
-    paddingTop: 60,
-    backgroundColor: '#FFFFFF',
-    borderBottomWidth: 1,
-    borderBottomColor: '#E5E5EA',
+    justifyContent: 'center',
+    backgroundColor: '#add4ce',
+    paddingVertical: 15,
+    paddingHorizontal: 25,
+    borderRadius: 25,
+    gap: 10,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 6 },
+    shadowOpacity: 0.4,
+    shadowRadius: 12,
+    elevation: 12,
   },
-  backButton: {
-    padding: 8,
-    backgroundColor: '#F2F2F7',
-    borderRadius: 20,
+  buttonText: {
+    color: '#1c1f33',
+    fontSize: 16,
+    fontWeight: '600',
+    writingDirection: 'rtl',
+    textAlign: 'center',
   },
-  homeButton: {
-    padding: 8,
-    backgroundColor: '#F2F2F7',
-    borderRadius: 20,
+  dataSection: {
+    marginBottom: 30,
   },
-  placeholder: {
-    width: 40,
-  },
-  headerTitle: {
+  sectionTitle: {
     fontSize: 20,
     fontWeight: 'bold',
-    color: '#000000',
+    marginBottom: 15,
+    color: '#1c1f33',
     textAlign: 'center',
     writingDirection: 'rtl',
   },
-  categoriesContainer: {
-    flex: 1,
-    padding: 20,
-  },
-  sectionTitle: {
-    fontSize: 18,
-    fontWeight: 'bold',
+  dataItem: {
     marginBottom: 20,
-    color: '#000000',
-    textAlign: 'right',
-    writingDirection: 'rtl',
-  },
-  categoryCard: {
-    backgroundColor: '#FFFFFF',
+    padding: 15,
+    backgroundColor: '#e0f0f1',
     borderRadius: 12,
-    marginBottom: 15,
-    borderLeftWidth: 4,
+    borderWidth: 1,
+    borderColor: '#E5E5EA',
     shadowColor: '#000',
-    shadowOffset: {
-      width: 0,
-      height: 2,
-    },
+    shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.1,
-    shadowRadius: 3.84,
-    elevation: 5,
+    shadowRadius: 4,
+    elevation: 3,
+  },
+  completedCard: {
+    backgroundColor: '#F0F9F0',
+    borderWidth: 2,
+    borderColor: '#34C759',
   },
   categoryContent: {
     flexDirection: I18nManager.isRTL ? 'row-reverse' : 'row',
     alignItems: 'center',
-    padding: 20,
   },
   categoryIcon: {
     width: 50,
@@ -445,29 +551,6 @@ const styles = StyleSheet.create({
     textAlign: 'right',
     writingDirection: 'rtl',
   },
-  azkarContainer: {
-    flex: 1,
-    padding: 20,
-  },
-  azkarCard: {
-    backgroundColor: '#FFFFFF',
-    borderRadius: 12,
-    padding: 20,
-    marginBottom: 15,
-    shadowColor: '#000',
-    shadowOffset: {
-      width: 0,
-      height: 2,
-    },
-    shadowOpacity: 0.1,
-    shadowRadius: 3.84,
-    elevation: 5,
-  },
-  completedCard: {
-    backgroundColor: '#F0F9F0',
-    borderWidth: 2,
-    borderColor: '#34C759',
-  },
   azkarText: {
     fontSize: 16,
     lineHeight: 28,
@@ -491,12 +574,17 @@ const styles = StyleSheet.create({
     gap: 10,
   },
   counterButton: {
-    backgroundColor: '#007AFF',
+    backgroundColor: '#add4ce',
     width: 40,
     height: 40,
     borderRadius: 20,
     justifyContent: 'center',
     alignItems: 'center',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.2,
+    shadowRadius: 8,
+    elevation: 8,
   },
   completedButton: {
     backgroundColor: '#34C759',
