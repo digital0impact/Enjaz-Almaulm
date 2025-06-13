@@ -266,83 +266,95 @@ export default function HomeScreen() {
 
   // Dashboard screen
   return (
-    <KeyboardAvoidingView
-      style={{ flex: 1 }}
-      behavior={Platform.OS === 'ios' ? 'padding' : undefined}
-    >
-      <ScrollView contentContainerStyle={{ flexGrow: 1 }}>
-        <ThemedView style={[styles.container, styles.gradientBackground]}>
-          <ThemedView style={styles.gradientBackground}>
-            <ThemedView style={styles.dashboardContent}>
-          <ThemedView style={styles.dashboardHeader}>
-            <ThemedView style={{ flex: 1 }}>
-              <ThemedView style={styles.welcomeContainer}>
-                <IconSymbol size={40} name="person.circle.fill" color="#1B2951" />
-                <ThemedText type="title" style={[styles.welcomeTitle, { textAlign: 'center', marginTop: 10 }]}>
-                  مرحباً {teacherName}
+    <ThemedView style={styles.container}>
+      <ImageBackground
+        source={require('@/assets/images/background.png')}
+        style={styles.backgroundImage}
+        resizeMode="cover"
+      >
+        <ExpoLinearGradient
+          colors={['rgba(255,255,255,0.9)', 'rgba(225,245,244,0.95)', 'rgba(173,212,206,0.8)']}
+          style={styles.gradientOverlay}
+        >
+          <ScrollView style={styles.scrollContainer}>
+            <ThemedView style={styles.header}>
+              <ThemedView style={styles.iconContainer}>
+                <IconSymbol size={60} name="person.circle.fill" color="#1c1f33" />
+              </ThemedView>
+              <ThemedText type="title" style={styles.title}>
+                مرحباً {teacherName}
+              </ThemedText>
+              <ThemedText style={styles.subtitle}>
+                لوحة التحكم الرئيسية
+              </ThemedText>
+            </ThemedView>
+
+            <ThemedView style={styles.content}>
+              <ThemedView style={[styles.actionButtons, { backgroundColor: 'transparent' }]}>
+                <TouchableOpacity onPress={() => router.push('/settings')} style={styles.editButton}>
+                  <IconSymbol size={20} name="wrench.fill" color="white" />
+                  <ThemedText style={styles.buttonText}>الإعدادات</ThemedText>
+                </TouchableOpacity>
+                <TouchableOpacity onPress={handleLogout} style={styles.cancelButton}>
+                  <IconSymbol size={20} name="arrow.right.square" color="white" />
+                  <ThemedText style={styles.buttonText}>تسجيل الخروج</ThemedText>
+                </TouchableOpacity>
+              </ThemedView>
+
+              <ThemedView style={[styles.dataSection, { backgroundColor: 'transparent' }]}>
+                <ThemedText type="subtitle" style={styles.sectionTitle}>
+                  الخدمات السريعة
                 </ThemedText>
+
+                <ThemedView style={styles.actionsGrid}>
+                  <TouchableOpacity style={styles.dataItem}>
+                    <IconSymbol size={28} name="plus.circle.fill" color="#4CAF50" />
+                    <ThemedText style={styles.actionText}>عرض التقرير التفاعلي</ThemedText>
+                  </TouchableOpacity>
+
+                  <TouchableOpacity 
+                    style={styles.dataItem}
+                    onPress={() => router.push('/azkar')}
+                  >
+                    <IconSymbol size={28} name="doc.text.fill" color="#FF9800" />
+                    <ThemedText style={styles.actionText}>أذكاري</ThemedText>
+                  </TouchableOpacity>
+
+                  <TouchableOpacity 
+                    style={styles.dataItem}
+                    onPress={() => router.push('/password-tracker')}
+                  >
+                    <IconSymbol size={28} name="lock.shield.fill" color="#6A1B9A" />
+                    <ThemedText style={styles.actionText}>متتبع المواقع وكلمات المرور</ThemedText>
+                  </TouchableOpacity>
+
+                  <TouchableOpacity 
+                    style={styles.dataItem}
+                    onPress={() => router.push('/student-tracking')}
+                  >
+                    <IconSymbol size={28} name="person.crop.circle.badge.plus" color="#E91E63" />
+                    <ThemedText style={styles.actionText}>تتبع حالة متعلم</ThemedText>
+                  </TouchableOpacity>
+
+                  <TouchableOpacity style={styles.dataItem}>
+                    <IconSymbol size={28} name="envelope.fill" color="#2196F3" />
+                    <ThemedText style={styles.actionText}>التعليقات</ThemedText>
+                  </TouchableOpacity>
+
+                  <TouchableOpacity 
+                    style={styles.dataItem}
+                    onPress={() => router.push('/schedule')}
+                  >
+                    <IconSymbol size={28} name="calendar" color="#9C27B0" />
+                    <ThemedText style={styles.actionText}>الجدول</ThemedText>
+                  </TouchableOpacity>
+                </ThemedView>
               </ThemedView>
             </ThemedView>
-            <ThemedView style={styles.headerButtons}>
-              <TouchableOpacity onPress={() => router.push('/settings')} style={styles.settingsButton}>
-                <IconSymbol size={24} name="wrench.fill" color="#1B2951" />
-              </TouchableOpacity>
-              <TouchableOpacity onPress={handleLogout} style={styles.logoutButton}>
-                <IconSymbol size={24} name="arrow.right.square" color="#1B2951" />
-              </TouchableOpacity>
-            </ThemedView>
-          </ThemedView>
-
-          <ThemedView style={styles.quickActions}>
-            <ThemedView style={styles.actionsGrid}>
-              <TouchableOpacity style={styles.actionCard}>
-                <IconSymbol size={28} name="plus.circle.fill" color="#4CAF50" />
-                <ThemedText style={styles.actionText}>عرض التقرير التفاعلي</ThemedText>
-              </TouchableOpacity>
-
-              <TouchableOpacity 
-                style={styles.actionCard}
-                onPress={() => router.push('/azkar')}
-              >
-                <IconSymbol size={28} name="doc.text.fill" color="#FF9800" />
-                <ThemedText style={styles.actionText}>أذكاري</ThemedText>
-              </TouchableOpacity>
-
-              <TouchableOpacity 
-                style={styles.actionCard}
-                onPress={() => router.push('/password-tracker')}
-              >
-                <IconSymbol size={28} name="lock.shield.fill" color="#6A1B9A" />
-                <ThemedText style={styles.actionText}>متتبع المواقع وكلمات المرور</ThemedText>
-              </TouchableOpacity>
-
-              <TouchableOpacity 
-                style={styles.actionCard}
-                onPress={() => router.push('/student-tracking')}
-              >
-                <IconSymbol size={28} name="person.crop.circle.badge.plus" color="#E91E63" />
-                <ThemedText style={styles.actionText}>تتبع حالة متعلم</ThemedText>
-              </TouchableOpacity>
-
-              <TouchableOpacity style={styles.actionCard}>
-                <IconSymbol size={28} name="envelope.fill" color="#2196F3" />
-                <ThemedText style={styles.actionText}>التعليقات</ThemedText>
-              </TouchableOpacity>
-
-              <TouchableOpacity 
-                style={styles.actionCard}
-                onPress={() => router.push('/schedule')}
-              >
-                <IconSymbol size={28} name="calendar" color="#9C27B0" />
-                <ThemedText style={styles.actionText}>الجدول</ThemedText>
-              </TouchableOpacity>
-            </ThemedView>
-          </ThemedView>
-        </ThemedView>
-          </ThemedView>
-        </ThemedView>
-      </ScrollView>
-    </KeyboardAvoidingView>
+          </ScrollView>
+        </ExpoLinearGradient>
+      </ImageBackground>
+    </ThemedView>
   );
 }
 
@@ -428,12 +440,17 @@ const styles = StyleSheet.create({
     padding: 20,
   },
   iconContainer: {
-    marginBottom: 30,
+    marginBottom: 20,
     padding: 20,
     backgroundColor: '#F8F9FA',
     borderRadius: 50,
     borderWidth: 1,
     borderColor: '#E5E5EA',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 6 },
+    shadowOpacity: 0.25,
+    shadowRadius: 12,
+    elevation: 10,
   },
   title: {
     fontSize: 28,
@@ -594,26 +611,32 @@ const styles = StyleSheet.create({
     marginBottom: 25,
   },
   sectionTitle: {
-    fontSize: 18,
+    fontSize: 20,
     fontWeight: 'bold',
     marginBottom: 15,
-    color: '#007AFF',
-    textAlign: 'right',
+    color: '#1c1f33',
+    textAlign: 'center',
     writingDirection: 'rtl',
   },
   actionsGrid: {
     flexDirection: 'row',
     flexWrap: 'wrap',
+    justifyContent: 'space-between',
     gap: 10,
   },
   actionCard: {
     width: '48%',
     alignItems: 'center',
     padding: 15,
-    backgroundColor: '#F8F9FA',
+    backgroundColor: '#e0f0f1',
     borderRadius: 12,
     borderWidth: 1,
     borderColor: '#E5E5EA',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    elevation: 3,
   },
   actionText: {
     fontSize: 14,
@@ -634,5 +657,69 @@ const styles = StyleSheet.create({
     borderRadius: 15,
     marginHorizontal: 10,
   },
-
+  scrollContainer: {
+    flex: 1,
+  },
+  header: {
+    padding: 20,
+    alignItems: 'center',
+  },
+  content: {
+    padding: 20,
+    backgroundColor: 'transparent',
+  },
+  actionButtons: {
+    marginBottom: 20,
+    flexDirection: 'row',
+    gap: 10,
+  },
+  editButton: {
+    flex: 1,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: '#add4ce',
+    paddingVertical: 15,
+    paddingHorizontal: 25,
+    borderRadius: 25,
+    gap: 10,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 6 },
+    shadowOpacity: 0.4,
+    shadowRadius: 12,
+    elevation: 12,
+  },
+  cancelButton: {
+    flex: 1,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: '#FF3B30',
+    paddingVertical: 15,
+    borderRadius: 25,
+    gap: 10,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 6 },
+    shadowOpacity: 0.4,
+    shadowRadius: 12,
+    elevation: 12,
+  },
+  dataSection: {
+    marginBottom: 30,
+  },
+  dataItem: {
+    marginBottom: 20,
+    padding: 15,
+    backgroundColor: '#e0f0f1',
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: '#E5E5EA',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    elevation: 3,
+    alignItems: 'center',
+    width: '48%',
+  },
 });
