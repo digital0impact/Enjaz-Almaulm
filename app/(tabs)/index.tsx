@@ -5,10 +5,11 @@ import { ThemedText } from '@/components/ThemedText';
 import { ThemedView } from '@/components/ThemedView';
 import { IconSymbol } from '@/components/ui/IconSymbol';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { useRouter } from 'expo-router';
+import { useRouter, useNavigation } from 'expo-router';
 
 export default function HomeScreen() {
   const router = useRouter();
+  const navigation = useNavigation();
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [currentScreen, setCurrentScreen] = useState('welcome');
   const [userInfo, setUserInfo] = useState<any>(null);
@@ -18,6 +19,19 @@ export default function HomeScreen() {
     checkLoginStatus();
     loadTeacherName();
   }, []);
+
+  useEffect(() => {
+    // إخفاء شريط التنقل في شاشات الترحيب وتسجيل الدخول
+    if (!isLoggedIn) {
+      navigation.setOptions({
+        tabBarStyle: { display: 'none' }
+      });
+    } else {
+      navigation.setOptions({
+        tabBarStyle: { display: 'flex' }
+      });
+    }
+  }, [isLoggedIn, navigation]);
 
   const loadTeacherName = async () => {
     try {
