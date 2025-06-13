@@ -600,23 +600,6 @@ export default function ScheduleScreen() {
             <IconSymbol size={20} name="square.and.arrow.up" color="white" />
             <ThemedText style={styles.buttonText}>تصدير الجدول</ThemedText>
           </TouchableOpacity>
-
-          <TouchableOpacity 
-            style={styles.viewAllButton}
-            onPress={() => {
-              Alert.alert(
-                'عرض الجدول الكامل',
-                'عرض جدول الأسبوع كاملاً؟',
-                [
-                  { text: 'إلغاء', style: 'cancel' },
-                  { text: 'عرض', onPress: () => setSelectedDay('') }
-                ]
-              );
-            }}
-          >
-            <IconSymbol size={20} name="calendar" color="white" />
-            <ThemedText style={styles.buttonText}>عرض شامل</ThemedText>
-          </TouchableOpacity>
         </ThemedView>
           </ThemedView>
             </ScrollView>
@@ -955,21 +938,10 @@ const styles = StyleSheet.create({
     marginBottom: 20,
   },
   exportButton: {
-    flex: 1,
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
     backgroundColor: '#007AFF',
-    paddingVertical: 15,
-    borderRadius: 12,
-    gap: 8,
-  },
-  viewAllButton: {
-    flex: 1,
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    backgroundColor: '#6C757D',
     paddingVertical: 15,
     borderRadius: 12,
     gap: 8,
