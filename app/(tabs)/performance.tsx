@@ -636,14 +636,14 @@ const styles = StyleSheet.create({
     flexDirection: I18nManager.isRTL ? 'row-reverse' : 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    backgroundColor: '#f0f7ff',
+    backgroundColor: '#f0f1f3',
     padding: 12,
     borderRadius: 8,
   },
   scoreLabel: {
     fontSize: 14,
     fontWeight: 'bold',
-    color: '#007AFF',
+    color: '#1c1f33',
     textAlign: 'right',
     writingDirection: 'rtl',
   },
@@ -711,7 +711,7 @@ const styles = StyleSheet.create({
   },
   weightText: {
     fontSize: 12,
-    color: '#007AFF',
+    color: '#1c1f33',
     textAlign: 'right',
     writingDirection: 'rtl',
   },
@@ -830,7 +830,7 @@ const styles = StyleSheet.create({
   itemNumber: {
     fontSize: 16,
     fontWeight: 'bold',
-    color: '#007AFF',
+    color: '#1c1f33',
     minWidth: 25,
     textAlign: 'right',
     writingDirection: 'rtl',
@@ -919,7 +919,7 @@ const styles = StyleSheet.create({
   uploadIcon: {
     padding: 4,
     borderRadius: 8,
-    backgroundColor: '#E3F2FD',
+    backgroundColor: '#E8E9EB',
   },
   summaryCard: {
     backgroundColor: '#add4ce',

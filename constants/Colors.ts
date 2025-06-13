@@ -18,7 +18,7 @@ export const Colors = {
     success: '#27AE60',
     warning: '#F39C12',
     error: '#E74C3C',
-    info: '#3498DB',
+    info: '#1c1f33',
     // إضافات للثيم الموحد
     headerBackground: '#4ECDC4',
     headerText: '#FFFFFF',
@@ -54,7 +54,7 @@ export const Colors = {
     success: '#27AE60',
     warning: '#F39C12',
     error: '#E74C3C',
-    info: '#3498DB',
+    info: '#1c1f33',
     // نفس الألوان للوضع المظلم (يمكن تخصيصها لاحقاً)
     headerBackground: '#4ECDC4',
     headerText: '#FFFFFF',
