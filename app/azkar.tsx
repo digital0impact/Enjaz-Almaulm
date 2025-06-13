@@ -487,6 +487,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     marginRight: I18nManager.isRTL ? 0 : 15,
     marginLeft: I18nManager.isRTL ? 15 : 0,
+    backgroundColor: 'transparent',
   },
   categoryInfo: {
     flex: 1,
