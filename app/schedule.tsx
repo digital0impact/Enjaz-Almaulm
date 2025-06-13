@@ -597,7 +597,7 @@ export default function ScheduleScreen() {
         {/* أزرار الإجراءات */}
         <ThemedView style={styles.actionButtons}>
           <TouchableOpacity style={styles.exportButton} onPress={exportSchedule}>
-            <IconSymbol size={20} name="square.and.arrow.up" color="white" />
+            <IconSymbol size={20} name="square.and.arrow.up" color="#1c1f33" />
             <ThemedText style={styles.buttonText}>تصدير الجدول</ThemedText>
           </TouchableOpacity>
         </ThemedView>
@@ -941,15 +941,22 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: '#007AFF',
+    backgroundColor: '#add4ce',
     paddingVertical: 15,
-    borderRadius: 12,
-    gap: 8,
+    paddingHorizontal: 25,
+    borderRadius: 25,
+    gap: 10,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 6 },
+    shadowOpacity: 0.4,
+    shadowRadius: 12,
+    elevation: 12,
   },
   buttonText: {
-    color: 'white',
+    color: '#1c1f33',
     fontSize: 16,
     fontWeight: '600',
+    textAlign: 'center',
   },
 
   // نموذج الإضافة
