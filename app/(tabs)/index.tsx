@@ -282,10 +282,10 @@ export default function HomeScreen() {
             </ThemedView>
             <ThemedView style={styles.headerButtons}>
               <TouchableOpacity onPress={() => router.push('/settings')} style={styles.settingsButton}>
-                <IconSymbol size={24} name="wrench.fill" color="#007AFF" />
+                <IconSymbol size={24} name="wrench.fill" color="#1B2951" />
               </TouchableOpacity>
               <TouchableOpacity onPress={handleLogout} style={styles.logoutButton}>
-                <IconSymbol size={24} name="arrow.right.square" color="#007AFF" />
+                <IconSymbol size={24} name="arrow.right.square" color="#1B2951" />
               </TouchableOpacity>
             </ThemedView>
           </ThemedView>
