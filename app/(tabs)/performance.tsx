@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { StyleSheet, ScrollView, TouchableOpacity, Alert, I18nManager, ImageBackground } from 'react-native';
+import { StyleSheet, ScrollView, TouchableOpacity, Alert, I18nManager, ImageBackground, KeyboardAvoidingView, Platform } from 'react-native';
 import { LinearGradient as ExpoLinearGradient } from 'expo-linear-gradient';
 import { ThemedText } from '@/components/ThemedText';
 import { ThemedView } from '@/components/ThemedView';

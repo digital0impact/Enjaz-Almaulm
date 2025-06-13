@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Image, StyleSheet, TouchableOpacity, I18nManager, ImageBackground, LinearGradient, Alert } from 'react-native';
+import { Image, StyleSheet, TouchableOpacity, I18nManager, ImageBackground, LinearGradient, Alert, KeyboardAvoidingView, ScrollView, Platform } from 'react-native';
 import { LinearGradient as ExpoLinearGradient } from 'expo-linear-gradient';
 import { ThemedText } from '@/components/ThemedText';
 import { ThemedView } from '@/components/ThemedView';
@@ -106,18 +106,23 @@ export default function HomeScreen() {
 
   if (currentScreen === 'welcome') {
     return (
-      <ThemedView style={styles.container}>
-        <ImageBackground
-          source={require('@/assets/images/background.png')}
-          style={styles.backgroundImage}
-          resizeMode="cover"
-        >
-          <ExpoLinearGradient
-            colors={['rgba(255,255,255,0.9)', 'rgba(225,245,244,0.95)', 'rgba(173,212,206,0.8)']}
-            style={styles.gradientOverlay}
-          >
-        <ThemedView style={styles.gradientBackground}>
-          <ThemedView style={styles.welcomeContent}>
+      <KeyboardAvoidingView
+        style={{ flex: 1 }}
+        behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+      >
+        <ScrollView contentContainerStyle={{ flexGrow: 1 }}>
+          <ThemedView style={styles.container}>
+            <ImageBackground
+              source={require('@/assets/images/background.png')}
+              style={styles.backgroundImage}
+              resizeMode="cover"
+            >
+              <ExpoLinearGradient
+                colors={['rgba(255,255,255,0.9)', 'rgba(225,245,244,0.95)', 'rgba(173,212,206,0.8)']}
+                style={styles.gradientOverlay}
+              >
+            <ThemedView style={styles.gradientBackground}>
+              <ThemedView style={styles.welcomeContent}>
             <ThemedView style={styles.heroSection}>
               <ThemedView style={styles.logoContainer}>
                 <Image 
@@ -156,27 +161,34 @@ export default function HomeScreen() {
               الإصدار 1.0 - تطوير المعلم المحترف
             </ThemedText>
           </ThemedView>
-        </ThemedView>
-        </ExpoLinearGradient>
-        </ImageBackground>
-      </ThemedView>
+            </ThemedView>
+            </ExpoLinearGradient>
+            </ImageBackground>
+          </ThemedView>
+        </ScrollView>
+      </KeyboardAvoidingView>
     );
   }
 
   if (currentScreen === 'login') {
     return (
-      <ThemedView style={styles.container}>
-        <ImageBackground
-          source={require('@/assets/images/background.png')}
-          style={styles.backgroundImage}
-          resizeMode="cover"
-        >
-          <ExpoLinearGradient
-            colors={['rgba(255,255,255,0.9)', 'rgba(225,245,244,0.95)', 'rgba(173,212,206,0.8)']}
-            style={styles.gradientOverlay}
-          >
-            <ThemedView style={styles.gradientBackground}>
-              <ThemedView style={styles.loginContent}>
+      <KeyboardAvoidingView
+        style={{ flex: 1 }}
+        behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+      >
+        <ScrollView contentContainerStyle={{ flexGrow: 1 }}>
+          <ThemedView style={styles.container}>
+            <ImageBackground
+              source={require('@/assets/images/background.png')}
+              style={styles.backgroundImage}
+              resizeMode="cover"
+            >
+              <ExpoLinearGradient
+                colors={['rgba(255,255,255,0.9)', 'rgba(225,245,244,0.95)', 'rgba(173,212,206,0.8)']}
+                style={styles.gradientOverlay}
+              >
+                <ThemedView style={styles.gradientBackground}>
+                  <ThemedView style={styles.loginContent}>
                 <ThemedView style={styles.iconContainer}>
                   <IconSymbol size={60} name="lock.shield.fill" color="#1c1f33" />
                 </ThemedView>
@@ -226,18 +238,25 @@ export default function HomeScreen() {
                   <IconSymbol size={24} name="arrow.left" color="#1c1f33" />
                 </TouchableOpacity>
               </ThemedView>
-            </ThemedView>
-          </ExpoLinearGradient>
-        </ImageBackground>
-      </ThemedView>
+                </ThemedView>
+              </ExpoLinearGradient>
+            </ImageBackground>
+          </ThemedView>
+        </ScrollView>
+      </KeyboardAvoidingView>
     );
   }
 
   // Dashboard screen
   return (
-    <ThemedView style={[styles.container, styles.gradientBackground]}>
-      <ThemedView style={styles.gradientBackground}>
-        <ThemedView style={styles.dashboardContent}>
+    <KeyboardAvoidingView
+      style={{ flex: 1 }}
+      behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+    >
+      <ScrollView contentContainerStyle={{ flexGrow: 1 }}>
+        <ThemedView style={[styles.container, styles.gradientBackground]}>
+          <ThemedView style={styles.gradientBackground}>
+            <ThemedView style={styles.dashboardContent}>
           <ThemedView style={styles.dashboardHeader}>
             <ThemedView style={{ flex: 1 }}>
               <ThemedText type="title" style={[styles.welcomeTitle, { textAlign: 'center', marginTop: 15 }]}>
@@ -300,8 +319,10 @@ export default function HomeScreen() {
             </ThemedView>
           </ThemedView>
         </ThemedView>
-      </ThemedView>
-    </ThemedView>
+          </ThemedView>
+        </ThemedView>
+      </ScrollView>
+    </KeyboardAvoidingView>
   );
 }
 
