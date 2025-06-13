@@ -1,6 +1,7 @@
 
 import React, { useState, useEffect } from 'react';
-import { StyleSheet, ScrollView, TouchableOpacity, Alert, I18nManager, Dimensions } from 'react-native';
+import { StyleSheet, ScrollView, TouchableOpacity, Alert, I18nManager, ImageBackground, Dimensions } from 'react-native';
+import { LinearGradient as ExpoLinearGradient } from 'expo-linear-gradient';
 import { ThemedText } from '@/components/ThemedText';
 import { ThemedView } from '@/components/ThemedView';
 import { IconSymbol } from '@/components/ui/IconSymbol';
@@ -287,146 +288,168 @@ export default function InteractiveReportScreen() {
   };
 
   return (
-    <ScrollView style={styles.container}>
-      <ThemedView style={styles.header}>
-        <TouchableOpacity 
-          style={styles.backButton}
-          onPress={() => router.back()}
+    <ThemedView style={styles.container}>
+      <ImageBackground
+        source={require('@/assets/images/background.png')}
+        style={styles.backgroundImage}
+        resizeMode="cover"
+      >
+        <ExpoLinearGradient
+          colors={['rgba(255,255,255,0.9)', 'rgba(225,245,244,0.95)', 'rgba(173,212,206,0.8)']}
+          style={styles.gradientOverlay}
         >
-          <IconSymbol size={24} name="chevron.right" color="#fff" />
-        </TouchableOpacity>
-        <ThemedView style={styles.headerContent}>
-          <IconSymbol size={50} name="chart.line.uptrend.xyaxis" color="#fff" />
-          <ThemedText type="title" style={styles.headerTitle}>
-            التقرير التفاعلي
-          </ThemedText>
-          <ThemedText style={styles.headerSubtitle}>
-            تحليل شامل لأداءك المهني مع مؤشرات تفاعلية
-          </ThemedText>
-        </ThemedView>
-      </ThemedView>
-
-      <ThemedView style={styles.content}>
-        <ThemedView style={styles.summaryCard}>
-          <ThemedText type="subtitle" style={styles.summaryTitle}>
-            ملخص الأداء العام
-          </ThemedText>
-          <ThemedView style={styles.summaryRow}>
-            <ThemedView style={styles.summaryItem}>
-              <ThemedText style={[styles.summaryValue, { color: getScoreColor(calculateOverallAverage()) }]}>
-                {calculateOverallAverage()}%
+          <ThemedView style={styles.header}>
+            <TouchableOpacity 
+              style={styles.backButton}
+              onPress={() => router.back()}
+            >
+              <IconSymbol size={24} name="chevron.right" color="#1c1f33" />
+            </TouchableOpacity>
+            <ThemedView style={styles.headerContent}>
+              <IconSymbol size={50} name="chart.line.uptrend.xyaxis" color="#1c1f33" />
+              <ThemedText type="title" style={styles.headerTitle}>
+                التقرير التفاعلي
               </ThemedText>
-              <ThemedText style={styles.summaryLabel}>المتوسط العام</ThemedText>
-            </ThemedView>
-            <ThemedView style={styles.summaryItem}>
-              <ThemedText style={[styles.summaryValue, { color: getScoreColor(calculateOverallAverage()) }]}>
-                {getScoreLevel(calculateOverallAverage())}
+              <ThemedText style={styles.headerSubtitle}>
+                تحليل شامل لأداءك المهني مع مؤشرات تفاعلية
               </ThemedText>
-              <ThemedText style={styles.summaryLabel}>مستوى الأداء</ThemedText>
             </ThemedView>
           </ThemedView>
-        </ThemedView>
 
-        <ThemedView style={styles.chartSelector}>
-          <ThemedText style={styles.selectorTitle}>اختر نوع التحليل:</ThemedText>
-          <ThemedView style={styles.selectorButtons}>
-            <TouchableOpacity
-              style={[styles.selectorButton, selectedChart === 'categories' && styles.activeSelectorButton]}
-              onPress={() => setSelectedChart('categories')}
-            >
-              <IconSymbol size={16} name="chart.bar.fill" color={selectedChart === 'categories' ? '#fff' : '#666'} />
-              <ThemedText style={[styles.selectorButtonText, selectedChart === 'categories' && styles.activeSelectorButtonText]}>
-                الفئات
+          <ScrollView style={styles.content}>
+            <ThemedView style={styles.summaryCard}>
+              <ThemedText type="subtitle" style={styles.summaryTitle}>
+                ملخص الأداء العام
               </ThemedText>
-            </TouchableOpacity>
-
-            <TouchableOpacity
-              style={[styles.selectorButton, selectedChart === 'progress' && styles.activeSelectorButton]}
-              onPress={() => setSelectedChart('progress')}
-            >
-              <IconSymbol size={16} name="list.bullet" color={selectedChart === 'progress' ? '#fff' : '#666'} />
-              <ThemedText style={[styles.selectorButtonText, selectedChart === 'progress' && styles.activeSelectorButtonText]}>
-                الترتيب
-              </ThemedText>
-            </TouchableOpacity>
-
-            <TouchableOpacity
-              style={[styles.selectorButton, selectedChart === 'statistics' && styles.activeSelectorButton]}
-              onPress={() => setSelectedChart('statistics')}
-            >
-              <IconSymbol size={16} name="chart.pie.fill" color={selectedChart === 'statistics' ? '#fff' : '#666'} />
-              <ThemedText style={[styles.selectorButtonText, selectedChart === 'statistics' && styles.activeSelectorButtonText]}>
-                الإحصائيات
-              </ThemedText>
-            </TouchableOpacity>
-          </ThemedView>
-        </ThemedView>
-
-        {renderChart()}
-
-        <ThemedView style={styles.recommendationsCard}>
-          <ThemedText style={styles.recommendationsTitle}>
-            <IconSymbol size={20} name="lightbulb.fill" color="#FF9800" /> توصيات للتحسين
-          </ThemedText>
-          <ThemedView style={styles.recommendationsList}>
-            {performanceData
-              .filter(item => item.score < 85)
-              .sort((a, b) => a.score - b.score)
-              .slice(0, 3)
-              .map((item, index) => (
-                <ThemedView key={item.id} style={styles.recommendationItem}>
-                  <ThemedText style={styles.recommendationText}>
-                    • ركز على تحسين "{item.title}" (الدرجة الحالية: {item.score}%)
+              <ThemedView style={styles.summaryRow}>
+                <ThemedView style={styles.summaryItem}>
+                  <ThemedText style={[styles.summaryValue, { color: getScoreColor(calculateOverallAverage()) }]}>
+                    {calculateOverallAverage()}%
                   </ThemedText>
+                  <ThemedText style={styles.summaryLabel}>المتوسط العام</ThemedText>
                 </ThemedView>
-              ))}
-          </ThemedView>
-        </ThemedView>
+                <ThemedView style={styles.summaryItem}>
+                  <ThemedText style={[styles.summaryValue, { color: getScoreColor(calculateOverallAverage()) }]}>
+                    {getScoreLevel(calculateOverallAverage())}
+                  </ThemedText>
+                  <ThemedText style={styles.summaryLabel}>مستوى الأداء</ThemedText>
+                </ThemedView>
+              </ThemedView>
+            </ThemedView>
 
-        <ThemedView style={styles.actionButtons}>
-          <TouchableOpacity 
-            style={styles.exportButton}
-            onPress={handleExportReport}
-          >
-            <IconSymbol size={20} name="square.and.arrow.up.fill" color="white" />
-            <ThemedText style={styles.buttonText}>تصدير التقرير</ThemedText>
-          </TouchableOpacity>
+            <ThemedView style={styles.chartSelector}>
+              <ThemedText style={styles.selectorTitle}>اختر نوع التحليل:</ThemedText>
+              <ThemedView style={styles.selectorButtons}>
+                <TouchableOpacity
+                  style={[styles.selectorButton, selectedChart === 'categories' && styles.activeSelectorButton]}
+                  onPress={() => setSelectedChart('categories')}
+                >
+                  <IconSymbol size={16} name="chart.bar.fill" color={selectedChart === 'categories' ? '#fff' : '#666'} />
+                  <ThemedText style={[styles.selectorButtonText, selectedChart === 'categories' && styles.activeSelectorButtonText]}>
+                    الفئات
+                  </ThemedText>
+                </TouchableOpacity>
 
-          <TouchableOpacity 
-            style={styles.printButton}
-            onPress={handlePrintReport}
-          >
-            <IconSymbol size={20} name="printer.fill" color="white" />
-            <ThemedText style={styles.buttonText}>طباعة</ThemedText>
-          </TouchableOpacity>
-        </ThemedView>
-      </ThemedView>
-    </ScrollView>
+                <TouchableOpacity
+                  style={[styles.selectorButton, selectedChart === 'progress' && styles.activeSelectorButton]}
+                  onPress={() => setSelectedChart('progress')}
+                >
+                  <IconSymbol size={16} name="list.bullet" color={selectedChart === 'progress' ? '#fff' : '#666'} />
+                  <ThemedText style={[styles.selectorButtonText, selectedChart === 'progress' && styles.activeSelectorButtonText]}>
+                    الترتيب
+                  </ThemedText>
+                </TouchableOpacity>
+
+                <TouchableOpacity
+                  style={[styles.selectorButton, selectedChart === 'statistics' && styles.activeSelectorButton]}
+                  onPress={() => setSelectedChart('statistics')}
+                >
+                  <IconSymbol size={16} name="chart.pie.fill" color={selectedChart === 'statistics' ? '#fff' : '#666'} />
+                  <ThemedText style={[styles.selectorButtonText, selectedChart === 'statistics' && styles.activeSelectorButtonText]}>
+                    الإحصائيات
+                  </ThemedText>
+                </TouchableOpacity>
+              </ThemedView>
+            </ThemedView>
+
+            {renderChart()}
+
+            <ThemedView style={styles.recommendationsCard}>
+              <ThemedText style={styles.recommendationsTitle}>
+                <IconSymbol size={20} name="lightbulb.fill" color="#FF9800" /> توصيات للتحسين
+              </ThemedText>
+              <ThemedView style={styles.recommendationsList}>
+                {performanceData
+                  .filter(item => item.score < 85)
+                  .sort((a, b) => a.score - b.score)
+                  .slice(0, 3)
+                  .map((item, index) => (
+                    <ThemedView key={item.id} style={styles.recommendationItem}>
+                      <ThemedText style={styles.recommendationText}>
+                        • ركز على تحسين "{item.title}" (الدرجة الحالية: {item.score}%)
+                      </ThemedText>
+                    </ThemedView>
+                  ))}
+              </ThemedView>
+            </ThemedView>
+
+            <ThemedView style={styles.actionButtons}>
+              <TouchableOpacity 
+                style={styles.exportButton}
+                onPress={handleExportReport}
+              >
+                <IconSymbol size={20} name="square.and.arrow.up.fill" color="#1c1f33" />
+                <ThemedText style={styles.buttonText}>تصدير التقرير</ThemedText>
+              </TouchableOpacity>
+
+              <TouchableOpacity 
+                style={styles.printButton}
+                onPress={handlePrintReport}
+              >
+                <IconSymbol size={20} name="printer.fill" color="#1c1f33" />
+                <ThemedText style={styles.buttonText}>طباعة</ThemedText>
+              </TouchableOpacity>
+            </ThemedView>
+          </ScrollView>
+        </ExpoLinearGradient>
+      </ImageBackground>
+    </ThemedView>
   );
 }
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#f8f9fa',
+  },
+  backgroundImage: {
+    flex: 1,
+    width: '100%',
+    height: '100%',
+  },
+  gradientOverlay: {
+    flex: 1,
   },
   header: {
-    backgroundColor: '#2E8B57',
     padding: 20,
     paddingTop: 50,
     flexDirection: 'row',
     alignItems: 'center',
+    backgroundColor: 'transparent',
   },
   backButton: {
     padding: 8,
     marginRight: 10,
+    backgroundColor: '#F8F9FA',
+    borderRadius: 20,
+    borderWidth: 1,
+    borderColor: '#E5E5EA',
   },
   headerContent: {
     flex: 1,
     alignItems: 'center',
   },
   headerTitle: {
-    color: '#fff',
+    color: '#1c1f33',
     fontSize: 24,
     fontWeight: 'bold',
     textAlign: 'center',
@@ -434,11 +457,11 @@ const styles = StyleSheet.create({
     marginTop: 10,
   },
   headerSubtitle: {
-    color: '#fff',
+    color: '#1c1f33',
     fontSize: 14,
     textAlign: 'center',
     writingDirection: 'rtl',
-    opacity: 0.9,
+    opacity: 0.8,
     marginTop: 5,
   },
   content: {
@@ -447,7 +470,7 @@ const styles = StyleSheet.create({
   },
   summaryCard: {
     backgroundColor: '#fff',
-    borderRadius: 12,
+    borderRadius: 15,
     padding: 20,
     marginBottom: 20,
     elevation: 2,
@@ -484,7 +507,7 @@ const styles = StyleSheet.create({
   },
   chartSelector: {
     backgroundColor: '#fff',
-    borderRadius: 12,
+    borderRadius: 15,
     padding: 15,
     marginBottom: 20,
     elevation: 2,
@@ -515,7 +538,7 @@ const styles = StyleSheet.create({
     gap: 5,
   },
   activeSelectorButton: {
-    backgroundColor: '#2E8B57',
+    backgroundColor: '#1c1f33',
   },
   selectorButtonText: {
     fontSize: 14,
@@ -527,7 +550,7 @@ const styles = StyleSheet.create({
   },
   chartContainer: {
     backgroundColor: '#fff',
-    borderRadius: 12,
+    borderRadius: 15,
     padding: 20,
     marginBottom: 20,
     elevation: 2,
@@ -589,7 +612,7 @@ const styles = StyleSheet.create({
   progressRank: {
     fontSize: 14,
     fontWeight: 'bold',
-    color: '#2E8B57',
+    color: '#1c1f33',
     minWidth: 25,
   },
   progressTitle: {
@@ -640,7 +663,7 @@ const styles = StyleSheet.create({
   },
   recommendationsCard: {
     backgroundColor: '#fff',
-    borderRadius: 12,
+    borderRadius: 15,
     padding: 20,
     marginBottom: 20,
     elevation: 2,
@@ -684,24 +707,38 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: '#007AFF',
+    backgroundColor: '#add4ce',
     paddingVertical: 15,
-    borderRadius: 12,
-    gap: 8,
+    paddingHorizontal: 25,
+    borderRadius: 25,
+    gap: 10,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 6 },
+    shadowOpacity: 0.4,
+    shadowRadius: 12,
+    elevation: 12,
   },
   printButton: {
     flex: 1,
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: '#6C757D',
+    backgroundColor: '#add4ce',
     paddingVertical: 15,
-    borderRadius: 12,
-    gap: 8,
+    paddingHorizontal: 25,
+    borderRadius: 25,
+    gap: 10,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 6 },
+    shadowOpacity: 0.4,
+    shadowRadius: 12,
+    elevation: 12,
   },
   buttonText: {
-    color: 'white',
+    color: '#1c1f33',
     fontSize: 16,
     fontWeight: '600',
+    writingDirection: 'rtl',
+    textAlign: 'center',
   },
 });
