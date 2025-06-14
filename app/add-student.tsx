@@ -680,9 +680,9 @@ export default function AddStudentScreen() {
                       <ThemedText style={styles.saveButtonText}>حفظ البيانات</ThemedText>
                     </TouchableOpacity>
 
-                    <TouchableOpacity style={styles.cancelButton} onPress={() => router.back()}>
-                      <IconSymbol size={20} name="xmark.circle" color="#666" />
-                      <ThemedText style={styles.cancelButtonText}>إلغاء</ThemedText>
+                    <TouchableOpacity style={styles.saveButton} onPress={() => router.back()}>
+                      <IconSymbol size={16} name="xmark.circle.fill" color="#1c1f33" />
+                      <ThemedText style={styles.saveButtonText}>إلغاء</ThemedText>
                     </TouchableOpacity>
                   </ThemedView>
                 </ThemedView>
