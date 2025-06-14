@@ -102,21 +102,26 @@ export default function CalendarScreen() {
       const response = await fetch(`https://api.aladhan.com/v1/gToH/${formattedDate}`);
       const data = await response.json();
       
-      if (data.code === 200 && data.data) {
+      if (data.code === 200 && data.data && data.data.hijri) {
         const hijriData = data.data.hijri;
         const hijriMonth = parseInt(hijriData.month.number);
         const hijriDay = parseInt(hijriData.day);
         const hijriYear = parseInt(hijriData.year);
         
-        return {
-          date: `${hijriDay}/${hijriMonth}/${hijriYear}`,
-          day: hijriDay.toString(),
-          month: hijriMonth.toString(),
-          year: hijriYear.toString(),
-          monthName: hijriData.month.ar || hijriMonths[hijriMonth - 1],
-          dayName: hijriData.weekday.ar || weekDays[gregorianDate.getDay()],
-          fullDate: `${hijriData.weekday.ar || weekDays[gregorianDate.getDay()]}، ${hijriDay} ${hijriData.month.ar || hijriMonths[hijriMonth - 1]} ${hijriYear} هـ`,
-        };
+        // التأكد من صحة البيانات
+        if (hijriDay && hijriMonth && hijriYear && hijriMonth >= 1 && hijriMonth <= 12) {
+          return {
+            date: `${hijriDay}/${hijriMonth}/${hijriYear}`,
+            day: hijriDay.toString(),
+            month: hijriMonth.toString(),
+            year: hijriYear.toString(),
+            monthName: hijriData.month.ar || hijriMonths[hijriMonth - 1],
+            dayName: hijriData.weekday.ar || weekDays[gregorianDate.getDay()],
+            fullDate: `${hijriData.weekday.ar || weekDays[gregorianDate.getDay()]}، ${hijriDay} ${hijriData.month.ar || hijriMonths[hijriMonth - 1]} ${hijriYear} هـ`,
+          };
+        } else {
+          throw new Error('Invalid Hijri date data from API');
+        }
       } else {
         throw new Error('API response invalid');
       }
@@ -129,42 +134,40 @@ export default function CalendarScreen() {
     }
   };
 
-  // دالة للحساب المحلي كخيار احتياطي
+  // دالة للحساب المحلي كخيار احتياطي محسنة
   const convertToHijriLocal = (gregorianDate: Date) => {
-    // تاريخ البداية: 1 محرم 1 هـ = 16 يوليو 622 م
-    const epochDate = new Date(622, 6, 16); // يوليو = الشهر 6 (0-indexed)
+    // تاريخ البداية المصحح: 1 محرم 1 هـ = 15 يوليو 622 م
+    const epochDate = new Date(622, 6, 15); // يوليو = الشهر 6 (0-indexed)
     const timeDiff = gregorianDate.getTime() - epochDate.getTime();
     const daysDiff = Math.floor(timeDiff / (1000 * 60 * 60 * 24));
 
-    // السنة الهجرية = 354.367 يوم تقريباً
-    const hijriYear = Math.floor(daysDiff / 354.367) + 1;
-    const remainingDays = daysDiff - Math.floor((hijriYear - 1) * 354.367);
+    // حساب محسن للسنة الهجرية (354.37 يوم تقريباً)
+    const hijriYear = Math.floor(daysDiff / 354.37) + 1;
+    const remainingDays = daysDiff - Math.floor((hijriYear - 1) * 354.37);
 
-    // أشهر السنة الهجرية (أيام كل شهر)
+    // أشهر السنة الهجرية (أيام كل شهر) - نموذج أكثر دقة
     const monthDays = [30, 29, 30, 29, 30, 29, 30, 29, 30, 29, 30, 29];
-
+    
     let hijriMonth = 1;
-    let hijriDay = remainingDays + 1;
+    let hijriDay = Math.max(1, remainingDays + 1);
 
+    // حساب الشهر واليوم
     for (let i = 0; i < 12; i++) {
       if (hijriDay <= monthDays[i]) {
         hijriMonth = i + 1;
         break;
       }
       hijriDay -= monthDays[i];
-      hijriMonth = i + 2;
+      if (i === 11) {
+        // إذا تجاوزنا 12 شهر، ننتقل للسنة التالية
+        hijriMonth = 1;
+        hijriDay = Math.max(1, hijriDay);
+      }
     }
 
-    // تصحيح للسنة الكبيسة
-    if (hijriMonth > 12) {
-      hijriMonth = 1;
-      hijriDay = hijriDay - monthDays[11];
-    }
-
-    // التأكد من أن اليوم لا يتجاوز أيام الشهر
-    if (hijriDay < 1) {
-      hijriDay = 1;
-    }
+    // التأكد من صحة القيم
+    hijriMonth = Math.max(1, Math.min(12, hijriMonth));
+    hijriDay = Math.max(1, Math.min(monthDays[hijriMonth - 1], hijriDay));
 
     return {
       date: `${hijriDay}/${hijriMonth}/${hijriYear}`,
@@ -415,10 +418,28 @@ export default function CalendarScreen() {
                     <ThemedText style={[styles.todayTypeSmall, { color: '#E67E22' }]}>
                       التاريخ الهجري
                     </ThemedText>
-                    {isLoadingHijri && (
+                    {isLoadingHijri ? (
                       <ThemedView style={styles.loadingIndicator}>
                         <IconSymbol size={16} name="arrow.clockwise" color="#E67E22" />
                       </ThemedView>
+                    ) : (
+                      <TouchableOpacity 
+                        onPress={async () => {
+                          const now = new Date();
+                          try {
+                            const hijriDate = await fetchHijriDateFromAPI(now);
+                            setTodayInfo(prev => ({
+                              ...prev,
+                              hijri: hijriDate
+                            }));
+                          } catch (error) {
+                            console.error('فشل في تحديث التاريخ الهجري:', error);
+                          }
+                        }}
+                        style={styles.refreshButton}
+                      >
+                        <IconSymbol size={14} name="arrow.clockwise" color="#E67E22" />
+                      </TouchableOpacity>
                     )}
                   </ThemedView>
 
@@ -1048,6 +1069,12 @@ const styles = StyleSheet.create({
   loadingIndicator: {
     marginLeft: 8,
     animation: 'spin 1s linear infinite',
+  },
+  refreshButton: {
+    marginLeft: 8,
+    padding: 4,
+    borderRadius: 8,
+    backgroundColor: 'rgba(230, 126, 34, 0.1)',
   },
   
 });
