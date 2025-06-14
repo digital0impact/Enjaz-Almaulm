@@ -62,7 +62,15 @@ export default function SettingsScreen() {
   const handleThemeChange = (value: boolean) => {
     setDarkTheme(value);
     saveSettings({ darkTheme: value });
-    Alert.alert('تم التغيير', 'سيتم تطبيق الثيم الجديد عند إعادة تشغيل التطبيق');
+    
+    // تطبيق الثيم فوراً
+    if (value) {
+      // تطبيق الوضع الداكن
+      Alert.alert('تم التفعيل', 'تم تفعيل الوضع الداكن');
+    } else {
+      // تطبيق الوضع الفاتح
+      Alert.alert('تم الإلغاء', 'تم إلغاء الوضع الداكن');
+    }
   };
 
   const handleNotificationChange = (value: boolean) => {
@@ -161,7 +169,10 @@ export default function SettingsScreen() {
         resizeMode="cover"
       >
         <ExpoLinearGradient
-          colors={['rgba(255,255,255,0.9)', 'rgba(225,245,244,0.95)', 'rgba(173,212,206,0.8)']}
+          colors={darkTheme 
+            ? ['rgba(33,37,41,0.9)', 'rgba(52,58,64,0.95)', 'rgba(73,80,87,0.8)']
+            : ['rgba(255,255,255,0.9)', 'rgba(225,245,244,0.95)', 'rgba(173,212,206,0.8)']
+          }
           style={styles.gradientOverlay}
         >
           <ScrollView style={styles.scrollContainer}>
@@ -179,22 +190,22 @@ export default function SettingsScreen() {
             <ThemedView style={styles.content}>
               {/* معلومات المستخدم */}
               <ThemedView style={[styles.section, { backgroundColor: 'transparent' }]}>
-                <ThemedView style={styles.userInfo}>
+                <ThemedView style={[styles.userInfo, darkTheme && styles.darkUserInfo]}>
                   <ThemedView style={styles.userAvatar}>
-                    <IconSymbol size={40} name="person.circle.fill" color="#1c1f33" />
+                    <IconSymbol size={40} name="person.circle.fill" color={darkTheme ? "#fff" : "#1c1f33"} />
                   </ThemedView>
                   <ThemedView style={styles.userDetails}>
-                    <ThemedText style={styles.userName}>{userName}</ThemedText>
-                    <ThemedText style={styles.userEmail}>{userInfo?.email || 'user@example.com'}</ThemedText>
+                    <ThemedText style={[styles.userName, darkTheme && styles.darkText]}>{userName}</ThemedText>
+                    <ThemedText style={[styles.userEmail, darkTheme && styles.darkSubtext]}>{userInfo?.email || 'user@example.com'}</ThemedText>
                   </ThemedView>
                 </ThemedView>
               </ThemedView>
 
               {/* المظهر والثيمات */}
               <ThemedView style={[styles.section, { backgroundColor: 'transparent' }]}>
-                <ThemedText style={styles.sectionTitle}>المظهر والثيمات</ThemedText>
+                <ThemedText style={[styles.sectionTitle, darkTheme && styles.darkSectionTitle]}>المظهر والثيمات</ThemedText>
 
-                <ThemedView style={styles.settingItem}>
+                <ThemedView style={[styles.settingItem, darkTheme && styles.darkSettingItem]}>
                   <ThemedView style={styles.settingInfo}>
                     <IconSymbol size={24} name="moon.fill" color="#8A2BE2" />
                     <ThemedView style={styles.settingText}>
@@ -210,7 +221,7 @@ export default function SettingsScreen() {
                   />
                 </ThemedView>
 
-                <TouchableOpacity style={styles.settingItem}>
+                <TouchableOpacity style={[styles.settingItem, darkTheme && styles.darkSettingItem]}>
                   <ThemedView style={styles.settingInfo}>
                     <IconSymbol size={24} name="paintbrush.fill" color="#FF6B6B" />
                     <ThemedView style={styles.settingText}>
@@ -489,5 +500,23 @@ const styles = StyleSheet.create({
   versionText: {
     fontSize: 14,
     color: '#666666',
+  },
+  // أنماط الوضع الداكن
+  darkUserInfo: {
+    backgroundColor: '#2c3e50',
+    borderColor: '#34495e',
+  },
+  darkText: {
+    color: '#ecf0f1',
+  },
+  darkSubtext: {
+    color: '#bdc3c7',
+  },
+  darkSettingItem: {
+    backgroundColor: '#2c3e50',
+    borderColor: '#34495e',
+  },
+  darkSectionTitle: {
+    color: '#ecf0f1',
   },
 });
