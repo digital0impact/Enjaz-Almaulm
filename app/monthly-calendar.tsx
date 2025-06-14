@@ -188,6 +188,48 @@ export default function MonthlyCalendarScreen() {
           {calendarData.days.map((day, index) => renderCalendarDay(day, index))}
         </ThemedView>
 
+        {/* Current Date Display */}
+        <ThemedView style={[styles.currentDateSection, { backgroundColor: colors.card }]}>
+          <ThemedText style={[styles.sectionTitle, { color: colors.text }]}>
+            📅 تاريخ اليوم
+          </ThemedText>
+          
+          <ThemedView style={styles.dateContainer}>
+            <ThemedView style={[styles.dateCard, { backgroundColor: colors.background }]}>
+              <ThemedView style={styles.dateIconWrapper}>
+                <IconSymbol size={24} name="calendar" color="#1c1f33" />
+              </ThemedView>
+              <ThemedView style={styles.dateInfo}>
+                <ThemedText style={[styles.dateLabel, { color: colors.text }]}>التاريخ الميلادي</ThemedText>
+                <ThemedText style={[styles.dateValue, { color: colors.text }]}>
+                  {new Date().toLocaleDateString('ar-SA', {
+                    year: 'numeric',
+                    month: 'long',
+                    day: 'numeric',
+                    calendar: 'gregory'
+                  })}
+                </ThemedText>
+              </ThemedView>
+            </ThemedView>
+
+            <ThemedView style={[styles.dateCard, { backgroundColor: colors.background }]}>
+              <ThemedView style={styles.dateIconWrapper}>
+                <IconSymbol size={24} name="moon.fill" color="#1c1f33" />
+              </ThemedView>
+              <ThemedView style={styles.dateInfo}>
+                <ThemedText style={[styles.dateLabel, { color: colors.text }]}>التاريخ الهجري</ThemedText>
+                <ThemedText style={[styles.dateValue, { color: colors.text }]}>
+                  {new Date().toLocaleDateString('ar-SA-u-ca-islamic', {
+                    year: 'numeric',
+                    month: 'long',
+                    day: 'numeric'
+                  })}
+                </ThemedText>
+              </ThemedView>
+            </ThemedView>
+          </ThemedView>
+        </ThemedView>
+
         {/* Legend */}
         <ThemedView style={[styles.legend, { backgroundColor: colors.card }]}>
           <ThemedText style={[styles.legendTitle, { color: colors.text }]}>
@@ -449,5 +491,57 @@ const styles = StyleSheet.create({
     fontSize: 14,
     fontWeight: '600',
     textAlign: 'center',
+  },
+  currentDateSection: {
+    padding: 16,
+    borderRadius: 12,
+    elevation: 1,
+    marginBottom: 16,
+  },
+  dateContainer: {
+    gap: 12,
+  },
+  dateCard: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    padding: 16,
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: '#E5E5EA',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    elevation: 3,
+    gap: 12,
+  },
+  dateIconWrapper: {
+    padding: 12,
+    backgroundColor: '#FFFFFF',
+    borderRadius: 25,
+    borderWidth: 1,
+    borderColor: '#E5E5EA',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.1,
+    shadowRadius: 2,
+    elevation: 1,
+  },
+  dateInfo: {
+    flex: 1,
+  },
+  dateLabel: {
+    fontSize: 14,
+    color: '#666666',
+    textAlign: 'right',
+    writingDirection: 'rtl',
+    marginBottom: 4,
+  },
+  dateValue: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: '#000000',
+    textAlign: 'right',
+    writingDirection: 'rtl',
   },
 });
