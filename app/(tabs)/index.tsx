@@ -328,12 +328,12 @@ export default function HomeScreen() {
 
                       <TouchableOpacity 
                         style={[styles.dataItem, { backgroundColor: 'transparent' }]}
-                        onPress={() => router.push('/password-tracker')}
+                        onPress={() => router.push('/interactive-report')}
                       >
                         <ThemedView style={styles.iconWrapper}>
-                          <IconSymbol size={28} name="lock.shield.fill" color="#1c1f33" />
+                          <IconSymbol size={28} name="chart.line.uptrend.xyaxis" color="#1c1f33" />
                         </ThemedView>
-                        <ThemedText style={styles.actionText}>متتبع المواقع وكلمات المرور</ThemedText>
+                        <ThemedText style={styles.actionText}>التقرير التفاعلي للأداء المهني</ThemedText>
                       </TouchableOpacity>
 
                       <TouchableOpacity 
@@ -348,12 +348,12 @@ export default function HomeScreen() {
 
                       <TouchableOpacity 
                         style={[styles.dataItem, { backgroundColor: 'transparent' }]}
-                        onPress={() => router.push('/comments')}
+                        onPress={() => router.push('/password-tracker')}
                       >
                         <ThemedView style={styles.iconWrapper}>
-                          <IconSymbol size={28} name="envelope.fill" color="#1c1f33" />
+                          <IconSymbol size={28} name="lock.shield.fill" color="#1c1f33" />
                         </ThemedView>
-                        <ThemedText style={styles.actionText}>التعليقات</ThemedText>
+                        <ThemedText style={styles.actionText}>متتبع المواقع وكلمات المرور</ThemedText>
                       </TouchableOpacity>
 
                       <TouchableOpacity 
@@ -368,12 +368,12 @@ export default function HomeScreen() {
 
                       <TouchableOpacity 
                         style={[styles.dataItem, { backgroundColor: 'transparent' }]}
-                        onPress={() => router.push('/interactive-report')}
+                        onPress={() => router.push('/comments')}
                       >
                         <ThemedView style={styles.iconWrapper}>
-                          <IconSymbol size={28} name="chart.line.uptrend.xyaxis" color="#1c1f33" />
+                          <IconSymbol size={28} name="envelope.fill" color="#1c1f33" />
                         </ThemedView>
-                        <ThemedText style={styles.actionText}>التقرير التفاعلي للأداء المهني</ThemedText>
+                        <ThemedText style={styles.actionText}>التعليقات</ThemedText>
                       </TouchableOpacity>
                     </ThemedView>
                   </ThemedView>
