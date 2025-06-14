@@ -447,8 +447,7 @@ export default function CalendarScreen() {
               {/* التقويم الشهري الشبكي */}
               <ThemedView style={styles.annualCalendarContainer}>
                 <ThemedView style={styles.monthsGridWrapper}>
-                {hijriMonths.slice().reverse().map((month, reversedIndex) => {
-                  const monthIndex = hijriMonths.length - 1 - reversedIndex;
+                {hijriMonths.map((month, monthIndex) => {
                   const isCurrentMonth = monthIndex + 1 === parseInt(todayInfo.hijri.month);
                   const monthDays = [30, 29, 30, 29, 30, 29, 30, 29, 30, 29, 30, 29];
                   const daysInMonth = monthDays[monthIndex];
@@ -922,7 +921,7 @@ const styles = StyleSheet.create({
     marginBottom: 16,
   },
   monthsGridWrapper: {
-    flexDirection: 'row',
+    flexDirection: 'row-reverse',
     flexWrap: 'wrap',
     justifyContent: 'flex-start',
     paddingHorizontal: 4,
