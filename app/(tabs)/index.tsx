@@ -317,7 +317,7 @@ export default function HomeScreen() {
 
                     <ThemedView style={styles.actionsGrid}>
                       <TouchableOpacity 
-                        style={styles.dataItem}
+                        style={[styles.dataItem, { backgroundColor: 'transparent' }]}
                         onPress={() => router.push('/detailed-report')}
                       >
                         <ThemedView style={styles.iconWrapper}>
@@ -327,7 +327,7 @@ export default function HomeScreen() {
                       </TouchableOpacity>
 
                       <TouchableOpacity 
-                        style={styles.dataItem}
+                        style={[styles.dataItem, { backgroundColor: 'transparent' }]}
                         onPress={() => router.push('/azkar')}
                       >
                         <ThemedView style={styles.iconWrapper}>
@@ -337,7 +337,7 @@ export default function HomeScreen() {
                       </TouchableOpacity>
 
                       <TouchableOpacity 
-                        style={styles.dataItem}
+                        style={[styles.dataItem, { backgroundColor: 'transparent' }]}
                         onPress={() => router.push('/password-tracker')}
                       >
                         <ThemedView style={styles.iconWrapper}>
@@ -347,7 +347,7 @@ export default function HomeScreen() {
                       </TouchableOpacity>
 
                       <TouchableOpacity 
-                        style={styles.dataItem}
+                        style={[styles.dataItem, { backgroundColor: 'transparent' }]}
                         onPress={() => router.push('/student-tracking')}
                       >
                         <ThemedView style={styles.iconWrapper}>
@@ -357,7 +357,7 @@ export default function HomeScreen() {
                       </TouchableOpacity>
 
                       <TouchableOpacity 
-                        style={styles.dataItem}
+                        style={[styles.dataItem, { backgroundColor: 'transparent' }]}
                         onPress={() => router.push('/comments')}
                       >
                         <ThemedView style={styles.iconWrapper}>
@@ -367,7 +367,7 @@ export default function HomeScreen() {
                       </TouchableOpacity>
 
                       <TouchableOpacity 
-                        style={styles.dataItem}
+                        style={[styles.dataItem, { backgroundColor: 'transparent' }]}
                         onPress={() => router.push('/schedule')}
                       >
                         <ThemedView style={styles.iconWrapper}>
