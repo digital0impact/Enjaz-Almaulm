@@ -256,17 +256,6 @@ export default function CommentsScreen() {
                         >
                           <IconSymbol size={20} name="trash" color="#1c1f33" />
                         </TouchableOpacity>
-                        <ThemedView style={styles.commentBadges}>
-                          <ThemedView style={[styles.badge, { backgroundColor: getCategoryColor(comment.category) }]}>
-                            <ThemedText style={styles.badgeText}>{comment.category}</ThemedText>
-                          </ThemedView>
-                          <ThemedView style={[styles.badge, { backgroundColor: getPriorityColor(comment.priority) }]}>
-                            <ThemedText style={styles.badgeText}>{comment.priority}</ThemedText>
-                          </ThemedView>
-                          <ThemedView style={[styles.badge, { backgroundColor: getStatusColor(comment.status) }]}>
-                            <ThemedText style={styles.badgeText}>{comment.status}</ThemedText>
-                          </ThemedView>
-                        </ThemedView>
                       </ThemedView>
 
                       <ThemedText style={styles.commentTitle}>{comment.title}</ThemedText>
