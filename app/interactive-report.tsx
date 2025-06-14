@@ -234,37 +234,37 @@ export default function InteractiveReportScreen() {
       <ThemedView style={styles.chartContainer}>
         <ThemedText style={styles.chartTitle}>الإحصائيات التفصيلية</ThemedText>
         <ThemedView style={styles.statsGrid}>
-          <ThemedView style={[styles.statCard, { backgroundColor: '#E8F5E8' }]}>
+          <ThemedView style={[styles.statCard, { backgroundColor: 'rgba(232, 245, 232, 0.7)' }]}>
             <IconSymbol size={24} name="chart.bar.fill" color="#4CAF50" />
             <ThemedText style={styles.statValue}>{averageScore}%</ThemedText>
             <ThemedText style={styles.statLabel}>المتوسط العام</ThemedText>
           </ThemedView>
           
-          <ThemedView style={[styles.statCard, { backgroundColor: '#E3F2FD' }]}>
+          <ThemedView style={[styles.statCard, { backgroundColor: 'rgba(227, 242, 253, 0.7)' }]}>
             <IconSymbol size={24} name="arrow.up.circle.fill" color="#2196F3" />
             <ThemedText style={styles.statValue}>{maxScore}%</ThemedText>
             <ThemedText style={styles.statLabel}>أعلى درجة</ThemedText>
           </ThemedView>
           
-          <ThemedView style={[styles.statCard, { backgroundColor: '#FFF3E0' }]}>
+          <ThemedView style={[styles.statCard, { backgroundColor: 'rgba(255, 243, 224, 0.7)' }]}>
             <IconSymbol size={24} name="arrow.down.circle.fill" color="#FF9800" />
             <ThemedText style={styles.statValue}>{minScore}%</ThemedText>
             <ThemedText style={styles.statLabel}>أقل درجة</ThemedText>
           </ThemedView>
           
-          <ThemedView style={[styles.statCard, { backgroundColor: '#F3E5F5' }]}>
+          <ThemedView style={[styles.statCard, { backgroundColor: 'rgba(243, 229, 245, 0.7)' }]}>
             <IconSymbol size={24} name="star.fill" color="#9C27B0" />
             <ThemedText style={styles.statValue}>{excellentCount}</ThemedText>
             <ThemedText style={styles.statLabel}>محاور ممتازة</ThemedText>
           </ThemedView>
           
-          <ThemedView style={[styles.statCard, { backgroundColor: '#E8F5E8' }]}>
+          <ThemedView style={[styles.statCard, { backgroundColor: 'rgba(232, 245, 232, 0.7)' }]}>
             <IconSymbol size={24} name="checkmark.circle.fill" color="#4CAF50" />
             <ThemedText style={styles.statValue}>{goodCount}</ThemedText>
             <ThemedText style={styles.statLabel}>محاور جيدة</ThemedText>
           </ThemedView>
           
-          <ThemedView style={[styles.statCard, { backgroundColor: needsImprovementCount > 0 ? '#FFEBEE' : '#E8F5E8' }]}>
+          <ThemedView style={[styles.statCard, { backgroundColor: needsImprovementCount > 0 ? 'rgba(255, 235, 238, 0.7)' : 'rgba(232, 245, 232, 0.7)' }]}>
             <IconSymbol size={24} name="exclamationmark.triangle.fill" color={needsImprovementCount > 0 ? "#F44336" : "#4CAF50"} />
             <ThemedText style={styles.statValue}>{needsImprovementCount}</ThemedText>
             <ThemedText style={styles.statLabel}>تحتاج تحسين</ThemedText>
