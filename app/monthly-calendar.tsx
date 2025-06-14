@@ -7,7 +7,7 @@ import { IconSymbol } from '@/components/ui/IconSymbol';
 import { useRouter } from 'expo-router';
 import { useGlobalTheme } from '@/hooks/useGlobalTheme';
 import { BottomNavigationBar } from '@/components/BottomNavigationBar';
-import commonStyles from '@/styles/common-styles';
+import { commonStyles } from '@/styles/common-styles';
 
 export default function MonthlyCalendarScreen() {
   const router = useRouter();
