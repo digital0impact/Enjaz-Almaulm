@@ -10,3 +10,6 @@ export const commonStyles = StyleSheet.create({
     paddingBottom: Platform.OS === 'ios' ? 90 : 75, // Space for bottom navigation
   },
 });
+
+// Export default to fix the routing error
+export default commonStyles;
