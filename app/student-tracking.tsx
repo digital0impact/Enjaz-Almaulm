@@ -12,7 +12,7 @@ interface Student {
   id: string;
   name: string;
   grade: string;
-  status: 'ممتاز' | 'جيد جداً' | 'جيد' | 'مقبول' | 'ضعيف';
+  status: 'ممتاز' | 'مقبول' | 'ضعيف' | 'ضعف';
   lastUpdate: string;
   notes: string;
 }
@@ -38,22 +38,20 @@ export default function StudentTrackingScreen() {
 
   const getStatusColor = (status: string) => {
     switch (status) {
-      case 'ممتاز': return '#4CAF50';
-      case 'جيد جداً': return '#8BC34A';
-      case 'جيد': return '#FF9800';
-      case 'مقبول': return '#FF5722';
-      case 'ضعيف': return '#F44336';
+      case 'ممتاز': return '#4CAF50';  // متفوق - أخضر
+      case 'مقبول': return '#FF5722'; // يحتاج إلى تطوير - برتقالي
+      case 'ضعيف': return '#F44336'; // صعوبات تعلم - أحمر
+      case 'ضعف': return '#9C27B0';  // ضعف - بنفسجي
       default: return '#999';
     }
   };
 
   const getStatusIcon = (status: string) => {
     switch (status) {
-      case 'ممتاز': return 'star.fill';
-      case 'جيد جداً': return 'star.circle.fill';
-      case 'جيد': return 'star.circle';
-      case 'مقبول': return 'star';
-      case 'ضعيف': return 'exclamationmark.triangle.fill';
+      case 'ممتاز': return 'star.fill';                    // متفوق
+      case 'مقبول': return 'star';                        // يحتاج إلى تطوير
+      case 'ضعيف': return 'exclamationmark.triangle.fill'; // صعوبات تعلم
+      case 'ضعف': return 'minus.circle.fill';             // ضعف
       default: return 'person.circle';
     }
   };
@@ -131,7 +129,7 @@ export default function StudentTrackingScreen() {
                       <ThemedView style={[styles.statCard, { backgroundColor: '#FFF3E0' }]}>
                         <IconSymbol size={24} name="star.fill" color="#FF9800" />
                         <ThemedText style={styles.statNumber}>
-                          {students.filter(s => s.status === 'ممتاز' || s.status === 'جيد جداً').length}
+                          {students.filter(s => s.status === 'ممتاز').length}
                         </ThemedText>
                         <ThemedText style={styles.statLabel}>متفوقين</ThemedText>
                       </ThemedView>
