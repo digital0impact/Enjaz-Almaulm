@@ -921,9 +921,9 @@ const styles = StyleSheet.create({
     textAlign: 'center',
   },
 
-  // نموذج الإضافة
+  //// نموذج الإضافة
   formCard: {
-    backgroundColor: '#fff',
+    backgroundColor: '#e0f0f1',
     borderRadius: 12,
     padding: 20,
     elevation: 2,
