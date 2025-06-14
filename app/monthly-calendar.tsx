@@ -6,6 +6,8 @@ import { ThemedView } from '@/components/ThemedView';
 import { IconSymbol } from '@/components/ui/IconSymbol';
 import { useRouter } from 'expo-router';
 import { useGlobalTheme } from '@/hooks/useGlobalTheme';
+import { BottomNavigationBar } from '@/components/BottomNavigationBar';
+import { commonStyles } from './common-styles';
 
 export default function MonthlyCalendarScreen() {
   const router = useRouter();
@@ -126,9 +128,10 @@ export default function MonthlyCalendarScreen() {
   const calendarData = getCalendarData();
 
   return (
-    <ScrollView style={[styles.container, { backgroundColor: colors.background }]}>
-      {/* Header */}
-      <ThemedView style={styles.header}>
+    <ThemedView style={[styles.container, { backgroundColor: colors.background }]}>
+      <ScrollView style={[styles.scrollContainer, commonStyles.scrollViewWithBottomNav]}>
+        {/* Header */}
+        <ThemedView style={styles.header}>
         <TouchableOpacity 
           style={styles.backButton}
           onPress={() => router.back()}
@@ -239,12 +242,17 @@ export default function MonthlyCalendarScreen() {
           </TouchableOpacity>
         </ThemedView>
       </ThemedView>
-    </ScrollView>
+      </ScrollView>
+      <BottomNavigationBar />
+    </ThemedView>
   );
 }
 
 const styles = StyleSheet.create({
   container: {
+    flex: 1,
+  },
+  scrollContainer: {
     flex: 1,
   },
   header: {
