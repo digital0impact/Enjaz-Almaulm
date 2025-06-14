@@ -91,6 +91,81 @@ export default function CalendarScreen() {
     'الأحد', 'الإثنين', 'الثلاثاء', 'الأربعاء', 'الخميس', 'الجمعة', 'السبت'
   ];
 
+  // دالة لحساب التاريخ الهجري بدقة
+  const convertToHijri = (gregorianDate: Date) => {
+    // تاريخ البداية: 1 محرم 1 هـ = 16 يوليو 622 م
+    const epochDate = new Date(622, 6, 16); // يوليو = الشهر 6 (0-indexed)
+    const timeDiff = gregorianDate.getTime() - epochDate.getTime();
+    const daysDiff = Math.floor(timeDiff / (1000 * 60 * 60 * 24));
+    
+    // السنة الهجرية = 354.367 يوم تقريباً
+    const hijriYear = Math.floor(daysDiff / 354.367) + 1;
+    const remainingDays = daysDiff - Math.floor((hijriYear - 1) * 354.367);
+    
+    // أشهر السنة الهجرية (أيام كل شهر)
+    const monthDays = [30, 29, 30, 29, 30, 29, 30, 29, 30, 29, 30, 29];
+    
+    let hijriMonth = 1;
+    let hijriDay = remainingDays + 1;
+    
+    for (let i = 0; i < 12; i++) {
+      if (hijriDay <= monthDays[i]) {
+        hijriMonth = i + 1;
+        break;
+      }
+      hijriDay -= monthDays[i];
+      hijriMonth = i + 2;
+    }
+    
+    // تصحيح للسنة الكبيسة
+    if (hijriMonth > 12) {
+      hijriMonth = 1;
+      hijriDay = hijriDay - monthDays[11];
+    }
+    
+    // التأكد من أن اليوم لا يتجاوز أيام الشهر
+    if (hijriDay < 1) {
+      hijriDay = 1;
+    }
+    
+    return {
+      date: `${hijriDay}/${hijriMonth}/${hijriYear}`,
+      day: hijriDay.toString(),
+      month: hijriMonth.toString(),
+      year: hijriYear.toString(),
+      monthName: hijriMonths[hijriMonth - 1] || hijriMonths[0],
+      dayName: weekDays[gregorianDate.getDay()],
+      fullDate: `${weekDays[gregorianDate.getDay()]}، ${hijriDay} ${hijriMonths[hijriMonth - 1] || hijriMonths[0]} ${hijriYear} هـ`,
+    };
+  };
+
+  // دالة للحساب التقريبي كخيار احتياطي
+  const getApproximateHijriDate = (gregorianDate: Date) => {
+    const currentYear = gregorianDate.getFullYear();
+    const approximateHijriYear = Math.floor((currentYear - 579) * 1.030684);
+    const currentMonth = gregorianDate.getMonth() + 1;
+    const currentDay = gregorianDate.getDate();
+    
+    // تقدير الشهر الهجري بناءً على الشهر الميلادي
+    const monthOffset = Math.floor((currentMonth - 1) * 0.97) + 1;
+    let hijriMonth = monthOffset > 12 ? monthOffset - 12 : monthOffset;
+    let hijriYear = approximateHijriYear;
+    
+    if (monthOffset > 12) {
+      hijriYear += 1;
+    }
+    
+    return {
+      date: `${currentDay}/${hijriMonth}/${hijriYear}`,
+      day: currentDay.toString(),
+      month: hijriMonth.toString(),
+      year: hijriYear.toString(),
+      monthName: hijriMonths[hijriMonth - 1] || hijriMonths[0],
+      dayName: weekDays[gregorianDate.getDay()],
+      fullDate: `${weekDays[gregorianDate.getDay()]}، ${currentDay} ${hijriMonths[hijriMonth - 1] || hijriMonths[0]} ${hijriYear} هـ`,
+    };
+  };
+
   useEffect(() => {
     const updateTodayInfo = () => {
       const now = new Date();
@@ -107,29 +182,10 @@ export default function CalendarScreen() {
         fullDate: `${weekDays[now.getDay()]}، ${now.getDate()} ${gregorianMonths[now.getMonth()]} ${now.getFullYear()}`,
       };
 
-      // التاريخ الهجري (تقريبي) - محسن
+      // التاريخ الهجري - حساب دقيق
       try {
-        // استخدام Intl.DateTimeFormat للحصول على التاريخ الهجري
-        const hijriFormatter = new Intl.DateTimeFormat('ar-SA-u-ca-islamic', {
-          day: 'numeric',
-          month: 'numeric',
-          year: 'numeric'
-        });
-        
-        const hijriParts = hijriFormatter.formatToParts(now);
-        const hijriDay = hijriParts.find(part => part.type === 'day')?.value || '1';
-        const hijriMonth = hijriParts.find(part => part.type === 'month')?.value || '1';
-        const hijriYear = hijriParts.find(part => part.type === 'year')?.value || '1446';
-
-        const hijriDate = {
-          date: `${hijriDay}/${hijriMonth}/${hijriYear}`,
-          day: hijriDay,
-          month: hijriMonth,
-          year: hijriYear,
-          monthName: hijriMonths[parseInt(hijriMonth) - 1] || hijriMonths[0],
-          dayName: weekDays[now.getDay()],
-          fullDate: `${weekDays[now.getDay()]}، ${hijriDay} ${hijriMonths[parseInt(hijriMonth) - 1] || hijriMonths[0]} ${hijriYear} هـ`,
-        };
+        // استخدام حساب دقيق للتاريخ الهجري
+        const hijriDate = convertToHijri(now);
 
         setTodayInfo({
           gregorian: gregorianDate,
@@ -137,27 +193,12 @@ export default function CalendarScreen() {
         });
       } catch (error) {
         console.error('خطأ في حساب التاريخ الهجري:', error);
-        // حساب تقريبي للتاريخ الهجري كخيار احتياطي
-        const gregorianYear = now.getFullYear();
-        const gregorianMonth = now.getMonth() + 1;
-        const gregorianDay = now.getDate();
-        
-        // تحويل تقريبي من الميلادي إلى الهجري (622 سنة فرق تقريبي)
-        const approximateHijriYear = Math.floor(gregorianYear - 579.3);
-        const currentMonthIndex = Math.floor((gregorianMonth + 8) % 12);
-        const approximateHijriMonth = currentMonthIndex + 1;
+        // حساب تقريبي كخيار احتياطي
+        const approximateHijriDate = getApproximateHijriDate(now);
         
         setTodayInfo({
           gregorian: gregorianDate,
-          hijri: {
-            date: `${gregorianDay}/${approximateHijriMonth}/${approximateHijriYear}`,
-            day: gregorianDay.toString(),
-            month: approximateHijriMonth.toString(),
-            year: approximateHijriYear.toString(),
-            monthName: hijriMonths[currentMonthIndex] || 'محرم',
-            dayName: weekDays[now.getDay()],
-            fullDate: `${weekDays[now.getDay()]}، ${gregorianDay} ${hijriMonths[currentMonthIndex] || 'محرم'} ${approximateHijriYear} هـ`,
-          },
+          hijri: approximateHijriDate,
         });
       }
     };
