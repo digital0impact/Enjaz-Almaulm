@@ -77,6 +77,7 @@ export default function CalendarScreen() {
   const [currentTime, setCurrentTime] = useState(new Date());
   const [isLiveUpdate, setIsLiveUpdate] = useState(true);
   const [isLoadingHijri, setIsLoadingHijri] = useState(false);
+  const [selectedHijriYear, setSelectedHijriYear] = useState<number | null>(null);
 
   const gregorianMonths = [
     'يناير', 'فبراير', 'مارس', 'أبريل', 'مايو', 'يونيو',
@@ -477,8 +478,14 @@ export default function CalendarScreen() {
                 <TouchableOpacity 
                   style={[styles.yearNavButton, { backgroundColor: '#E67E22' }]}
                   onPress={() => {
-                    const currentHijriYear = parseInt(todayInfo.hijri.year);
-                    Alert.alert('السنة القادمة', `الانتقال للسنة الهجرية ${currentHijriYear + 1} هـ`);
+                    const currentYear = selectedHijriYear || parseInt(todayInfo.hijri.year);
+                    const nextYear = currentYear + 1;
+                    setSelectedHijriYear(nextYear);
+                    Alert.alert(
+                      'السنة القادمة', 
+                      `تم الانتقال للسنة الهجرية ${nextYear} هـ\n\nسيتم عرض تقويم السنة الجديدة`,
+                      [{ text: 'حسناً', style: 'default' }]
+                    );
                   }}
                 >
                   <ThemedText style={styles.yearNavText}>السنة القادمة</ThemedText>
@@ -487,19 +494,37 @@ export default function CalendarScreen() {
 
                 <ThemedView style={styles.currentYearContainer}>
                   <ThemedText style={[styles.currentYear, { color: colors.text }]}>
-                    {todayInfo.hijri.year} هـ
+                    {selectedHijriYear || todayInfo.hijri.year} هـ
                   </ThemedText>
                   <ThemedText style={[styles.currentYearLabel, { color: colors.text }]}>
-                    السنة الهجرية الحالية
+                    {selectedHijriYear ? 'السنة المختارة' : 'السنة الهجرية الحالية'}
                   </ThemedText>
+                  {selectedHijriYear && (
+                    <TouchableOpacity 
+                      onPress={() => {
+                        setSelectedHijriYear(null);
+                        Alert.alert('العودة للسنة الحالية', 'تم العودة للسنة الهجرية الحالية');
+                      }}
+                      style={styles.resetYearButton}
+                    >
+                      <ThemedText style={[styles.resetYearText, { color: '#E67E22' }]}>
+                        العودة للسنة الحالية
+                      </ThemedText>
+                    </TouchableOpacity>
+                  )}
                 </ThemedView>
 
                 <TouchableOpacity 
                   style={[styles.yearNavButton, { backgroundColor: '#E67E22' }]}
                   onPress={() => {
-                    const currentHijriYear = parseInt(todayInfo.hijri.year);
-                    // تحديث السنة (يمكن إضافة state للسنة المختارة)
-                    Alert.alert('السنة السابقة', `الانتقال للسنة الهجرية ${currentHijriYear - 1} هـ`);
+                    const currentYear = selectedHijriYear || parseInt(todayInfo.hijri.year);
+                    const prevYear = currentYear - 1;
+                    setSelectedHijriYear(prevYear);
+                    Alert.alert(
+                      'السنة السابقة', 
+                      `تم الانتقال للسنة الهجرية ${prevYear} هـ\n\nسيتم عرض تقويم السنة السابقة`,
+                      [{ text: 'حسناً', style: 'default' }]
+                    );
                   }}
                 >
                   <IconSymbol size={16} name="chevron.right" color="#fff" />
@@ -538,7 +563,7 @@ export default function CalendarScreen() {
                       {/* رأس الشهر */}
                       <ThemedView style={[styles.monthGridHeader, { backgroundColor: isCurrentMonth ? '#E67E22' : '#999' }]}>
                         <ThemedText style={styles.monthGridTitle}>
-                          {month} {todayInfo.hijri.year} هـ
+                          {month} {selectedHijriYear || todayInfo.hijri.year} هـ
                         </ThemedText>
                         <ThemedText style={styles.monthGridInfo}>
                           {daysInMonth} يوم ({daysInMonth === 30 ? 'كامل' : 'ناقص'})
@@ -576,11 +601,12 @@ export default function CalendarScreen() {
                               ]}
                               onPress={() => {
                                 Alert.alert(
-                                  `${day} ${month} ${todayInfo.hijri.year} هـ`,
-                                  `📅 التاريخ: ${day}/${monthIndex + 1}/${todayInfo.hijri.year} هـ\n` +
+                                  `${day} ${month} ${selectedHijriYear || todayInfo.hijri.year} هـ`,
+                                  `📅 التاريخ: ${day}/${monthIndex + 1}/${selectedHijriYear || todayInfo.hijri.year} هـ\n` +
                                   `📊 الشهر: ${month}\n` +
                                   `🌙 اليوم: ${day} من ${daysInMonth}\n` +
-                                  `${isToday ? '🔥 هذا هو اليوم الحالي' : ''}`,
+                                  `${isToday ? '🔥 هذا هو اليوم الحالي' : ''}` +
+                                  `${selectedHijriYear ? '\n🔄 سنة مختارة (ليست السنة الحالية)' : ''}`,
                                   [{ text: 'إغلاق', style: 'cancel' }]
                                 );
                               }}
@@ -1075,6 +1101,18 @@ const styles = StyleSheet.create({
     padding: 4,
     borderRadius: 8,
     backgroundColor: 'rgba(230, 126, 34, 0.1)',
+  },
+  resetYearButton: {
+    marginTop: 4,
+    padding: 4,
+    borderRadius: 6,
+    backgroundColor: 'rgba(230, 126, 34, 0.1)',
+  },
+  resetYearText: {
+    fontSize: 10,
+    fontWeight: '600',
+    textAlign: 'center',
+    writingDirection: 'rtl',
   },
   
 });
