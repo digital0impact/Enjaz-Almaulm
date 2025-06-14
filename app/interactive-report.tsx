@@ -429,38 +429,7 @@ export default function InteractiveReportScreen() {
           max-width: 200px;
           text-align: left;
         }
-        .vision-mission-section {
-          background: linear-gradient(135deg, #fff3e0 0%, #ffe0b2 100%);
-          padding: 20px;
-          border-radius: 12px;
-          margin-bottom: 30px;
-          border: 2px solid #ffcc02;
-        }
-        .vision-mission-title {
-          color: #e65100;
-          font-size: 18px;
-          font-weight: bold;
-          margin-bottom: 15px;
-          text-align: center;
-        }
-        .vision-item, .mission-item {
-          margin-bottom: 15px;
-          padding: 15px;
-          background: rgba(255, 255, 255, 0.8);
-          border-radius: 8px;
-          border-right: 4px solid #ff9800;
-        }
-        .vision-label, .mission-label {
-          font-weight: bold;
-          color: #e65100;
-          margin-bottom: 8px;
-          font-size: 16px;
-        }
-        .vision-text, .mission-text {
-          color: #333;
-          line-height: 1.6;
-          font-size: 14px;
-        }
+        
         .summary-section {
           background: linear-gradient(135deg, #add4ce 0%, #e1f5f4 100%);
           padding: 25px;
@@ -628,17 +597,7 @@ export default function InteractiveReportScreen() {
           </div>
         </div>
 
-        <div class="vision-mission-section">
-          <h3 class="vision-mission-title">الرؤية والرسالة</h3>
-          <div class="vision-item">
-            <div class="vision-label">🎯 الرؤية:</div>
-            <div class="vision-text">${userData.vision}</div>
-          </div>
-          <div class="mission-item">
-            <div class="mission-label">🎯 الرسالة:</div>
-            <div class="mission-text">${userData.mission}</div>
-          </div>
-        </div>
+        
 
         <div class="summary-section">
           <h2>ملخص الأداء العام</h2>
@@ -846,15 +805,7 @@ export default function InteractiveReportScreen() {
 البريد الإلكتروني: ${userData.email}
 رقم الهاتف: ${userData.phone}
 
-🎯 الرؤية والرسالة:
-========================================
-الرؤية: ${userData.vision}
-الرسالة: ${userData.mission}
 
-🎯 الرؤية والرسالة:
-========================================
-الرؤية: ${userData.vision}
-الرسالة: ${userData.mission}
 
 📈 ملخص الأداء العام:
 - المتوسط العام: ${averageScore}%
