@@ -45,6 +45,7 @@ export default function RootLayout() {
           <Stack.Screen name="edit-alert" options={{ headerShown: false }} />
           <Stack.Screen name="improvement-plan" options={{ headerShown: false }} />
           <Stack.Screen name="interactive-report" options={{ headerShown: false }} />
+          <Stack.Screen name="report-screen" options={{ headerShown: false }} />
           <Stack.Screen name="+not-found" />
         </Stack>
         <StatusBar style="auto" />

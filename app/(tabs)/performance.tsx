@@ -566,6 +566,36 @@ export default function PerformanceScreen() {
               <ThemedText style={styles.averageLevel}>
                 {getScoreLevel(calculateOverallAverage())}
               </ThemedText>
+              
+              <TouchableOpacity 
+                style={styles.reportButton}
+                onPress={() => {
+                  // تحضير البيانات للتقرير
+                  const axisResults = performanceData.map(item => ({
+                    title: item.title,
+                    score: item.score,
+                    evidences: item.evidence.map((ev, index) => ({
+                      id: index,
+                      label: ev.name,
+                      achieved: ev.available
+                    }))
+                  }));
+                  
+                  router.push({
+                    pathname: '/report-screen',
+                    params: {
+                      axisResults: JSON.stringify(axisResults),
+                      overallAverage: calculateOverallAverage().toString(),
+                      overallGrade: getScoreLevel(calculateOverallAverage())
+                    }
+                  });
+                }}
+              >
+                <IconSymbol size={16} name="doc.text.fill" color="#1c1f33" />
+                <ThemedText style={styles.reportButtonText}>
+                  عرض التقرير التفصيلي
+                </ThemedText>
+              </TouchableOpacity>
             </ThemedView>
 
             <ThemedView style={styles.content}>
@@ -1322,6 +1352,29 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.1,
     shadowRadius: 4,
     elevation: 3,
+  },
+  reportButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: '#1c1f33',
+    paddingVertical: 12,
+    paddingHorizontal: 20,
+    borderRadius: 25,
+    marginTop: 15,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.2,
+    shadowRadius: 8,
+    elevation: 6,
+    gap: 8,
+  },
+  reportButtonText: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: '#add4ce',
+    textAlign: 'center',
+    writingDirection: 'rtl',
   },
   evidenceExpandIcon: {
     marginLeft: 8,
