@@ -318,22 +318,22 @@ export default function HomeScreen() {
                     <ThemedView style={styles.actionsGrid}>
                       <TouchableOpacity 
                         style={[styles.dataItem, { backgroundColor: 'transparent' }]}
-                        onPress={() => router.push('/azkar')}
-                      >
-                        <ThemedView style={styles.iconWrapper}>
-                          <IconSymbol size={28} name="doc.text.fill" color="#1c1f33" />
-                        </ThemedView>
-                        <ThemedText style={styles.actionText}>أذكاري</ThemedText>
-                      </TouchableOpacity>
-
-                      <TouchableOpacity 
-                        style={[styles.dataItem, { backgroundColor: 'transparent' }]}
                         onPress={() => router.push('/interactive-report')}
                       >
                         <ThemedView style={styles.iconWrapper}>
                           <IconSymbol size={28} name="chart.line.uptrend.xyaxis" color="#1c1f33" />
                         </ThemedView>
                         <ThemedText style={styles.actionText}>التقرير التفاعلي للأداء المهني</ThemedText>
+                      </TouchableOpacity>
+
+                      <TouchableOpacity 
+                        style={[styles.dataItem, { backgroundColor: 'transparent' }]}
+                        onPress={() => router.push('/azkar')}
+                      >
+                        <ThemedView style={styles.iconWrapper}>
+                          <IconSymbol size={28} name="doc.text.fill" color="#1c1f33" />
+                        </ThemedView>
+                        <ThemedText style={styles.actionText}>أذكاري</ThemedText>
                       </TouchableOpacity>
 
                       <TouchableOpacity 
