@@ -280,6 +280,7 @@ export default function PasswordTrackerScreen() {
               </TouchableOpacity>
             ))}
           </ThemedView>
+        </ThemedView>
 
         <ThemedView style={styles.formGroup}>
           <ThemedText style={styles.formLabel}>ملاحظات</ThemedText>
