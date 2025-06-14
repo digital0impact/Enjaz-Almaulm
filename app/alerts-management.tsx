@@ -6,6 +6,8 @@ import { ThemedView } from '@/components/ThemedView';
 import { IconSymbol } from '@/components/ui/IconSymbol';
 import { useRouter } from 'expo-router';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { BottomNavigationBar } from '@/components/BottomNavigationBar';
+import { commonStyles } from './common-styles';
 
 const { width } = Dimensions.get('window');
 
@@ -217,7 +219,7 @@ export default function AlertsManagementScreen() {
           colors={['rgba(255,255,255,0.9)', 'rgba(225,245,244,0.95)', 'rgba(173,212,206,0.8)']}
           style={styles.gradientOverlay}
         >
-          <ScrollView style={styles.scrollContainer}>
+          <ScrollView style={[styles.scrollContainer, commonStyles.scrollViewWithBottomNav]}>
             <ThemedView style={styles.header}>
               <TouchableOpacity 
                 style={styles.backButton}
@@ -686,6 +688,7 @@ ${Object.entries(stats.byType).map(([type, count]) => `${type}: ${count}`).join(
               </ThemedView>
             </ThemedView>
           </ScrollView>
+          <BottomNavigationBar />
         </ExpoLinearGradient>
       </ImageBackground>
     </ThemedView>
