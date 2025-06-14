@@ -414,6 +414,7 @@ export default function InteractiveReportScreen() {
           </ScrollView>
         </ExpoLinearGradient>
       </ImageBackground>
+      <BottomNavigationBar />
     </ThemedView>
   );
 }

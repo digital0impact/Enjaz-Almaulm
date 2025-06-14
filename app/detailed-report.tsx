@@ -398,6 +398,7 @@ export default function DetailedReportScreen() {
           </ScrollView>
         </ExpoLinearGradient>
       </ImageBackground>
+      <BottomNavigationBar />
     </ThemedView>
   );
 }
