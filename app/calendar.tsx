@@ -219,8 +219,8 @@ export default function CalendarScreen() {
                     </ThemedText>
                   </ThemedView>
 
-                  <ThemedView style={styles.todayContentSmall}>
-                    <ThemedView style={styles.fullDateContainer}>
+                  <ThemedView style={[styles.todayContentSmall, { backgroundColor: 'transparent' }]}>
+                    <ThemedView style={[styles.fullDateContainer, { backgroundColor: 'transparent' }]}>
                       <ThemedText style={[styles.fullDateText, { color: colors.text }]}>
                         {todayInfo.gregorian.fullDate}
                       </ThemedText>
@@ -246,8 +246,8 @@ export default function CalendarScreen() {
                     </ThemedText>
                   </ThemedView>
 
-                  <ThemedView style={styles.todayContentSmall}>
-                    <ThemedView style={styles.fullDateContainer}>
+                  <ThemedView style={[styles.todayContentSmall, { backgroundColor: 'transparent' }]}>
+                    <ThemedView style={[styles.fullDateContainer, { backgroundColor: 'transparent' }]}>
                       <ThemedText style={[styles.fullDateText, { color: colors.text }]}>
                         {todayInfo.hijri.fullDate}
                       </ThemedText>
@@ -409,7 +409,7 @@ const styles = StyleSheet.create({
     opacity: 0.8,
   },
   fullDateContainer: {
-    backgroundColor: 'rgba(255, 255, 255, 0.3)',
+    backgroundColor: 'transparent',
     borderRadius: 8,
     padding: 12,
     alignItems: 'center',
