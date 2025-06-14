@@ -7,6 +7,7 @@ import { ThemedCard } from '@/components/ThemedCard';
 import { IconSymbol } from '@/components/ui/IconSymbol';
 import { useRouter } from 'expo-router';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { BottomNavigationBar } from '@/components/BottomNavigationBar';
 
 interface Comment {
   id: string;
@@ -271,6 +272,7 @@ export default function CommentsScreen() {
           </KeyboardAvoidingView>
         </ExpoLinearGradient>
       </ImageBackground>
+      <BottomNavigationBar />
     </ThemedView>
   );
 }
@@ -384,6 +386,7 @@ const styles = StyleSheet.create({
   content: {
     flex: 1,
     padding: 20,
+    paddingBottom: Platform.OS === 'ios' ? 110 : 95,
   },
   addForm: {
     marginBottom: 20,
