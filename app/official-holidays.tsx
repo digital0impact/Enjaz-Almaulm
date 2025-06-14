@@ -5,6 +5,8 @@ import { ThemedText } from '@/components/ThemedText';
 import { ThemedView } from '@/components/ThemedView';
 import { IconSymbol } from '@/components/ui/IconSymbol';
 import { useRouter } from 'expo-router';
+import { BottomNavigationBar } from '@/components/BottomNavigationBar';
+import { commonStyles } from './common-styles';
 
 interface Holiday {
   id: string;
@@ -214,7 +216,7 @@ export default function OfficialHolidaysScreen() {
           colors={['rgba(255,255,255,0.9)', 'rgba(225,245,244,0.95)', 'rgba(173,212,206,0.8)']}
           style={styles.gradientOverlay}
         >
-          <ScrollView style={styles.scrollView}>
+          <ScrollView style={[styles.scrollView, commonStyles.scrollViewWithBottomNav]}>
             <ThemedView style={styles.header}>
               <TouchableOpacity 
                 style={styles.backButton}
@@ -526,6 +528,7 @@ export default function OfficialHolidaysScreen() {
               </ScrollView>
             </ThemedView>
           </Modal>
+          <BottomNavigationBar />
         </ExpoLinearGradient>
       </ImageBackground>
     </ThemedView>
