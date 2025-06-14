@@ -415,12 +415,11 @@ export default function CalendarScreen() {
                   style={[styles.yearNavButton, { backgroundColor: '#E67E22' }]}
                   onPress={() => {
                     const currentHijriYear = parseInt(todayInfo.hijri.year);
-                    // تحديث السنة (يمكن إضافة state للسنة المختارة)
-                    Alert.alert('السنة السابقة', `الانتقال للسنة الهجرية ${currentHijriYear - 1} هـ`);
+                    Alert.alert('السنة القادمة', `الانتقال للسنة الهجرية ${currentHijriYear + 1} هـ`);
                   }}
                 >
-                  <IconSymbol size={16} name="chevron.right" color="#fff" />
-                  <ThemedText style={styles.yearNavText}>السنة السابقة</ThemedText>
+                  <ThemedText style={styles.yearNavText}>السنة القادمة</ThemedText>
+                  <IconSymbol size={16} name="chevron.left" color="#fff" />
                 </TouchableOpacity>
 
                 <ThemedView style={styles.currentYearContainer}>
@@ -436,11 +435,12 @@ export default function CalendarScreen() {
                   style={[styles.yearNavButton, { backgroundColor: '#E67E22' }]}
                   onPress={() => {
                     const currentHijriYear = parseInt(todayInfo.hijri.year);
-                    Alert.alert('السنة القادمة', `الانتقال للسنة الهجرية ${currentHijriYear + 1} هـ`);
+                    // تحديث السنة (يمكن إضافة state للسنة المختارة)
+                    Alert.alert('السنة السابقة', `الانتقال للسنة الهجرية ${currentHijriYear - 1} هـ`);
                   }}
                 >
-                  <ThemedText style={styles.yearNavText}>السنة القادمة</ThemedText>
-                  <IconSymbol size={16} name="chevron.left" color="#fff" />
+                  <IconSymbol size={16} name="chevron.right" color="#fff" />
+                  <ThemedText style={styles.yearNavText}>السنة السابقة</ThemedText>
                 </TouchableOpacity>
               </ThemedView>
 
