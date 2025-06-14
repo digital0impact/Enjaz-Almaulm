@@ -22,7 +22,6 @@ export default function AddAbsenceScreen() {
   const [formData, setFormData] = useState({
     date: new Date().toISOString().split('T')[0],
     type: 'شخصي' as AbsenceRecord['type'],
-    duration: 'يوم كامل' as AbsenceRecord['duration'],
     reason: '',
     withExcuse: true
   });
@@ -34,11 +33,7 @@ export default function AddAbsenceScreen() {
     { value: 'بدون عذر', label: 'بدون عذر', icon: 'xmark.circle.fill', color: '#FF851B' }
   ];
 
-  const durationOptions = [
-    { value: 'نصف يوم', label: 'نصف يوم', icon: 'clock.fill' },
-    { value: 'يوم كامل', label: 'يوم كامل', icon: 'calendar.circle.fill' },
-    { value: 'عدة أيام', label: 'عدة أيام', icon: 'calendar.badge.clock' }
-  ];
+  
 
   const saveAbsence = async () => {
     try {
@@ -51,7 +46,7 @@ export default function AddAbsenceScreen() {
         id: Date.now().toString(),
         date: formData.date,
         type: formData.type,
-        duration: formData.duration,
+        duration: 'يوم كامل',
         reason: formData.reason.trim(),
         withExcuse: formData.withExcuse,
         createdAt: new Date().toISOString()
@@ -136,26 +131,6 @@ export default function AddAbsenceScreen() {
                     >
                       <IconSymbol size={24} name={type.icon as any} color={type.color} />
                       <ThemedText style={styles.optionText}>{type.label}</ThemedText>
-                    </TouchableOpacity>
-                  ))}
-                </ThemedView>
-              </ThemedView>
-
-              {/* مدة الغياب */}
-              <ThemedView style={styles.formSection}>
-                <ThemedText style={styles.sectionTitle}>مدة الغياب</ThemedText>
-                <ThemedView style={styles.optionsGrid}>
-                  {durationOptions.map((duration) => (
-                    <TouchableOpacity
-                      key={duration.value}
-                      style={[
-                        styles.optionCard,
-                        formData.duration === duration.value && styles.selectedOption
-                      ]}
-                      onPress={() => setFormData(prev => ({ ...prev, duration: duration.value as AbsenceRecord['duration'] }))}
-                    >
-                      <IconSymbol size={24} name={duration.icon as any} color="#007AFF" />
-                      <ThemedText style={styles.optionText}>{duration.label}</ThemedText>
                     </TouchableOpacity>
                   ))}
                 </ThemedView>
