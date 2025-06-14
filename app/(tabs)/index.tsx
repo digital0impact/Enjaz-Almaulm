@@ -179,7 +179,7 @@ export default function HomeScreen() {
             </TouchableOpacity>
 
             <ThemedText style={styles.versionText}>
-              الإصدار 1.0 - تطوير المعلم المحترف
+              الإصدار 1.0 - تطوير الأثر الرقمي
             </ThemedText>
           </ThemedView>
             </ThemedView>
