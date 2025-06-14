@@ -172,6 +172,14 @@ export default function PasswordTrackerScreen() {
                 <IconSymbol size={16} name="doc.on.doc.fill" color="#4CAF50" />
                 <ThemedText style={styles.actionButtonText}>نسخ</ThemedText>
               </TouchableOpacity>
+
+              <TouchableOpacity 
+                style={styles.actionButton}
+                onPress={() => Alert.alert('تعديل', `تعديل كلمة مرور ${item.websiteName}`)}
+              >
+                <IconSymbol size={16} name="pencil.circle.fill" color="#FF9800" />
+                <ThemedText style={styles.actionButtonText}>تعديل</ThemedText>
+              </TouchableOpacity>
             </ThemedView>
           </ThemedView>
         ))}
@@ -663,7 +671,7 @@ const styles = StyleSheet.create({
   passwordActions: {
     flexDirection: 'row',
     justifyContent: 'space-between',
-    gap: 5,
+    gap: 3,
   },
   actionButton: {
     flex: 1,
@@ -673,7 +681,7 @@ const styles = StyleSheet.create({
     backgroundColor: '#f8f9fa',
     paddingVertical: 6,
     borderRadius: 8,
-    gap: 4,
+    gap: 2,
   },
   actionButtonText: {
     fontSize: 10,
