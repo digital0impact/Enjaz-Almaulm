@@ -5,6 +5,7 @@ import { ThemedText } from '@/components/ThemedText';
 import { ThemedView } from '@/components/ThemedView';
 import { IconSymbol } from '@/components/ui/IconSymbol';
 import { useRouter } from 'expo-router';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import { BottomNavigationBar } from '@/components/BottomNavigationBar';
 
 const { width } = Dimensions.get('window');
@@ -442,6 +443,7 @@ export default function PasswordTrackerScreen() {
           <ScrollView style={styles.content}>
             {renderCurrentTab()}
           </ScrollView>
+          <BottomNavigationBar selectedTab={selectedView} onTabChange={setSelectedView} />
         </ExpoLinearGradient>
       </ImageBackground>
     </ThemedView>
@@ -541,7 +543,8 @@ const styles = StyleSheet.create({
   },
   content: {
     flex: 1,
-    padding: 15,
+    padding: 20,
+    paddingBottom: Platform.OS === 'ios' ? 110 : 95,
   },
   tabContent: {
     backgroundColor: 'transparent',
@@ -780,5 +783,5 @@ const styles = StyleSheet.create({
     textAlign: 'right',
     writingDirection: 'rtl',
   },
-  
+
 });
