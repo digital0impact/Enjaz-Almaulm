@@ -1142,7 +1142,7 @@ const styles = StyleSheet.create({
     writingDirection: 'rtl',
   },
   performanceGrid: {
-    flexDirection: 'row',
+    flexDirection: 'row-reverse',
     flexWrap: 'wrap',
     justifyContent: 'space-between',
     gap: 15,
