@@ -7,6 +7,7 @@ import { IconSymbol } from '@/components/ui/IconSymbol';
 import { useRouter } from 'expo-router';
 import { BottomNavigationBar } from '@/components/BottomNavigationBar';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { commonStyles } from '@/styles/common-styles';
 import * as Sharing from 'expo-sharing';
 import * as Print from 'expo-print';
 import * as FileSystem from 'expo-file-system';
@@ -947,7 +948,7 @@ ${performanceData.filter(item => item.score < 85).length === 0 ?
 
           <ScrollView 
               style={styles.content}
-              contentContainerStyle={{ flexGrow: 1 }}
+              contentContainerStyle={{ flexGrow: 1, ...commonStyles.scrollViewWithBottomNav }}
             >
               <ThemedView style={styles.summaryCard}>
               <ThemedText type="subtitle" style={styles.summaryTitle}>
