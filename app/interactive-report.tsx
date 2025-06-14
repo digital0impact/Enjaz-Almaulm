@@ -6,6 +6,7 @@ import { ThemedText } from '@/components/ThemedText';
 import { ThemedView } from '@/components/ThemedView';
 import { IconSymbol } from '@/components/ui/IconSymbol';
 import { useRouter } from 'expo-router';
+import { BottomNavigationBar } from '@/components/BottomNavigationBar';
 
 const { width } = Dimensions.get('window');
 

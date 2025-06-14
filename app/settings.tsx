@@ -1,12 +1,12 @@
 import React, { useState, useEffect } from 'react';
-import { StyleSheet, ScrollView, TouchableOpacity, Alert, Switch, I18nManager, ImageBackground } from 'react-native';
+import { StyleSheet, ScrollView, TouchableOpacity, Alert, I18nManager, ImageBackground } from 'react-native';
 import { LinearGradient as ExpoLinearGradient } from 'expo-linear-gradient';
 import { ThemedText } from '@/components/ThemedText';
 import { ThemedView } from '@/components/ThemedView';
 import { IconSymbol } from '@/components/ui/IconSymbol';
-import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useRouter } from 'expo-router';
-import BottomNavigationBar from '@/components/BottomNavigationBar';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import { BottomNavigationBar } from '@/components/BottomNavigationBar';
 
 export default function SettingsScreen() {
   const router = useRouter();
