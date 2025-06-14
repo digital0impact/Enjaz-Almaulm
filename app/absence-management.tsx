@@ -124,26 +124,34 @@ export default function AbsenceManagementScreen() {
                 </ThemedText>
                 
                 <ThemedView style={styles.statsGrid}>
-                  <ThemedView style={[styles.statCard, { backgroundColor: '#FF6B6B15' }]}>
-                    <IconSymbol size={32} name="chart.bar.fill" color="#FF6B6B" />
+                  <ThemedView style={styles.statCard}>
+                    <ThemedView style={styles.iconWrapper}>
+                      <IconSymbol size={28} name="chart.bar.fill" color="#1c1f33" />
+                    </ThemedView>
                     <ThemedText style={styles.statNumber}>{stats.totalAbsences}</ThemedText>
                     <ThemedText style={styles.statLabel}>إجمالي الغياب</ThemedText>
                   </ThemedView>
                   
-                  <ThemedView style={[styles.statCard, { backgroundColor: '#4ECDC415' }]}>
-                    <IconSymbol size={32} name="checkmark.circle.fill" color="#4ECDC4" />
+                  <ThemedView style={styles.statCard}>
+                    <ThemedView style={styles.iconWrapper}>
+                      <IconSymbol size={28} name="checkmark.circle.fill" color="#1c1f33" />
+                    </ThemedView>
                     <ThemedText style={styles.statNumber}>{stats.withExcuse}</ThemedText>
                     <ThemedText style={styles.statLabel}>بعذر</ThemedText>
                   </ThemedView>
                   
-                  <ThemedView style={[styles.statCard, { backgroundColor: '#FF851B15' }]}>
-                    <IconSymbol size={32} name="xmark.circle.fill" color="#FF851B" />
+                  <ThemedView style={styles.statCard}>
+                    <ThemedView style={styles.iconWrapper}>
+                      <IconSymbol size={28} name="xmark.circle.fill" color="#1c1f33" />
+                    </ThemedView>
                     <ThemedText style={styles.statNumber}>{stats.withoutExcuse}</ThemedText>
                     <ThemedText style={styles.statLabel}>بدون عذر</ThemedText>
                   </ThemedView>
                   
-                  <ThemedView style={[styles.statCard, { backgroundColor: '#007AFF15' }]}>
-                    <IconSymbol size={32} name="calendar.circle.fill" color="#007AFF" />
+                  <ThemedView style={styles.statCard}>
+                    <ThemedView style={styles.iconWrapper}>
+                      <IconSymbol size={28} name="calendar.circle.fill" color="#1c1f33" />
+                    </ThemedView>
                     <ThemedText style={styles.statNumber}>{stats.thisMonth}</ThemedText>
                     <ThemedText style={styles.statLabel}>هذا الشهر</ThemedText>
                   </ThemedView>
@@ -248,11 +256,10 @@ const styles = StyleSheet.create({
     gap: 10,
   },
   statCard: {
-    width: '48%',
+    marginBottom: 20,
+    padding: 20,
     backgroundColor: '#F8F9FA',
-    borderRadius: 15,
-    padding: 15,
-    alignItems: 'center',
+    borderRadius: 50,
     borderWidth: 1,
     borderColor: '#E5E5EA',
     shadowColor: '#000',
@@ -260,17 +267,34 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.25,
     shadowRadius: 12,
     elevation: 10,
+    alignItems: 'center',
+    width: '48%',
+  },
+  iconWrapper: {
     marginBottom: 10,
+    padding: 15,
+    backgroundColor: '#F8F9FA',
+    borderRadius: 50,
+    borderWidth: 1,
+    borderColor: '#E5E5EA',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 6 },
+    shadowOpacity: 0.25,
+    shadowRadius: 12,
+    elevation: 10,
   },
   statNumber: {
-    fontSize: 24,
+    fontSize: 20,
     fontWeight: 'bold',
     marginVertical: 5,
-    color: '#333',
+    color: '#000000',
+    textAlign: 'center',
   },
   statLabel: {
-    fontSize: 12,
-    color: '#666',
+    fontSize: 14,
+    fontWeight: '600',
+    marginTop: 8,
+    color: '#000000',
     textAlign: 'center',
     writingDirection: 'rtl',
   },
