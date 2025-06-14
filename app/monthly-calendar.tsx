@@ -7,7 +7,7 @@ import { IconSymbol } from '@/components/ui/IconSymbol';
 import { useRouter } from 'expo-router';
 import { useGlobalTheme } from '@/hooks/useGlobalTheme';
 import { BottomNavigationBar } from '@/components/BottomNavigationBar';
-import { commonStyles } from './common-styles';
+import commonStyles from './common-styles';
 
 export default function MonthlyCalendarScreen() {
   const router = useRouter();
@@ -310,17 +310,19 @@ const styles = StyleSheet.create({
     top: Platform.OS === 'ios' ? 60 : 50,
     left: 20,
     backgroundColor: '#add4ce',
-    width: 40,
-    height: 40,
-    borderRadius: 20,
+    width: 45,
+    height: 45,
+    borderRadius: 22.5,
     justifyContent: 'center',
     alignItems: 'center',
     shadowColor: '#000',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.2,
-    shadowRadius: 8,
-    elevation: 8,
+    shadowOffset: { width: 0, height: 6 },
+    shadowOpacity: 0.25,
+    shadowRadius: 12,
+    elevation: 10,
     zIndex: 1,
+    borderWidth: 1,
+    borderColor: '#E5E5EA',
   },
   iconContainer: {
     marginBottom: 20,
