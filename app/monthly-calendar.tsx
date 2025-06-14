@@ -1,6 +1,6 @@
 
 import React, { useState } from 'react';
-import { StyleSheet, ScrollView, TouchableOpacity, View, Alert } from 'react-native';
+import { StyleSheet, ScrollView, TouchableOpacity, View, Alert, Platform } from 'react-native';
 import { ThemedText } from '@/components/ThemedText';
 import { ThemedView } from '@/components/ThemedView';
 import { IconSymbol } from '@/components/ui/IconSymbol';
@@ -128,22 +128,23 @@ export default function MonthlyCalendarScreen() {
   return (
     <ScrollView style={[styles.container, { backgroundColor: colors.background }]}>
       {/* Header */}
-      <ThemedView style={[globalStyles.header, { backgroundColor: colors.primary }]}>
+      <ThemedView style={styles.header}>
         <TouchableOpacity 
-          style={globalStyles.headerButton}
+          style={styles.backButton}
           onPress={() => router.back()}
         >
-          <IconSymbol size={24} name="chevron.left" color="#fff" />
+          <IconSymbol size={20} name="arrow.right" color="#1c1f33" />
         </TouchableOpacity>
-        <ThemedText style={globalStyles.headerTitle}>
+
+        <ThemedView style={styles.iconContainer}>
+          <IconSymbol size={60} name="calendar" color="#1c1f33" />
+        </ThemedView>
+        <ThemedText type="title" style={styles.title}>
           التقويم الشهري
         </ThemedText>
-        <TouchableOpacity 
-          style={globalStyles.headerButton}
-          onPress={() => Alert.alert('خيارات', 'خيارات التقويم الشهري')}
-        >
-          <IconSymbol size={24} name="ellipsis" color="#fff" />
-        </TouchableOpacity>
+        <ThemedText style={styles.subtitle}>
+          تصفح الأيام والشهور وإدارة الأحداث
+        </ThemedText>
       </ThemedView>
 
       <ThemedView style={styles.content}>
@@ -245,6 +246,60 @@ export default function MonthlyCalendarScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
+  },
+  header: {
+    alignItems: 'center',
+    paddingTop: Platform.OS === 'ios' ? 60 : 50,
+    paddingHorizontal: 30,
+    paddingBottom: 30,
+    backgroundColor: 'transparent',
+    position: 'relative',
+  },
+  backButton: {
+    position: 'absolute',
+    top: Platform.OS === 'ios' ? 60 : 50,
+    left: 20,
+    backgroundColor: '#add4ce',
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    justifyContent: 'center',
+    alignItems: 'center',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.2,
+    shadowRadius: 8,
+    elevation: 8,
+    zIndex: 1,
+  },
+  iconContainer: {
+    marginBottom: 20,
+    padding: 20,
+    backgroundColor: '#F8F9FA',
+    borderRadius: 50,
+    borderWidth: 1,
+    borderColor: '#E5E5EA',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 6 },
+    shadowOpacity: 0.25,
+    shadowRadius: 12,
+    elevation: 10,
+  },
+  title: {
+    fontSize: 28,
+    fontWeight: 'bold',
+    marginTop: 15,
+    marginBottom: 10,
+    textAlign: 'center',
+    writingDirection: 'rtl',
+    color: '#000000',
+  },
+  subtitle: {
+    fontSize: 16,
+    color: '#666666',
+    textAlign: 'center',
+    writingDirection: 'rtl',
+    marginBottom: 20,
   },
   content: {
     flex: 1,
