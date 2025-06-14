@@ -29,7 +29,6 @@ export default function RootLayout() {
         <Stack>
           <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
           <Stack.Screen name="settings" options={{ headerShown: false }} />
-          <Stack.Screen name="detailed-report" options={{ headerShown: false }} />
           <Stack.Screen name="azkar" options={{ headerShown: false }} />
           <Stack.Screen name="password-tracker" options={{ headerShown: false }} />
           <Stack.Screen name="student-tracking" options={{ headerShown: false }} />
