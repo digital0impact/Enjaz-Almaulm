@@ -38,17 +38,6 @@ export default function PasswordTrackerScreen() {
       notes: 'النظام الأساسي لإدارة الطلاب'
     },
     {
-      id: '2',
-      websiteName: 'بوابة المستقبل',
-      url: 'https://fg.moe.gov.sa',
-      username: 'teacher123',
-      password: 'Pass456',
-      category: 'تعليمي',
-      lastUpdated: '2023-12-20',
-      strength: 'متوسط',
-      notes: 'منصة التعلم الرقمي'
-    },
-    {
       id: '3',
       websiteName: 'نظام فارس',
       url: 'https://fareshr.gov.sa',
