@@ -567,35 +567,7 @@ export default function PerformanceScreen() {
                 {getScoreLevel(calculateOverallAverage())}
               </ThemedText>
               
-              <TouchableOpacity 
-                style={styles.reportButton}
-                onPress={() => {
-                  // تحضير البيانات للتقرير
-                  const axisResults = performanceData.map(item => ({
-                    title: item.title,
-                    score: item.score,
-                    evidences: item.evidence.map((ev, index) => ({
-                      id: index,
-                      label: ev.name,
-                      achieved: ev.available
-                    }))
-                  }));
-                  
-                  router.push({
-                    pathname: '/report-screen',
-                    params: {
-                      axisResults: JSON.stringify(axisResults),
-                      overallAverage: calculateOverallAverage().toString(),
-                      overallGrade: getScoreLevel(calculateOverallAverage())
-                    }
-                  });
-                }}
-              >
-                <IconSymbol size={16} name="doc.text.fill" color="#1c1f33" />
-                <ThemedText style={styles.reportButtonText}>
-                  عرض التقرير التفصيلي
-                </ThemedText>
-              </TouchableOpacity>
+              
             </ThemedView>
 
             <ThemedView style={styles.content}>
