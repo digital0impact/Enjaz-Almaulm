@@ -290,7 +290,7 @@ export default function InteractiveReportScreen() {
     }
   };
 
-  const generateReportHTML = () => {
+  const generateReportHTML = async () => {
     const averageScore = calculateOverallAverage();
     const categories = getCategories();
     const scores = performanceData.map(item => item.score);
@@ -299,6 +299,30 @@ export default function InteractiveReportScreen() {
     const excellentCount = scores.filter(score => score >= 90).length;
     const goodCount = scores.filter(score => score >= 80 && score < 90).length;
     const needsImprovementCount = scores.filter(score => score < 70).length;
+
+    // تحميل البيانات الشخصية والمهنية
+    let userData = {
+      fullName: 'غير محدد',
+      specialty: 'غير محدد',
+      experience: 'غير محدد',
+      education: 'غير محدد',
+      school: 'غير محدد',
+      educationDepartment: 'غير محدد',
+      gradeLevel: 'غير محدد',
+      vision: 'غير محدد',
+      mission: 'غير محدد',
+      email: 'غير محدد',
+      phone: 'غير محدد'
+    };
+
+    try {
+      const storedData = await AsyncStorage.getItem('basicData');
+      if (storedData) {
+        userData = { ...userData, ...JSON.parse(storedData) };
+      }
+    } catch (error) {
+      console.log('Error loading user data for report:', error);
+    }
 
     return `
     <!DOCTYPE html>
@@ -329,6 +353,32 @@ export default function InteractiveReportScreen() {
           padding-bottom: 20px;
           border-bottom: 3px solid #1c1f33;
         }
+        .logo-section {
+          display: flex;
+          justify-content: center;
+          align-items: center;
+          margin-bottom: 20px;
+          gap: 20px;
+        }
+        .logo {
+          width: 80px;
+          height: 80px;
+          object-fit: contain;
+        }
+        .ministry-info {
+          text-align: center;
+        }
+        .ministry-title {
+          font-size: 24px;
+          font-weight: bold;
+          color: #1c1f33;
+          margin: 0;
+        }
+        .ministry-subtitle {
+          font-size: 16px;
+          color: #666;
+          margin: 5px 0 0 0;
+        }
         .header h1 {
           color: #1c1f33;
           font-size: 28px;
@@ -337,6 +387,79 @@ export default function InteractiveReportScreen() {
         .header p {
           color: #666;
           font-size: 16px;
+        }
+        .personal-info-section {
+          background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+          padding: 25px;
+          border-radius: 15px;
+          margin-bottom: 30px;
+          border: 2px solid #dee2e6;
+        }
+        .personal-info-title {
+          color: #1c1f33;
+          font-size: 20px;
+          font-weight: bold;
+          margin-bottom: 20px;
+          text-align: center;
+          border-bottom: 2px solid #1c1f33;
+          padding-bottom: 10px;
+        }
+        .info-grid {
+          display: grid;
+          grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+          gap: 20px;
+        }
+        .info-item {
+          display: flex;
+          justify-content: space-between;
+          padding: 12px 15px;
+          background: white;
+          border-radius: 8px;
+          border-right: 4px solid #add4ce;
+          box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        .info-label {
+          font-weight: bold;
+          color: #666;
+          font-size: 14px;
+        }
+        .info-value {
+          color: #333;
+          font-size: 14px;
+          max-width: 200px;
+          text-align: left;
+        }
+        .vision-mission-section {
+          background: linear-gradient(135deg, #fff3e0 0%, #ffe0b2 100%);
+          padding: 20px;
+          border-radius: 12px;
+          margin-bottom: 30px;
+          border: 2px solid #ffcc02;
+        }
+        .vision-mission-title {
+          color: #e65100;
+          font-size: 18px;
+          font-weight: bold;
+          margin-bottom: 15px;
+          text-align: center;
+        }
+        .vision-item, .mission-item {
+          margin-bottom: 15px;
+          padding: 15px;
+          background: rgba(255, 255, 255, 0.8);
+          border-radius: 8px;
+          border-right: 4px solid #ff9800;
+        }
+        .vision-label, .mission-label {
+          font-weight: bold;
+          color: #e65100;
+          margin-bottom: 8px;
+          font-size: 16px;
+        }
+        .vision-text, .mission-text {
+          color: #333;
+          line-height: 1.6;
+          font-size: 14px;
         }
         .summary-section {
           background: linear-gradient(135deg, #add4ce 0%, #e1f5f4 100%);
@@ -452,9 +575,69 @@ export default function InteractiveReportScreen() {
     <body>
       <div class="container">
         <div class="header">
+          <div class="logo-section">
+            <div class="ministry-info">
+              <h2 class="ministry-title">المملكة العربية السعودية</h2>
+              <p class="ministry-subtitle">وزارة التعليم</p>
+            </div>
+          </div>
           <h1>📊 التقرير التفاعلي للأداء المهني</h1>
           <p>تحليل شامل لأداءك المهني مع مؤشرات تفاعلية</p>
           <p>تاريخ التقرير: ${new Date().toLocaleDateString('ar-SA')}</p>
+        </div>
+
+        <div class="personal-info-section">
+          <h3 class="personal-info-title">البيانات الشخصية والمهنية</h3>
+          <div class="info-grid">
+            <div class="info-item">
+              <span class="info-label">الاسم الكامل:</span>
+              <span class="info-value">${userData.fullName}</span>
+            </div>
+            <div class="info-item">
+              <span class="info-label">التخصص:</span>
+              <span class="info-value">${userData.specialty}</span>
+            </div>
+            <div class="info-item">
+              <span class="info-label">سنوات الخبرة:</span>
+              <span class="info-value">${userData.experience}</span>
+            </div>
+            <div class="info-item">
+              <span class="info-label">المؤهل العلمي:</span>
+              <span class="info-value">${userData.education}</span>
+            </div>
+            <div class="info-item">
+              <span class="info-label">المدرسة:</span>
+              <span class="info-value">${userData.school}</span>
+            </div>
+            <div class="info-item">
+              <span class="info-label">الإدارة التعليمية:</span>
+              <span class="info-value">${userData.educationDepartment}</span>
+            </div>
+            <div class="info-item">
+              <span class="info-label">المرحلة الدراسية:</span>
+              <span class="info-value">${userData.gradeLevel}</span>
+            </div>
+            <div class="info-item">
+              <span class="info-label">البريد الإلكتروني:</span>
+              <span class="info-value">${userData.email}</span>
+            </div>
+            <div class="info-item">
+              <span class="info-label">رقم الهاتف:</span>
+              <span class="info-value">${userData.phone}</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="vision-mission-section">
+          <h3 class="vision-mission-title">الرؤية والرسالة</h3>
+          <div class="vision-item">
+            <div class="vision-label">🎯 الرؤية:</div>
+            <div class="vision-text">${userData.vision}</div>
+          </div>
+          <div class="mission-item">
+            <div class="mission-label">🎯 الرسالة:</div>
+            <div class="mission-text">${userData.mission}</div>
+          </div>
         </div>
 
         <div class="summary-section">
@@ -570,7 +753,7 @@ export default function InteractiveReportScreen() {
 
   const exportToPDF = async () => {
     try {
-      const htmlContent = generateReportHTML();
+      const htmlContent = await generateReportHTML();
       const { uri } = await Print.printToFileAsync({
         html: htmlContent,
         base64: false
@@ -600,7 +783,7 @@ export default function InteractiveReportScreen() {
 
   const exportToHTML = async () => {
     try {
-      const htmlContent = generateReportHTML();
+      const htmlContent = await generateReportHTML();
       const fileName = `تقرير_الأداء_${new Date().toISOString().split('T')[0]}.html`;
       const fileUri = `${FileSystem.documentDirectory}${fileName}`;
       
@@ -619,11 +802,54 @@ export default function InteractiveReportScreen() {
       const averageScore = calculateOverallAverage();
       const categories = getCategories();
       
+      // تحميل البيانات الشخصية والمهنية
+      let userData = {
+        fullName: 'غير محدد',
+        specialty: 'غير محدد',
+        experience: 'غير محدد',
+        education: 'غير محدد',
+        school: 'غير محدد',
+        educationDepartment: 'غير محدد',
+        gradeLevel: 'غير محدد',
+        vision: 'غير محدد',
+        mission: 'غير محدد',
+        email: 'غير محدد',
+        phone: 'غير محدد'
+      };
+
+      try {
+        const storedData = await AsyncStorage.getItem('basicData');
+        if (storedData) {
+          userData = { ...userData, ...JSON.parse(storedData) };
+        }
+      } catch (error) {
+        console.log('Error loading user data for text export:', error);
+      }
+      
       const textContent = `
 📊 التقرير التفاعلي للأداء المهني
 ========================================
 
+🇸🇦 المملكة العربية السعودية - وزارة التعليم
+
 تاريخ التقرير: ${new Date().toLocaleDateString('ar-SA')}
+
+👤 البيانات الشخصية والمهنية:
+========================================
+الاسم الكامل: ${userData.fullName}
+التخصص: ${userData.specialty}
+سنوات الخبرة: ${userData.experience}
+المؤهل العلمي: ${userData.education}
+المدرسة: ${userData.school}
+الإدارة التعليمية: ${userData.educationDepartment}
+المرحلة الدراسية: ${userData.gradeLevel}
+البريد الإلكتروني: ${userData.email}
+رقم الهاتف: ${userData.phone}
+
+🎯 الرؤية والرسالة:
+========================================
+الرؤية: ${userData.vision}
+الرسالة: ${userData.mission}
 
 📈 ملخص الأداء العام:
 - المتوسط العام: ${averageScore}%
@@ -676,7 +902,7 @@ ${performanceData.filter(item => item.score < 85).length === 0 ?
 
   const handlePrintReport = async () => {
     try {
-      const htmlContent = generateReportHTML();
+      const htmlContent = await generateReportHTML();
       
       if (Platform.OS === 'ios') {
         await Print.printAsync({
