@@ -183,6 +183,15 @@ export default function PerformanceScreen() {
     return 'يحتاج تحسين';
   };
 
+  const calculateScoreBasedOnEvidence = (evidence: any[]) => {
+    const availableEvidence = evidence.filter(item => item.available).length;
+    if (availableEvidence >= 2) {
+      return 100;
+    }
+    // إذا كان أقل من شاهدين، احتفظ بالنسبة الأصلية
+    return null;
+  };
+
   const calculateOverallAverage = () => {
     const weightedSum = performanceData.reduce((acc, item) => acc + (item.score * item.weight), 0);
     const totalWeight = performanceData.reduce((acc, item) => acc + item.weight, 0);
@@ -191,18 +200,25 @@ export default function PerformanceScreen() {
 
   const toggleEvidenceStatus = (performanceId: number, evidenceIndex: number) => {
     setPerformanceData(prevData => 
-      prevData.map(item => 
-        item.id === performanceId 
-          ? {
-              ...item,
-              evidence: item.evidence.map((evidence, index) => 
-                index === evidenceIndex 
-                  ? { ...evidence, available: !evidence.available }
-                  : evidence
-              )
-            }
-          : item
-      )
+      prevData.map(item => {
+        if (item.id === performanceId) {
+          const updatedEvidence = item.evidence.map((evidence, index) => 
+            index === evidenceIndex 
+              ? { ...evidence, available: !evidence.available }
+              : evidence
+          );
+          
+          // احسب النسبة الجديدة بناءً على الشواهد المتوفرة
+          const newScore = calculateScoreBasedOnEvidence(updatedEvidence);
+          
+          return {
+            ...item,
+            evidence: updatedEvidence,
+            score: newScore !== null ? newScore : item.score
+          };
+        }
+        return item;
+      })
     );
   };
 
@@ -230,14 +246,19 @@ export default function PerformanceScreen() {
           onPress: (evidenceName) => {
             if (evidenceName && evidenceName.trim()) {
               setPerformanceData(prevData => 
-                prevData.map(item => 
-                  item.id === performanceId 
-                    ? {
-                        ...item,
-                        evidence: [...item.evidence, { name: evidenceName.trim(), available: false }]
-                      }
-                    : item
-                )
+                prevData.map(item => {
+                  if (item.id === performanceId) {
+                    const updatedEvidence = [...item.evidence, { name: evidenceName.trim(), available: false }];
+                    const newScore = calculateScoreBasedOnEvidence(updatedEvidence);
+                    
+                    return {
+                      ...item,
+                      evidence: updatedEvidence,
+                      score: newScore !== null ? newScore : item.score
+                    };
+                  }
+                  return item;
+                })
               );
             }
           },
@@ -297,14 +318,19 @@ export default function PerformanceScreen() {
           style: 'destructive',
           onPress: () => {
             setPerformanceData(prevData => 
-              prevData.map(item => 
-                item.id === performanceId 
-                  ? {
-                      ...item,
-                      evidence: item.evidence.filter((_, index) => index !== evidenceIndex)
-                    }
-                  : item
-              )
+              prevData.map(item => {
+                if (item.id === performanceId) {
+                  const updatedEvidence = item.evidence.filter((_, index) => index !== evidenceIndex);
+                  const newScore = calculateScoreBasedOnEvidence(updatedEvidence);
+                  
+                  return {
+                    ...item,
+                    evidence: updatedEvidence,
+                    score: newScore !== null ? newScore : item.score
+                  };
+                }
+                return item;
+              })
             );
           },
         },
