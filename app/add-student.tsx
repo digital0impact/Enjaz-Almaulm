@@ -278,7 +278,24 @@ export default function AddStudentScreen() {
       Alert.alert('جاري الحفظ...', 'يتم حفظ بيانات المتعلم');
 
       const existingStudents = await AsyncStorage.getItem('students');
-      const students = existingStudents ? JSON.parse(existingStudents) : [];
+      let students = existingStudents ? JSON.parse(existingStudents) : [];
+
+      // تحديث التصنيفات القديمة في البيانات الموجودة
+      students = students.map((student: Student) => {
+        let updatedStatus = student.status;
+        if (student.status === 'ممتاز') {
+          updatedStatus = 'تفوق';
+        } else if (student.status === 'مقبول') {
+          updatedStatus = 'يحتاج إلى تطوير';
+        } else if (student.status === 'ضعيف') {
+          updatedStatus = 'صعوبات التعلم';
+        }
+
+        return {
+          ...student,
+          status: updatedStatus as Student['status']
+        };
+      });
 
       const newStudent: Student = {
         id: Date.now().toString(),

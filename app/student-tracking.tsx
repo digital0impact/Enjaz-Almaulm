@@ -29,7 +29,28 @@ export default function StudentTrackingScreen() {
     try {
       const stored = await AsyncStorage.getItem('students');
       if (stored) {
-        setStudents(JSON.parse(stored));
+        let students = JSON.parse(stored);
+        
+        // تحديث التصنيفات القديمة للتصنيفات الجديدة
+        students = students.map((student: Student) => {
+          let updatedStatus = student.status;
+          if (student.status === 'ممتاز') {
+            updatedStatus = 'تفوق';
+          } else if (student.status === 'مقبول') {
+            updatedStatus = 'يحتاج إلى تطوير';
+          } else if (student.status === 'ضعيف') {
+            updatedStatus = 'صعوبات التعلم';
+          }
+          
+          return {
+            ...student,
+            status: updatedStatus as Student['status']
+          };
+        });
+        
+        // حفظ البيانات المحدثة
+        await AsyncStorage.setItem('students', JSON.stringify(students));
+        setStudents(students);
       }
     } catch (error) {
       console.log('Error loading students:', error);
