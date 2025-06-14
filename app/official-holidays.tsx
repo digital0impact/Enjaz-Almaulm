@@ -6,7 +6,7 @@ import { ThemedView } from '@/components/ThemedView';
 import { IconSymbol } from '@/components/ui/IconSymbol';
 import { useRouter } from 'expo-router';
 import { BottomNavigationBar } from '@/components/BottomNavigationBar';
-import { commonStyles } from './common-styles';
+import { commonStyles } from '@/styles/common-styles';
 
 interface Holiday {
   id: string;
