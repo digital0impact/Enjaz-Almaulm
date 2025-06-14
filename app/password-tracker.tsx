@@ -28,28 +28,6 @@ export default function PasswordTrackerScreen() {
   const [passwords, setPasswords] = useState<PasswordEntry[]>([
     {
       id: '1',
-      websiteName: 'منصة نور التعليمية',
-      url: 'https://noor.moe.gov.sa',
-      username: 'teacher123',
-      password: 'SecurePass123!',
-      category: 'تعليمي',
-      lastUpdated: '2024-01-15',
-      strength: 'قوي',
-      notes: 'النظام الأساسي لإدارة الطلاب'
-    },
-    {
-      id: '3',
-      websiteName: 'نظام فارس',
-      url: 'https://fareshr.gov.sa',
-      username: 'emp789',
-      password: 'weak123',
-      category: 'إداري',
-      lastUpdated: '2023-11-10',
-      strength: 'ضعيف',
-      notes: 'نظام إدارة الموارد البشرية'
-    },
-    {
-      id: '4',
       websiteName: 'منصة مدرستي',
       url: 'https://schools.madrasati.sa',
       username: 'teacher123',
@@ -58,6 +36,17 @@ export default function PasswordTrackerScreen() {
       lastUpdated: '2024-01-20',
       strength: 'قوي',
       notes: 'منصة التعليم عن بُعد'
+    },
+    {
+      id: '2',
+      websiteName: 'نظام فارس',
+      url: 'https://fareshr.gov.sa',
+      username: 'emp789',
+      password: 'weak123',
+      category: 'إداري',
+      lastUpdated: '2023-11-10',
+      strength: 'ضعيف',
+      notes: 'نظام إدارة الموارد البشرية'
     }
   ]);
 
