@@ -57,7 +57,7 @@ export default function SettingsScreen() {
         setUserName(parsedData.fullName || 'المستخدم');
         setUserInfo(prev => ({
           ...prev,
-          email: parsedData.email || prev?.email || 'user@example.com'
+          email: parsedData.email || prev?.email || 'teacher@example.com'
         }));
       }
     } catch (error) {
@@ -213,7 +213,7 @@ export default function SettingsScreen() {
                   </ThemedView>
                   <ThemedView style={styles.userDetails}>
                     <ThemedText style={[styles.userName, darkTheme && styles.darkText]}>{userName}</ThemedText>
-                    <ThemedText style={[styles.userEmail, darkTheme && styles.darkSubtext]}>{userInfo?.email || 'user@example.com'}</ThemedText>
+                    <ThemedText style={[styles.userEmail, darkTheme && styles.darkSubtext]}>{userInfo?.email || 'teacher@example.com'}</ThemedText>
                   </ThemedView>
                 </ThemedView>
               </ThemedView>
