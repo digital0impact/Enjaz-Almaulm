@@ -128,32 +128,40 @@ export default function AbsenceManagementScreen() {
                     <ThemedView style={styles.iconWrapper}>
                       <IconSymbol size={28} name="chart.bar.fill" color="#1c1f33" />
                     </ThemedView>
-                    <ThemedText style={styles.statNumber}>{stats.totalAbsences}</ThemedText>
-                    <ThemedText style={styles.statLabel}>إجمالي الغياب</ThemedText>
+                    <ThemedView style={styles.statContent}>
+                      <ThemedText style={styles.statLabel}>إجمالي الغياب</ThemedText>
+                      <ThemedText style={styles.statNumber}>{stats.totalAbsences}</ThemedText>
+                    </ThemedView>
                   </ThemedView>
                   
                   <ThemedView style={styles.statCard}>
                     <ThemedView style={styles.iconWrapper}>
                       <IconSymbol size={28} name="checkmark.circle.fill" color="#1c1f33" />
                     </ThemedView>
-                    <ThemedText style={styles.statNumber}>{stats.withExcuse}</ThemedText>
-                    <ThemedText style={styles.statLabel}>بعذر</ThemedText>
+                    <ThemedView style={styles.statContent}>
+                      <ThemedText style={styles.statLabel}>بعذر</ThemedText>
+                      <ThemedText style={styles.statNumber}>{stats.withExcuse}</ThemedText>
+                    </ThemedView>
                   </ThemedView>
                   
                   <ThemedView style={styles.statCard}>
                     <ThemedView style={styles.iconWrapper}>
                       <IconSymbol size={28} name="xmark.circle.fill" color="#1c1f33" />
                     </ThemedView>
-                    <ThemedText style={styles.statNumber}>{stats.withoutExcuse}</ThemedText>
-                    <ThemedText style={styles.statLabel}>بدون عذر</ThemedText>
+                    <ThemedView style={styles.statContent}>
+                      <ThemedText style={styles.statLabel}>بدون عذر</ThemedText>
+                      <ThemedText style={styles.statNumber}>{stats.withoutExcuse}</ThemedText>
+                    </ThemedView>
                   </ThemedView>
                   
                   <ThemedView style={styles.statCard}>
                     <ThemedView style={styles.iconWrapper}>
                       <IconSymbol size={28} name="calendar.circle.fill" color="#1c1f33" />
                     </ThemedView>
-                    <ThemedText style={styles.statNumber}>{stats.thisMonth}</ThemedText>
-                    <ThemedText style={styles.statLabel}>هذا الشهر</ThemedText>
+                    <ThemedView style={styles.statContent}>
+                      <ThemedText style={styles.statLabel}>هذا الشهر</ThemedText>
+                      <ThemedText style={styles.statNumber}>{stats.thisMonth}</ThemedText>
+                    </ThemedView>
                   </ThemedView>
                 </ThemedView>
               </ThemedView>
@@ -250,13 +258,10 @@ const styles = StyleSheet.create({
     color: '#000000',
   },
   statsGrid: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    justifyContent: 'space-between',
-    gap: 10,
+    flexDirection: 'column',
+    gap: 15,
   },
   statCard: {
-    marginBottom: 20,
     padding: 20,
     backgroundColor: '#F8F9FA',
     borderRadius: 50,
@@ -268,10 +273,11 @@ const styles = StyleSheet.create({
     shadowRadius: 12,
     elevation: 10,
     alignItems: 'center',
-    width: '48%',
+    width: '100%',
+    flexDirection: 'row',
+    justifyContent: 'space-between',
   },
   iconWrapper: {
-    marginBottom: 10,
     padding: 15,
     backgroundColor: '#F8F9FA',
     borderRadius: 50,
@@ -283,20 +289,24 @@ const styles = StyleSheet.create({
     shadowRadius: 12,
     elevation: 10,
   },
+  statContent: {
+    flex: 1,
+    alignItems: 'flex-end',
+    paddingLeft: 15,
+  },
   statNumber: {
-    fontSize: 20,
+    fontSize: 24,
     fontWeight: 'bold',
-    marginVertical: 5,
     color: '#000000',
-    textAlign: 'center',
+    textAlign: 'right',
   },
   statLabel: {
-    fontSize: 14,
+    fontSize: 16,
     fontWeight: '600',
-    marginTop: 8,
-    color: '#000000',
-    textAlign: 'center',
+    color: '#666666',
+    textAlign: 'right',
     writingDirection: 'rtl',
+    marginBottom: 5,
   },
   addAbsenceCard: {
     backgroundColor: '#F8F9FA',
