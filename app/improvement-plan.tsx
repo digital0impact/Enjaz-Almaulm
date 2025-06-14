@@ -1,6 +1,6 @@
 
 import React, { useState, useEffect } from 'react';
-import { StyleSheet, ScrollView, TouchableOpacity, Alert, TextInput, I18nManager, ImageBackground, Dimensions } from 'react-native';
+import { StyleSheet, ScrollView, TouchableOpacity, Alert, TextInput, I18nManager, ImageBackground, Dimensions, Platform } from 'react-native';
 import { LinearGradient as ExpoLinearGradient } from 'expo-linear-gradient';
 import { ThemedText } from '@/components/ThemedText';
 import { ThemedView } from '@/components/ThemedView';
@@ -219,7 +219,7 @@ export default function ImprovementPlanScreen() {
               style={styles.backButton}
               onPress={() => router.back()}
             >
-              <IconSymbol size={24} name="chevron.right" color="#1c1f33" />
+              <IconSymbol size={20} name="arrow.right" color="#1c1f33" />
             </TouchableOpacity>
             <ThemedView style={styles.headerContent}>
               <IconSymbol size={50} name="chart.line.uptrend.xyaxis" color="#1c1f33" />
@@ -457,12 +457,21 @@ const styles = StyleSheet.create({
     backgroundColor: 'transparent',
   },
   backButton: {
-    padding: 8,
-    marginRight: 10,
-    backgroundColor: '#F8F9FA',
+    position: 'absolute',
+    top: Platform.OS === 'ios' ? 60 : 50,
+    left: 20,
+    backgroundColor: '#add4ce',
+    width: 40,
+    height: 40,
     borderRadius: 20,
-    borderWidth: 1,
-    borderColor: '#E5E5EA',
+    justifyContent: 'center',
+    alignItems: 'center',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.2,
+    shadowRadius: 8,
+    elevation: 8,
+    zIndex: 1,
   },
   headerContent: {
     flex: 1,
