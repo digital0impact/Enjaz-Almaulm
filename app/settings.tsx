@@ -17,6 +17,7 @@ export default function SettingsScreen() {
   const [notifications, setNotifications] = useState(true);
   const [autoBackup, setAutoBackup] = useState(true);
   const [userInfo, setUserInfo] = useState<any>(null);
+  const [selectedColorScheme, setSelectedColorScheme] = useState('default');
 
   useEffect(() => {
     loadSettings();
@@ -32,6 +33,7 @@ export default function SettingsScreen() {
         setDarkTheme(parsedSettings.darkTheme || false);
         setNotifications(parsedSettings.notifications !== false);
         setAutoBackup(parsedSettings.autoBackup !== false);
+        setSelectedColorScheme(parsedSettings.colorScheme || 'default');
       }
     } catch (error) {
       console.log('Error loading settings:', error);
@@ -155,6 +157,28 @@ export default function SettingsScreen() {
     );
   };
 
+  const handleColorSchemeChange = async (colorScheme: string, schemeName: string) => {
+    try {
+      setSelectedColorScheme(colorScheme);
+      await saveSettings({ colorScheme });
+      
+      // هنا يمكن إضافة منطق تطبيق الألوان على التطبيق
+      Alert.alert('تم التطبيق', `تم تطبيق نظام الألوان: ${schemeName}`);
+    } catch (error) {
+      console.log('Error saving color scheme:', error);
+      Alert.alert('خطأ', 'حدث خطأ أثناء حفظ نظام الألوان');
+    }
+  };
+
+  const getColorSchemeOptions = () => [
+    { value: 'default', name: 'الافتراضي', colors: ['#4ECDC4', '#E8F5F4', '#1c1f33'] },
+    { value: 'blue', name: 'الأزرق الكلاسيكي', colors: ['#007AFF', '#E3F2FD', '#1565C0'] },
+    { value: 'green', name: 'الأخضر الطبيعي', colors: ['#4CAF50', '#E8F5E8', '#2E7D32'] },
+    { value: 'purple', name: 'البنفسجي الأنيق', colors: ['#9C27B0', '#F3E5F5', '#6A1B9A'] },
+    { value: 'orange', name: 'البرتقالي الدافئ', colors: ['#FF9500', '#FFF3E0', '#E65100'] },
+    { value: 'pink', name: 'الوردي الناعم', colors: ['#E91E63', '#FCE4EC', '#C2185B'] }
+  ];
+
   const handleLogout = () => {
     Alert.alert(
       'تسجيل الخروج',
@@ -244,46 +268,15 @@ export default function SettingsScreen() {
                 <TouchableOpacity 
                   style={[styles.settingItem, darkTheme && styles.darkSettingItem]}
                   onPress={() => {
+                    const colorOptions = getColorSchemeOptions();
                     Alert.alert(
                       'ألوان التطبيق',
-                      'اختر نظام الألوان المفضل لديك',
+                      `النظام الحالي: ${colorOptions.find(c => c.value === selectedColorScheme)?.name || 'الافتراضي'}\n\nاختر نظام الألوان المفضل لديك:`,
                       [
-                        {
-                          text: 'الأزرق الكلاسيكي',
-                          onPress: () => {
-                            Alert.alert('تم التطبيق', 'تم تطبيق نظام الألوان الأزرق الكلاسيكي');
-                          }
-                        },
-                        {
-                          text: 'الأخضر الطبيعي',
-                          onPress: () => {
-                            Alert.alert('تم التطبيق', 'تم تطبيق نظام الألوان الأخضر الطبيعي');
-                          }
-                        },
-                        {
-                          text: 'البنفسجي الأنيق',
-                          onPress: () => {
-                            Alert.alert('تم التطبيق', 'تم تطبيق نظام الألوان البنفسجي الأنيق');
-                          }
-                        },
-                        {
-                          text: 'البرتقالي الدافئ',
-                          onPress: () => {
-                            Alert.alert('تم التطبيق', 'تم تطبيق نظام الألوان البرتقالي الدافئ');
-                          }
-                        },
-                        {
-                          text: 'الوردي الناعم',
-                          onPress: () => {
-                            Alert.alert('تم التطبيق', 'تم تطبيق نظام الألوان الوردي الناعم');
-                          }
-                        },
-                        {
-                          text: 'الافتراضي',
-                          onPress: () => {
-                            Alert.alert('تم التطبيق', 'تم استعادة نظام الألوان الافتراضي');
-                          }
-                        },
+                        ...colorOptions.map(option => ({
+                          text: `${option.name} ${option.value === selectedColorScheme ? '✓' : ''}`,
+                          onPress: () => handleColorSchemeChange(option.value, option.name)
+                        })),
                         { text: 'إلغاء', style: 'cancel' }
                       ]
                     );
@@ -293,7 +286,9 @@ export default function SettingsScreen() {
                     <IconSymbol size={24} name="paintbrush.fill" color="#FF6B6B" />
                     <ThemedView style={styles.settingText}>
                       <ThemedText style={styles.settingTitle}>ألوان التطبيق</ThemedText>
-                      <ThemedText style={styles.settingDescription}>تخصيص الألوان والخطوط</ThemedText>
+                      <ThemedText style={styles.settingDescription}>
+                        النظام الحالي: {getColorSchemeOptions().find(c => c.value === selectedColorScheme)?.name || 'الافتراضي'}
+                      </ThemedText>
                     </ThemedView>
                   </ThemedView>
                   <IconSymbol size={16} name="chevron.left" color="#666666" />
