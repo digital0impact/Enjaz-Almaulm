@@ -517,76 +517,7 @@ export default function CalendarScreen() {
                 </View>
               </ThemedView>
 
-              {/* إحصائيات السنة الهجرية */}
-              <ThemedView style={[styles.yearStatsContainer, { backgroundColor: 'rgba(230, 126, 34, 0.1)' }]}>
-                <ThemedText style={[styles.yearStatsTitle, { color: colors.text }]}>
-                  📊 إحصائيات السنة الهجرية {todayInfo.hijri.year} هـ
-                </ThemedText>
-
-                <View style={styles.yearStatsGrid}>
-                  <ThemedView style={[styles.statCard, { backgroundColor: 'rgba(76, 175, 80, 0.1)' }]}>
-                    <IconSymbol size={20} name="calendar.badge.plus" color="#4CAF50" />
-                    <ThemedText style={[styles.statNumber, { color: colors.text }]}>6</ThemedText>
-                    <ThemedText style={[styles.statLabel, { color: colors.text }]}>أشهر كاملة</ThemedText>
-                  </ThemedView>
-
-                  <ThemedView style={[styles.statCard, { backgroundColor: 'rgba(255, 152, 0, 0.1)' }]}>
-                    <IconSymbol size={20} name="calendar.badge.minus" color="#FF9800" />
-                    <ThemedText style={[styles.statNumber, { color: colors.text }]}>6</ThemedText>
-                    <ThemedText style={[styles.statLabel, { color: colors.text }]}>أشهر ناقصة</ThemedText>
-                  </ThemedView>
-
-                  <ThemedView style={[styles.statCard, { backgroundColor: 'rgba(33, 150, 243, 0.1)' }]}>
-                    <IconSymbol size={20} name="clock.badge.checkmark" color="#2196F3" />
-                    <ThemedText style={[styles.statNumber, { color: colors.text }]}>354</ThemedText>
-                    <ThemedText style={[styles.statLabel, { color: colors.text }]}>إجمالي الأيام</ThemedText>
-                  </ThemedView>
-                </View>
               </ThemedView>
-            </ThemedView>
-
-            {/* معلومات إضافية */}
-            <ThemedView style={[styles.section, { backgroundColor: colors.card }]}>
-              <ThemedText style={[styles.sectionTitle, { color: colors.text }]}>
-                معلومات مفيدة
-              </ThemedText>
-
-              <ThemedView style={[styles.infoCard, { backgroundColor: 'rgba(76, 175, 80, 0.1)' }]}>
-                <IconSymbol size={20} name="info.circle.fill" color="#4CAF50" />
-                <ThemedView style={styles.infoContent}>
-                  <ThemedText style={[styles.infoTitle, { color: colors.text }]}>
-                    السنة الهجرية
-                  </ThemedText>
-                  <ThemedText style={[styles.infoText, { color: colors.text }]}>
-                    تتكون من 354 يوماً تقريباً، وتعتمد على دورة القمر
-                  </ThemedText>
-                </ThemedView>
-              </ThemedView>
-
-              <ThemedView style={[styles.infoCard, { backgroundColor: 'rgba(33, 150, 243, 0.1)' }]}>
-                <IconSymbol size={20} name="calendar.circle" color="#2196F3" />
-                <ThemedView style={styles.infoContent}>
-                  <ThemedText style={[styles.infoTitle, { color: colors.text }]}>
-                    السنة الميلادية
-                  </ThemedText>
-                  <ThemedText style={[styles.infoText, { color: colors.text }]}>
-                    تتكون من 365 يوماً (366 في السنة الكبيسة)، وتعتمد على دورة الشمس
-                  </ThemedText>
-                </ThemedView>
-              </ThemedView>
-
-              <ThemedView style={[styles.infoCard, { backgroundColor: 'rgba(255, 152, 0, 0.1)' }]}>
-                <IconSymbol size={20} name="moon.stars.fill" color="#FF9800" />
-                <ThemedView style={styles.infoContent}>
-                  <ThemedText style={[styles.infoTitle, { color: colors.text }]}>
-                    الأشهر القمرية
-                  </ThemedText>
-                  <ThemedText style={[styles.infoText, { color: colors.text }]}>
-                    بعض الأشهر لها 30 يوماً وأخرى لها 29 يوماً حسب رؤية الهلال
-                  </ThemedText>
-                </ThemedView>
-              </ThemedView>
-            </ThemedView>
           </ScrollView>
 
           <BottomNavigationBar />
@@ -1018,35 +949,5 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
     textAlign: 'center',
   },
-  yearStatsContainer: {
-    padding: 16,
-    borderRadius: 8,
-  },
-  yearStatsTitle: {
-    fontSize: 16,
-    fontWeight: 'bold',
-    textAlign: 'center',
-    marginBottom: 12,
-    writingDirection: 'rtl',
-  },
-  yearStatsGrid: {
-    flexDirection: 'row',
-    justifyContent: 'space-around',
-    gap: 8,
-  },
-  statCard: {
-    alignItems: 'center',
-    padding: 10,
-    borderRadius: 6,
-  },
-  statNumber: {
-    fontSize: 18,
-    fontWeight: 'bold',
-    textAlign: 'center',
-  },
-  statLabel: {
-    fontSize: 12,
-    textAlign: 'center',
-    writingDirection: 'rtl',
-  },
+  
 });
