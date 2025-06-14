@@ -105,6 +105,21 @@ export default function AbsenceManagementScreen() {
             </ThemedView>
 
             <ThemedView style={styles.content}>
+              {/* إضافة غياب جديد */}
+              <TouchableOpacity 
+                style={styles.addAbsenceCard}
+                onPress={() => {
+                  // هنا يمكن إضافة منطق إضافة غياب جديد
+                  Alert.alert('إضافة غياب جديد', 'سيتم فتح نموذج إضافة غياب جديد قريباً');
+                }}
+              >
+                <ThemedView style={styles.addAbsenceIconWrapper}>
+                  <IconSymbol size={32} name="plus.circle.fill" color="#1c1f33" />
+                </ThemedView>
+                <ThemedText style={styles.addAbsenceTitle}>إضافة غياب جديد</ThemedText>
+                <ThemedText style={styles.addAbsenceDescription}>تسجيل يوم غياب جديد مع تحديد السبب والفترة</ThemedText>
+              </TouchableOpacity>
+
               {/* إحصائيات سريعة */}
               <ThemedView style={styles.statsContainer}>
                 <ThemedText type="subtitle" style={styles.sectionTitle}>
@@ -261,5 +276,49 @@ const styles = StyleSheet.create({
     color: '#666',
     textAlign: 'center',
     writingDirection: 'rtl',
+  },
+  addAbsenceCard: {
+    backgroundColor: '#F8F9FA',
+    borderRadius: 20,
+    padding: 24,
+    marginBottom: 25,
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderWidth: 1,
+    borderColor: '#E5E5EA',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 6 },
+    shadowOpacity: 0.25,
+    shadowRadius: 12,
+    elevation: 10,
+    minHeight: 160,
+  },
+  addAbsenceIconWrapper: {
+    backgroundColor: '#E8E8E8',
+    borderRadius: 50,
+    padding: 20,
+    marginBottom: 16,
+    borderWidth: 1,
+    borderColor: '#D0D0D0',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.15,
+    shadowRadius: 8,
+    elevation: 6,
+  },
+  addAbsenceTitle: {
+    fontSize: 20,
+    fontWeight: 'bold',
+    color: '#1c1f33',
+    textAlign: 'center',
+    writingDirection: 'rtl',
+    marginBottom: 8,
+  },
+  addAbsenceDescription: {
+    fontSize: 14,
+    color: '#666',
+    textAlign: 'center',
+    writingDirection: 'rtl',
+    lineHeight: 20,
   },
 });
