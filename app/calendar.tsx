@@ -400,7 +400,193 @@ export default function CalendarScreen() {
               </View>
             </ThemedView>
 
+            {/* التقويم السنوي الهجري */}
+            <ThemedView style={[styles.section, { backgroundColor: colors.card }]}>
+              <ThemedView style={styles.yearNavigationHeader}>
+                <IconSymbol size={24} name="calendar.badge.clock" color="#E67E22" />
+                <ThemedText style={[styles.sectionTitle, { color: colors.text }]}>
+                  التقويم السنوي الهجري
+                </ThemedText>
+              </ThemedView>
 
+              {/* التنقل بين السنوات */}
+              <ThemedView style={[styles.yearNavigation, { backgroundColor: 'rgba(230, 126, 34, 0.1)' }]}>
+                <TouchableOpacity 
+                  style={[styles.yearNavButton, { backgroundColor: '#E67E22' }]}
+                  onPress={() => {
+                    const currentHijriYear = parseInt(todayInfo.hijri.year);
+                    // تحديث السنة (يمكن إضافة state للسنة المختارة)
+                    Alert.alert('السنة السابقة', `الانتقال للسنة الهجرية ${currentHijriYear - 1} هـ`);
+                  }}
+                >
+                  <IconSymbol size={16} name="chevron.right" color="#fff" />
+                  <ThemedText style={styles.yearNavText}>السنة السابقة</ThemedText>
+                </TouchableOpacity>
+
+                <ThemedView style={styles.currentYearContainer}>
+                  <ThemedText style={[styles.currentYear, { color: colors.text }]}>
+                    {todayInfo.hijri.year} هـ
+                  </ThemedText>
+                  <ThemedText style={[styles.currentYearLabel, { color: colors.text }]}>
+                    السنة الهجرية الحالية
+                  </ThemedText>
+                </ThemedView>
+
+                <TouchableOpacity 
+                  style={[styles.yearNavButton, { backgroundColor: '#E67E22' }]}
+                  onPress={() => {
+                    const currentHijriYear = parseInt(todayInfo.hijri.year);
+                    Alert.alert('السنة القادمة', `الانتقال للسنة الهجرية ${currentHijriYear + 1} هـ`);
+                  }}
+                >
+                  <ThemedText style={styles.yearNavText}>السنة القادمة</ThemedText>
+                  <IconSymbol size={16} name="chevron.left" color="#fff" />
+                </TouchableOpacity>
+              </ThemedView>
+
+              {/* الأشهر الهجرية للسنة */}
+              <ThemedView style={styles.annualCalendarContainer}>
+                <View style={styles.annualMonthsGrid}>
+                  {hijriMonths.map((month, index) => {
+                    const isCurrentMonth = index + 1 === parseInt(todayInfo.hijri.month);
+                    const monthDays = [30, 29, 30, 29, 30, 29, 30, 29, 30, 29, 30, 29];
+                    const daysInMonth = monthDays[index];
+
+                    return (
+                      <TouchableOpacity
+                        key={index}
+                        style={[
+                          styles.annualMonthCard,
+                          { 
+                            backgroundColor: isCurrentMonth 
+                              ? 'rgba(230, 126, 34, 0.2)' 
+                              : 'rgba(255, 255, 255, 0.8)',
+                            borderColor: isCurrentMonth ? '#E67E22' : '#ddd',
+                            borderWidth: isCurrentMonth ? 2 : 1,
+                          }
+                        ]}
+                        onPress={() => {
+                          Alert.alert(
+                            `${month} ${todayInfo.hijri.year} هـ`,
+                            `📅 الشهر: ${month}\n` +
+                            `📊 الترتيب: الشهر ${index + 1}\n` +
+                            `📆 عدد الأيام: ${daysInMonth} يوم\n` +
+                            `🌙 نوع الشهر: ${daysInMonth === 30 ? 'شهر كامل' : 'شهر ناقص'}\n\n` +
+                            `${isCurrentMonth ? '🔥 هذا هو الشهر الحالي' : ''}`,
+                            [
+                              {
+                                text: 'عرض تفاصيل الشهر',
+                                onPress: () => Alert.alert('تفاصيل الشهر', `تفاصيل شهر ${month}`)
+                              },
+                              { text: 'إغلاق', style: 'cancel' }
+                            ]
+                          );
+                        }}
+                      >
+                        <ThemedView style={[styles.monthCardHeader, { backgroundColor: 'transparent' }]}>
+                          <ThemedText style={[styles.monthCardNumber, { color: isCurrentMonth ? '#E67E22' : colors.text }]}>
+                            {index + 1}
+                          </ThemedText>
+                          {isCurrentMonth && (
+                            <ThemedView style={styles.currentMonthBadge}>
+                              <IconSymbol size={12} name="star.fill" color="#fff" />
+                            </ThemedView>
+                          )}
+                        </ThemedView>
+
+                        <ThemedText style={[styles.monthCardName, { color: colors.text }]}>
+                          {month}
+                        </ThemedText>
+
+                        <ThemedText style={[styles.monthCardDays, { color: colors.text }]}>
+                          {daysInMonth} يوم
+                        </ThemedText>
+
+                        <ThemedView style={[styles.monthType, { 
+                          backgroundColor: daysInMonth === 30 ? 'rgba(76, 175, 80, 0.2)' : 'rgba(255, 152, 0, 0.2)' 
+                        }]}>
+                          <ThemedText style={[styles.monthTypeText, { 
+                            color: daysInMonth === 30 ? '#4CAF50' : '#FF9800' 
+                          }]}>
+                            {daysInMonth === 30 ? 'كامل' : 'ناقص'}
+                          </ThemedText>
+                        </ThemedView>
+                      </TouchableOpacity>
+                    );
+                  })}
+                </View>
+              </ThemedView>
+
+              {/* إحصائيات السنة الهجرية */}
+              <ThemedView style={[styles.yearStatsContainer, { backgroundColor: 'rgba(230, 126, 34, 0.1)' }]}>
+                <ThemedText style={[styles.yearStatsTitle, { color: colors.text }]}>
+                  📊 إحصائيات السنة الهجرية {todayInfo.hijri.year} هـ
+                </ThemedText>
+
+                <View style={styles.yearStatsGrid}>
+                  <ThemedView style={[styles.statCard, { backgroundColor: 'rgba(76, 175, 80, 0.1)' }]}>
+                    <IconSymbol size={20} name="calendar.badge.plus" color="#4CAF50" />
+                    <ThemedText style={[styles.statNumber, { color: colors.text }]}>6</ThemedText>
+                    <ThemedText style={[styles.statLabel, { color: colors.text }]}>أشهر كاملة</ThemedText>
+                  </ThemedView>
+
+                  <ThemedView style={[styles.statCard, { backgroundColor: 'rgba(255, 152, 0, 0.1)' }]}>
+                    <IconSymbol size={20} name="calendar.badge.minus" color="#FF9800" />
+                    <ThemedText style={[styles.statNumber, { color: colors.text }]}>6</ThemedText>
+                    <ThemedText style={[styles.statLabel, { color: colors.text }]}>أشهر ناقصة</ThemedText>
+                  </ThemedView>
+
+                  <ThemedView style={[styles.statCard, { backgroundColor: 'rgba(33, 150, 243, 0.1)' }]}>
+                    <IconSymbol size={20} name="clock.badge.checkmark" color="#2196F3" />
+                    <ThemedText style={[styles.statNumber, { color: colors.text }]}>354</ThemedText>
+                    <ThemedText style={[styles.statLabel, { color: colors.text }]}>إجمالي الأيام</ThemedText>
+                  </ThemedView>
+                </View>
+              </ThemedView>
+            </ThemedView>
+
+            {/* معلومات إضافية */}
+            <ThemedView style={[styles.section, { backgroundColor: colors.card }]}>
+              <ThemedText style={[styles.sectionTitle, { color: colors.text }]}>
+                معلومات مفيدة
+              </ThemedText>
+
+              <ThemedView style={[styles.infoCard, { backgroundColor: 'rgba(76, 175, 80, 0.1)' }]}>
+                <IconSymbol size={20} name="info.circle.fill" color="#4CAF50" />
+                <ThemedView style={styles.infoContent}>
+                  <ThemedText style={[styles.infoTitle, { color: colors.text }]}>
+                    السنة الهجرية
+                  </ThemedText>
+                  <ThemedText style={[styles.infoText, { color: colors.text }]}>
+                    تتكون من 354 يوماً تقريباً، وتعتمد على دورة القمر
+                  </ThemedText>
+                </ThemedView>
+              </ThemedView>
+
+              <ThemedView style={[styles.infoCard, { backgroundColor: 'rgba(33, 150, 243, 0.1)' }]}>
+                <IconSymbol size={20} name="calendar.circle" color="#2196F3" />
+                <ThemedView style={styles.infoContent}>
+                  <ThemedText style={[styles.infoTitle, { color: colors.text }]}>
+                    السنة الميلادية
+                  </ThemedText>
+                  <ThemedText style={[styles.infoText, { color: colors.text }]}>
+                    تتكون من 365 يوماً (366 في السنة الكبيسة)، وتعتمد على دورة الشمس
+                  </ThemedText>
+                </ThemedView>
+              </ThemedView>
+
+              <ThemedView style={[styles.infoCard, { backgroundColor: 'rgba(255, 152, 0, 0.1)' }]}>
+                <IconSymbol size={20} name="moon.stars.fill" color="#FF9800" />
+                <ThemedView style={styles.infoContent}>
+                  <ThemedText style={[styles.infoTitle, { color: colors.text }]}>
+                    الأشهر القمرية
+                  </ThemedText>
+                  <ThemedText style={[styles.infoText, { color: colors.text }]}>
+                    بعض الأشهر لها 30 يوماً وأخرى لها 29 يوماً حسب رؤية الهلال
+                  </ThemedText>
+                </ThemedView>
+              </ThemedView>
+            </ThemedView>
           </ScrollView>
 
           <BottomNavigationBar />
@@ -591,7 +777,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-between',
     gap: 12,
-    marginBottom: 15,
+Add styles for the annual Hijri calendar and its components.    marginBottom: 15,
   },
   todayCardSmall: {
     flex: 1,
@@ -733,6 +919,134 @@ const styles = StyleSheet.create({
     fontSize: 11,
     textAlign: 'right',
     lineHeight: 16,
+    writingDirection: 'rtl',
+  },
+  yearNavigationHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 12,
+    gap: 8,
+  },
+  yearNavigation: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+    borderRadius: 8,
+    marginBottom: 16,
+  },
+  yearNavButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingVertical: 6,
+    paddingHorizontal: 12,
+    borderRadius: 6,
+    gap: 4,
+  },
+  yearNavText: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: '#fff',
+  },
+  currentYearContainer: {
+    alignItems: 'center',
+  },
+  currentYear: {
+    fontSize: 18,
+    fontWeight: 'bold',
+    textAlign: 'center',
+    marginBottom: 4,
+    writingDirection: 'rtl',
+  },
+  currentYearLabel: {
+    fontSize: 12,
+    textAlign: 'center',
+    writingDirection: 'rtl',
+    opacity: 0.8,
+  },
+  annualCalendarContainer: {
+    marginBottom: 16,
+  },
+  annualMonthsGrid: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    justifyContent: 'center',
+    gap: 8,
+  },
+  annualMonthCard: {
+    width: (width - 60) / 4,
+    alignItems: 'center',
+    padding: 10,
+    borderRadius: 8,
+  },
+  monthCardHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 4,
+    marginBottom: 4,
+  },
+  monthCardNumber: {
+    fontSize: 16,
+    fontWeight: 'bold',
+  },
+  currentMonthBadge: {
+    backgroundColor: '#E67E22',
+    paddingHorizontal: 6,
+    paddingVertical: 2,
+    borderRadius: 6,
+  },
+  monthCardName: {
+    fontSize: 14,
+    fontWeight: 'bold',
+    textAlign: 'center',
+    writingDirection: 'rtl',
+  },
+  monthCardDays: {
+    fontSize: 12,
+    opacity: 0.8,
+  },
+  monthType: {
+    paddingHorizontal: 8,
+    paddingVertical: 4,
+    borderRadius: 6,
+    marginTop: 4,
+  },
+  monthTypeText: {
+    fontSize: 10,
+    fontWeight: 'bold',
+    textAlign: 'center',
+  },
+  yearStatsContainer: {
+    padding: 16,
+    borderRadius: 8,
+  },
+  yearStatsTitle: {
+    fontSize: 16,
+    fontWeight: 'bold',
+    textAlign: 'center',
+    marginBottom: 12,
+    writingDirection: 'rtl',
+  },
+  yearStatsGrid: {
+    flexDirection: 'row',
+    justifyContent: 'space-around',
+    gap: 8,
+  },
+  statCard: {
+    alignItems: 'center',
+    padding: 10,
+    borderRadius: 6,
+  },
+  statNumber: {
+    fontSize: 18,
+    fontWeight: 'bold',
+    textAlign: 'center',
+  },
+  statLabel: {
+    fontSize: 12,
+    textAlign: 'center',
     writingDirection: 'rtl',
   },
 });
