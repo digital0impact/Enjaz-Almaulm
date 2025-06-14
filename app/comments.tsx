@@ -250,6 +250,12 @@ export default function CommentsScreen() {
                   {comments.map((comment) => (
                     <ThemedView key={comment.id} style={styles.commentCard}>
                       <ThemedView style={styles.commentHeader}>
+                        <TouchableOpacity
+                          style={styles.deleteButton}
+                          onPress={() => deleteComment(comment.id)}
+                        >
+                          <IconSymbol size={20} name="trash" color="#1c1f33" />
+                        </TouchableOpacity>
                         <ThemedView style={styles.commentBadges}>
                           <ThemedView style={[styles.badge, { backgroundColor: getCategoryColor(comment.category) }]}>
                             <ThemedText style={styles.badgeText}>{comment.category}</ThemedText>
@@ -261,12 +267,6 @@ export default function CommentsScreen() {
                             <ThemedText style={styles.badgeText}>{comment.status}</ThemedText>
                           </ThemedView>
                         </ThemedView>
-                        <TouchableOpacity
-                          style={styles.deleteButton}
-                          onPress={() => deleteComment(comment.id)}
-                        >
-                          <IconSymbol size={20} name="trash" color="#1c1f33" />
-                        </TouchableOpacity>
                       </ThemedView>
 
                       <ThemedText style={styles.commentTitle}>{comment.title}</ThemedText>
