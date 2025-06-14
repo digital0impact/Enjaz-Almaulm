@@ -107,22 +107,28 @@ export default function CalendarScreen() {
         fullDate: `${weekDays[now.getDay()]}، ${now.getDate()} ${gregorianMonths[now.getMonth()]} ${now.getFullYear()}`,
       };
 
-      // التاريخ الهجري (تقريبي)
+      // التاريخ الهجري (تقريبي) - محسن
       try {
-        const hijriDateString = now.toLocaleDateString('ar-SA-u-ca-islamic');
-        const hijriParts = hijriDateString.split('/');
-        const hijriDay = hijriParts[0] || '15';
-        const hijriMonth = hijriParts[1] || '8';
-        const hijriYear = hijriParts[2] || '1446';
+        // استخدام Intl.DateTimeFormat للحصول على التاريخ الهجري
+        const hijriFormatter = new Intl.DateTimeFormat('ar-SA-u-ca-islamic', {
+          day: 'numeric',
+          month: 'numeric',
+          year: 'numeric'
+        });
+        
+        const hijriParts = hijriFormatter.formatToParts(now);
+        const hijriDay = hijriParts.find(part => part.type === 'day')?.value || '1';
+        const hijriMonth = hijriParts.find(part => part.type === 'month')?.value || '1';
+        const hijriYear = hijriParts.find(part => part.type === 'year')?.value || '1446';
 
         const hijriDate = {
-          date: hijriDateString,
+          date: `${hijriDay}/${hijriMonth}/${hijriYear}`,
           day: hijriDay,
           month: hijriMonth,
           year: hijriYear,
-          monthName: hijriMonths[parseInt(hijriMonth) - 1] || 'شعبان',
+          monthName: hijriMonths[parseInt(hijriMonth) - 1] || hijriMonths[0],
           dayName: weekDays[now.getDay()],
-          fullDate: `${weekDays[now.getDay()]}، ${hijriDay} ${hijriMonths[parseInt(hijriMonth) - 1] || 'شعبان'} ${hijriYear} هـ`,
+          fullDate: `${weekDays[now.getDay()]}، ${hijriDay} ${hijriMonths[parseInt(hijriMonth) - 1] || hijriMonths[0]} ${hijriYear} هـ`,
         };
 
         setTodayInfo({
@@ -130,17 +136,27 @@ export default function CalendarScreen() {
           hijri: hijriDate,
         });
       } catch (error) {
-        // fallback if hijri conversion fails
+        console.error('خطأ في حساب التاريخ الهجري:', error);
+        // حساب تقريبي للتاريخ الهجري كخيار احتياطي
+        const gregorianYear = now.getFullYear();
+        const gregorianMonth = now.getMonth() + 1;
+        const gregorianDay = now.getDate();
+        
+        // تحويل تقريبي من الميلادي إلى الهجري (622 سنة فرق تقريبي)
+        const approximateHijriYear = Math.floor(gregorianYear - 579.3);
+        const currentMonthIndex = Math.floor((gregorianMonth + 8) % 12);
+        const approximateHijriMonth = currentMonthIndex + 1;
+        
         setTodayInfo({
           gregorian: gregorianDate,
           hijri: {
-            date: 'غير متاح',
-            day: '15',
-            month: '8',
-            year: '1446',
-            monthName: 'شعبان',
+            date: `${gregorianDay}/${approximateHijriMonth}/${approximateHijriYear}`,
+            day: gregorianDay.toString(),
+            month: approximateHijriMonth.toString(),
+            year: approximateHijriYear.toString(),
+            monthName: hijriMonths[currentMonthIndex] || 'محرم',
             dayName: weekDays[now.getDay()],
-            fullDate: `${weekDays[now.getDay()]}، 15 شعبان 1446 هـ`,
+            fullDate: `${weekDays[now.getDay()]}، ${gregorianDay} ${hijriMonths[currentMonthIndex] || 'محرم'} ${approximateHijriYear} هـ`,
           },
         });
       }
