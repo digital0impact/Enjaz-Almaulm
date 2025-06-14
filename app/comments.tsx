@@ -170,14 +170,17 @@ export default function CommentsScreen() {
                 <ThemedText style={styles.subtitle}>
                   إدارة التعليقات والملاحظات المهنية
                 </ThemedText>
+                
+                <TouchableOpacity
+                  style={styles.centerAddButton}
+                  onPress={() => setShowAddForm(!showAddForm)}
+                >
+                  <IconSymbol size={24} name="plus" color="#1c1f33" />
+                  <ThemedText style={styles.addButtonText}>إضافة تعليق جديد</ThemedText>
+                </TouchableOpacity>
               </ThemedView>
 
-              <TouchableOpacity
-                style={styles.addButton}
-                onPress={() => setShowAddForm(!showAddForm)}
-              >
-                <IconSymbol size={24} name="plus" color="#1c1f33" />
-              </TouchableOpacity>
+              <ThemedView style={styles.spacer} />
             </ThemedView>
 
             <ScrollView style={styles.content}>
@@ -415,6 +418,31 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.25,
     shadowRadius: 12,
     elevation: 10,
+  },
+  centerAddButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: '#add4ce',
+    paddingVertical: 15,
+    paddingHorizontal: 25,
+    borderRadius: 25,
+    marginTop: 20,
+    gap: 10,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 6 },
+    shadowOpacity: 0.4,
+    shadowRadius: 12,
+    elevation: 12,
+  },
+  addButtonText: {
+    color: '#1c1f33',
+    fontSize: 16,
+    fontWeight: 'bold',
+    writingDirection: 'rtl',
+  },
+  spacer: {
+    width: 44,
   },
   content: {
     flex: 1,
