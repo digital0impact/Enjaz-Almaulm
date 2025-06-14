@@ -385,6 +385,8 @@ export default function PasswordTrackerScreen() {
             placeholder="https://example.com"
             placeholderTextColor="#999"
             textAlign="right"
+            keyboardType="url"
+            autoCapitalize="none"
           />
         </ThemedView>
 
