@@ -131,7 +131,7 @@ export default function PasswordTrackerScreen() {
     setEditingPassword(password);
     setEditPassword({
       websiteName: password.websiteName,
-      url: password.url,
+      url: password.url || '',
       username: password.username,
       password: password.password,
       category: password.category,
