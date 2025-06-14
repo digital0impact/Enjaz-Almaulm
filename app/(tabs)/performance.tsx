@@ -582,44 +582,48 @@ export default function PerformanceScreen() {
                           setSelectedPerformance(selectedPerformance === item.id ? null : item.id)
                         }
                       >
-              <ThemedView style={styles.cardHeader}>
-                <ThemedView style={styles.cardTitleContainer}>
-                  <ThemedText style={styles.itemNumber}>
-                    {index + 1}.
-                  </ThemedText>
-                  <ThemedView style={styles.cardContent}>
-                    <ThemedText type="defaultSemiBold" style={styles.cardTitle}>
-                      {item.title}
-                    </ThemedText>
-                    <ThemedText style={styles.cardDescription}>
-                      {item.description}
-                    </ThemedText>
-                    <ThemedText style={styles.weightText}>
-                      الوزن: {item.weight}%
-                    </ThemedText>
-                  </ThemedView>
-                </ThemedView>
-                <ThemedView style={styles.scoreContainer}>
-                  <ThemedText style={[styles.score, { color: getScoreColor(item.score) }]}>
-                    {item.score}%
-                  </ThemedText>
-                  <ThemedText style={[styles.scoreLevel, { color: getScoreColor(item.score) }]}>
-                    {getScoreLevel(item.score)}
-                  </ThemedText>
-                </ThemedView>
-              </ThemedView>
+                        <ThemedView style={styles.cardHeader}>
+                          <ThemedView style={styles.cardNumberContainer}>
+                            <ThemedText style={styles.itemNumber}>
+                              {index + 1}
+                            </ThemedText>
+                          </ThemedView>
+                          
+                          <ThemedView style={styles.cardContent}>
+                            <ThemedText type="defaultSemiBold" style={styles.cardTitle}>
+                              {item.title}
+                            </ThemedText>
+                            <ThemedText style={styles.cardDescription}>
+                              {item.description.length > 60 
+                                ? item.description.substring(0, 60) + '...' 
+                                : item.description}
+                            </ThemedText>
+                            <ThemedText style={styles.weightText}>
+                              الوزن: {item.weight}%
+                            </ThemedText>
+                          </ThemedView>
 
-              <ThemedView style={styles.progressBar}>
-                <ThemedView 
-                  style={[
-                    styles.progressFill, 
-                    { 
-                      width: `${item.score}%`,
-                      backgroundColor: getScoreColor(item.score)
-                    }
-                  ]} 
-                />
-              </ThemedView>
+                          <ThemedView style={styles.scoreContainer}>
+                            <ThemedText style={[styles.score, { color: getScoreColor(item.score) }]}>
+                              {item.score}%
+                            </ThemedText>
+                            <ThemedText style={[styles.scoreLevel, { color: getScoreColor(item.score) }]}>
+                              {getScoreLevel(item.score)}
+                            </ThemedText>
+                          </ThemedView>
+                        </ThemedView>
+
+                        <ThemedView style={styles.progressBar}>
+                          <ThemedView 
+                            style={[
+                              styles.progressFill, 
+                              { 
+                                width: `${item.score}%`,
+                                backgroundColor: getScoreColor(item.score)
+                              }
+                            ]} 
+                          />
+                        </ThemedView>
 
               {selectedPerformance === item.id && (
                 <ThemedView style={styles.detailsContainer}>
@@ -1167,17 +1171,18 @@ const styles = StyleSheet.create({
   },
   performanceCard: {
     backgroundColor: '#F8F9FA',
-    borderRadius: 15,
+    borderRadius: 20,
     marginBottom: 15,
-    elevation: 3,
+    elevation: 6,
     shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.15,
+    shadowRadius: 8,
     position: 'relative',
     width: '48%',
     borderWidth: 1,
     borderColor: '#E5E5EA',
+    padding: 15,
   },
   performanceCardHover: {
     backgroundColor: '#cadfde',
@@ -1186,75 +1191,86 @@ const styles = StyleSheet.create({
   cardHeader: {
     flexDirection: 'column',
     alignItems: 'center',
-    padding: 15,
   },
-  cardTitleContainer: {
+  cardNumberContainer: {
+    backgroundColor: '#add4ce',
+    width: 50,
+    height: 50,
+    borderRadius: 25,
+    justifyContent: 'center',
     alignItems: 'center',
-    marginBottom: 10,
+    marginBottom: 15,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    elevation: 3,
   },
   itemNumber: {
-    fontSize: 20,
+    fontSize: 22,
     fontWeight: 'bold',
     color: '#1c1f33',
-    marginBottom: 8,
-    textAlign: 'center',
-    backgroundColor: '#add4ce',
-    width: 40,
-    height: 40,
-    borderRadius: 20,
-    lineHeight: 40,
     textAlign: 'center',
   },
   cardContent: {
     alignItems: 'center',
+    marginBottom: 15,
   },
   cardTitle: {
-    fontSize: 14,
+    fontSize: 16,
     fontWeight: 'bold',
-    color: '#333',
+    color: '#1c1f33',
     marginBottom: 8,
     textAlign: 'center',
     writingDirection: 'rtl',
+    lineHeight: 22,
   },
   cardDescription: {
-    fontSize: 11,
+    fontSize: 12,
     color: '#666',
-    lineHeight: 16,
+    lineHeight: 18,
     marginBottom: 8,
     textAlign: 'center',
     writingDirection: 'rtl',
   },
   scoreContainer: {
     alignItems: 'center',
-    marginBottom: 10,
+    marginBottom: 15,
+    backgroundColor: 'rgba(255, 255, 255, 0.7)',
+    paddingVertical: 8,
+    paddingHorizontal: 16,
+    borderRadius: 15,
   },
   score: {
-    fontSize: 20,
+    fontSize: 24,
     fontWeight: 'bold',
     textAlign: 'center',
     marginBottom: 4,
   },
   scoreLevel: {
-    fontSize: 11,
+    fontSize: 12,
     fontWeight: '600',
     textAlign: 'center',
   },
   progressBar: {
-    height: 6,
+    height: 8,
     backgroundColor: '#E5E5EA',
-    marginHorizontal: 15,
     marginBottom: 15,
-    borderRadius: 3,
+    borderRadius: 4,
     overflow: 'hidden',
   },
   progressFill: {
     height: '100%',
-    borderRadius: 3,
+    borderRadius: 4,
   },
   detailsContainer: {
-    padding: 10,
+    padding: 15,
     borderTopWidth: 1,
     borderTopColor: '#E5E5EA',
+    backgroundColor: 'rgba(255, 255, 255, 0.5)',
+    borderBottomLeftRadius: 20,
+    borderBottomRightRadius: 20,
+    marginTop: -15,
   },
   evidenceText: {
     fontSize: 10,
