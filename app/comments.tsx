@@ -275,26 +275,6 @@ export default function CommentsScreen() {
                       )}
                       <ThemedText style={styles.commentContent}>{comment.content}</ThemedText>
                       <ThemedText style={styles.commentDate}>{comment.date}</ThemedText>
-
-                      <ThemedView style={styles.statusButtons}>
-                        {(['جديد', 'قيد المراجعة', 'مكتمل'] as const).map((status) => (
-                          <TouchableOpacity
-                            key={status}
-                            style={[
-                              styles.statusButton,
-                              comment.status === status && { backgroundColor: getStatusColor(status) }
-                            ]}
-                            onPress={() => updateCommentStatus(comment.id, status)}
-                          >
-                            <ThemedText style={[
-                              styles.statusButtonText,
-                              comment.status === status && styles.selectedStatusText
-                            ]}>
-                              {status}
-                            </ThemedText>
-                          </TouchableOpacity>
-                        ))}
-                      </ThemedView>
                     </ThemedView>
                   ))}
                 </ThemedView>
