@@ -347,13 +347,13 @@ export default function HomeScreen() {
                       </TouchableOpacity>
 
                       <TouchableOpacity 
-                        style={[styles.dataItem, { backgroundColor: 'transparent' }]}
+                        style={[styles.studentTrackingCard]}
                         onPress={() => router.push('/student-tracking')}
                       >
-                        <ThemedView style={styles.iconWrapper}>
+                        <ThemedView style={styles.studentIconContainer}>
                           <IconSymbol size={28} name="person.crop.circle.badge.plus" color="#1c1f33" />
                         </ThemedView>
-                        <ThemedText style={styles.actionText}>تتبع حالة متعلم</ThemedText>
+                        <ThemedText style={styles.studentTrackingText}>تتبع حالة متعلم</ThemedText>
                       </TouchableOpacity>
 
                       <TouchableOpacity 
@@ -768,5 +768,42 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.25,
     shadowRadius: 12,
     elevation: 10,
+  },
+  // أنماط بطاقة تتبع حالة متعلم المحسنة
+  studentTrackingCard: {
+    marginBottom: 20,
+    padding: 20,
+    backgroundColor: '#e0f0f1', // نفس لون بطاقات البيانات الأساسية
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: '#E5E5EA',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    elevation: 3,
+    alignItems: 'center',
+    width: '48%',
+  },
+  studentIconContainer: {
+    marginBottom: 10,
+    padding: 15,
+    backgroundColor: '#F8F9FA', // خلفية فاتحة للأيقونة
+    borderRadius: 50,
+    borderWidth: 1,
+    borderColor: '#E5E5EA',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 6 },
+    shadowOpacity: 0.25,
+    shadowRadius: 12,
+    elevation: 10,
+  },
+  studentTrackingText: {
+    fontSize: 14,
+    fontWeight: '600',
+    marginTop: 8,
+    color: '#000000',
+    textAlign: 'center',
+    writingDirection: 'rtl',
   },
 });
