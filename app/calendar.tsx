@@ -229,7 +229,7 @@ export default function CalendarScreen() {
     router.push('/monthly-calendar');
   };
 
-  const convertToHijri = () => {
+  const showDateConverterAlert = () => {
     Alert.alert(
       'تحويل التاريخ',
       'سيتم إضافة ميزة تحويل التاريخ قريباً',
