@@ -108,10 +108,7 @@ export default function AbsenceManagementScreen() {
               {/* إضافة غياب جديد */}
               <TouchableOpacity 
                 style={styles.addAbsenceCard}
-                onPress={() => {
-                  // هنا يمكن إضافة منطق إضافة غياب جديد
-                  Alert.alert('إضافة غياب جديد', 'سيتم فتح نموذج إضافة غياب جديد قريباً');
-                }}
+                onPress={() => router.push('/add-absence')}
               >
                 <ThemedView style={styles.addAbsenceIconWrapper}>
                   <IconSymbol size={32} name="plus.circle.fill" color="#1c1f33" />
