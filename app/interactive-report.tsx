@@ -851,6 +851,11 @@ export default function InteractiveReportScreen() {
 الرؤية: ${userData.vision}
 الرسالة: ${userData.mission}
 
+🎯 الرؤية والرسالة:
+========================================
+الرؤية: ${userData.vision}
+الرسالة: ${userData.mission}
+
 📈 ملخص الأداء العام:
 - المتوسط العام: ${averageScore}%
 - مستوى الأداء: ${getScoreLevel(averageScore)}
