@@ -1,38 +1,60 @@
-import React, { useState, useEffect } from 'react';
-import { StyleSheet, ScrollView, TouchableOpacity, Alert, I18nManager, ImageBackground, Dimensions, Platform } from 'react-native';
+
+import React, { useState, useEffect, useRef } from 'react';
+import { StyleSheet, ScrollView, TouchableOpacity, Alert, I18nManager, ImageBackground, Dimensions, Platform, Share } from 'react-native';
 import { LinearGradient as ExpoLinearGradient } from 'expo-linear-gradient';
 import { ThemedText } from '@/components/ThemedText';
 import { ThemedView } from '@/components/ThemedView';
 import { IconSymbol } from '@/components/ui/IconSymbol';
 import { useRouter } from 'expo-router';
 import { BottomNavigationBar } from '@/components/BottomNavigationBar';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 const { width } = Dimensions.get('window');
 
 export default function DetailedReportScreen() {
   const router = useRouter();
   const [selectedView, setSelectedView] = useState('overview');
+  const [performanceData, setPerformanceData] = useState([]);
 
-  const performanceData = [
+  // البيانات الحقيقية للمحاور والشواهد
+  const initialAxes = [
     {
       id: 1,
       title: 'أداء الواجبات الوظيفية',
-      score: 95,
+      score: 85,
       weight: 10,
       category: 'وظيفي',
-      details: 'التزام عالي بالدوام الرسمي، تنفيذ ممتاز للحصص الدراسية وفق الجدول المحدد، ومشاركة فعالة في الإشراف والمناوبة والانتظار. إعداد منتظم ومتقن للدروس والاختبارات والواجبات.',
-      strengths: ['الالتزام بالدوام', 'تنفيذ الحصص بانتظام', 'المشاركة في الإشراف', 'إعداد الدروس والاختبارات'],
+      details: 'التزام بالدوام الرسمي، تنفيذ الحصص الدراسية وفق الجدول المحدد، ومشاركة في الإشراف والمناوبة.',
+      strengths: ['الالتزام بالدوام', 'تنفيذ الحصص بانتظام', 'المشاركة في الإشراف'],
       improvements: ['تطوير مهارات التخطيط الدرسي المتقدم'],
+      evidence: [
+        { name: 'التقيد بالدوام الرسمي', available: true },
+        { name: 'تأدية الحصص وفق الجدول الدراسي', available: true },
+        { name: 'المشاركة في الإشراف والمناوبة', available: false },
+        { name: 'إعداد الدروس والاختبارات والواجبات', available: true },
+        { name: 'حفظ الأنظمة والتعليمات', available: true },
+        { name: 'تنفيذ مهام التوجيه والإرشاد', available: false },
+        { name: 'متابعة التوزيع الزمني للمنهج', available: true }
+      ]
     },
     {
       id: 2,
       title: 'التفاعل مع المجتمع المهني',
-      score: 88,
+      score: 78,
       weight: 10,
       category: 'تفاعلي',
-      details: 'مشاركة نشطة في مجتمعات التعلم المهنية، تبادل منتظم للزيارات الصفية، وتنفيذ دروس تطبيقية متميزة. إجراء بحوث دروس وحضور مستمر للدورات التدريبية والورش التطويرية.',
-      strengths: ['المشاركة النشطة', 'تبادل الخبرات', 'الدروس التطبيقية', 'بحث الدرس'],
+      details: 'مشاركة في مجتمعات التعلم المهنية، تبادل للزيارات الصفية، وتنفيذ دروس تطبيقية.',
+      strengths: ['المشاركة النشطة', 'تبادل الخبرات', 'الدروس التطبيقية'],
       improvements: ['زيادة عدد ورش العمل المحضورة', 'تطوير مهارات القيادة التربوية'],
+      evidence: [
+        { name: 'المشاركة في مجتمعات التعلم المهنية', available: true },
+        { name: 'الزيارات التبادلية', available: false },
+        { name: 'تنفيذ درس تطبيقي', available: true },
+        { name: 'إجراء بحث درس', available: false },
+        { name: 'حضور الدورات التدريبية', available: true },
+        { name: 'حضور ورش العمل', available: false },
+        { name: 'المشاركة في الملتقيات التربوية', available: true }
+      ]
     },
     {
       id: 3,
@@ -40,9 +62,17 @@ export default function DetailedReportScreen() {
       score: 92,
       weight: 10,
       category: 'تفاعلي',
-      details: 'تواصل ممتاز مع أولياء الأمور وتزويدهم بمستويات أبنائهم بشكل دوري، إيصال الملاحظات الهامة، وتفعيل فعال للخطة الأسبوعية. مشاركة نشطة في الجمعية العمومية.',
-      strengths: ['التواصل المستمر', 'الشفافية في التقييم', 'المتابعة الدورية', 'المشاركة في الجمعية العمومية'],
+      details: 'تواصل ممتاز مع أولياء الأمور وتزويدهم بمستويات أبنائهم، إيصال الملاحظات الهامة.',
+      strengths: ['التواصل المستمر', 'الشفافية في التقييم', 'المتابعة الدورية'],
       improvements: ['تنويع وسائل التواصل', 'تطوير برامج إشراك أولياء الأمور'],
+      evidence: [
+        { name: 'التواصل الفعال مع أولياء الأمور', available: true },
+        { name: 'إيصال الملاحظات الهامة', available: true },
+        { name: 'تفعيل الخطة الأسبوعية', available: true },
+        { name: 'المشاركة في الجمعية العمومية', available: true },
+        { name: 'إرسال التقارير الدورية', available: false },
+        { name: 'تنظيم اللقاءات الفردية', available: true }
+      ]
     },
     {
       id: 4,
@@ -50,9 +80,17 @@ export default function DetailedReportScreen() {
       score: 87,
       weight: 10,
       category: 'تعليمي',
-      details: 'تطبيق متميز لاستراتيجيات تدريس متنوعة ومتطورة، مراعاة دقيقة للفروق الفردية بين الطلاب، واستخدام استراتيجيات تلائم جميع مستويات الطلاب المختلفة.',
-      strengths: ['التنويع في الاستراتيجيات', 'مراعاة الفروق الفردية', 'استخدام طرق حديثة', 'تلبية احتياجات جميع المستويات'],
+      details: 'تطبيق استراتيجيات تدريس متنوعة ومتطورة، مراعاة للفروق الفردية بين الطلاب.',
+      strengths: ['التنويع في الاستراتيجيات', 'مراعاة الفروق الفردية', 'استخدام طرق حديثة'],
       improvements: ['دمج المزيد من التقنيات الحديثة', 'تطوير استراتيجيات التعلم النشط'],
+      evidence: [
+        { name: 'تطبيق استراتيجيات تدريس متنوعة', available: true },
+        { name: 'مراعاة الفروق الفردية', available: true },
+        { name: 'استخدام استراتيجيات حديثة', available: false },
+        { name: 'تنويع أساليب الشرح', available: true },
+        { name: 'التدريس وفق أنماط التعلم', available: true },
+        { name: 'استخدام التعلم التعاوني', available: false }
+      ]
     },
     {
       id: 5,
@@ -60,9 +98,17 @@ export default function DetailedReportScreen() {
       score: 85,
       weight: 10,
       category: 'تعليمي',
-      details: 'جهود متميزة في معالجة الفاقد التعليمي، وضع خطط علاجية شاملة للطلاب الضعاف وخطط إثرائية للمتميزين، مع تكريم منتظم للطلاب المتحسنين.',
-      strengths: ['معالجة الفاقد التعليمي', 'الخطط العلاجية', 'برامج الإثراء', 'تكريم الطلاب المتحسنين'],
+      details: 'جهود في معالجة الفاقد التعليمي، وضع خطط علاجية للطلاب الضعاف وخطط إثرائية للمتميزين.',
+      strengths: ['معالجة الفاقد التعليمي', 'الخطط العلاجية', 'برامج الإثراء'],
       improvements: ['تطوير أساليب التقييم التكويني', 'تعزيز برامج الدعم الأكاديمي'],
+      evidence: [
+        { name: 'معالجة الفاقد التعليمي', available: true },
+        { name: 'وضع الخطط العلاجية', available: true },
+        { name: 'إعداد برامج الإثراء', available: false },
+        { name: 'تكريم الطلاب المتحسنين', available: true },
+        { name: 'متابعة الطلاب ضعيفي التحصيل', available: true },
+        { name: 'تنفيذ برامج التدخل المبكر', available: false }
+      ]
     },
     {
       id: 6,
@@ -70,9 +116,17 @@ export default function DetailedReportScreen() {
       score: 90,
       weight: 10,
       category: 'تخطيطي',
-      details: 'تخطيط منهجي ومتقن لتوزيع المنهج بما يتناسب مع الزمن المتاح، إعداد دروس شاملة ومتنوعة، وتصميم واجبات واختبارات تتماشى مع أهداف التعلم.',
-      strengths: ['التخطيط المنهجي', 'توزيع المنهج المتوازن', 'إعداد الدروس الشاملة', 'تصميم التقييمات الهادفة'],
+      details: 'تخطيط منهجي لتوزيع المنهج، إعداد دروس شاملة، وتصميم واجبات واختبارات متماشية مع أهداف التعلم.',
+      strengths: ['التخطيط المنهجي', 'توزيع المنهج المتوازن', 'إعداد الدروس الشاملة'],
       improvements: ['تطوير خطط تعلم مخصصة', 'دمج التكنولوجيا في التخطيط'],
+      evidence: [
+        { name: 'إعداد توزيع زمني للمنهج', available: true },
+        { name: 'إعداد دروس متنوعة ومشوقة', available: true },
+        { name: 'إعداد واجبات واختبارات متنوعة', available: true },
+        { name: 'ربط التعلم بالحياة العملية', available: false },
+        { name: 'تحديد أهداف واضحة للتعلم', available: true },
+        { name: 'التخطيط للأنشطة اللاصفية', available: false }
+      ]
     },
     {
       id: 7,
@@ -80,9 +134,17 @@ export default function DetailedReportScreen() {
       score: 82,
       weight: 10,
       category: 'تقني',
-      details: 'استخدام متطور للتقنيات الحديثة في التعليم، تنويع إبداعي في الوسائل التعليمية المستخدمة، مع دمج فعال للتقنية في العملية التعليمية.',
-      strengths: ['استخدام التقنيات الحديثة', 'التنويع في الوسائل', 'الدمج الفعال للتقنية', 'الإبداع في التطبيق'],
+      details: 'استخدام التقنيات الحديثة في التعليم، تنويع في الوسائل التعليمية، مع دمج فعال للتقنية.',
+      strengths: ['استخدام التقنيات الحديثة', 'التنويع في الوسائل', 'الدمج الفعال للتقنية'],
       improvements: ['تطوير مهارات الذكاء الاصطناعي', 'استخدام منصات تعليمية متقدمة'],
+      evidence: [
+        { name: 'استخدام التقنيات الحديثة في التدريس', available: true },
+        { name: 'التنويع في الوسائل التعليمية', available: true },
+        { name: 'دمج التقنية في التعلم', available: false },
+        { name: 'استخدام البرمجيات التعليمية', available: true },
+        { name: 'توظيف الإنترنت في التعلم', available: false },
+        { name: 'إنتاج وسائل تعليمية رقمية', available: false }
+      ]
     },
     {
       id: 8,
@@ -90,9 +152,16 @@ export default function DetailedReportScreen() {
       score: 89,
       weight: 5,
       category: 'بيئي',
-      details: 'اهتمام ممتاز بتهيئة بيئة تعليمية محفزة ومناسبة، مراعاة شاملة لحاجات الطلاب النفسية والمادية والمعنوية، وتصنيف دقيق للطلاب حسب أنماط التعلم.',
-      strengths: ['البيئة المحفزة', 'مراعاة الحاجات النفسية', 'التصنيف حسب أنماط التعلم', 'الاهتمام بالجوانب المعنوية'],
+      details: 'تهيئة بيئة تعليمية محفزة ومناسبة، مراعاة حاجات الطلاب النفسية والمادية والمعنوية.',
+      strengths: ['البيئة المحفزة', 'مراعاة الحاجات النفسية', 'التصنيف حسب أنماط التعلم'],
       improvements: ['تطوير بيئات تعلم تفاعلية', 'تعزيز الأنشطة اللامنهجية'],
+      evidence: [
+        { name: 'تهيئة بيئة تعليمية مناسبة ومحفزة', available: true },
+        { name: 'مراعاة حاجات الطلاب النفسية والمادية والمعنوية', available: true },
+        { name: 'تصنيف الطلاب حسب أنماط التعلم', available: true },
+        { name: 'تنظيم الصف بطريقة فعالة', available: false },
+        { name: 'توفير مصادر التعلم المتنوعة', available: true }
+      ]
     },
     {
       id: 9,
@@ -100,9 +169,16 @@ export default function DetailedReportScreen() {
       score: 93,
       weight: 5,
       category: 'إداري',
-      details: 'إدارة متميزة للصف، مهارات عالية في ضبط سلوك الطلاب وشد انتباههم، مع مراعاة دقيقة للفروق الفردية ومتابعة مستمرة للحضور والانضباط.',
-      strengths: ['الإدارة المتميزة', 'ضبط السلوك', 'شد الانتباه', 'متابعة الحضور والانضباط'],
+      details: 'إدارة متميزة للصف، مهارات في ضبط سلوك الطلاب وشد انتباههم، متابعة الحضور والانضباط.',
+      strengths: ['الإدارة المتميزة', 'ضبط السلوك', 'شد الانتباه', 'متابعة الحضور'],
       improvements: ['تطوير استراتيجيات إدارة الوقت', 'تعزيز مهارات التحفيز'],
+      evidence: [
+        { name: 'الإدارة الناجحة للصف', available: true },
+        { name: 'ضبط سلوك الطلاب وشد انتباههم', available: true },
+        { name: 'مراعاة الفروق الفردية بين الطلاب', available: true },
+        { name: 'متابعة الحضور والانضباط', available: true },
+        { name: 'استخدام أساليب التعزيز الإيجابي', available: false }
+      ]
     },
     {
       id: 10,
@@ -110,9 +186,16 @@ export default function DetailedReportScreen() {
       score: 86,
       weight: 10,
       category: 'تحليلي',
-      details: 'تحليل شامل ودقيق لنتائج الاختبارات الفصلية والنهائية، تصنيف علمي للطلاب حسب نتائجهم ومستوياتهم، ووضع خطط فعالة لمعالجة الفاقد التعليمي.',
-      strengths: ['التحليل الشامل', 'التصنيف العلمي', 'خطط معالجة الفاقد', 'التشخيص الدقيق'],
+      details: 'تحليل شامل لنتائج الاختبارات، تصنيف الطلاب حسب نتائجهم، ووضع خطط لمعالجة الفاقد التعليمي.',
+      strengths: ['التحليل الشامل', 'التصنيف العلمي', 'خطط معالجة الفاقد'],
       improvements: ['استخدام أدوات تحليل متقدمة', 'تطوير نظم التتبع الإلكترونية'],
+      evidence: [
+        { name: 'تحليل نتائج الاختبارات الفصلية والنهائية', available: true },
+        { name: 'تصنيف الطلاب حسب نتائجهم ومستوياتهم', available: true },
+        { name: 'وضع خطط لمعالجة الفاقد التعليمي', available: false },
+        { name: 'إعداد تقارير دورية عن مستوى الطلاب', available: true },
+        { name: 'تحليل نقاط القوة والضعف لكل طالب', available: false }
+      ]
     },
     {
       id: 11,
@@ -120,11 +203,36 @@ export default function DetailedReportScreen() {
       score: 84,
       weight: 10,
       category: 'تقويمي',
-      details: 'تنويع شامل في أساليب التقويم بين الاختبارات الورقية والإلكترونية، تنفيذ مشاريع طلابية متنوعة ومبتكرة، وإنشاء مهام أدائية وملفات إنجاز شاملة.',
-      strengths: ['التنويع الشامل', 'المشاريع المبتكرة', 'المهام الأدائية', 'ملفات الإنجاز'],
+      details: 'تنويع في أساليب التقويم بين الاختبارات الورقية والإلكترونية، تنفيذ مشاريع طلابية متنوعة.',
+      strengths: ['التنويع الشامل', 'المشاريع المبتكرة', 'المهام الأدائية'],
       improvements: ['تطوير التقويم الإلكتروني', 'تعزيز التقويم التكويني المستمر'],
-    },
+      evidence: [
+        { name: 'التنويع في أساليب التقويم (ورقي – إلكتروني)', available: true },
+        { name: 'إنجاز مشاريع طلابية متنوعة ومبتكرة', available: true },
+        { name: 'إنشاء مهام أدائية وملفات إنجاز', available: false },
+        { name: 'استخدام التقويم التكويني', available: true },
+        { name: 'تقويم مهارات القرن الحادي والعشرين', available: false }
+      ]
+    }
   ];
+
+  useEffect(() => {
+    loadPerformanceData();
+  }, []);
+
+  const loadPerformanceData = async () => {
+    try {
+      const storedData = await AsyncStorage.getItem('performanceData');
+      if (storedData) {
+        setPerformanceData(JSON.parse(storedData));
+      } else {
+        setPerformanceData(initialAxes);
+      }
+    } catch (error) {
+      console.log('Error loading performance data:', error);
+      setPerformanceData(initialAxes);
+    }
+  };
 
   const getScoreColor = (score: number) => {
     if (score >= 90) return '#4CAF50';
@@ -149,7 +257,7 @@ export default function DetailedReportScreen() {
   const renderOverviewTab = () => (
     <ThemedView style={styles.tabContent}>
       <ThemedView style={styles.summarySection}>
-        <ThemedText style={styles.sectionTitle}>ملخص الأداء العام</ThemedText>
+        <ThemedText style={styles.sectionTitle}>📊 ملخص الأداء العام</ThemedText>
         <ThemedView style={styles.scoreCard}>
           <ThemedText style={[styles.mainScore, { color: getScoreColor(calculateOverallAverage()) }]}>
             {calculateOverallAverage()}%
@@ -180,6 +288,24 @@ export default function DetailedReportScreen() {
                 ]}
               />
             </ThemedView>
+            
+            {/* عرض الشواهد المحققة */}
+            <ThemedView style={styles.evidenceSection}>
+              <ThemedText style={styles.evidenceTitle}>الشواهد المحققة:</ThemedText>
+              {item.evidence?.filter(e => e.available).slice(0, 2).map((evidence, index) => (
+                <ThemedView key={index} style={styles.evidenceItem}>
+                  <IconSymbol size={10} name="checkmark.circle.fill" color="#4CAF50" />
+                  <ThemedText style={styles.evidenceText} numberOfLines={1}>
+                    {evidence.name}
+                  </ThemedText>
+                </ThemedView>
+              ))}
+              {item.evidence?.filter(e => e.available).length > 2 && (
+                <ThemedText style={styles.moreEvidence}>
+                  +{item.evidence.filter(e => e.available).length - 2} شواهد أخرى
+                </ThemedText>
+              )}
+            </ThemedView>
           </ThemedView>
         ))}
       </ThemedView>
@@ -202,21 +328,41 @@ export default function DetailedReportScreen() {
               {item.details}
             </ThemedText>
 
-            <ThemedView style={styles.strengthsSection}>
-              <ThemedText style={styles.subsectionTitle}>نقاط القوة:</ThemedText>
-              {item.strengths.map((strength, index) => (
+            {/* عرض جميع الشواهد */}
+            <ThemedView style={styles.allEvidenceSection}>
+              <ThemedText style={styles.subsectionTitle}>📋 الشواهد والأدلة:</ThemedText>
+              {item.evidence?.map((evidence, index) => (
                 <ThemedView key={index} style={styles.bulletPoint}>
-                  <IconSymbol size={8} name="checkmark.circle.fill" color="#4CAF50" />
+                  <IconSymbol 
+                    size={12} 
+                    name={evidence.available ? "checkmark.circle.fill" : "xmark.circle.fill"} 
+                    color={evidence.available ? "#4CAF50" : "#F44336"} 
+                  />
+                  <ThemedText style={[styles.bulletText, { 
+                    color: evidence.available ? '#333' : '#999',
+                    textDecorationLine: evidence.available ? 'none' : 'line-through'
+                  }]}>
+                    {evidence.name}
+                  </ThemedText>
+                </ThemedView>
+              ))}
+            </ThemedView>
+
+            <ThemedView style={styles.strengthsSection}>
+              <ThemedText style={styles.subsectionTitle}>💪 نقاط القوة:</ThemedText>
+              {item.strengths?.map((strength, index) => (
+                <ThemedView key={index} style={styles.bulletPoint}>
+                  <IconSymbol size={8} name="star.fill" color="#4CAF50" />
                   <ThemedText style={styles.bulletText}>{strength}</ThemedText>
                 </ThemedView>
               ))}
             </ThemedView>
 
             <ThemedView style={styles.improvementsSection}>
-              <ThemedText style={styles.subsectionTitle}>مجالات التحسين:</ThemedText>
-              {item.improvements.map((improvement, index) => (
+              <ThemedText style={styles.subsectionTitle}>🎯 مجالات التحسين:</ThemedText>
+              {item.improvements?.map((improvement, index) => (
                 <ThemedView key={index} style={styles.bulletPoint}>
-                  <IconSymbol size={8} name="exclamationmark.triangle.fill" color="#FF9800" />
+                  <IconSymbol size={8} name="target" color="#FF9800" />
                   <ThemedText style={styles.bulletText}>{improvement}</ThemedText>
                 </ThemedView>
               ))}
@@ -227,61 +373,151 @@ export default function DetailedReportScreen() {
     </ThemedView>
   );
 
-  const renderRecommendationsTab = () => (
-    <ThemedView style={styles.tabContent}>
-      <ThemedView style={styles.recommendationsContainer}>
-        <ThemedText style={styles.sectionTitle}>التوصيات والخطط المقترحة</ThemedText>
+  const renderStatisticsTab = () => {
+    const excellentCount = performanceData.filter(item => item.score >= 90).length;
+    const goodCount = performanceData.filter(item => item.score >= 80 && item.score < 90).length;
+    const needsImprovementCount = performanceData.filter(item => item.score < 80).length;
+    
+    const totalEvidences = performanceData.reduce((acc, item) => acc + (item.evidence?.length || 0), 0);
+    const achievedEvidences = performanceData.reduce((acc, item) => 
+      acc + (item.evidence?.filter(e => e.available).length || 0), 0);
+    const evidencePercentage = Math.round((achievedEvidences / totalEvidences) * 100);
 
-        <ThemedView style={styles.recommendationCard}>
-          <ThemedText style={styles.recommendationTitle}>
-            <IconSymbol size={16} name="target" color="#2196F3" /> التوصيات الفورية
-          </ThemedText>
-          <ThemedText style={styles.recommendationText}>
-            • ركز على تحسين مجال "تحسين نتائج المتعلمين" من خلال تطوير أساليب التقييم التكويني
-          </ThemedText>
-          <ThemedText style={styles.recommendationText}>
-            • زيادة استخدام التقنيات الحديثة في التدريس لتحسين محور "توظيف التقنيات"
-          </ThemedText>
-          <ThemedText style={styles.recommendationText}>
-            • حضور المزيد من ورش العمل المتخصصة في التطوير المهني
-          </ThemedText>
-        </ThemedView>
+    return (
+      <ThemedView style={styles.tabContent}>
+        <ThemedView style={styles.statisticsContainer}>
+          <ThemedText style={styles.sectionTitle}>📈 إحصائيات التقرير</ThemedText>
 
-        <ThemedView style={styles.recommendationCard}>
-          <ThemedText style={styles.recommendationTitle}>
-            <IconSymbol size={16} name="calendar" color="#9C27B0" /> خطة التطوير الشهرية
-          </ThemedText>
-          <ThemedText style={styles.recommendationText}>
-            • الشهر الأول: التركيز على تطوير استراتيجيات التقييم
-          </ThemedText>
-          <ThemedText style={styles.recommendationText}>
-            • الشهر الثاني: دمج التقنيات الرقمية في العملية التعليمية
-          </ThemedText>
-          <ThemedText style={styles.recommendationText}>
-            • الشهر الثالث: تعزيز التفاعل مع المجتمع المهني
-          </ThemedText>
-        </ThemedView>
+          <ThemedView style={styles.statCard}>
+            <ThemedText style={styles.statTitle}>توزيع الدرجات</ThemedText>
+            <ThemedView style={styles.statsGrid}>
+              <ThemedView style={[styles.statItem, { backgroundColor: '#E8F5E8' }]}>
+                <IconSymbol size={24} name="star.fill" color="#4CAF50" />
+                <ThemedText style={styles.statValue}>{excellentCount}</ThemedText>
+                <ThemedText style={styles.statLabel}>ممتاز (90%+)</ThemedText>
+              </ThemedView>
+              <ThemedView style={[styles.statItem, { backgroundColor: '#FFF3E0' }]}>
+                <IconSymbol size={24} name="checkmark.circle.fill" color="#FF9800" />
+                <ThemedText style={styles.statValue}>{goodCount}</ThemedText>
+                <ThemedText style={styles.statLabel}>جيد (80-89%)</ThemedText>
+              </ThemedView>
+              <ThemedView style={[styles.statItem, { backgroundColor: needsImprovementCount > 0 ? '#FFEBEE' : '#E8F5E8' }]}>
+                <IconSymbol size={24} name="exclamationmark.triangle.fill" color={needsImprovementCount > 0 ? "#F44336" : "#4CAF50"} />
+                <ThemedText style={styles.statValue}>{needsImprovementCount}</ThemedText>
+                <ThemedText style={styles.statLabel}>تحتاج تحسين</ThemedText>
+              </ThemedView>
+            </ThemedView>
+          </ThemedView>
 
-        <ThemedView style={styles.recommendationCard}>
-          <ThemedText style={styles.recommendationTitle}>
-            <IconSymbol size={16} name="star.fill" color="#FF9800" /> موارد مقترحة
-          </ThemedText>
-          <ThemedText style={styles.recommendationText}>
-            • دورات تدريبية في التقييم التكويني والختامي
-          </ThemedText>
-          <ThemedText style={styles.recommendationText}>
-            • ورش عمل حول استخدام التقنيات التعليمية الحديثة
-          </ThemedText>
-          <ThemedText style={styles.recommendationText}>
-            • برامج التطوير المهني المستمر
-          </ThemedText>
+          <ThemedView style={styles.statCard}>
+            <ThemedText style={styles.statTitle}>إحصائيات الشواهد</ThemedText>
+            <ThemedView style={styles.evidenceStats}>
+              <ThemedView style={styles.evidenceStatItem}>
+                <ThemedText style={styles.evidenceStatNumber}>{achievedEvidences}</ThemedText>
+                <ThemedText style={styles.evidenceStatLabel}>شاهد محقق</ThemedText>
+              </ThemedView>
+              <ThemedView style={styles.evidenceStatItem}>
+                <ThemedText style={styles.evidenceStatNumber}>{totalEvidences - achievedEvidences}</ThemedText>
+                <ThemedText style={styles.evidenceStatLabel}>شاهد غير محقق</ThemedText>
+              </ThemedView>
+              <ThemedView style={styles.evidenceStatItem}>
+                <ThemedText style={[styles.evidenceStatNumber, { color: getScoreColor(evidencePercentage) }]}>
+                  {evidencePercentage}%
+                </ThemedText>
+                <ThemedText style={styles.evidenceStatLabel}>نسبة التحقق</ThemedText>
+              </ThemedView>
+            </ThemedView>
+          </ThemedView>
+
+          <ThemedView style={styles.statCard}>
+            <ThemedText style={styles.statTitle}>أعلى المحاور أداءً</ThemedText>
+            {performanceData
+              .sort((a, b) => b.score - a.score)
+              .slice(0, 3)
+              .map((item, index) => (
+                <ThemedView key={item.id} style={styles.topPerformerItem}>
+                  <ThemedView style={styles.rankBadge}>
+                    <ThemedText style={styles.rankText}>{index + 1}</ThemedText>
+                  </ThemedView>
+                  <ThemedView style={styles.topPerformerContent}>
+                    <ThemedText style={styles.topPerformerTitle}>{item.title}</ThemedText>
+                    <ThemedText style={[styles.topPerformerScore, { color: getScoreColor(item.score) }]}>
+                      {item.score}%
+                    </ThemedText>
+                  </ThemedView>
+                </ThemedView>
+              ))}
+          </ThemedView>
         </ThemedView>
       </ThemedView>
-    </ThemedView>
-  );
+    );
+  };
+
+  const renderRecommendationsTab = () => {
+    const lowPerformanceAxes = performanceData.filter(item => item.score < 85);
+    
+    return (
+      <ThemedView style={styles.tabContent}>
+        <ThemedView style={styles.recommendationsContainer}>
+          <ThemedText style={styles.sectionTitle}>💡 التوصيات والخطط المقترحة</ThemedText>
+
+          <ThemedView style={styles.recommendationCard}>
+            <ThemedText style={styles.recommendationTitle}>
+              <IconSymbol size={16} name="target" color="#2196F3" /> التوصيات الفورية
+            </ThemedText>
+            {lowPerformanceAxes.length > 0 ? (
+              lowPerformanceAxes.map(item => (
+                <ThemedText key={item.id} style={styles.recommendationText}>
+                  • ركز على تحسين "{item.title}" (الدرجة الحالية: {item.score}%)
+                </ThemedText>
+              ))
+            ) : (
+              <ThemedText style={styles.recommendationText}>
+                • أداء ممتاز في جميع المحاور! استمر في الحفاظ على هذا المستوى
+              </ThemedText>
+            )}
+          </ThemedView>
+
+          <ThemedView style={styles.recommendationCard}>
+            <ThemedText style={styles.recommendationTitle}>
+              <IconSymbol size={16} name="calendar" color="#9C27B0" /> خطة التطوير الشهرية
+            </ThemedText>
+            <ThemedText style={styles.recommendationText}>
+              • الشهر الأول: التركيز على تطوير استراتيجيات التقييم
+            </ThemedText>
+            <ThemedText style={styles.recommendationText}>
+              • الشهر الثاني: دمج التقنيات الرقمية في العملية التعليمية
+            </ThemedText>
+            <ThemedText style={styles.recommendationText}>
+              • الشهر الثالث: تعزيز التفاعل مع المجتمع المهني
+            </ThemedText>
+          </ThemedView>
+
+          <ThemedView style={styles.recommendationCard}>
+            <ThemedText style={styles.recommendationTitle}>
+              <IconSymbol size={16} name="star.fill" color="#FF9800" /> موارد مقترحة
+            </ThemedText>
+            <ThemedText style={styles.recommendationText}>
+              • دورات تدريبية في التقييم التكويني والختامي
+            </ThemedText>
+            <ThemedText style={styles.recommendationText}>
+              • ورش عمل حول استخدام التقنيات التعليمية الحديثة
+            </ThemedText>
+            <ThemedText style={styles.recommendationText}>
+              • برامج التطوير المهني المستمر
+            </ThemedText>
+          </ThemedView>
+        </ThemedView>
+      </ThemedView>
+    );
+  };
 
   const renderCurrentTab = () => {
     switch (selectedView) {
+      case 'detailed':
+        return renderDetailedTab();
+      case 'statistics':
+        return renderStatisticsTab();
       case 'recommendations':
         return renderRecommendationsTab();
       default:
@@ -289,29 +525,39 @@ export default function DetailedReportScreen() {
     }
   };
 
-  const handleExportReport = () => {
-    Alert.alert(
-      'تصدير التقرير التفصيلي',
-      'اختر تنسيق التصدير:',
-      [
-        {
-          text: 'PDF كامل',
-          onPress: () => Alert.alert('تصدير PDF', 'سيتم تصدير التقرير التفصيلي كملف PDF شامل')
-        },
-        {
-          text: 'Excel مفصل',
-          onPress: () => Alert.alert('تصدير Excel', 'سيتم تصدير جميع البيانات والتوصيات في ملف Excel')
-        },
-        {
-          text: 'Word تقرير',
-          onPress: () => Alert.alert('تصدير Word', 'سيتم إنشاء تقرير مفصل بصيغة Word')
-        },
-        {
-          text: 'إلغاء',
-          style: 'cancel'
-        }
-      ]
-    );
+  const handleExportReport = async () => {
+    try {
+      const reportData = {
+        overallAverage: calculateOverallAverage(),
+        overallGrade: getScoreLevel(calculateOverallAverage()),
+        axes: performanceData.map(item => ({
+          title: item.title,
+          score: item.score,
+          evidences: item.evidence?.map(e => ({
+            name: e.name,
+            achieved: e.available
+          }))
+        })),
+        generatedAt: new Date().toLocaleDateString('ar-SA')
+      };
+
+      const reportText = `📊 التقرير التفصيلي للأداء المهني
+      
+المتوسط العام: ${reportData.overallAverage}% - ${reportData.overallGrade}
+تاريخ التقرير: ${reportData.generatedAt}
+
+${reportData.axes.map(axis => `
+${axis.title}: ${axis.score}%
+الشواهد المحققة: ${axis.evidences?.filter(e => e.achieved).length || 0}/${axis.evidences?.length || 0}
+`).join('')}`;
+
+      await Share.share({
+        message: reportText,
+        title: 'التقرير التفصيلي للأداء المهني'
+      });
+    } catch (error) {
+      Alert.alert('خطأ', 'فشل في تصدير التقرير');
+    }
   };
 
   return (
@@ -340,38 +586,48 @@ export default function DetailedReportScreen() {
               التقرير التفصيلي
             </ThemedText>
             <ThemedText style={styles.headerSubtitle}>
-              تحليل شامل ومفصل لجميع جوانب أدائك المهني
+              تحليل شامل ومفصل لجميع جوانب أدائك المهني مع الشواهد والأدلة
             </ThemedText>
           </ThemedView>
 
           <ThemedView style={styles.tabSelector}>
             <TouchableOpacity
-              style={[styles.tabButton, selectedView === 'recommendations' && styles.activeTabButton]}
-              onPress={() => setSelectedView('recommendations')}
-            >
-              <IconSymbol size={16} name="lightbulb.fill" color={selectedView === 'recommendations' ? '#fff' : '#666'} />
-              <ThemedText style={[styles.tabButtonText, selectedView === 'recommendations' && styles.activeTabButtonText]}>
-                التوصيات
-              </ThemedText>
-            </TouchableOpacity>
-
-            <TouchableOpacity
-              style={[styles.tabButton, false && styles.activeTabButton]}
-              onPress={() => router.push('/improvement-plan')}
-            >
-              <IconSymbol size={16} name="target" color="#666" />
-              <ThemedText style={[styles.tabButtonText, false && styles.activeTabButtonText]}>
-                خطة التحسين
-              </ThemedText>
-            </TouchableOpacity>
-
-            <TouchableOpacity
               style={[styles.tabButton, selectedView === 'overview' && styles.activeTabButton]}
               onPress={() => setSelectedView('overview')}
             >
-              <IconSymbol size={16} name="chart.pie.fill" color={selectedView === 'overview' ? '#fff' : '#666'} />
+              <IconSymbol size={14} name="chart.pie.fill" color={selectedView === 'overview' ? '#fff' : '#666'} />
               <ThemedText style={[styles.tabButtonText, selectedView === 'overview' && styles.activeTabButtonText]}>
                 نظرة عامة
+              </ThemedText>
+            </TouchableOpacity>
+
+            <TouchableOpacity
+              style={[styles.tabButton, selectedView === 'detailed' && styles.activeTabButton]}
+              onPress={() => setSelectedView('detailed')}
+            >
+              <IconSymbol size={14} name="list.bullet" color={selectedView === 'detailed' ? '#fff' : '#666'} />
+              <ThemedText style={[styles.tabButtonText, selectedView === 'detailed' && styles.activeTabButtonText]}>
+                التفاصيل
+              </ThemedText>
+            </TouchableOpacity>
+
+            <TouchableOpacity
+              style={[styles.tabButton, selectedView === 'statistics' && styles.activeTabButton]}
+              onPress={() => setSelectedView('statistics')}
+            >
+              <IconSymbol size={14} name="chart.bar.fill" color={selectedView === 'statistics' ? '#fff' : '#666'} />
+              <ThemedText style={[styles.tabButtonText, selectedView === 'statistics' && styles.activeTabButtonText]}>
+                إحصائيات
+              </ThemedText>
+            </TouchableOpacity>
+
+            <TouchableOpacity
+              style={[styles.tabButton, selectedView === 'recommendations' && styles.activeTabButton]}
+              onPress={() => setSelectedView('recommendations')}
+            >
+              <IconSymbol size={14} name="lightbulb.fill" color={selectedView === 'recommendations' ? '#fff' : '#666'} />
+              <ThemedText style={[styles.tabButtonText, selectedView === 'recommendations' && styles.activeTabButtonText]}>
+                توصيات
               </ThemedText>
             </TouchableOpacity>
           </ThemedView>
@@ -385,7 +641,7 @@ export default function DetailedReportScreen() {
                 onPress={handleExportReport}
               >
                 <IconSymbol size={20} name="square.and.arrow.up.fill" color="#1c1f33" />
-                <ThemedText style={styles.buttonText}>تصدير التقرير التفصيلي</ThemedText>
+                <ThemedText style={styles.buttonText}>📤 تصدير ومشاركة</ThemedText>
               </TouchableOpacity>
 
               <TouchableOpacity 
@@ -393,7 +649,7 @@ export default function DetailedReportScreen() {
                 onPress={() => router.push('/interactive-report')}
               >
                 <IconSymbol size={20} name="chart.line.uptrend.xyaxis" color="#1c1f33" />
-                <ThemedText style={styles.buttonText}>التقرير التفاعلي</ThemedText>
+                <ThemedText style={styles.buttonText}>📊 التقرير التفاعلي</ThemedText>
               </TouchableOpacity>
             </ThemedView>
           </ScrollView>
@@ -488,15 +744,15 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     paddingVertical: 10,
-    paddingHorizontal: 8,
+    paddingHorizontal: 6,
     borderRadius: 20,
-    gap: 5,
+    gap: 4,
   },
   activeTabButton: {
     backgroundColor: '#1c1f33',
   },
   tabButtonText: {
-    fontSize: 12,
+    fontSize: 11,
     color: '#666',
     fontWeight: '600',
     textAlign: 'center',
@@ -583,10 +839,43 @@ const styles = StyleSheet.create({
     backgroundColor: '#E5E5EA',
     borderRadius: 2,
     overflow: 'hidden',
+    marginBottom: 8,
   },
   progressFillSmall: {
     height: '100%',
     borderRadius: 2,
+  },
+  evidenceSection: {
+    marginTop: 8,
+  },
+  evidenceTitle: {
+    fontSize: 10,
+    fontWeight: 'bold',
+    color: '#666',
+    marginBottom: 4,
+    textAlign: 'right',
+    writingDirection: 'rtl',
+  },
+  evidenceItem: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 2,
+    gap: 4,
+  },
+  evidenceText: {
+    fontSize: 9,
+    color: '#555',
+    flex: 1,
+    textAlign: 'right',
+    writingDirection: 'rtl',
+  },
+  moreEvidence: {
+    fontSize: 9,
+    color: '#888',
+    fontStyle: 'italic',
+    textAlign: 'right',
+    writingDirection: 'rtl',
+    marginTop: 2,
   },
   detailedList: {
     flex: 1,
@@ -628,6 +917,12 @@ const styles = StyleSheet.create({
     textAlign: 'right',
     writingDirection: 'rtl',
   },
+  allEvidenceSection: {
+    marginBottom: 15,
+    padding: 12,
+    backgroundColor: '#f8f9fa',
+    borderRadius: 8,
+  },
   strengthsSection: {
     marginBottom: 15,
   },
@@ -654,6 +949,107 @@ const styles = StyleSheet.create({
     flex: 1,
     textAlign: 'right',
     writingDirection: 'rtl',
+  },
+  statisticsContainer: {
+    gap: 15,
+  },
+  statCard: {
+    backgroundColor: '#fff',
+    borderRadius: 12,
+    padding: 20,
+    elevation: 2,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.1,
+    shadowRadius: 3,
+  },
+  statTitle: {
+    fontSize: 16,
+    fontWeight: 'bold',
+    color: '#333',
+    marginBottom: 15,
+    textAlign: 'center',
+    writingDirection: 'rtl',
+  },
+  statsGrid: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    gap: 10,
+  },
+  statItem: {
+    flex: 1,
+    alignItems: 'center',
+    padding: 15,
+    borderRadius: 10,
+  },
+  statValue: {
+    fontSize: 24,
+    fontWeight: 'bold',
+    color: '#333',
+    marginVertical: 5,
+  },
+  statLabel: {
+    fontSize: 12,
+    color: '#666',
+    textAlign: 'center',
+    writingDirection: 'rtl',
+  },
+  evidenceStats: {
+    flexDirection: 'row',
+    justifyContent: 'space-around',
+  },
+  evidenceStatItem: {
+    alignItems: 'center',
+  },
+  evidenceStatNumber: {
+    fontSize: 28,
+    fontWeight: 'bold',
+    color: '#333',
+  },
+  evidenceStatLabel: {
+    fontSize: 12,
+    color: '#666',
+    textAlign: 'center',
+    writingDirection: 'rtl',
+  },
+  topPerformerItem: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 10,
+    padding: 10,
+    backgroundColor: '#f8f9fa',
+    borderRadius: 8,
+  },
+  rankBadge: {
+    width: 30,
+    height: 30,
+    borderRadius: 15,
+    backgroundColor: '#1c1f33',
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginLeft: 12,
+  },
+  rankText: {
+    color: '#fff',
+    fontWeight: 'bold',
+    fontSize: 14,
+  },
+  topPerformerContent: {
+    flex: 1,
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+  },
+  topPerformerTitle: {
+    fontSize: 14,
+    color: '#333',
+    flex: 1,
+    textAlign: 'right',
+    writingDirection: 'rtl',
+  },
+  topPerformerScore: {
+    fontSize: 16,
+    fontWeight: 'bold',
   },
   recommendationsContainer: {
     gap: 15,
