@@ -25,9 +25,7 @@ export default function CommentsScreen() {
   const [showAddForm, setShowAddForm] = useState(false);
   const [newComment, setNewComment] = useState({
     title: '',
-    content: '',
-    category: 'عام' as Comment['category'],
-    priority: 'عادي' as Comment['priority']
+    content: ''
   });
 
   useEffect(() => {
@@ -63,8 +61,8 @@ export default function CommentsScreen() {
       id: Date.now().toString(),
       title: newComment.title,
       content: newComment.content,
-      category: newComment.category,
-      priority: newComment.priority,
+      category: 'عام',
+      priority: 'عادي',
       status: 'جديد',
       date: new Date().toLocaleDateString('ar-SA')
     };
@@ -75,9 +73,7 @@ export default function CommentsScreen() {
     
     setNewComment({
       title: '',
-      content: '',
-      category: 'عام',
-      priority: 'عادي'
+      content: ''
     });
     setShowAddForm(false);
     
@@ -209,55 +205,7 @@ export default function CommentsScreen() {
                     writingDirection="rtl"
                   />
 
-                  <ThemedView style={styles.selectionRow}>
-                    <ThemedView style={styles.pickerContainer}>
-                      <ThemedText style={styles.pickerLabel}>الفئة:</ThemedText>
-                      <ThemedView style={styles.pickerButtons}>
-                        {(['عام', 'تعليمي', 'إداري', 'تقني'] as const).map((category) => (
-                          <TouchableOpacity
-                            key={category}
-                            style={[
-                              styles.pickerButton,
-                              newComment.category === category && styles.selectedButton,
-                              { backgroundColor: newComment.category === category ? getCategoryColor(category) : '#F8F9FA' }
-                            ]}
-                            onPress={() => setNewComment({ ...newComment, category })}
-                          >
-                            <ThemedText style={[
-                              styles.pickerButtonText,
-                              newComment.category === category && styles.selectedButtonText
-                            ]}>
-                              {category}
-                            </ThemedText>
-                          </TouchableOpacity>
-                        ))}
-                      </ThemedView>
-                    </ThemedView>
-
-                    <ThemedView style={styles.pickerContainer}>
-                      <ThemedText style={styles.pickerLabel}>الأولوية:</ThemedText>
-                      <ThemedView style={styles.pickerButtons}>
-                        {(['عادي', 'مهم', 'عاجل'] as const).map((priority) => (
-                          <TouchableOpacity
-                            key={priority}
-                            style={[
-                              styles.pickerButton,
-                              newComment.priority === priority && styles.selectedButton,
-                              { backgroundColor: newComment.priority === priority ? getPriorityColor(priority) : '#F8F9FA' }
-                            ]}
-                            onPress={() => setNewComment({ ...newComment, priority })}
-                          >
-                            <ThemedText style={[
-                              styles.pickerButtonText,
-                              newComment.priority === priority && styles.selectedButtonText
-                            ]}>
-                              {priority}
-                            </ThemedText>
-                          </TouchableOpacity>
-                        ))}
-                      </ThemedView>
-                    </ThemedView>
-                  </ThemedView>
+                  
 
                   <ThemedView style={styles.formButtons}>
                     <TouchableOpacity style={styles.submitButton} onPress={addComment}>
