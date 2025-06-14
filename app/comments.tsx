@@ -156,7 +156,7 @@ export default function CommentsScreen() {
                 style={styles.backButton}
                 onPress={() => router.back()}
               >
-                <IconSymbol size={24} name="chevron.right" color="#1c1f33" />
+                <IconSymbol size={20} name="arrow.right" color="#1c1f33" />
               </TouchableOpacity>
               <ThemedView style={styles.headerContent}>
                 <ThemedView style={styles.headerIcon}>
@@ -288,23 +288,32 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   header: {
-    padding: 20,
-    paddingTop: 50,
-    flexDirection: 'row',
     alignItems: 'center',
+    paddingTop: Platform.OS === 'ios' ? 60 : 50,
+    paddingHorizontal: 30,
+    paddingBottom: 30,
     backgroundColor: 'transparent',
+    position: 'relative',
   },
   backButton: {
-    padding: 8,
-    marginRight: 10,
-    backgroundColor: '#F8F9FA',
+    position: 'absolute',
+    top: Platform.OS === 'ios' ? 60 : 50,
+    left: 20,
+    backgroundColor: '#add4ce',
+    width: 40,
+    height: 40,
     borderRadius: 20,
-    borderWidth: 1,
-    borderColor: '#E5E5EA',
+    justifyContent: 'center',
+    alignItems: 'center',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.2,
+    shadowRadius: 8,
+    elevation: 8,
+    zIndex: 1,
   },
   headerContent: {
     alignItems: 'center',
-    flex: 1,
   },
   headerIcon: {
     padding: 12,
