@@ -8,6 +8,9 @@ import { IconSymbol } from '@/components/ui/IconSymbol';
 import { useRouter } from 'expo-router';
 import { BottomNavigationBar } from '@/components/BottomNavigationBar';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import * as Sharing from 'expo-sharing';
+import * as Print from 'expo-print';
+import * as FileSystem from 'expo-file-system';
 
 const { width } = Dimensions.get('window');
 
@@ -287,6 +290,259 @@ export default function InteractiveReportScreen() {
     }
   };
 
+  const generateReportHTML = () => {
+    const averageScore = calculateOverallAverage();
+    const categories = getCategories();
+    const scores = performanceData.map(item => item.score);
+    const maxScore = Math.max(...scores, 0);
+    const minScore = Math.min(...scores, 0);
+    const excellentCount = scores.filter(score => score >= 90).length;
+    const goodCount = scores.filter(score => score >= 80 && score < 90).length;
+    const needsImprovementCount = scores.filter(score => score < 70).length;
+
+    return `
+    <!DOCTYPE html>
+    <html dir="rtl" lang="ar">
+    <head>
+      <meta charset="UTF-8">
+      <meta name="viewport" content="width=device-width, initial-scale=1.0">
+      <title>التقرير التفاعلي للأداء المهني</title>
+      <style>
+        body {
+          font-family: 'Arial', sans-serif;
+          margin: 20px;
+          line-height: 1.6;
+          color: #333;
+          background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+        }
+        .container {
+          max-width: 800px;
+          margin: 0 auto;
+          background: white;
+          padding: 30px;
+          border-radius: 15px;
+          box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+        }
+        .header {
+          text-align: center;
+          margin-bottom: 40px;
+          padding-bottom: 20px;
+          border-bottom: 3px solid #1c1f33;
+        }
+        .header h1 {
+          color: #1c1f33;
+          font-size: 28px;
+          margin-bottom: 10px;
+        }
+        .header p {
+          color: #666;
+          font-size: 16px;
+        }
+        .summary-section {
+          background: linear-gradient(135deg, #add4ce 0%, #e1f5f4 100%);
+          padding: 25px;
+          border-radius: 15px;
+          margin-bottom: 30px;
+          text-align: center;
+        }
+        .summary-row {
+          display: flex;
+          justify-content: space-around;
+          margin-top: 20px;
+        }
+        .summary-item {
+          text-align: center;
+        }
+        .summary-value {
+          font-size: 32px;
+          font-weight: bold;
+          color: ${getScoreColor(averageScore)};
+          margin-bottom: 5px;
+        }
+        .summary-label {
+          font-size: 14px;
+          color: #666;
+        }
+        .stats-grid {
+          display: grid;
+          grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+          gap: 20px;
+          margin: 30px 0;
+        }
+        .stat-card {
+          background: #f8f9fa;
+          padding: 20px;
+          border-radius: 12px;
+          text-align: center;
+          border: 2px solid #e9ecef;
+        }
+        .stat-value {
+          font-size: 24px;
+          font-weight: bold;
+          color: #333;
+          margin: 10px 0;
+        }
+        .stat-label {
+          font-size: 14px;
+          color: #666;
+        }
+        .categories-section {
+          margin: 30px 0;
+        }
+        .category-item {
+          display: flex;
+          justify-content: space-between;
+          align-items: center;
+          padding: 15px;
+          margin-bottom: 10px;
+          background: #f8f9fa;
+          border-radius: 10px;
+          border-right: 5px solid ${getScoreColor(averageScore)};
+        }
+        .category-name {
+          font-weight: bold;
+          color: #333;
+        }
+        .category-score {
+          font-weight: bold;
+          font-size: 18px;
+        }
+        .performance-list {
+          margin-top: 30px;
+        }
+        .performance-item {
+          display: flex;
+          justify-content: space-between;
+          align-items: center;
+          padding: 12px 15px;
+          margin-bottom: 8px;
+          background: #f8f9fa;
+          border-radius: 8px;
+          border-right: 4px solid #ddd;
+        }
+        .recommendations {
+          background: #fff8e1;
+          padding: 25px;
+          border-radius: 15px;
+          margin-top: 30px;
+          border-right: 5px solid #ff9800;
+        }
+        .recommendations h3 {
+          color: #333;
+          margin-bottom: 15px;
+        }
+        .recommendation-item {
+          margin-bottom: 10px;
+          padding: 10px;
+          background: rgba(255, 152, 0, 0.1);
+          border-radius: 8px;
+        }
+        .footer {
+          text-align: center;
+          margin-top: 40px;
+          padding-top: 20px;
+          border-top: 2px solid #eee;
+          color: #666;
+        }
+        .page-break {
+          page-break-before: always;
+        }
+      </style>
+    </head>
+    <body>
+      <div class="container">
+        <div class="header">
+          <h1>📊 التقرير التفاعلي للأداء المهني</h1>
+          <p>تحليل شامل لأداءك المهني مع مؤشرات تفاعلية</p>
+          <p>تاريخ التقرير: ${new Date().toLocaleDateString('ar-SA')}</p>
+        </div>
+
+        <div class="summary-section">
+          <h2>ملخص الأداء العام</h2>
+          <div class="summary-row">
+            <div class="summary-item">
+              <div class="summary-value">${averageScore}%</div>
+              <div class="summary-label">المتوسط العام</div>
+            </div>
+            <div class="summary-item">
+              <div class="summary-value">${getScoreLevel(averageScore)}</div>
+              <div class="summary-label">مستوى الأداء</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="stats-grid">
+          <div class="stat-card">
+            <div class="stat-value">${maxScore}%</div>
+            <div class="stat-label">أعلى درجة</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-value">${minScore}%</div>
+            <div class="stat-label">أقل درجة</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-value">${excellentCount}</div>
+            <div class="stat-label">محاور ممتازة</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-value">${goodCount}</div>
+            <div class="stat-label">محاور جيدة</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-value">${needsImprovementCount}</div>
+            <div class="stat-label">تحتاج تحسين</div>
+          </div>
+        </div>
+
+        <div class="categories-section">
+          <h3>متوسط الدرجات حسب الفئة</h3>
+          ${categories.map(category => `
+            <div class="category-item">
+              <span class="category-name">${category.name}</span>
+              <span class="category-score" style="color: ${getScoreColor(category.average)}">${category.average}%</span>
+            </div>
+          `).join('')}
+        </div>
+
+        <div class="page-break"></div>
+
+        <div class="performance-list">
+          <h3>تفاصيل جميع المحاور</h3>
+          ${performanceData
+            .sort((a, b) => b.score - a.score)
+            .map((item, index) => `
+              <div class="performance-item">
+                <span>${index + 1}. ${item.title}</span>
+                <span style="color: ${getScoreColor(item.score)}; font-weight: bold;">${item.score}%</span>
+              </div>
+            `).join('')}
+        </div>
+
+        <div class="recommendations">
+          <h3>🔍 توصيات للتحسين</h3>
+          ${performanceData
+            .filter(item => item.score < 85)
+            .sort((a, b) => a.score - b.score)
+            .slice(0, 3)
+            .map(item => `
+              <div class="recommendation-item">
+                • ركز على تحسين "${item.title}" (الدرجة الحالية: ${item.score}%)
+              </div>
+            `).join('')}
+          ${performanceData.filter(item => item.score < 85).length === 0 ? 
+            '<div class="recommendation-item">• ممتاز! جميع المحاور تحصل على درجات عالية. استمر في الأداء المتميز.</div>' : ''}
+        </div>
+
+        <div class="footer">
+          <p>تم إنشاء هذا التقرير تلقائياً بواسطة نظام تقييم الأداء المهني</p>
+          <p>© ${new Date().getFullYear()} - جميع الحقوق محفوظة</p>
+        </div>
+      </div>
+    </body>
+    </html>
+    `;
+  };
+
   const handleExportReport = () => {
     Alert.alert(
       'تصدير التقرير',
@@ -294,15 +550,15 @@ export default function InteractiveReportScreen() {
       [
         {
           text: 'PDF',
-          onPress: () => Alert.alert('تصدير PDF', 'سيتم تصدير التقرير كملف PDF قريباً')
+          onPress: exportToPDF
         },
         {
-          text: 'Excel',
-          onPress: () => Alert.alert('تصدير Excel', 'سيتم تصدير التقرير كملف Excel قريباً')
+          text: 'HTML',
+          onPress: exportToHTML
         },
         {
-          text: 'مشاركة',
-          onPress: () => Alert.alert('مشاركة', 'سيتم مشاركة التقرير قريباً')
+          text: 'نص عادي',
+          onPress: exportToText
         },
         {
           text: 'إلغاء',
@@ -312,8 +568,160 @@ export default function InteractiveReportScreen() {
     );
   };
 
-  const handlePrintReport = () => {
-    Alert.alert('طباعة التقرير', 'سيتم فتح معاينة الطباعة قريباً');
+  const exportToPDF = async () => {
+    try {
+      const htmlContent = generateReportHTML();
+      const { uri } = await Print.printToFileAsync({
+        html: htmlContent,
+        base64: false
+      });
+
+      if (Platform.OS === 'ios') {
+        await Sharing.shareAsync(uri, {
+          UTI: '.pdf',
+          mimeType: 'application/pdf'
+        });
+      } else {
+        const pdfName = `تقرير_الأداء_${new Date().toISOString().split('T')[0]}.pdf`;
+        const pdfUri = `${FileSystem.documentDirectory}${pdfName}`;
+        await FileSystem.moveAsync({
+          from: uri,
+          to: pdfUri
+        });
+        await Sharing.shareAsync(pdfUri);
+      }
+      
+      Alert.alert('تم بنجاح', 'تم تصدير التقرير كملف PDF');
+    } catch (error) {
+      console.error('Error exporting PDF:', error);
+      Alert.alert('خطأ', 'فشل في تصدير التقرير كملف PDF');
+    }
+  };
+
+  const exportToHTML = async () => {
+    try {
+      const htmlContent = generateReportHTML();
+      const fileName = `تقرير_الأداء_${new Date().toISOString().split('T')[0]}.html`;
+      const fileUri = `${FileSystem.documentDirectory}${fileName}`;
+      
+      await FileSystem.writeAsStringAsync(fileUri, htmlContent);
+      await Sharing.shareAsync(fileUri);
+      
+      Alert.alert('تم بنجاح', 'تم تصدير التقرير كملف HTML');
+    } catch (error) {
+      console.error('Error exporting HTML:', error);
+      Alert.alert('خطأ', 'فشل في تصدير التقرير كملف HTML');
+    }
+  };
+
+  const exportToText = async () => {
+    try {
+      const averageScore = calculateOverallAverage();
+      const categories = getCategories();
+      
+      const textContent = `
+📊 التقرير التفاعلي للأداء المهني
+========================================
+
+تاريخ التقرير: ${new Date().toLocaleDateString('ar-SA')}
+
+📈 ملخص الأداء العام:
+- المتوسط العام: ${averageScore}%
+- مستوى الأداء: ${getScoreLevel(averageScore)}
+
+📊 الإحصائيات التفصيلية:
+- أعلى درجة: ${Math.max(...performanceData.map(item => item.score), 0)}%
+- أقل درجة: ${Math.min(...performanceData.map(item => item.score), 0)}%
+- محاور ممتازة: ${performanceData.filter(item => item.score >= 90).length}
+- محاور جيدة: ${performanceData.filter(item => item.score >= 80 && item.score < 90).length}
+- تحتاج تحسين: ${performanceData.filter(item => item.score < 70).length}
+
+📋 متوسط الدرجات حسب الفئة:
+${categories.map(cat => `- ${cat.name}: ${cat.average}%`).join('\n')}
+
+📝 تفاصيل جميع المحاور:
+${performanceData
+  .sort((a, b) => b.score - a.score)
+  .map((item, index) => `${index + 1}. ${item.title}: ${item.score}%`)
+  .join('\n')}
+
+💡 توصيات للتحسين:
+${performanceData
+  .filter(item => item.score < 85)
+  .sort((a, b) => a.score - b.score)
+  .slice(0, 3)
+  .map(item => `• ركز على تحسين "${item.title}" (الدرجة الحالية: ${item.score}%)`)
+  .join('\n')}
+
+${performanceData.filter(item => item.score < 85).length === 0 ? 
+  '• ممتاز! جميع المحاور تحصل على درجات عالية. استمر في الأداء المتميز.' : ''}
+
+========================================
+تم إنشاء هذا التقرير تلقائياً بواسطة نظام تقييم الأداء المهني
+© ${new Date().getFullYear()} - جميع الحقوق محفوظة
+      `;
+
+      const fileName = `تقرير_الأداء_${new Date().toISOString().split('T')[0]}.txt`;
+      const fileUri = `${FileSystem.documentDirectory}${fileName}`;
+      
+      await FileSystem.writeAsStringAsync(fileUri, textContent);
+      await Sharing.shareAsync(fileUri);
+      
+      Alert.alert('تم بنجاح', 'تم تصدير التقرير كملف نصي');
+    } catch (error) {
+      console.error('Error exporting text:', error);
+      Alert.alert('خطأ', 'فشل في تصدير التقرير كملف نصي');
+    }
+  };
+
+  const handlePrintReport = async () => {
+    try {
+      const htmlContent = generateReportHTML();
+      
+      if (Platform.OS === 'ios') {
+        await Print.printAsync({
+          html: htmlContent,
+          printerUrl: undefined, // يستخدم الطابعة الافتراضية
+        });
+      } else {
+        // في الأندرويد، نعرض معاينة الطباعة
+        const { uri } = await Print.printToFileAsync({
+          html: htmlContent,
+          base64: false
+        });
+        
+        Alert.alert(
+          'طباعة التقرير',
+          'تم إنشاء ملف PDF للطباعة',
+          [
+            {
+              text: 'مشاركة للطباعة',
+              onPress: async () => {
+                await Sharing.shareAsync(uri, {
+                  UTI: '.pdf',
+                  mimeType: 'application/pdf'
+                });
+              }
+            },
+            {
+              text: 'طباعة مباشرة',
+              onPress: async () => {
+                await Print.printAsync({
+                  uri: uri
+                });
+              }
+            },
+            {
+              text: 'إلغاء',
+              style: 'cancel'
+            }
+          ]
+        );
+      }
+    } catch (error) {
+      console.error('Error printing:', error);
+      Alert.alert('خطأ', 'فشل في طباعة التقرير');
+    }
   };
 
   if (loading) {
