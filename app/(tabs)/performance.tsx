@@ -325,6 +325,13 @@ export default function PerformanceScreen() {
         >
           <ScrollView style={styles.scrollContainer}>
             <ThemedView style={styles.header}>
+              <TouchableOpacity 
+                style={styles.backButton}
+                onPress={() => router.back()}
+              >
+                <IconSymbol size={20} name="arrow.right" color="#1c1f33" />
+              </TouchableOpacity>
+
               <IconSymbol size={60} name="chart.bar.fill" color="#1c1f33" />
               <ThemedText type="title" style={styles.title}>
                 تقييم محاور الأداء المهني
@@ -596,8 +603,28 @@ const styles = StyleSheet.create({
   },
   header: {
     alignItems: 'center',
-    padding: 30,
+    paddingTop: Platform.OS === 'ios' ? 60 : 50,
+    paddingHorizontal: 30,
+    paddingBottom: 30,
     backgroundColor: 'transparent',
+    position: 'relative',
+  },
+  backButton: {
+    position: 'absolute',
+    top: Platform.OS === 'ios' ? 60 : 50,
+    left: 20,
+    backgroundColor: '#add4ce',
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    justifyContent: 'center',
+    alignItems: 'center',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.2,
+    shadowRadius: 8,
+    elevation: 8,
+    zIndex: 1,
   },
   title: {
     color: '#1c1f33',
