@@ -231,10 +231,10 @@ export default function PerformanceScreen() {
               ? { ...evidence, available: !evidence.available }
               : evidence
           );
-          
+
           // احسب النسبة الجديدة بناءً على الشواهد المتوفرة
           const newScore = calculateScoreBasedOnEvidence(updatedEvidence);
-          
+
           return {
             ...item,
             evidence: updatedEvidence,
@@ -274,7 +274,7 @@ export default function PerformanceScreen() {
                   if (item.id === performanceId) {
                     const updatedEvidence = [...item.evidence, { name: evidenceName.trim(), available: false }];
                     const newScore = calculateScoreBasedOnEvidence(updatedEvidence);
-                    
+
                     return {
                       ...item,
                       evidence: updatedEvidence,
@@ -346,7 +346,7 @@ export default function PerformanceScreen() {
                 if (item.id === performanceId) {
                   const updatedEvidence = item.evidence.filter((_, index) => index !== evidenceIndex);
                   const newScore = calculateScoreBasedOnEvidence(updatedEvidence);
-                  
+
                   return {
                     ...item,
                     evidence: updatedEvidence,
@@ -375,7 +375,7 @@ export default function PerformanceScreen() {
         const image = result.assets[0];
         const fileKey = `${performanceId}-${evidenceIndex}`;
         const fileSize = image.fileSize ? (image.fileSize / (1024 * 1024)).toFixed(2) + ' MB' : '2.5 MB';
-        
+
         const newFile = {
           name: `صورة_${Date.now()}.jpg`,
           size: fileSize,
@@ -383,12 +383,18 @@ export default function PerformanceScreen() {
           type: 'image',
           uri: image.uri
         };
-        
+
         setUploadedFiles(prev => ({
           ...prev,
           [fileKey]: newFile
         }));
-        
+
+        // تحديث حالة الشاهد تلقائياً إلى متوفر
+        const currentEvidence = performanceData.find(item => item.id === performanceId)?.evidence[evidenceIndex];
+        if (currentEvidence && !currentEvidence.available) {
+          toggleEvidenceStatus(performanceId, evidenceIndex, true);
+        }
+
         Alert.alert('نجح التحميل', `تم تحميل الصورة بنجاح: ${newFile.name}`);
       }
     } catch (error) {
@@ -407,7 +413,7 @@ export default function PerformanceScreen() {
         const document = result.assets[0];
         const fileKey = `${performanceId}-${evidenceIndex}`;
         const fileSize = document.size ? (document.size / (1024 * 1024)).toFixed(2) + ' MB' : '1.5 MB';
-        
+
         const newFile = {
           name: document.name || `مستند_${Date.now()}.pdf`,
           size: fileSize,
@@ -415,12 +421,18 @@ export default function PerformanceScreen() {
           type: 'document',
           uri: document.uri
         };
-        
+
         setUploadedFiles(prev => ({
           ...prev,
           [fileKey]: newFile
         }));
-        
+
+        // تحديث حالة الشاهد تلقائياً إلى متوفر
+        const currentEvidence = performanceData.find(item => item.id === performanceId)?.evidence[evidenceIndex];
+        if (currentEvidence && !currentEvidence.available) {
+          toggleEvidenceStatus(performanceId, evidenceIndex, true);
+        }
+
         Alert.alert('نجح التحميل', `تم تحميل المستند بنجاح: ${newFile.name}`);
       }
     } catch (error) {
@@ -440,7 +452,7 @@ export default function PerformanceScreen() {
         const video = result.assets[0];
         const fileKey = `${performanceId}-${evidenceIndex}`;
         const fileSize = video.fileSize ? (video.fileSize / (1024 * 1024)).toFixed(2) + ' MB' : '5.0 MB';
-        
+
         const newFile = {
           name: `فيديو_${Date.now()}.mp4`,
           size: fileSize,
@@ -448,12 +460,18 @@ export default function PerformanceScreen() {
           type: 'video',
           uri: video.uri
         };
-        
+
         setUploadedFiles(prev => ({
           ...prev,
           [fileKey]: newFile
         }));
-        
+
+        // تحديث حالة الشاهد تلقائياً إلى متوفر
+        const currentEvidence = performanceData.find(item => item.id === performanceId)?.evidence[evidenceIndex];
+        if (currentEvidence && !currentEvidence.available) {
+          toggleEvidenceStatus(performanceId, evidenceIndex, true);
+        }
+
         Alert.alert('نجح التحميل', `تم تحميل الفيديو بنجاح: ${newFile.name}`);
       }
     } catch (error) {
@@ -554,7 +572,7 @@ export default function PerformanceScreen() {
                   <ThemedText type="subtitle" style={styles.sectionTitle}>
                     محاور الأداء المهني
                   </ThemedText>
-                  
+
                   <ThemedView style={styles.performanceGrid}>
                     {performanceData.map((item, index) => (
                       <TouchableOpacity
