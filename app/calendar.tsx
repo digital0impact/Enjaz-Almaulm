@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import {
   StyleSheet,
@@ -110,7 +109,7 @@ export default function CalendarScreen() {
         const hijriDay = hijriParts[0] || '15';
         const hijriMonth = hijriParts[1] || '8';
         const hijriYear = hijriParts[2] || '1446';
-        
+
         const hijriDate = {
           date: hijriDateString,
           day: hijriDay,
@@ -143,10 +142,10 @@ export default function CalendarScreen() {
     };
 
     updateTodayInfo();
-    
+
     // تحديث التاريخ كل دقيقة
     const interval = setInterval(updateTodayInfo, 60000);
-    
+
     return () => clearInterval(interval);
   }, []);
 
@@ -200,8 +199,8 @@ export default function CalendarScreen() {
           </ThemedView>
 
           <ScrollView 
-            style={[styles.scrollView, commonStyles.scrollViewWithBottomNav]}
-            showsVerticalScrollIndicator={false}
+            style={styles.scrollView}
+            contentContainerStyle={{ flexGrow: 1 }}
           >
             {/* تاريخ اليوم - القسم الرئيسي */}
             <ThemedView style={[styles.todaySection, { backgroundColor: colors.card }]}>
@@ -475,7 +474,7 @@ const styles = StyleSheet.create({
     flex: 1,
     padding: 20,
   },
-  
+
   // أنماط قسم تاريخ اليوم المحسنة
   todaySection: {
     borderRadius: 20,
@@ -531,7 +530,7 @@ const styles = StyleSheet.create({
     textAlign: 'center',
     writingDirection: 'rtl',
   },
-  
+
   section: {
     borderRadius: 15,
     padding: 20,

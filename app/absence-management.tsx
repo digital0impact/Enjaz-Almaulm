@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { StyleSheet, ScrollView, TouchableOpacity, Alert, ImageBackground, Platform } from 'react-native';
 import { LinearGradient as ExpoLinearGradient } from 'expo-linear-gradient';
@@ -60,7 +59,7 @@ export default function AbsenceManagementScreen() {
   const calculateStats = (records: AbsenceRecord[]) => {
     const currentMonth = new Date().getMonth();
     const currentYear = new Date().getFullYear();
-    
+
     const totalAbsences = records.length;
     const withExcuse = records.filter(record => record.withExcuse).length;
     const withoutExcuse = totalAbsences - withExcuse;
@@ -72,7 +71,7 @@ export default function AbsenceManagementScreen() {
     setStats({ totalAbsences, withExcuse, withoutExcuse, thisMonth });
   };
 
-  
+
 
   return (
     <ThemedView style={styles.container}>
@@ -85,7 +84,10 @@ export default function AbsenceManagementScreen() {
           colors={['rgba(255,255,255,0.9)', 'rgba(225,245,244,0.95)', 'rgba(173,212,206,0.8)']}
           style={styles.gradientOverlay}
         >
-          <ScrollView style={[styles.scrollContainer, commonStyles.scrollViewWithBottomNav]}>
+          <ScrollView 
+            style={styles.scrollContainer}
+            contentContainerStyle={{ flexGrow: 1 }}
+          >
             <ThemedView style={styles.header}>
               <TouchableOpacity 
                 style={styles.backButton}
@@ -93,11 +95,11 @@ export default function AbsenceManagementScreen() {
               >
                 <IconSymbol size={20} name="arrow.right" color="#1c1f33" />
               </TouchableOpacity>
-              
+
               <ThemedView style={styles.iconContainer}>
                 <IconSymbol size={60} name="person.crop.circle.badge.xmark" color="#1c1f33" />
               </ThemedView>
-              
+
               <ThemedText type="title" style={styles.title}>
                 إدارة الغياب
               </ThemedText>
@@ -124,7 +126,7 @@ export default function AbsenceManagementScreen() {
                 <ThemedText type="subtitle" style={styles.sectionTitle}>
                   الإحصائيات السريعة
                 </ThemedText>
-                
+
                 <ThemedView style={styles.statsGrid}>
                   <ThemedView style={styles.statCard}>
                     <ThemedView style={styles.iconWrapper}>
@@ -135,7 +137,7 @@ export default function AbsenceManagementScreen() {
                       <ThemedText style={styles.statNumber}>{stats.totalAbsences}</ThemedText>
                     </ThemedView>
                   </ThemedView>
-                  
+
                   <ThemedView style={styles.statCard}>
                     <ThemedView style={styles.iconWrapper}>
                       <IconSymbol size={28} name="checkmark.circle.fill" color="#1c1f33" />
@@ -145,7 +147,7 @@ export default function AbsenceManagementScreen() {
                       <ThemedText style={styles.statNumber}>{stats.withExcuse}</ThemedText>
                     </ThemedView>
                   </ThemedView>
-                  
+
                   <ThemedView style={styles.statCard}>
                     <ThemedView style={styles.iconWrapper}>
                       <IconSymbol size={28} name="xmark.circle.fill" color="#1c1f33" />
@@ -155,7 +157,7 @@ export default function AbsenceManagementScreen() {
                       <ThemedText style={styles.statNumber}>{stats.withoutExcuse}</ThemedText>
                     </ThemedView>
                   </ThemedView>
-                  
+
                   <ThemedView style={styles.statCard}>
                     <ThemedView style={styles.iconWrapper}>
                       <IconSymbol size={28} name="calendar.circle.fill" color="#1c1f33" />

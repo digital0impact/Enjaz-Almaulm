@@ -246,7 +246,10 @@ export default function AzkarScreen() {
             style={{ flex: 1 }}
             behavior={Platform.OS === 'ios' ? 'padding' : undefined}
           >
-            <ScrollView style={styles.scrollContainer}>
+            <ScrollView 
+              style={styles.scrollContainer}
+              contentContainerStyle={{ flexGrow: 1 }}
+            >
               <ThemedView style={styles.header}>
                 <TouchableOpacity 
                   style={styles.backButton}

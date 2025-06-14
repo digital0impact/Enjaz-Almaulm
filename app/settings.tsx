@@ -216,7 +216,10 @@ export default function SettingsScreen() {
           }
           style={styles.gradientOverlay}
         >
-          <ScrollView style={styles.scrollContainer}>
+          <ScrollView 
+            style={styles.scrollContainer}
+            contentContainerStyle={{ flexGrow: 1 }}
+          >
             <ThemedView style={styles.header}>
               <TouchableOpacity 
                 style={styles.backButton}

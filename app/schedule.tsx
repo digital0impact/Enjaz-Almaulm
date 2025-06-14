@@ -403,7 +403,10 @@ export default function ScheduleScreen() {
           colors={['rgba(255,255,255,0.9)', 'rgba(225,245,244,0.95)', 'rgba(173,212,206,0.8)']}
           style={styles.gradientOverlay}
         >
-          <ScrollView style={styles.scrollContainer}>
+          <ScrollView 
+            style={styles.scrollContainer}
+            contentContainerStyle={{ flexGrow: 1 }}
+          >
             <ThemedView style={styles.header}>
               <TouchableOpacity 
                 style={styles.backButton}

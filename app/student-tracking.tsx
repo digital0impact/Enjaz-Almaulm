@@ -92,7 +92,10 @@ export default function StudentTrackingScreen() {
             style={{ flex: 1 }}
             behavior={Platform.OS === 'ios' ? 'padding' : undefined}
           >
-            <ScrollView style={styles.scrollContainer}>
+            <ScrollView 
+              style={styles.scrollContainer}
+              contentContainerStyle={{ flexGrow: 1 }}
+            >
               <ThemedView style={styles.content}>
                 {/* Header */}
                 <ThemedView style={styles.header}>

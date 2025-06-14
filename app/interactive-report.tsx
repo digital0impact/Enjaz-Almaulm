@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { StyleSheet, ScrollView, TouchableOpacity, Alert, I18nManager, ImageBackground, Dimensions, Platform } from 'react-native';
 import { LinearGradient as ExpoLinearGradient } from 'expo-linear-gradient';
@@ -163,7 +162,7 @@ export default function InteractiveReportScreen() {
   const renderBarChart = () => {
     const categories = getCategories();
     const maxScore = Math.max(...categories.map(cat => cat.average), 1);
-    
+
     return (
       <ThemedView style={styles.chartContainer}>
         <ThemedText style={styles.chartTitle}>متوسط الدرجات حسب الفئة</ThemedText>
@@ -192,7 +191,7 @@ export default function InteractiveReportScreen() {
 
   const renderProgressChart = () => {
     const sortedData = [...performanceData].sort((a, b) => b.score - a.score);
-    
+
     return (
       <ThemedView style={styles.chartContainer}>
         <ThemedText style={styles.chartTitle}>ترتيب المحاور حسب الأداء</ThemedText>
@@ -242,31 +241,31 @@ export default function InteractiveReportScreen() {
             <ThemedText style={styles.statValue}>{averageScore}%</ThemedText>
             <ThemedText style={styles.statLabel}>المتوسط العام</ThemedText>
           </ThemedView>
-          
+
           <ThemedView style={[styles.statCard, { backgroundColor: 'rgba(227, 242, 253, 0.7)' }]}>
             <IconSymbol size={24} name="arrow.up.circle.fill" color="#2196F3" />
             <ThemedText style={styles.statValue}>{maxScore}%</ThemedText>
             <ThemedText style={styles.statLabel}>أعلى درجة</ThemedText>
           </ThemedView>
-          
+
           <ThemedView style={[styles.statCard, { backgroundColor: 'rgba(255, 243, 224, 0.7)' }]}>
             <IconSymbol size={24} name="arrow.down.circle.fill" color="#FF9800" />
             <ThemedText style={styles.statValue}>{minScore}%</ThemedText>
             <ThemedText style={styles.statLabel}>أقل درجة</ThemedText>
           </ThemedView>
-          
+
           <ThemedView style={[styles.statCard, { backgroundColor: 'rgba(243, 229, 245, 0.7)' }]}>
             <IconSymbol size={24} name="star.fill" color="#9C27B0" />
             <ThemedText style={styles.statValue}>{excellentCount}</ThemedText>
             <ThemedText style={styles.statLabel}>محاور ممتازة</ThemedText>
           </ThemedView>
-          
+
           <ThemedView style={[styles.statCard, { backgroundColor: 'rgba(232, 245, 232, 0.7)' }]}>
             <IconSymbol size={24} name="checkmark.circle.fill" color="#4CAF50" />
             <ThemedText style={styles.statValue}>{goodCount}</ThemedText>
             <ThemedText style={styles.statLabel}>محاور جيدة</ThemedText>
           </ThemedView>
-          
+
           <ThemedView style={[styles.statCard, { backgroundColor: needsImprovementCount > 0 ? 'rgba(255, 235, 238, 0.7)' : 'rgba(232, 245, 232, 0.7)' }]}>
             <IconSymbol size={24} name="exclamationmark.triangle.fill" color={needsImprovementCount > 0 ? "#F44336" : "#4CAF50"} />
             <ThemedText style={styles.statValue}>{needsImprovementCount}</ThemedText>
@@ -429,7 +428,7 @@ export default function InteractiveReportScreen() {
           max-width: 200px;
           text-align: left;
         }
-        
+
         .summary-section {
           background: linear-gradient(135deg, #add4ce 0%, #e1f5f4 100%);
           padding: 25px;
@@ -598,7 +597,7 @@ export default function InteractiveReportScreen() {
           </div>
         </div>
 
-        
+
 
         <div class="summary-section">
           <h2>ملخص الأداء العام</h2>
@@ -733,7 +732,7 @@ export default function InteractiveReportScreen() {
         });
         await Sharing.shareAsync(pdfUri);
       }
-      
+
       Alert.alert('تم بنجاح', 'تم تصدير التقرير كملف PDF');
     } catch (error) {
       console.error('Error exporting PDF:', error);
@@ -746,10 +745,10 @@ export default function InteractiveReportScreen() {
       const htmlContent = await generateReportHTML();
       const fileName = `تقرير_الأداء_${new Date().toISOString().split('T')[0]}.html`;
       const fileUri = `${FileSystem.documentDirectory}${fileName}`;
-      
+
       await FileSystem.writeAsStringAsync(fileUri, htmlContent);
       await Sharing.shareAsync(fileUri);
-      
+
       Alert.alert('تم بنجاح', 'تم تصدير التقرير كملف HTML');
     } catch (error) {
       console.error('Error exporting HTML:', error);
@@ -761,7 +760,7 @@ export default function InteractiveReportScreen() {
     try {
       const averageScore = calculateOverallAverage();
       const categories = getCategories();
-      
+
       // تحميل البيانات الشخصية والمهنية
       let userData = {
         fullName: 'غير محدد',
@@ -785,7 +784,7 @@ export default function InteractiveReportScreen() {
       } catch (error) {
         console.log('Error loading user data for text export:', error);
       }
-      
+
       const textContent = `
 📊 التقرير التفاعلي للأداء المهني
 ========================================
@@ -846,10 +845,10 @@ ${performanceData.filter(item => item.score < 85).length === 0 ?
 
       const fileName = `تقرير_الأداء_${new Date().toISOString().split('T')[0]}.txt`;
       const fileUri = `${FileSystem.documentDirectory}${fileName}`;
-      
+
       await FileSystem.writeAsStringAsync(fileUri, textContent);
       await Sharing.shareAsync(fileUri);
-      
+
       Alert.alert('تم بنجاح', 'تم تصدير التقرير كملف نصي');
     } catch (error) {
       console.error('Error exporting text:', error);
@@ -860,7 +859,7 @@ ${performanceData.filter(item => item.score < 85).length === 0 ?
   const handlePrintReport = async () => {
     try {
       const htmlContent = await generateReportHTML();
-      
+
       if (Platform.OS === 'ios') {
         await Print.printAsync({
           html: htmlContent,
@@ -872,7 +871,7 @@ ${performanceData.filter(item => item.score < 85).length === 0 ?
           html: htmlContent,
           base64: false
         });
-        
+
         Alert.alert(
           'طباعة التقرير',
           'تم إنشاء ملف PDF للطباعة',
@@ -946,8 +945,11 @@ ${performanceData.filter(item => item.score < 85).length === 0 ?
             </ThemedView>
           </ThemedView>
 
-          <ScrollView style={styles.content}>
-            <ThemedView style={styles.summaryCard}>
+          <ScrollView 
+              style={styles.content}
+              contentContainerStyle={{ flexGrow: 1 }}
+            >
+              <ThemedView style={styles.summaryCard}>
               <ThemedText type="subtitle" style={styles.summaryTitle}>
                 ملخص الأداء العام
               </ThemedText>
