@@ -8,11 +8,11 @@ import { useRouter } from 'expo-router';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { BottomNavigationBar } from '@/components/BottomNavigationBar';
 import { Switch } from 'react-native';
-import { useUser } from '@/contexts/UserContext';
+
 
 export default function SettingsScreen() {
   const router = useRouter();
-  const { userName } = useUser();
+  const [userName, setUserName] = useState('المستخدم');
   const [darkTheme, setDarkTheme] = useState(false);
   const [notifications, setNotifications] = useState(true);
   const [autoBackup, setAutoBackup] = useState(true);
@@ -21,6 +21,7 @@ export default function SettingsScreen() {
   useEffect(() => {
     loadSettings();
     loadUserInfo();
+    loadBasicData();
   }, []);
 
   const loadSettings = async () => {
@@ -45,6 +46,22 @@ export default function SettingsScreen() {
       }
     } catch (error) {
       console.log('Error loading user info:', error);
+    }
+  };
+
+  const loadBasicData = async () => {
+    try {
+      const basicData = await AsyncStorage.getItem('basicData');
+      if (basicData) {
+        const parsedData = JSON.parse(basicData);
+        setUserName(parsedData.fullName || 'المستخدم');
+        setUserInfo(prev => ({
+          ...prev,
+          email: parsedData.email || prev?.email || 'user@example.com'
+        }));
+      }
+    } catch (error) {
+      console.log('Error loading basic data:', error);
     }
   };
 
