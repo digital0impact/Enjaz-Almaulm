@@ -365,6 +365,16 @@ export default function HomeScreen() {
                         </ThemedView>
                         <ThemedText style={styles.actionText}>الجدول</ThemedText>
                       </TouchableOpacity>
+
+                      <TouchableOpacity 
+                        style={[styles.dataItem, { backgroundColor: 'transparent' }]}
+                        onPress={() => router.push('/interactive-report')}
+                      >
+                        <ThemedView style={styles.iconWrapper}>
+                          <IconSymbol size={28} name="chart.line.uptrend.xyaxis" color="#1c1f33" />
+                        </ThemedView>
+                        <ThemedText style={styles.actionText}>التقرير التفاعلي للأداء المهني</ThemedText>
+                      </TouchableOpacity>
                     </ThemedView>
                   </ThemedView>
                 </ThemedView>
