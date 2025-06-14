@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { StyleSheet, ScrollView, TextInput, TouchableOpacity, Alert, ImageBackground, KeyboardAvoidingView, Platform } from 'react-native';
 import { LinearGradient as ExpoLinearGradient } from 'expo-linear-gradient';
@@ -73,14 +72,14 @@ export default function CommentsScreen() {
     const updatedComments = [comment, ...comments];
     setComments(updatedComments);
     saveComments(updatedComments);
-    
+
     setNewComment({
       title: '',
       content: '',
       visitorName: ''
     });
     setShowAddForm(false);
-    
+
     Alert.alert('نجح', 'تم إضافة التعليق بنجاح');
   };
 
@@ -153,13 +152,12 @@ export default function CommentsScreen() {
           >
             {/* Header */}
             <ThemedView style={styles.header}>
-              <TouchableOpacity
+              <TouchableOpacity 
                 style={styles.backButton}
                 onPress={() => router.back()}
               >
-                <IconSymbol size={24} name="arrow.right" color="#1c1f33" />
+                <IconSymbol size={24} name="chevron.right" color="#1c1f33" />
               </TouchableOpacity>
-
               <ThemedView style={styles.headerContent}>
                 <ThemedView style={styles.headerIcon}>
                   <IconSymbol size={32} name="text.bubble.fill" color="#1c1f33" />
@@ -170,7 +168,7 @@ export default function CommentsScreen() {
                 <ThemedText style={styles.subtitle}>
                   إدارة التعليقات والملاحظات المهنية
                 </ThemedText>
-                
+
                 <TouchableOpacity
                   style={styles.centerAddButton}
                   onPress={() => setShowAddForm(!showAddForm)}
@@ -188,7 +186,7 @@ export default function CommentsScreen() {
               {showAddForm && (
                 <ThemedView style={styles.addForm}>
                   <ThemedText style={styles.formTitle}>إضافة تعليق جديد</ThemedText>
-                  
+
                   <TextInput
                     style={styles.input}
                     placeholder="اسم الزائر"
@@ -218,7 +216,7 @@ export default function CommentsScreen() {
                     writingDirection="rtl"
                   />
 
-                  
+
 
                   <ThemedView style={styles.formButtons}>
                     <TouchableOpacity style={styles.submitButton} onPress={addComment}>
@@ -290,12 +288,19 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   header: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
     padding: 20,
     paddingTop: 50,
+    flexDirection: 'row',
+    alignItems: 'center',
     backgroundColor: 'transparent',
+  },
+  backButton: {
+    padding: 8,
+    marginRight: 10,
+    backgroundColor: '#F8F9FA',
+    borderRadius: 20,
+    borderWidth: 1,
+    borderColor: '#E5E5EA',
   },
   headerContent: {
     alignItems: 'center',
@@ -315,18 +320,6 @@ const styles = StyleSheet.create({
     alignSelf: 'center',
     marginBottom: 10,
     marginTop: 5,
-  },
-  backButton: {
-    padding: 10,
-    backgroundColor: '#F8F9FA',
-    borderRadius: 20,
-    borderWidth: 1,
-    borderColor: '#E5E5EA',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 6 },
-    shadowOpacity: 0.25,
-    shadowRadius: 12,
-    elevation: 10,
   },
   title: {
     fontSize: 24,
