@@ -446,6 +446,7 @@ export default function CalendarScreen() {
 
               {/* التقويم الشهري الشبكي */}
               <ThemedView style={styles.annualCalendarContainer}>
+                <ThemedView style={styles.monthsGridWrapper}>
                 {hijriMonths.map((month, monthIndex) => {
                   const isCurrentMonth = monthIndex + 1 === parseInt(todayInfo.hijri.month);
                   const monthDays = [30, 29, 30, 29, 30, 29, 30, 29, 30, 29, 30, 29];
@@ -534,6 +535,7 @@ export default function CalendarScreen() {
                     </ThemedView>
                   );
                 })}
+                </ThemedView>
               </ThemedView>
 
               </ThemedView>
@@ -918,40 +920,48 @@ const styles = StyleSheet.create({
   annualCalendarContainer: {
     marginBottom: 16,
   },
+  monthsGridWrapper: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    justifyContent: 'space-between',
+    paddingHorizontal: 4,
+  },
   monthGridContainer: {
-    marginBottom: 20,
-    borderRadius: 12,
+    marginBottom: 12,
+    borderRadius: 8,
     overflow: 'hidden',
-    elevation: 2,
+    elevation: 1,
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.1,
-    shadowRadius: 3,
+    shadowOpacity: 0.08,
+    shadowRadius: 2,
+    width: (width - 56) / 2, // اثنين في كل صف
+    marginHorizontal: 4,
   },
   monthGridHeader: {
-    padding: 12,
+    padding: 8,
     alignItems: 'center',
     position: 'relative',
   },
   monthGridTitle: {
-    fontSize: 16,
+    fontSize: 13,
     fontWeight: 'bold',
     color: '#fff',
     textAlign: 'center',
     writingDirection: 'rtl',
   },
   monthGridInfo: {
-    fontSize: 12,
+    fontSize: 10,
     color: '#fff',
     opacity: 0.9,
     textAlign: 'center',
-    marginTop: 2,
+    marginTop: 1,
   },
   currentMonthIndicator: {
     position: 'absolute',
-    right: 12,
+    right: 8,
     top: '50%',
-    marginTop: -8,
+    marginTop: -6,
   },
   weekdaysRow: {
     flexDirection: 'row',
@@ -959,36 +969,36 @@ const styles = StyleSheet.create({
   },
   weekdayCell: {
     flex: 1,
-    paddingVertical: 8,
+    paddingVertical: 4,
     alignItems: 'center',
   },
   weekdayText: {
-    fontSize: 12,
+    fontSize: 10,
     fontWeight: '600',
     textAlign: 'center',
   },
   monthDaysGrid: {
     flexDirection: 'row',
     flexWrap: 'wrap',
-    padding: 4,
+    padding: 2,
   },
   dayCell: {
     width: `${100/7}%`,
-    aspectRatio: 1,
+    height: 22,
     justifyContent: 'center',
     alignItems: 'center',
-    borderRadius: 4,
-    margin: 1,
+    borderRadius: 3,
+    margin: 0.5,
   },
   todayCell: {
-    elevation: 2,
+    elevation: 1,
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.2,
-    shadowRadius: 2,
+    shadowOpacity: 0.15,
+    shadowRadius: 1,
   },
   dayCellText: {
-    fontSize: 14,
+    fontSize: 11,
     fontWeight: '500',
     textAlign: 'center',
   },
