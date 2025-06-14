@@ -238,7 +238,54 @@ export default function SettingsScreen() {
                   />
                 </ThemedView>
 
-                <TouchableOpacity style={[styles.settingItem, darkTheme && styles.darkSettingItem]}>
+                <TouchableOpacity 
+                  style={[styles.settingItem, darkTheme && styles.darkSettingItem]}
+                  onPress={() => {
+                    Alert.alert(
+                      'ألوان التطبيق',
+                      'اختر نظام الألوان المفضل لديك',
+                      [
+                        {
+                          text: 'الأزرق الكلاسيكي',
+                          onPress: () => {
+                            Alert.alert('تم التطبيق', 'تم تطبيق نظام الألوان الأزرق الكلاسيكي');
+                          }
+                        },
+                        {
+                          text: 'الأخضر الطبيعي',
+                          onPress: () => {
+                            Alert.alert('تم التطبيق', 'تم تطبيق نظام الألوان الأخضر الطبيعي');
+                          }
+                        },
+                        {
+                          text: 'البنفسجي الأنيق',
+                          onPress: () => {
+                            Alert.alert('تم التطبيق', 'تم تطبيق نظام الألوان البنفسجي الأنيق');
+                          }
+                        },
+                        {
+                          text: 'البرتقالي الدافئ',
+                          onPress: () => {
+                            Alert.alert('تم التطبيق', 'تم تطبيق نظام الألوان البرتقالي الدافئ');
+                          }
+                        },
+                        {
+                          text: 'الوردي الناعم',
+                          onPress: () => {
+                            Alert.alert('تم التطبيق', 'تم تطبيق نظام الألوان الوردي الناعم');
+                          }
+                        },
+                        {
+                          text: 'الافتراضي',
+                          onPress: () => {
+                            Alert.alert('تم التطبيق', 'تم استعادة نظام الألوان الافتراضي');
+                          }
+                        },
+                        { text: 'إلغاء', style: 'cancel' }
+                      ]
+                    );
+                  }}
+                >
                   <ThemedView style={styles.settingInfo}>
                     <IconSymbol size={24} name="paintbrush.fill" color="#FF6B6B" />
                     <ThemedView style={styles.settingText}>
