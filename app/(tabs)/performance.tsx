@@ -6,6 +6,8 @@ import { ThemedView } from '@/components/ThemedView';
 import { IconSymbol } from '@/components/ui/IconSymbol';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useRouter } from 'expo-router';
+import * as ImagePicker from 'expo-image-picker';
+import * as DocumentPicker from 'expo-document-picker';
 
 export default function PerformanceScreen() {
   const router = useRouter();
@@ -152,7 +154,7 @@ export default function PerformanceScreen() {
 
   const [selectedPerformance, setSelectedPerformance] = useState<number | null>(null);
   const [selectedEvidence, setSelectedEvidence] = useState<{performanceId: number, evidenceIndex: number} | null>(null);
-  const [uploadedFiles, setUploadedFiles] = useState<{[key: string]: {name: string, size: string, date: string}}>({});
+  const [uploadedFiles, setUploadedFiles] = useState<{[key: string]: {name: string, size: string, date: string, type: string, uri?: string}}>({});
 
   useEffect(() => {
     loadPerformanceData();
@@ -338,6 +340,153 @@ export default function PerformanceScreen() {
     );
   };
 
+  const pickImage = async (performanceId: number, evidenceIndex: number) => {
+    try {
+      const result = await ImagePicker.launchImageLibraryAsync({
+        mediaTypes: ImagePicker.MediaTypeOptions.Images,
+        allowsEditing: true,
+        aspect: [4, 3],
+        quality: 1,
+      });
+
+      if (!result.canceled && result.assets[0]) {
+        const image = result.assets[0];
+        const fileKey = `${performanceId}-${evidenceIndex}`;
+        const fileSize = image.fileSize ? (image.fileSize / (1024 * 1024)).toFixed(2) + ' MB' : '2.5 MB';
+        
+        const newFile = {
+          name: `صورة_${Date.now()}.jpg`,
+          size: fileSize,
+          date: new Date().toLocaleDateString('ar-SA'),
+          type: 'image',
+          uri: image.uri
+        };
+        
+        setUploadedFiles(prev => ({
+          ...prev,
+          [fileKey]: newFile
+        }));
+        
+        Alert.alert('نجح التحميل', `تم تحميل الصورة بنجاح: ${newFile.name}`);
+      }
+    } catch (error) {
+      Alert.alert('خطأ', 'فشل في تحميل الصورة');
+    }
+  };
+
+  const pickDocument = async (performanceId: number, evidenceIndex: number) => {
+    try {
+      const result = await DocumentPicker.getDocumentAsync({
+        type: '*/*',
+        copyToCacheDirectory: true,
+      });
+
+      if (!result.canceled && result.assets[0]) {
+        const document = result.assets[0];
+        const fileKey = `${performanceId}-${evidenceIndex}`;
+        const fileSize = document.size ? (document.size / (1024 * 1024)).toFixed(2) + ' MB' : '1.5 MB';
+        
+        const newFile = {
+          name: document.name || `مستند_${Date.now()}.pdf`,
+          size: fileSize,
+          date: new Date().toLocaleDateString('ar-SA'),
+          type: 'document',
+          uri: document.uri
+        };
+        
+        setUploadedFiles(prev => ({
+          ...prev,
+          [fileKey]: newFile
+        }));
+        
+        Alert.alert('نجح التحميل', `تم تحميل المستند بنجاح: ${newFile.name}`);
+      }
+    } catch (error) {
+      Alert.alert('خطأ', 'فشل في تحميل المستند');
+    }
+  };
+
+  const pickVideo = async (performanceId: number, evidenceIndex: number) => {
+    try {
+      const result = await ImagePicker.launchImageLibraryAsync({
+        mediaTypes: ImagePicker.MediaTypeOptions.Videos,
+        allowsEditing: true,
+        quality: 1,
+      });
+
+      if (!result.canceled && result.assets[0]) {
+        const video = result.assets[0];
+        const fileKey = `${performanceId}-${evidenceIndex}`;
+        const fileSize = video.fileSize ? (video.fileSize / (1024 * 1024)).toFixed(2) + ' MB' : '5.0 MB';
+        
+        const newFile = {
+          name: `فيديو_${Date.now()}.mp4`,
+          size: fileSize,
+          date: new Date().toLocaleDateString('ar-SA'),
+          type: 'video',
+          uri: video.uri
+        };
+        
+        setUploadedFiles(prev => ({
+          ...prev,
+          [fileKey]: newFile
+        }));
+        
+        Alert.alert('نجح التحميل', `تم تحميل الفيديو بنجاح: ${newFile.name}`);
+      }
+    } catch (error) {
+      Alert.alert('خطأ', 'فشل في تحميل الفيديو');
+    }
+  };
+
+  const handleFileUpload = (performanceId: number, evidenceIndex: number) => {
+    Alert.alert(
+      'تحميل ملف',
+      'اختر نوع الملف:',
+      [
+        {
+          text: 'صورة',
+          onPress: () => pickImage(performanceId, evidenceIndex)
+        },
+        {
+          text: 'مستند',
+          onPress: () => pickDocument(performanceId, evidenceIndex)
+        },
+        {
+          text: 'فيديو',
+          onPress: () => pickVideo(performanceId, evidenceIndex)
+        },
+        { text: 'إلغاء', style: 'cancel' }
+      ]
+    );
+  };
+
+  const deleteFile = (performanceId: number, evidenceIndex: number) => {
+    const fileKey = `${performanceId}-${evidenceIndex}`;
+    Alert.alert(
+      'حذف الملف',
+      'هل أنت متأكد من رغبتك في حذف هذا الملف؟',
+      [
+        {
+          text: 'إلغاء',
+          style: 'cancel',
+        },
+        {
+          text: 'حذف',
+          style: 'destructive',
+          onPress: () => {
+            setUploadedFiles(prev => {
+              const newFiles = { ...prev };
+              delete newFiles[fileKey];
+              return newFiles;
+            });
+            Alert.alert('تم الحذف', 'تم حذف الملف بنجاح');
+          },
+        },
+      ]
+    );
+  };
+
   return (
     <ThemedView style={styles.container}>
       <ImageBackground
@@ -463,30 +612,7 @@ export default function PerformanceScreen() {
                               style={styles.uploadIcon}
                               onPress={(e) => {
                                 e.stopPropagation();
-                                const fileKey = `${item.id}-${index}`;
-                                Alert.alert(
-                                  'تحميل ملف',
-                                  `سيتم تحميل ملف لـ: ${evidenceItem.name}`,
-                                  [
-                                    { text: 'إلغاء', style: 'cancel' },
-                                    { 
-                                      text: 'تحميل',
-                                      onPress: () => {
-                                        // محاكاة رفع ملف
-                                        const newFile = {
-                                          name: `${evidenceItem.name}.pdf`,
-                                          size: '2.5 ميجابايت',
-                                          date: new Date().toLocaleDateString('ar-SA')
-                                        };
-                                        setUploadedFiles(prev => ({
-                                          ...prev,
-                                          [fileKey]: newFile
-                                        }));
-                                        Alert.alert('نجح التحميل', `تم تحميل الملف بنجاح: ${newFile.name}`);
-                                      }
-                                    }
-                                  ]
-                                );
+                                handleFileUpload(item.id, index);
                               }}
                             >
                               <IconSymbol 
@@ -554,9 +680,29 @@ export default function PerformanceScreen() {
 
                               {uploadedFiles[`${item.id}-${index}`] ? (
                                 <ThemedView style={styles.fileDetailsContainer}>
-                                  <ThemedText style={styles.fileDetailsTitle}>الملف المحمل:</ThemedText>
+                                  <ThemedView style={styles.fileHeaderRow}>
+                                    <TouchableOpacity 
+                                      style={styles.deleteFileButton}
+                                      onPress={() => deleteFile(item.id, index)}
+                                    >
+                                      <IconSymbol size={14} name="trash.fill" color="#F44336" />
+                                    </TouchableOpacity>
+                                    <ThemedText style={styles.fileDetailsTitle}>الملف المحمل:</ThemedText>
+                                  </ThemedView>
                                   <ThemedView style={styles.fileInfoRow}>
-                                    <IconSymbol size={16} name="doc.fill" color="#2196F3" />
+                                    <IconSymbol 
+                                      size={16} 
+                                      name={
+                                        uploadedFiles[`${item.id}-${index}`].type === 'image' ? "photo.fill" :
+                                        uploadedFiles[`${item.id}-${index}`].type === 'video' ? "video.fill" :
+                                        "doc.fill"
+                                      } 
+                                      color={
+                                        uploadedFiles[`${item.id}-${index}`].type === 'image' ? "#4CAF50" :
+                                        uploadedFiles[`${item.id}-${index}`].type === 'video' ? "#FF9800" :
+                                        "#2196F3"
+                                      } 
+                                    />
                                     <ThemedView style={styles.fileInfo}>
                                       <ThemedText style={styles.fileName}>
                                         {uploadedFiles[`${item.id}-${index}`].name}
@@ -567,21 +713,44 @@ export default function PerformanceScreen() {
                                       <ThemedText style={styles.fileDate}>
                                         تاريخ التحميل: {uploadedFiles[`${item.id}-${index}`].date}
                                       </ThemedText>
+                                      <ThemedText style={styles.fileType}>
+                                        النوع: {
+                                          uploadedFiles[`${item.id}-${index}`].type === 'image' ? 'صورة' :
+                                          uploadedFiles[`${item.id}-${index}`].type === 'video' ? 'فيديو' :
+                                          'مستند'
+                                        }
+                                      </ThemedText>
                                     </ThemedView>
                                   </ThemedView>
-                                  <TouchableOpacity 
-                                    style={styles.viewFileButton}
-                                    onPress={() => Alert.alert('عرض الملف', `فتح ملف: ${uploadedFiles[`${item.id}-${index}`].name}`)}
-                                  >
-                                    <IconSymbol size={14} name="eye.fill" color="#2196F3" />
-                                    <ThemedText style={styles.viewFileButtonText}>عرض الملف</ThemedText>
-                                  </TouchableOpacity>
+                                  <ThemedView style={styles.fileActionsRow}>
+                                    <TouchableOpacity 
+                                      style={styles.shareFileButton}
+                                      onPress={() => Alert.alert('مشاركة الملف', `مشاركة ملف: ${uploadedFiles[`${item.id}-${index}`].name}`)}
+                                    >
+                                      <IconSymbol size={14} name="square.and.arrow.up.fill" color="#4CAF50" />
+                                      <ThemedText style={styles.shareFileButtonText}>مشاركة</ThemedText>
+                                    </TouchableOpacity>
+                                    <TouchableOpacity 
+                                      style={styles.viewFileButton}
+                                      onPress={() => Alert.alert('عرض الملف', `فتح ملف: ${uploadedFiles[`${item.id}-${index}`].name}`)}
+                                    >
+                                      <IconSymbol size={14} name="eye.fill" color="#2196F3" />
+                                      <ThemedText style={styles.viewFileButtonText}>عرض الملف</ThemedText>
+                                    </TouchableOpacity>
+                                  </ThemedView>
                                 </ThemedView>
                               ) : (
                                 <ThemedView style={styles.noFileContainer}>
                                   <IconSymbol size={20} name="doc.badge.plus" color="#999" />
                                   <ThemedText style={styles.noFileText}>لم يتم تحميل ملف بعد</ThemedText>
                                   <ThemedText style={styles.noFileHint}>اضغط على أيقونة التحميل لرفع ملف</ThemedText>
+                                  <TouchableOpacity 
+                                    style={styles.uploadHereButton}
+                                    onPress={() => handleFileUpload(item.id, index)}
+                                  >
+                                    <IconSymbol size={16} name="arrow.up.doc.fill" color="#2196F3" />
+                                    <ThemedText style={styles.uploadHereButtonText}>تحميل ملف</ThemedText>
+                                  </TouchableOpacity>
                                 </ThemedView>
                               )}
                             </ThemedView>
@@ -1192,7 +1361,7 @@ const styles = StyleSheet.create({
     writingDirection: 'rtl',
   },
   viewFileButton: {
-    flexDirection: I18nManager.isRTL ? 'row-reverse' : 'row',
+    flexDirection: 'row',
     alignItems: 'center',
     backgroundColor: '#e3f2fd',
     paddingHorizontal: 8,
@@ -1201,7 +1370,7 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: '#2196F3',
     gap: 4,
-    alignSelf: 'flex-end',
+    flex: 1,
   },
   viewFileButtonText: {
     fontSize: 10,
@@ -1232,6 +1401,66 @@ const styles = StyleSheet.create({
     fontSize: 9,
     color: '#ccc',
     marginTop: 2,
+    textAlign: 'center',
+    writingDirection: 'rtl',
+  },
+  uploadHereButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#e3f2fd',
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    borderRadius: 15,
+    marginTop: 8,
+    gap: 4,
+  },
+  uploadHereButtonText: {
+    fontSize: 10,
+    color: '#2196F3',
+    fontWeight: '600',
+    textAlign: 'center',
+    writingDirection: 'rtl',
+  },
+  fileHeaderRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 8,
+  },
+  deleteFileButton: {
+    padding: 4,
+    borderRadius: 6,
+    backgroundColor: '#ffebee',
+  },
+  fileType: {
+    fontSize: 10,
+    color: '#666',
+    textAlign: 'right',
+    writingDirection: 'rtl',
+  },
+  fileActionsRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginTop: 8,
+    gap: 8,
+  },
+  shareFileButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#e8f5e8',
+    paddingHorizontal: 8,
+    paddingVertical: 6,
+    borderRadius: 6,
+    borderWidth: 1,
+    borderColor: '#4CAF50',
+    gap: 4,
+    flex: 1,
+  },
+  shareFileButtonText: {
+    fontSize: 10,
+    color: '#4CAF50',
+    fontWeight: '600',
     textAlign: 'center',
     writingDirection: 'rtl',
   },
