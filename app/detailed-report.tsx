@@ -672,6 +672,45 @@ ${axis.title}: ${axis.score}%
                 <ThemedText style={styles.buttonText}>📊 التقرير التفاعلي</ThemedText>
               </TouchableOpacity>
             </ThemedView>
+
+            {/* قسم التقرير التفاعلي */}
+            <ThemedView style={styles.interactiveReportSection}>
+              <ThemedText style={styles.sectionTitle}>📊 التقرير التفاعلي</ThemedText>
+              <ThemedText style={styles.interactiveDescription}>
+                احصل على تحليل تفاعلي شامل لأدائك المهني مع مخططات بيانية ديناميكية ومؤشرات تفصيلية
+              </ThemedText>
+              
+              <ThemedView style={styles.interactiveFeatures}>
+                <ThemedView style={styles.featureItem}>
+                  <IconSymbol size={16} name="chart.bar.fill" color="#4CAF50" />
+                  <ThemedText style={styles.featureText}>مخططات بيانية تفاعلية</ThemedText>
+                </ThemedView>
+                
+                <ThemedView style={styles.featureItem}>
+                  <IconSymbol size={16} name="chart.pie.fill" color="#2196F3" />
+                  <ThemedText style={styles.featureText}>إحصائيات متقدمة</ThemedText>
+                </ThemedView>
+                
+                <ThemedView style={styles.featureItem}>
+                  <IconSymbol size={16} name="lightbulb.fill" color="#FF9800" />
+                  <ThemedText style={styles.featureText}>توصيات ذكية</ThemedText>
+                </ThemedView>
+                
+                <ThemedView style={styles.featureItem}>
+                  <IconSymbol size={16} name="arrow.triangle.2.circlepath" color="#9C27B0" />
+                  <ThemedText style={styles.featureText}>تحليل مقارن</ThemedText>
+                </ThemedView>
+              </ThemedView>
+
+              <TouchableOpacity 
+                style={styles.mainInteractiveButton}
+                onPress={() => router.push('/interactive-report')}
+              >
+                <IconSymbol size={24} name="chart.line.uptrend.xyaxis" color="#fff" />
+                <ThemedText style={styles.mainInteractiveButtonText}>افتح التقرير التفاعلي</ThemedText>
+                <IconSymbol size={16} name="chevron.left" color="#fff" />
+              </TouchableOpacity>
+            </ThemedView>
           </ScrollView>
         </ExpoLinearGradient>
       </ImageBackground>
@@ -1192,6 +1231,75 @@ const styles = StyleSheet.create({
     color: '#1c1f33',
     fontSize: 16,
     fontWeight: '600',
+    writingDirection: 'rtl',
+    textAlign: 'center',
+  },
+  interactiveReportSection: {
+    backgroundColor: '#fff',
+    borderRadius: 20,
+    padding: 25,
+    marginTop: 20,
+    marginBottom: 20,
+    elevation: 6,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.15,
+    shadowRadius: 8,
+    borderWidth: 2,
+    borderColor: '#E3F2FD',
+  },
+  interactiveDescription: {
+    fontSize: 14,
+    color: '#666',
+    textAlign: 'center',
+    writingDirection: 'rtl',
+    lineHeight: 22,
+    marginBottom: 20,
+  },
+  interactiveFeatures: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    justifyContent: 'space-between',
+    marginBottom: 25,
+    gap: 12,
+  },
+  featureItem: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#F8F9FA',
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+    borderRadius: 20,
+    gap: 6,
+    width: '48%',
+  },
+  featureText: {
+    fontSize: 12,
+    color: '#333',
+    fontWeight: '600',
+    textAlign: 'right',
+    writingDirection: 'rtl',
+    flex: 1,
+  },
+  mainInteractiveButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: '#1c1f33',
+    paddingVertical: 18,
+    paddingHorizontal: 30,
+    borderRadius: 30,
+    gap: 12,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 8 },
+    shadowOpacity: 0.3,
+    shadowRadius: 15,
+    elevation: 15,
+  },
+  mainInteractiveButtonText: {
+    color: '#fff',
+    fontSize: 18,
+    fontWeight: 'bold',
     writingDirection: 'rtl',
     textAlign: 'center',
   },
