@@ -380,12 +380,12 @@ export default function InteractiveReportScreen() {
               <ThemedText style={styles.selectorTitle}>اختر نوع التحليل:</ThemedText>
               <ThemedView style={styles.selectorButtons}>
                 <TouchableOpacity
-                  style={[styles.selectorButton, selectedChart === 'categories' && styles.activeSelectorButton]}
-                  onPress={() => setSelectedChart('categories')}
+                  style={[styles.selectorButton, selectedChart === 'statistics' && styles.activeSelectorButton]}
+                  onPress={() => setSelectedChart('statistics')}
                 >
-                  <IconSymbol size={16} name="chart.bar.fill" color={selectedChart === 'categories' ? '#fff' : '#666'} />
-                  <ThemedText style={[styles.selectorButtonText, selectedChart === 'categories' && styles.activeSelectorButtonText]}>
-                    الفئات
+                  <IconSymbol size={16} name="chart.pie.fill" color={selectedChart === 'statistics' ? '#fff' : '#666'} />
+                  <ThemedText style={[styles.selectorButtonText, selectedChart === 'statistics' && styles.activeSelectorButtonText]}>
+                    الإحصائيات
                   </ThemedText>
                 </TouchableOpacity>
 
@@ -400,12 +400,12 @@ export default function InteractiveReportScreen() {
                 </TouchableOpacity>
 
                 <TouchableOpacity
-                  style={[styles.selectorButton, selectedChart === 'statistics' && styles.activeSelectorButton]}
-                  onPress={() => setSelectedChart('statistics')}
+                  style={[styles.selectorButton, selectedChart === 'categories' && styles.activeSelectorButton]}
+                  onPress={() => setSelectedChart('categories')}
                 >
-                  <IconSymbol size={16} name="chart.pie.fill" color={selectedChart === 'statistics' ? '#fff' : '#666'} />
-                  <ThemedText style={[styles.selectorButtonText, selectedChart === 'statistics' && styles.activeSelectorButtonText]}>
-                    الإحصائيات
+                  <IconSymbol size={16} name="chart.bar.fill" color={selectedChart === 'categories' ? '#fff' : '#666'} />
+                  <ThemedText style={[styles.selectorButtonText, selectedChart === 'categories' && styles.activeSelectorButtonText]}>
+                    الفئات
                   </ThemedText>
                 </TouchableOpacity>
               </ThemedView>
