@@ -200,7 +200,7 @@ export default function CalendarScreen() {
 
           <ScrollView 
             style={styles.scrollView}
-            contentContainerStyle={{ flexGrow: 1 }}
+            contentContainerStyle={{ flexGrow: 1, ...commonStyles.scrollViewWithBottomNav }}
           >
             {/* تاريخ اليوم - القسم الرئيسي */}
             <ThemedView style={[styles.todaySection, { backgroundColor: colors.card }]}>
