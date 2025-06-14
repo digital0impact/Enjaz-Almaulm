@@ -923,11 +923,11 @@ const styles = StyleSheet.create({
   monthsGridWrapper: {
     flexDirection: 'row',
     flexWrap: 'wrap',
-    justifyContent: 'space-between',
+    justifyContent: 'flex-start',
     paddingHorizontal: 4,
   },
   monthGridContainer: {
-    marginBottom: 12,
+    marginBottom: 8,
     borderRadius: 8,
     overflow: 'hidden',
     elevation: 1,
@@ -935,23 +935,24 @@ const styles = StyleSheet.create({
     shadowOffset: { width: 0, height: 1 },
     shadowOpacity: 0.08,
     shadowRadius: 2,
-    width: (width - 56) / 2, // اثنين في كل صف
-    marginHorizontal: 4,
+    width: (width - 64) / 3, // ثلاثة في كل صف
+    marginHorizontal: 2,
+    marginVertical: 2,
   },
   monthGridHeader: {
-    padding: 8,
+    padding: 6,
     alignItems: 'center',
     position: 'relative',
   },
   monthGridTitle: {
-    fontSize: 13,
+    fontSize: 11,
     fontWeight: 'bold',
     color: '#fff',
     textAlign: 'center',
     writingDirection: 'rtl',
   },
   monthGridInfo: {
-    fontSize: 10,
+    fontSize: 8,
     color: '#fff',
     opacity: 0.9,
     textAlign: 'center',
@@ -969,26 +970,26 @@ const styles = StyleSheet.create({
   },
   weekdayCell: {
     flex: 1,
-    paddingVertical: 4,
+    paddingVertical: 2,
     alignItems: 'center',
   },
   weekdayText: {
-    fontSize: 10,
+    fontSize: 8,
     fontWeight: '600',
     textAlign: 'center',
   },
   monthDaysGrid: {
     flexDirection: 'row',
     flexWrap: 'wrap',
-    padding: 2,
+    padding: 1,
   },
   dayCell: {
     width: `${100/7}%`,
-    height: 22,
+    height: 18,
     justifyContent: 'center',
     alignItems: 'center',
-    borderRadius: 3,
-    margin: 0.5,
+    borderRadius: 2,
+    margin: 0.3,
   },
   todayCell: {
     elevation: 1,
@@ -998,7 +999,7 @@ const styles = StyleSheet.create({
     shadowRadius: 1,
   },
   dayCellText: {
-    fontSize: 11,
+    fontSize: 9,
     fontWeight: '500',
     textAlign: 'center',
   },
