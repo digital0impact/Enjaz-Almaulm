@@ -11,5 +11,4 @@ export const commonStyles = StyleSheet.create({
   },
 });
 
-// Export default to fix the routing error
 export default commonStyles;
