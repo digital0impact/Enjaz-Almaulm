@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { StyleSheet, ScrollView, TouchableOpacity, I18nManager, ImageBackground, KeyboardAvoidingView, Platform, StatusBar } from 'react-native';
 import { LinearGradient as ExpoLinearGradient } from 'expo-linear-gradient';
@@ -6,6 +5,7 @@ import { ThemedText } from '@/components/ThemedText';
 import { ThemedView } from '@/components/ThemedView';
 import { IconSymbol } from '@/components/ui/IconSymbol';
 import { useRouter } from 'expo-router';
+import { BottomNavigationBar } from '@/components/BottomNavigationBar';
 
 const azkarData = [
   {
@@ -272,7 +272,7 @@ export default function AzkarScreen() {
                   <ThemedText type="subtitle" style={styles.sectionTitle}>
                     فئات الأذكار
                   </ThemedText>
-                  
+
                   {azkarData.map((category) => (
                     <ThemedView key={category.id} style={styles.categoryContainer}>
                       <TouchableOpacity
@@ -283,7 +283,7 @@ export default function AzkarScreen() {
                           <ThemedView style={styles.categoryIconContainer}>
                             <IconSymbol size={24} name={category.icon as any} color="#1c1f33" />
                           </ThemedView>
-                          
+
                           <ThemedView style={styles.categoryInfo}>
                             <ThemedText style={styles.categoryTitle}>
                               {category.category}
@@ -292,7 +292,7 @@ export default function AzkarScreen() {
                               {category.azkar.length} {category.azkar.length === 1 ? 'ذكر' : 'أذكار'}
                             </ThemedText>
                           </ThemedView>
-                          
+
                           <IconSymbol 
                             size={20} 
                             name={expandedCategories.includes(category.id) ? "chevron.up" : "chevron.down"} 
@@ -319,12 +319,12 @@ export default function AzkarScreen() {
                                 <ThemedText style={styles.azkarText}>
                                   {zikr.text}
                                 </ThemedText>
-                                
+
                                 <ThemedView style={styles.counterContainer}>
                                   <ThemedText style={styles.counterText}>
                                     {currentCount} / {zikr.count}
                                   </ThemedText>
-                                  
+
                                   <ThemedView style={styles.counterButtons}>
                                     <TouchableOpacity 
                                       style={[
@@ -340,7 +340,7 @@ export default function AzkarScreen() {
                                         color={isCompleted ? "#34C759" : "#1c1f33"} 
                                       />
                                     </TouchableOpacity>
-                                    
+
                                     <TouchableOpacity 
                                       style={styles.resetButton}
                                       onPress={() => resetCount(category.id, index)}
@@ -362,9 +362,10 @@ export default function AzkarScreen() {
           </KeyboardAvoidingView>
         </ExpoLinearGradient>
       </ImageBackground>
-    </ThemedView>
-  );
-}
+        <BottomNavigationBar />
+      </ThemedView>
+    );
+  }
 
 const styles = StyleSheet.create({
   container: {
@@ -439,7 +440,7 @@ const styles = StyleSheet.create({
     padding: 20,
     backgroundColor: 'transparent',
   },
-  
+
   dataSection: {
     marginBottom: 30,
   },
