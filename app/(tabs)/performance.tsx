@@ -551,15 +551,19 @@ export default function PerformanceScreen() {
             </ThemedView>
 
             <ThemedView style={styles.content}>
-        <ThemedView style={styles.performanceList}>
-          {performanceData.map((item, index) => (
-            <TouchableOpacity
-              key={item.id}
-              style={styles.performanceCard}
-              onPress={() => 
-                setSelectedPerformance(selectedPerformance === item.id ? null : item.id)
-              }
-            >
+                  <ThemedText type="subtitle" style={styles.sectionTitle}>
+                    محاور الأداء المهني
+                  </ThemedText>
+                  
+                  <ThemedView style={styles.performanceGrid}>
+                    {performanceData.map((item, index) => (
+                      <TouchableOpacity
+                        key={item.id}
+                        style={styles.performanceCard}
+                        onPress={() => 
+                          setSelectedPerformance(selectedPerformance === item.id ? null : item.id)
+                        }
+                      >
               <ThemedView style={styles.cardHeader}>
                 <ThemedView style={styles.cardTitleContainer}>
                   <ThemedText style={styles.itemNumber}>
@@ -791,11 +795,9 @@ export default function PerformanceScreen() {
                 style={styles.expandIcon}
               />
             </TouchableOpacity>
-          ))}
-        </ThemedView>
-
-        
-      </ThemedView>
+                    ))}
+                  </ThemedView>
+                </ThemedView>
           </ScrollView>
         </ExpoLinearGradient>
       </ImageBackground>
@@ -1055,8 +1057,8 @@ const styles = StyleSheet.create({
   },
   expandIcon: {
     position: 'absolute',
-    top: 15,
-    left: 15,
+    top: 10,
+    right: 10,
   },
   actionButtons: {
     flexDirection: 'row',
@@ -1132,82 +1134,98 @@ const styles = StyleSheet.create({
     textAlign: 'center',
   },
   sectionTitle: {
-    fontSize: 18,
+    fontSize: 20,
     fontWeight: 'bold',
-    color: '#333',
-    marginBottom: 15,
-    textAlign: 'right',
+    color: '#1c1f33',
+    marginBottom: 20,
+    textAlign: 'center',
     writingDirection: 'rtl',
   },
+  performanceGrid: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    justifyContent: 'space-between',
+    gap: 15,
+  },
   performanceCard: {
-    backgroundColor: '#cadfde',
-    borderRadius: 10,
-    marginBottom: 10,
-    elevation: 2,
+    backgroundColor: '#F8F9FA',
+    borderRadius: 15,
+    marginBottom: 15,
+    elevation: 3,
     shadowColor: '#000',
-    shadowOffset: { width: 0, height: 1 },
+    shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.1,
-    shadowRadius: 3,
+    shadowRadius: 4,
     position: 'relative',
+    width: '48%',
+    borderWidth: 1,
+    borderColor: '#E5E5EA',
   },
   performanceCardHover: {
     backgroundColor: '#cadfde',
     opacity: 0.8,
   },
   cardHeader: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'flex-start',
-    padding: 10,
+    flexDirection: 'column',
+    alignItems: 'center',
+    padding: 15,
   },
   cardTitleContainer: {
-    flexDirection: 'row-reverse',
-    flex: 1,
-    gap: 8,
+    alignItems: 'center',
+    marginBottom: 10,
   },
   itemNumber: {
-    fontSize: 16,
+    fontSize: 20,
     fontWeight: 'bold',
     color: '#1c1f33',
-    minWidth: 25,
-    textAlign: 'right',
-    writingDirection: 'rtl',
+    marginBottom: 8,
+    textAlign: 'center',
+    backgroundColor: '#add4ce',
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    lineHeight: 40,
+    textAlign: 'center',
   },
   cardContent: {
-    flex: 1,
+    alignItems: 'center',
   },
   cardTitle: {
     fontSize: 14,
     fontWeight: 'bold',
     color: '#333',
-    marginBottom: 3,
-    textAlign: 'right',
+    marginBottom: 8,
+    textAlign: 'center',
     writingDirection: 'rtl',
   },
   cardDescription: {
-    fontSize: 12,
+    fontSize: 11,
     color: '#666',
     lineHeight: 16,
-    marginBottom: 3,
-    textAlign: 'right',
+    marginBottom: 8,
+    textAlign: 'center',
     writingDirection: 'rtl',
   },
+  scoreContainer: {
+    alignItems: 'center',
+    marginBottom: 10,
+  },
   score: {
-    fontSize: 24,
+    fontSize: 20,
     fontWeight: 'bold',
     textAlign: 'center',
+    marginBottom: 4,
   },
   scoreLevel: {
-    fontSize: 12,
+    fontSize: 11,
     fontWeight: '600',
-    marginTop: 2,
     textAlign: 'center',
   },
   progressBar: {
-    height: 4,
+    height: 6,
     backgroundColor: '#E5E5EA',
-    marginHorizontal: 10,
-    marginBottom: 10,
+    marginHorizontal: 15,
+    marginBottom: 15,
     borderRadius: 3,
     overflow: 'hidden',
   },
