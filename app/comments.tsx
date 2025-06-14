@@ -265,7 +265,7 @@ export default function CommentsScreen() {
                           style={styles.deleteButton}
                           onPress={() => deleteComment(comment.id)}
                         >
-                          <IconSymbol size={20} name="trash" color="#F44336" />
+                          <IconSymbol size={20} name="trash" color="#1c1f33" />
                         </TouchableOpacity>
                       </ThemedView>
 
