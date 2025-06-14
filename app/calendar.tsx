@@ -337,7 +337,7 @@ export default function CalendarScreen() {
             {/* تاريخ اليوم - القسم الرئيسي */}
             <ThemedView style={[styles.todaySection, { backgroundColor: colors.card }]}>
               <ThemedView style={styles.sectionHeader}>
-                <ThemedText style={[styles.sectionTitle, { color: colors.text }]}>
+                <ThemedText style={[styles.sectionTitle, { color: colors.text, textAlign: 'center' }]}>
                   تاريخ اليوم
                 </ThemedText>
               </ThemedView>
