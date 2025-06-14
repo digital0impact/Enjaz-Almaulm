@@ -1300,6 +1300,7 @@ const styles = StyleSheet.create({
     borderRadius: 12,
     alignItems: 'center',
     marginBottom: 10,
+    backgroundColor: 'rgba(255, 255, 255, 0.3)',
   },
   statValue: {
     fontSize: 20,
@@ -1336,7 +1337,7 @@ const styles = StyleSheet.create({
     gap: 8,
   },
   recommendationItem: {
-    backgroundColor: '#FFF8E1',
+    backgroundColor: 'rgba(255, 248, 225, 0.3)',
     padding: 12,
     borderRadius: 8,
     borderLeftWidth: 4,
