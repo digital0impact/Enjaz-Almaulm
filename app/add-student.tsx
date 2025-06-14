@@ -262,12 +262,21 @@ export default function AddStudentScreen() {
   };
 
   const saveStudent = async () => {
-    if (!studentData.name.trim() || !studentData.grade.trim()) {
-      Alert.alert('خطأ', 'يرجى ملء جميع الحقول المطلوبة');
+    // التحقق من البيانات المطلوبة
+    if (!studentData.name.trim()) {
+      Alert.alert('خطأ', 'يرجى إدخال اسم المتعلم');
+      return;
+    }
+
+    if (!studentData.grade.trim()) {
+      Alert.alert('خطأ', 'يرجى إدخال الصف الدراسي');
       return;
     }
 
     try {
+      // إظهار رسالة تحميل
+      Alert.alert('جاري الحفظ...', 'يتم حفظ بيانات المتعلم');
+
       const existingStudents = await AsyncStorage.getItem('students');
       const students = existingStudents ? JSON.parse(existingStudents) : [];
 
@@ -286,11 +295,20 @@ export default function AddStudentScreen() {
       students.push(newStudent);
       await AsyncStorage.setItem('students', JSON.stringify(students));
 
-      Alert.alert('نجح', 'تم إضافة المتعلم بنجاح', [
-        { text: 'موافق', onPress: () => router.back() }
+      console.log('Student saved successfully:', newStudent);
+
+      Alert.alert('تم بنجاح!', 'تم إضافة المتعلم بنجاح', [
+        { 
+          text: 'موافق', 
+          onPress: () => {
+            console.log('Navigating back...');
+            router.back();
+          }
+        }
       ]);
     } catch (error) {
-      Alert.alert('خطأ', 'حدث خطأ أثناء حفظ البيانات');
+      console.error('Error saving student:', error);
+      Alert.alert('خطأ', 'حدث خطأ أثناء حفظ البيانات. يرجى المحاولة مرة أخرى.');
     }
   };
 
