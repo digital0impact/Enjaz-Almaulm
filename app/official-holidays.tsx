@@ -220,7 +220,7 @@ export default function OfficialHolidaysScreen() {
                 style={styles.backButton}
                 onPress={() => router.back()}
               >
-                <IconSymbol size={24} name="chevron.right" color="#1c1f33" />
+                <IconSymbol size={20} name="arrow.right" color="#1c1f33" />
               </TouchableOpacity>
               <ThemedView style={styles.iconContainer}>
                 <IconSymbol size={48} name="calendar.badge.clock" color="#1c1f33" />
@@ -557,8 +557,19 @@ const styles = StyleSheet.create({
   backButton: {
     position: 'absolute',
     top: 50,
-    right: 20,
-    padding: 10,
+    left: 20,
+    backgroundColor: '#add4ce',
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    justifyContent: 'center',
+    alignItems: 'center',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.2,
+    shadowRadius: 8,
+    elevation: 8,
+    zIndex: 1,
   },
   iconContainer: {
     marginBottom: 20,
