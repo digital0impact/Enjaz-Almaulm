@@ -500,6 +500,7 @@ const styles = StyleSheet.create({
   },
   userDetails: {
     flex: 1,
+    backgroundColor: 'transparent',
   },
   userName: {
     fontSize: 18,
@@ -536,11 +537,13 @@ const styles = StyleSheet.create({
     flexDirection: I18nManager.isRTL ? 'row-reverse' : 'row',
     alignItems: 'center',
     flex: 1,
+    backgroundColor: 'transparent',
   },
   settingText: {
     marginLeft: I18nManager.isRTL ? 0 : 12,
     marginRight: I18nManager.isRTL ? 12 : 0,
     flex: 1,
+    backgroundColor: 'transparent',
   },
   settingTitle: {
     fontSize: 16,
