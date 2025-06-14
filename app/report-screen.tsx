@@ -6,6 +6,8 @@ import { ThemedText } from '@/components/ThemedText';
 import { ThemedView } from '@/components/ThemedView';
 import { IconSymbol } from '@/components/ui/IconSymbol';
 import { useRouter, useLocalSearchParams } from 'expo-router';
+import { BottomNavigationBar } from '@/components/BottomNavigationBar';
+import { commonStyles } from '@/styles/common-styles';
 
 export default function ReportScreen() {
   const router = useRouter();
@@ -174,6 +176,7 @@ export default function ReportScreen() {
           </ScrollView>
         </ExpoLinearGradient>
       </ImageBackground>
+      <BottomNavigationBar />
     </ThemedView>
   );
 }
@@ -192,6 +195,7 @@ const styles = StyleSheet.create({
   },
   scrollContainer: {
     flex: 1,
+    ...commonStyles.scrollViewWithBottomNav,
   },
   header: {
     alignItems: 'center',
