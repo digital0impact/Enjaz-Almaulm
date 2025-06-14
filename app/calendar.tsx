@@ -97,17 +97,17 @@ export default function CalendarScreen() {
     const epochDate = new Date(622, 6, 16); // يوليو = الشهر 6 (0-indexed)
     const timeDiff = gregorianDate.getTime() - epochDate.getTime();
     const daysDiff = Math.floor(timeDiff / (1000 * 60 * 60 * 24));
-    
+
     // السنة الهجرية = 354.367 يوم تقريباً
     const hijriYear = Math.floor(daysDiff / 354.367) + 1;
     const remainingDays = daysDiff - Math.floor((hijriYear - 1) * 354.367);
-    
+
     // أشهر السنة الهجرية (أيام كل شهر)
     const monthDays = [30, 29, 30, 29, 30, 29, 30, 29, 30, 29, 30, 29];
-    
+
     let hijriMonth = 1;
     let hijriDay = remainingDays + 1;
-    
+
     for (let i = 0; i < 12; i++) {
       if (hijriDay <= monthDays[i]) {
         hijriMonth = i + 1;
@@ -116,18 +116,18 @@ export default function CalendarScreen() {
       hijriDay -= monthDays[i];
       hijriMonth = i + 2;
     }
-    
+
     // تصحيح للسنة الكبيسة
     if (hijriMonth > 12) {
       hijriMonth = 1;
       hijriDay = hijriDay - monthDays[11];
     }
-    
+
     // التأكد من أن اليوم لا يتجاوز أيام الشهر
     if (hijriDay < 1) {
       hijriDay = 1;
     }
-    
+
     return {
       date: `${hijriDay}/${hijriMonth}/${hijriYear}`,
       day: hijriDay.toString(),
@@ -145,16 +145,16 @@ export default function CalendarScreen() {
     const approximateHijriYear = Math.floor((currentYear - 579) * 1.030684);
     const currentMonth = gregorianDate.getMonth() + 1;
     const currentDay = gregorianDate.getDate();
-    
+
     // تقدير الشهر الهجري بناءً على الشهر الميلادي
     const monthOffset = Math.floor((currentMonth - 1) * 0.97) + 1;
     let hijriMonth = monthOffset > 12 ? monthOffset - 12 : monthOffset;
     let hijriYear = approximateHijriYear;
-    
+
     if (monthOffset > 12) {
       hijriYear += 1;
     }
-    
+
     return {
       date: `${currentDay}/${hijriMonth}/${hijriYear}`,
       day: currentDay.toString(),
@@ -195,7 +195,7 @@ export default function CalendarScreen() {
         console.error('خطأ في حساب التاريخ الهجري:', error);
         // حساب تقريبي كخيار احتياطي
         const approximateHijriDate = getApproximateHijriDate(now);
-        
+
         setTodayInfo({
           gregorian: gregorianDate,
           hijri: approximateHijriDate,
@@ -400,7 +400,7 @@ export default function CalendarScreen() {
               </View>
             </ThemedView>
 
-            
+
           </ScrollView>
 
           <BottomNavigationBar />
