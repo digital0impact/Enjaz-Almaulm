@@ -247,7 +247,7 @@ export default function HomeScreen() {
                     style={styles.loginButton}
                     onPress={() => handleLogin('microsoft')}
                   >
-                    <IconSymbol size={24} name="gear.fill" color="#1c1f33" />
+                    <IconSymbol size={24} name="globe" color="#1c1f33" />
                     <ThemedText style={styles.loginButtonText}>حساب Microsoft</ThemedText>
                   </TouchableOpacity>
                 </ThemedView>
