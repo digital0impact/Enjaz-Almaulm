@@ -444,77 +444,96 @@ export default function CalendarScreen() {
                 </TouchableOpacity>
               </ThemedView>
 
-              {/* الأشهر الهجرية للسنة */}
+              {/* التقويم الشهري الشبكي */}
               <ThemedView style={styles.annualCalendarContainer}>
-                <View style={styles.annualMonthsGrid}>
-                  {hijriMonths.map((month, index) => {
-                    const isCurrentMonth = index + 1 === parseInt(todayInfo.hijri.month);
-                    const monthDays = [30, 29, 30, 29, 30, 29, 30, 29, 30, 29, 30, 29];
-                    const daysInMonth = monthDays[index];
+                {hijriMonths.map((month, monthIndex) => {
+                  const isCurrentMonth = monthIndex + 1 === parseInt(todayInfo.hijri.month);
+                  const monthDays = [30, 29, 30, 29, 30, 29, 30, 29, 30, 29, 30, 29];
+                  const daysInMonth = monthDays[monthIndex];
+                  
+                  // إنشاء أيام الشهر
+                  const calendarDays = [];
+                  for (let day = 1; day <= daysInMonth; day++) {
+                    calendarDays.push(day);
+                  }
 
-                    return (
-                      <TouchableOpacity
-                        key={index}
-                        style={[
-                          styles.annualMonthCard,
-                          { 
-                            backgroundColor: isCurrentMonth 
-                              ? 'rgba(230, 126, 34, 0.2)' 
-                              : 'rgba(255, 255, 255, 0.8)',
-                            borderColor: isCurrentMonth ? '#E67E22' : '#ddd',
-                            borderWidth: isCurrentMonth ? 2 : 1,
-                          }
-                        ]}
-                        onPress={() => {
-                          Alert.alert(
-                            `${month} ${todayInfo.hijri.year} هـ`,
-                            `📅 الشهر: ${month}\n` +
-                            `📊 الترتيب: الشهر ${index + 1}\n` +
-                            `📆 عدد الأيام: ${daysInMonth} يوم\n` +
-                            `🌙 نوع الشهر: ${daysInMonth === 30 ? 'شهر كامل' : 'شهر ناقص'}\n\n` +
-                            `${isCurrentMonth ? '🔥 هذا هو الشهر الحالي' : ''}`,
-                            [
-                              {
-                                text: 'عرض تفاصيل الشهر',
-                                onPress: () => Alert.alert('تفاصيل الشهر', `تفاصيل شهر ${month}`)
-                              },
-                              { text: 'إغلاق', style: 'cancel' }
-                            ]
+                  return (
+                    <ThemedView 
+                      key={monthIndex}
+                      style={[
+                        styles.monthGridContainer,
+                        { 
+                          backgroundColor: isCurrentMonth 
+                            ? 'rgba(230, 126, 34, 0.1)' 
+                            : 'rgba(255, 255, 255, 0.8)',
+                          borderColor: isCurrentMonth ? '#E67E22' : '#ddd',
+                          borderWidth: isCurrentMonth ? 2 : 1,
+                        }
+                      ]}
+                    >
+                      {/* رأس الشهر */}
+                      <ThemedView style={[styles.monthGridHeader, { backgroundColor: isCurrentMonth ? '#E67E22' : '#999' }]}>
+                        <ThemedText style={styles.monthGridTitle}>
+                          {month} {todayInfo.hijri.year} هـ
+                        </ThemedText>
+                        <ThemedText style={styles.monthGridInfo}>
+                          {daysInMonth} يوم ({daysInMonth === 30 ? 'كامل' : 'ناقص'})
+                        </ThemedText>
+                        {isCurrentMonth && (
+                          <ThemedView style={styles.currentMonthIndicator}>
+                            <IconSymbol size={16} name="star.fill" color="#fff" />
+                          </ThemedView>
+                        )}
+                      </ThemedView>
+
+                      {/* أيام الأسبوع */}
+                      <ThemedView style={styles.weekdaysRow}>
+                        {['ح', 'ن', 'ث', 'ر', 'خ', 'ج', 'س'].map((day, index) => (
+                          <ThemedView key={index} style={styles.weekdayCell}>
+                            <ThemedText style={[styles.weekdayText, { color: colors.text }]}>
+                              {day}
+                            </ThemedText>
+                          </ThemedView>
+                        ))}
+                      </ThemedView>
+
+                      {/* شبكة أيام الشهر */}
+                      <ThemedView style={styles.monthDaysGrid}>
+                        {calendarDays.map((day) => {
+                          const isToday = isCurrentMonth && day === parseInt(todayInfo.hijri.day);
+                          
+                          return (
+                            <TouchableOpacity
+                              key={day}
+                              style={[
+                                styles.dayCell,
+                                isToday && styles.todayCell,
+                                { backgroundColor: isToday ? '#E67E22' : 'transparent' }
+                              ]}
+                              onPress={() => {
+                                Alert.alert(
+                                  `${day} ${month} ${todayInfo.hijri.year} هـ`,
+                                  `📅 التاريخ: ${day}/${monthIndex + 1}/${todayInfo.hijri.year} هـ\n` +
+                                  `📊 الشهر: ${month}\n` +
+                                  `🌙 اليوم: ${day} من ${daysInMonth}\n` +
+                                  `${isToday ? '🔥 هذا هو اليوم الحالي' : ''}`,
+                                  [{ text: 'إغلاق', style: 'cancel' }]
+                                );
+                              }}
+                            >
+                              <ThemedText style={[
+                                styles.dayCellText,
+                                { color: isToday ? '#fff' : colors.text }
+                              ]}>
+                                {day}
+                              </ThemedText>
+                            </TouchableOpacity>
                           );
-                        }}
-                      >
-                        <ThemedView style={[styles.monthCardHeader, { backgroundColor: 'transparent' }]}>
-                          <ThemedText style={[styles.monthCardNumber, { color: isCurrentMonth ? '#E67E22' : colors.text }]}>
-                            {index + 1}
-                          </ThemedText>
-                          {isCurrentMonth && (
-                            <ThemedView style={styles.currentMonthBadge}>
-                              <IconSymbol size={12} name="star.fill" color="#fff" />
-                            </ThemedView>
-                          )}
-                        </ThemedView>
-
-                        <ThemedText style={[styles.monthCardName, { color: colors.text }]}>
-                          {month}
-                        </ThemedText>
-
-                        <ThemedText style={[styles.monthCardDays, { color: colors.text }]}>
-                          {daysInMonth} يوم
-                        </ThemedText>
-
-                        <ThemedView style={[styles.monthType, { 
-                          backgroundColor: daysInMonth === 30 ? 'rgba(76, 175, 80, 0.2)' : 'rgba(255, 152, 0, 0.2)' 
-                        }]}>
-                          <ThemedText style={[styles.monthTypeText, { 
-                            color: daysInMonth === 30 ? '#4CAF50' : '#FF9800' 
-                          }]}>
-                            {daysInMonth === 30 ? 'كامل' : 'ناقص'}
-                          </ThemedText>
-                        </ThemedView>
-                      </TouchableOpacity>
-                    );
-                  })}
-                </View>
+                        })}
+                      </ThemedView>
+                    </ThemedView>
+                  );
+                })}
               </ThemedView>
 
               </ThemedView>
@@ -899,54 +918,78 @@ const styles = StyleSheet.create({
   annualCalendarContainer: {
     marginBottom: 16,
   },
-  annualMonthsGrid: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    justifyContent: 'center',
-    gap: 8,
+  monthGridContainer: {
+    marginBottom: 20,
+    borderRadius: 12,
+    overflow: 'hidden',
+    elevation: 2,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.1,
+    shadowRadius: 3,
   },
-  annualMonthCard: {
-    width: (width - 60) / 4,
+  monthGridHeader: {
+    padding: 12,
     alignItems: 'center',
-    padding: 10,
-    borderRadius: 8,
+    position: 'relative',
   },
-  monthCardHeader: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    gap: 4,
-    marginBottom: 4,
-  },
-  monthCardNumber: {
+  monthGridTitle: {
     fontSize: 16,
     fontWeight: 'bold',
-  },
-  currentMonthBadge: {
-    backgroundColor: '#E67E22',
-    paddingHorizontal: 6,
-    paddingVertical: 2,
-    borderRadius: 6,
-  },
-  monthCardName: {
-    fontSize: 14,
-    fontWeight: 'bold',
+    color: '#fff',
     textAlign: 'center',
     writingDirection: 'rtl',
   },
-  monthCardDays: {
+  monthGridInfo: {
     fontSize: 12,
-    opacity: 0.8,
+    color: '#fff',
+    opacity: 0.9,
+    textAlign: 'center',
+    marginTop: 2,
   },
-  monthType: {
-    paddingHorizontal: 8,
-    paddingVertical: 4,
-    borderRadius: 6,
-    marginTop: 4,
+  currentMonthIndicator: {
+    position: 'absolute',
+    right: 12,
+    top: '50%',
+    marginTop: -8,
   },
-  monthTypeText: {
-    fontSize: 10,
-    fontWeight: 'bold',
+  weekdaysRow: {
+    flexDirection: 'row',
+    backgroundColor: 'rgba(0, 0, 0, 0.05)',
+  },
+  weekdayCell: {
+    flex: 1,
+    paddingVertical: 8,
+    alignItems: 'center',
+  },
+  weekdayText: {
+    fontSize: 12,
+    fontWeight: '600',
+    textAlign: 'center',
+  },
+  monthDaysGrid: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    padding: 4,
+  },
+  dayCell: {
+    width: `${100/7}%`,
+    aspectRatio: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    borderRadius: 4,
+    margin: 1,
+  },
+  todayCell: {
+    elevation: 2,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.2,
+    shadowRadius: 2,
+  },
+  dayCellText: {
+    fontSize: 14,
+    fontWeight: '500',
     textAlign: 'center',
   },
   
