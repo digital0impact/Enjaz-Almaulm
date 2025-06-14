@@ -379,7 +379,8 @@ const styles = StyleSheet.create({
     shadowRadius: 8,
     elevation: 8,
     alignSelf: 'center',
-    marginBottom: 15,
+    marginBottom: 10,
+    marginTop: 5,
   },
   backButton: {
     padding: 10,
