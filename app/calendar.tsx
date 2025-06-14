@@ -297,13 +297,8 @@ export default function CalendarScreen() {
             <ThemedView style={[styles.todaySection, { backgroundColor: colors.card }]}>
               <ThemedView style={styles.sectionHeader}>
                 <ThemedText style={[styles.sectionTitle, { color: colors.text }]}>
-                  🌟 تاريخ اليوم
+                  تاريخ اليوم
                 </ThemedText>
-                <ThemedView style={[styles.liveBadge, { backgroundColor: isLiveUpdate ? '#4ECDC4' : '#ccc' }]}>
-                  <ThemedText style={styles.liveBadgeText}>
-                    {isLiveUpdate ? 'مباشر' : 'متوقف'}
-                  </ThemedText>
-                </ThemedView>
               </ThemedView>
 
               {/* Container for Gregorian and Hijri cards */}
