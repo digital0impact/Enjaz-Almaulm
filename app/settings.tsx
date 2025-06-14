@@ -8,9 +8,11 @@ import { useRouter } from 'expo-router';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { BottomNavigationBar } from '@/components/BottomNavigationBar';
 import { Switch } from 'react-native';
+import { useUser } from '@/contexts/UserContext';
 
 export default function SettingsScreen() {
   const router = useRouter();
+  const { userName } = useUser();
   const [darkTheme, setDarkTheme] = useState(false);
   const [notifications, setNotifications] = useState(true);
   const [autoBackup, setAutoBackup] = useState(true);
@@ -182,7 +184,7 @@ export default function SettingsScreen() {
                     <IconSymbol size={40} name="person.circle.fill" color="#1c1f33" />
                   </ThemedView>
                   <ThemedView style={styles.userDetails}>
-                    <ThemedText style={styles.userName}>{userInfo?.name || 'المستخدم'}</ThemedText>
+                    <ThemedText style={styles.userName}>{userName}</ThemedText>
                     <ThemedText style={styles.userEmail}>{userInfo?.email || 'user@example.com'}</ThemedText>
                   </ThemedView>
                 </ThemedView>
