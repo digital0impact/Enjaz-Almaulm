@@ -13,7 +13,7 @@ interface Student {
   id: string;
   name: string;
   grade: string;
-  status: 'ممتاز' | 'مقبول' | 'ضعيف' | 'ضعف';
+  status: 'تفوق' | 'يحتاج إلى تطوير' | 'صعوبات التعلم' | 'ضعف';
   lastUpdate: string;
   notes: string;
   goals: Goal[];
@@ -45,7 +45,7 @@ export default function AddStudentScreen() {
   const [studentData, setStudentData] = useState({
     name: '',
     grade: '',
-    status: 'مقبول' as Student['status'],
+    status: 'يحتاج إلى تطوير' as Student['status'],
     notes: '',
     goals: [] as Goal[],
     needs: [] as string[],
@@ -74,9 +74,9 @@ export default function AddStudentScreen() {
   const [showEvidenceForm, setShowEvidenceForm] = useState(false);
 
   const statusOptions = [
-    { value: 'ممتاز', label: 'متفوق', color: '#4CAF50', icon: 'star.fill' },
-    { value: 'مقبول', label: 'يحتاج إلى تطوير', color: '#FF5722', icon: 'star' },
-    { value: 'ضعيف', label: 'صعوبات تعلم', color: '#F44336', icon: 'exclamationmark.triangle.fill' },
+    { value: 'تفوق', label: 'تفوق', color: '#4CAF50', icon: 'star.fill' },
+    { value: 'يحتاج إلى تطوير', label: 'يحتاج إلى تطوير', color: '#FF5722', icon: 'star' },
+    { value: 'صعوبات التعلم', label: 'صعوبات التعلم', color: '#F44336', icon: 'exclamationmark.triangle.fill' },
     { value: 'ضعف', label: 'ضعف', color: '#9C27B0', icon: 'minus.circle.fill' }
   ];
 
