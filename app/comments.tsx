@@ -17,6 +17,7 @@ interface Comment {
   priority: 'عادي' | 'مهم' | 'عاجل';
   status: 'جديد' | 'قيد المراجعة' | 'مكتمل';
   date: string;
+  visitorName?: string;
 }
 
 export default function CommentsScreen() {
@@ -25,7 +26,8 @@ export default function CommentsScreen() {
   const [showAddForm, setShowAddForm] = useState(false);
   const [newComment, setNewComment] = useState({
     title: '',
-    content: ''
+    content: '',
+    visitorName: ''
   });
 
   useEffect(() => {
@@ -52,7 +54,7 @@ export default function CommentsScreen() {
   };
 
   const addComment = () => {
-    if (!newComment.title.trim() || !newComment.content.trim()) {
+    if (!newComment.title.trim() || !newComment.content.trim() || !newComment.visitorName.trim()) {
       Alert.alert('خطأ', 'يرجى ملء جميع الحقول المطلوبة');
       return;
     }
@@ -64,7 +66,8 @@ export default function CommentsScreen() {
       category: 'عام',
       priority: 'عادي',
       status: 'جديد',
-      date: new Date().toLocaleDateString('ar-SA')
+      date: new Date().toLocaleDateString('ar-SA'),
+      visitorName: newComment.visitorName
     };
 
     const updatedComments = [comment, ...comments];
@@ -73,7 +76,8 @@ export default function CommentsScreen() {
     
     setNewComment({
       title: '',
-      content: ''
+      content: '',
+      visitorName: ''
     });
     setShowAddForm(false);
     
@@ -187,6 +191,15 @@ export default function CommentsScreen() {
                   
                   <TextInput
                     style={styles.input}
+                    placeholder="اسم الزائر"
+                    value={newComment.visitorName}
+                    onChangeText={(text) => setNewComment({ ...newComment, visitorName: text })}
+                    textAlign="right"
+                    writingDirection="rtl"
+                  />
+
+                  <TextInput
+                    style={styles.input}
                     placeholder="عنوان التعليق"
                     value={newComment.title}
                     onChangeText={(text) => setNewComment({ ...newComment, title: text })}
@@ -257,6 +270,9 @@ export default function CommentsScreen() {
                       </ThemedView>
 
                       <ThemedText style={styles.commentTitle}>{comment.title}</ThemedText>
+                      {comment.visitorName && (
+                        <ThemedText style={styles.visitorName}>بواسطة: {comment.visitorName}</ThemedText>
+                      )}
                       <ThemedText style={styles.commentContent}>{comment.content}</ThemedText>
                       <ThemedText style={styles.commentDate}>{comment.date}</ThemedText>
 
@@ -625,6 +641,14 @@ const styles = StyleSheet.create({
     textAlign: 'right',
     color: '#1c1f33',
     writingDirection: 'rtl',
+  },
+  visitorName: {
+    fontSize: 14,
+    color: '#666666',
+    marginBottom: 8,
+    textAlign: 'right',
+    writingDirection: 'rtl',
+    fontStyle: 'italic',
   },
   commentContent: {
     fontSize: 16,
