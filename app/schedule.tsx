@@ -6,6 +6,7 @@ import { ThemedView } from '@/components/ThemedView';
 import { IconSymbol } from '@/components/ui/IconSymbol';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useRouter } from 'expo-router';
+import { BottomNavigationBar } from '@/components/BottomNavigationBar';
 
 const { width } = Dimensions.get('window');
 
@@ -560,6 +561,7 @@ export default function ScheduleScreen() {
             </ScrollView>
           </ExpoLinearGradient>
       </ImageBackground>
+      <BottomNavigationBar />
     </ThemedView>
   );
 }

@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { StyleSheet, ScrollView, TouchableOpacity, Alert, I18nManager, ImageBackground, Dimensions, TextInput } from 'react-native';
 import { LinearGradient as ExpoLinearGradient } from 'expo-linear-gradient';
@@ -6,6 +5,7 @@ import { ThemedText } from '@/components/ThemedText';
 import { ThemedView } from '@/components/ThemedView';
 import { IconSymbol } from '@/components/ui/IconSymbol';
 import { useRouter } from 'expo-router';
+import { BottomNavigationBar } from '@/components/BottomNavigationBar';
 
 const { width } = Dimensions.get('window');
 
@@ -148,13 +148,13 @@ export default function PasswordTrackerScreen() {
             <ThemedText style={styles.statValue}>{passwords.length}</ThemedText>
             <ThemedText style={styles.statLabel}>إجمالي كلمات المرور</ThemedText>
           </ThemedView>
-          
+
           <ThemedView style={[styles.statCard, { backgroundColor: '#E8F5E8' }]}>
             <IconSymbol size={24} name="checkmark.shield.fill" color="#4CAF50" />
             <ThemedText style={styles.statValue}>{passwords.filter(p => p.strength === 'قوي').length}</ThemedText>
             <ThemedText style={styles.statLabel}>كلمات مرور قوية</ThemedText>
           </ThemedView>
-          
+
           <ThemedView style={[styles.statCard, { backgroundColor: '#FFEBEE' }]}>
             <IconSymbol size={24} name="exclamationmark.triangle.fill" color="#F44336" />
             <ThemedText style={styles.statValue}>{passwords.filter(p => p.strength === 'ضعيف').length}</ThemedText>
@@ -174,10 +174,10 @@ export default function PasswordTrackerScreen() {
                 <ThemedText style={styles.strengthText}>{item.strength}</ThemedText>
               </ThemedView>
             </ThemedView>
-            
+
             <ThemedText style={styles.username}>المستخدم: {item.username}</ThemedText>
             <ThemedText style={styles.lastUpdated}>آخر تحديث: {item.lastUpdated}</ThemedText>
-            
+
             <ThemedView style={styles.passwordActions}>
               <TouchableOpacity 
                 style={styles.actionButton}
@@ -186,7 +186,7 @@ export default function PasswordTrackerScreen() {
                 <IconSymbol size={16} name="eye.fill" color="#2196F3" />
                 <ThemedText style={styles.actionButtonText}>عرض</ThemedText>
               </TouchableOpacity>
-              
+
               <TouchableOpacity 
                 style={styles.actionButton}
                 onPress={() => Alert.alert('تم النسخ', 'تم نسخ كلمة المرور')}
@@ -205,7 +205,7 @@ export default function PasswordTrackerScreen() {
     <ThemedView style={styles.tabContent}>
       <ThemedView style={styles.formContainer}>
         <ThemedText style={styles.sectionTitle}>إضافة كلمة مرور جديدة</ThemedText>
-        
+
         <ThemedView style={styles.formGroup}>
           <ThemedText style={styles.formLabel}>اسم الموقع *</ThemedText>
           <TextInput
@@ -280,7 +280,6 @@ export default function PasswordTrackerScreen() {
               </TouchableOpacity>
             ))}
           </ThemedView>
-        </ThemedView>
 
         <ThemedView style={styles.formGroup}>
           <ThemedText style={styles.formLabel}>ملاحظات</ThemedText>
@@ -308,7 +307,7 @@ export default function PasswordTrackerScreen() {
     <ThemedView style={styles.tabContent}>
       <ThemedView style={styles.recommendationsContainer}>
         <ThemedText style={styles.sectionTitle}>توصيات الأمان</ThemedText>
-        
+
         <ThemedView style={styles.recommendationCard}>
           <ThemedText style={styles.recommendationTitle}>
             <IconSymbol size={16} name="exclamationmark.triangle.fill" color="#F44336" /> كلمات مرور ضعيفة

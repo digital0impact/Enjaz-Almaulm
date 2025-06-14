@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { StyleSheet, ScrollView, TouchableOpacity, ImageBackground, KeyboardAvoidingView, Platform } from 'react-native';
 import { LinearGradient as ExpoLinearGradient } from 'expo-linear-gradient';
@@ -7,6 +6,7 @@ import { ThemedView } from '@/components/ThemedView';
 import { IconSymbol } from '@/components/ui/IconSymbol';
 import { useRouter } from 'expo-router';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { BottomNavigationBar } from '@/components/BottomNavigationBar';
 
 interface Student {
   id: string;
@@ -30,7 +30,7 @@ export default function StudentTrackingScreen() {
       const stored = await AsyncStorage.getItem('students');
       if (stored) {
         let students = JSON.parse(stored);
-        
+
         // تحديث التصنيفات القديمة للتصنيفات الجديدة
         students = students.map((student: Student) => {
           let updatedStatus = student.status;
@@ -41,13 +41,13 @@ export default function StudentTrackingScreen() {
           } else if (student.status === 'ضعيف') {
             updatedStatus = 'صعوبات التعلم';
           }
-          
+
           return {
             ...student,
             status: updatedStatus as Student['status']
           };
         });
-        
+
         // حفظ البيانات المحدثة
         await AsyncStorage.setItem('students', JSON.stringify(students));
         setStudents(students);
@@ -102,11 +102,11 @@ export default function StudentTrackingScreen() {
                   >
                     <IconSymbol size={24} name="chevron.right" color="#1c1f33" />
                   </TouchableOpacity>
-                  
+
                   <ThemedView style={styles.iconContainer}>
                     <IconSymbol size={60} name="person.crop.circle.badge.plus" color="#1c1f33" />
                   </ThemedView>
-                  
+
                   <ThemedText type="title" style={styles.title}>
                     تتبع حالة متعلم
                   </ThemedText>
@@ -138,7 +138,7 @@ export default function StudentTrackingScreen() {
                 ) : (
                   <ThemedView style={styles.studentsSection}>
                     <ThemedText style={styles.sectionTitle}>قائمة المتعلمين</ThemedText>
-                    
+
                     {/* Statistics */}
                     <ThemedView style={styles.statsContainer}>
                       <ThemedView style={[styles.statCard, { backgroundColor: '#E8F5E8' }]}>
@@ -146,7 +146,7 @@ export default function StudentTrackingScreen() {
                         <ThemedText style={styles.statNumber}>{students.length}</ThemedText>
                         <ThemedText style={styles.statLabel}>إجمالي المتعلمين</ThemedText>
                       </ThemedView>
-                      
+
                       <ThemedView style={[styles.statCard, { backgroundColor: '#FFF3E0' }]}>
                         <IconSymbol size={24} name="star.fill" color="#FF9800" />
                         <ThemedText style={styles.statNumber}>
@@ -176,10 +176,10 @@ export default function StudentTrackingScreen() {
                               <ThemedText style={styles.statusText}>{student.status}</ThemedText>
                             </ThemedView>
                           </ThemedView>
-                          
+
                           <ThemedText style={styles.studentName}>{student.name}</ThemedText>
                           <ThemedText style={styles.studentGrade}>{student.grade}</ThemedText>
-                          
+
                           <ThemedView style={styles.studentFooter}>
                             <ThemedText style={styles.lastUpdate}>
                               آخر تحديث: {student.lastUpdate}
@@ -223,6 +223,7 @@ const styles = StyleSheet.create({
   header: {
     padding: 20,
     alignItems: 'center',
+    position: 'relative',
   },
   backButton: {
     position: 'absolute',

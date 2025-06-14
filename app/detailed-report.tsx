@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { StyleSheet, ScrollView, TouchableOpacity, Alert, I18nManager, ImageBackground, Dimensions } from 'react-native';
 import { LinearGradient as ExpoLinearGradient } from 'expo-linear-gradient';
@@ -12,7 +11,7 @@ const { width } = Dimensions.get('window');
 export default function DetailedReportScreen() {
   const router = useRouter();
   const [selectedView, setSelectedView] = useState('overview');
-  
+
   const performanceData = [
     {
       id: 1,
@@ -197,7 +196,7 @@ export default function DetailedReportScreen() {
                 {item.score}%
               </ThemedText>
             </ThemedView>
-            
+
             <ThemedText style={styles.detailedDescription}>
               {item.details}
             </ThemedText>
@@ -231,7 +230,7 @@ export default function DetailedReportScreen() {
     <ThemedView style={styles.tabContent}>
       <ThemedView style={styles.recommendationsContainer}>
         <ThemedText style={styles.sectionTitle}>التوصيات والخطط المقترحة</ThemedText>
-        
+
         <ThemedView style={styles.recommendationCard}>
           <ThemedText style={styles.recommendationTitle}>
             <IconSymbol size={16} name="target" color="#2196F3" /> التوصيات الفورية
