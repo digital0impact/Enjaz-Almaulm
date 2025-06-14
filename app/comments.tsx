@@ -253,6 +253,7 @@ export default function CommentsScreen() {
                         <TouchableOpacity
                           style={styles.deleteButton}
                           onPress={() => deleteComment(comment.id)}
+                          activeOpacity={0.7}
                         >
                           <IconSymbol size={20} name="trash" color="#1c1f33" />
                         </TouchableOpacity>
