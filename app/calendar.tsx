@@ -76,6 +76,7 @@ export default function CalendarScreen() {
 
   const [currentTime, setCurrentTime] = useState(new Date());
   const [isLiveUpdate, setIsLiveUpdate] = useState(true);
+  const [isLoadingHijri, setIsLoadingHijri] = useState(false);
 
   const gregorianMonths = [
     'يناير', 'فبراير', 'مارس', 'أبريل', 'مايو', 'يونيو',
@@ -91,8 +92,45 @@ export default function CalendarScreen() {
     'الأحد', 'الإثنين', 'الثلاثاء', 'الأربعاء', 'الخميس', 'الجمعة', 'السبت'
   ];
 
-  // دالة لحساب التاريخ الهجري بدقة
-  const convertToHijri = (gregorianDate: Date) => {
+  // دالة للحصول على التاريخ الهجري من API خارجي
+  const fetchHijriDateFromAPI = async (gregorianDate: Date) => {
+    try {
+      setIsLoadingHijri(true);
+      const formattedDate = gregorianDate.toISOString().split('T')[0]; // YYYY-MM-DD format
+      
+      // استخدام API مجاني وموثوق للتقويم الهجري
+      const response = await fetch(`https://api.aladhan.com/v1/gToH/${formattedDate}`);
+      const data = await response.json();
+      
+      if (data.code === 200 && data.data) {
+        const hijriData = data.data.hijri;
+        const hijriMonth = parseInt(hijriData.month.number);
+        const hijriDay = parseInt(hijriData.day);
+        const hijriYear = parseInt(hijriData.year);
+        
+        return {
+          date: `${hijriDay}/${hijriMonth}/${hijriYear}`,
+          day: hijriDay.toString(),
+          month: hijriMonth.toString(),
+          year: hijriYear.toString(),
+          monthName: hijriData.month.ar || hijriMonths[hijriMonth - 1],
+          dayName: hijriData.weekday.ar || weekDays[gregorianDate.getDay()],
+          fullDate: `${hijriData.weekday.ar || weekDays[gregorianDate.getDay()]}، ${hijriDay} ${hijriData.month.ar || hijriMonths[hijriMonth - 1]} ${hijriYear} هـ`,
+        };
+      } else {
+        throw new Error('API response invalid');
+      }
+    } catch (error) {
+      console.error('خطأ في جلب التقويم الهجري من API:', error);
+      // العودة للحساب المحلي في حالة فشل API
+      return convertToHijriLocal(gregorianDate);
+    } finally {
+      setIsLoadingHijri(false);
+    }
+  };
+
+  // دالة للحساب المحلي كخيار احتياطي
+  const convertToHijriLocal = (gregorianDate: Date) => {
     // تاريخ البداية: 1 محرم 1 هـ = 16 يوليو 622 م
     const epochDate = new Date(622, 6, 16); // يوليو = الشهر 6 (0-indexed)
     const timeDiff = gregorianDate.getTime() - epochDate.getTime();
@@ -167,7 +205,7 @@ export default function CalendarScreen() {
   };
 
   useEffect(() => {
-    const updateTodayInfo = () => {
+    const updateTodayInfo = async () => {
       const now = new Date();
       setCurrentTime(now);
 
@@ -182,10 +220,9 @@ export default function CalendarScreen() {
         fullDate: `${weekDays[now.getDay()]}، ${now.getDate()} ${gregorianMonths[now.getMonth()]} ${now.getFullYear()}`,
       };
 
-      // التاريخ الهجري - حساب دقيق
+      // التاريخ الهجري - من API خارجي
       try {
-        // استخدام حساب دقيق للتاريخ الهجري
-        const hijriDate = convertToHijri(now);
+        const hijriDate = await fetchHijriDateFromAPI(now);
 
         setTodayInfo({
           gregorian: gregorianDate,
@@ -378,6 +415,11 @@ export default function CalendarScreen() {
                     <ThemedText style={[styles.todayTypeSmall, { color: '#E67E22' }]}>
                       التاريخ الهجري
                     </ThemedText>
+                    {isLoadingHijri && (
+                      <ThemedView style={styles.loadingIndicator}>
+                        <IconSymbol size={16} name="arrow.clockwise" color="#E67E22" />
+                      </ThemedView>
+                    )}
                   </ThemedView>
 
                   <ThemedView style={[styles.todayContentSmall, { backgroundColor: 'transparent' }]}>
@@ -1002,6 +1044,10 @@ const styles = StyleSheet.create({
     fontSize: 9,
     fontWeight: '500',
     textAlign: 'center',
+  },
+  loadingIndicator: {
+    marginLeft: 8,
+    animation: 'spin 1s linear infinite',
   },
   
 });
