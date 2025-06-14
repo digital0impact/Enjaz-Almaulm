@@ -269,14 +269,34 @@ export default function DetailedReportScreen() {
       </ThemedView>
 
       <ThemedView style={styles.categoriesGrid}>
-        {performanceData.map((item) => (
+        {performanceData.map((item, index) => (
           <ThemedView key={item.id} style={styles.categoryCard}>
-            <ThemedText style={styles.categoryTitle} numberOfLines={2}>
-              {item.title}
-            </ThemedText>
-            <ThemedText style={[styles.categoryScore, { color: getScoreColor(item.score) }]}>
-              {item.score}%
-            </ThemedText>
+            <ThemedView style={styles.cardHeader}>
+              <ThemedView style={styles.cardNumberContainer}>
+                <ThemedText style={styles.itemNumber}>
+                  {index + 1}
+                </ThemedText>
+              </ThemedView>
+              
+              <ThemedView style={styles.cardContent}>
+                <ThemedText style={styles.categoryTitle} numberOfLines={2}>
+                  {item.title}
+                </ThemedText>
+                <ThemedText style={styles.weightText}>
+                  الوزن: {item.weight}%
+                </ThemedText>
+              </ThemedView>
+
+              <ThemedView style={styles.scoreContainer}>
+                <ThemedText style={[styles.categoryScore, { color: getScoreColor(item.score) }]}>
+                  {item.score}%
+                </ThemedText>
+                <ThemedText style={[styles.scoreLevelSmall, { color: getScoreColor(item.score) }]}>
+                  {getScoreLevel(item.score)}
+                </ThemedText>
+              </ThemedView>
+            </ThemedView>
+
             <ThemedView style={styles.progressBarSmall}>
               <ThemedView 
                 style={[
@@ -802,37 +822,87 @@ const styles = StyleSheet.create({
     writingDirection: 'rtl',
   },
   categoriesGrid: {
-    flexDirection: 'row',
+    flexDirection: 'row-reverse',
     flexWrap: 'wrap',
     justifyContent: 'space-between',
-    gap: 10,
+    gap: 15,
   },
   categoryCard: {
-    width: '48%',
-    backgroundColor: '#fff',
-    borderRadius: 12,
-    padding: 15,
-    elevation: 2,
+    backgroundColor: '#F8F9FA',
+    borderRadius: 20,
+    marginBottom: 15,
+    elevation: 6,
     shadowColor: '#000',
-    shadowOffset: { width: 0, height: 1 },
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.15,
+    shadowRadius: 8,
+    position: 'relative',
+    width: '48%',
+    borderWidth: 1,
+    borderColor: '#E5E5EA',
+    padding: 15,
+  },
+  cardHeader: {
+    flexDirection: 'column',
+    alignItems: 'center',
+  },
+  cardNumberContainer: {
+    backgroundColor: '#add4ce',
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginBottom: 10,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.1,
-    shadowRadius: 3,
+    shadowRadius: 4,
+    elevation: 3,
+  },
+  itemNumber: {
+    fontSize: 18,
+    fontWeight: 'bold',
+    color: '#1c1f33',
+    textAlign: 'center',
+  },
+  cardContent: {
+    alignItems: 'center',
     marginBottom: 10,
   },
   categoryTitle: {
-    fontSize: 12,
-    fontWeight: '600',
-    color: '#333',
-    textAlign: 'right',
+    fontSize: 14,
+    fontWeight: 'bold',
+    color: '#1c1f33',
+    marginBottom: 5,
+    textAlign: 'center',
     writingDirection: 'rtl',
-    marginBottom: 8,
-    height: 32,
+    lineHeight: 20,
+  },
+  weightText: {
+    fontSize: 11,
+    color: '#1c1f33',
+    textAlign: 'center',
+    writingDirection: 'rtl',
+  },
+  scoreContainer: {
+    alignItems: 'center',
+    marginBottom: 10,
+    backgroundColor: 'rgba(255, 255, 255, 0.7)',
+    paddingVertical: 6,
+    paddingHorizontal: 12,
+    borderRadius: 12,
   },
   categoryScore: {
-    fontSize: 20,
+    fontSize: 18,
     fontWeight: 'bold',
     textAlign: 'center',
-    marginBottom: 8,
+    marginBottom: 2,
+  },
+  scoreLevelSmall: {
+    fontSize: 10,
+    fontWeight: '600',
+    textAlign: 'center',
   },
   progressBarSmall: {
     height: 4,
