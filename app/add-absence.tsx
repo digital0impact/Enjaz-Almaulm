@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { StyleSheet, ScrollView, TouchableOpacity, Alert, ImageBackground, Platform } from 'react-native';
 import { LinearGradient as ExpoLinearGradient } from 'expo-linear-gradient';
@@ -99,11 +98,11 @@ export default function AddAbsenceScreen() {
               >
                 <IconSymbol size={24} name="chevron.right" color="#1c1f33" />
               </TouchableOpacity>
-              
+
               <ThemedView style={styles.iconContainer}>
                 <IconSymbol size={60} name="plus.circle.fill" color="#1c1f33" />
               </ThemedView>
-              
+
               <ThemedText type="title" style={styles.title}>
                 إضافة غياب جديد
               </ThemedText>
@@ -176,7 +175,7 @@ export default function AddAbsenceScreen() {
                     <IconSymbol size={20} name="checkmark.circle.fill" color="#4ECDC4" />
                     <ThemedText style={styles.excuseText}>نعم</ThemedText>
                   </TouchableOpacity>
-                  
+
                   <TouchableOpacity
                     style={[
                       styles.excuseOption,
@@ -403,22 +402,23 @@ const styles = StyleSheet.create({
     minHeight: 60,
   },
   saveButton: {
-    backgroundColor: '#4CAF50',
-    borderRadius: 15,
-    padding: 20,
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
+    backgroundColor: '#add4ce',
+    paddingVertical: 15,
+    paddingHorizontal: 25,
+    borderRadius: 25,
     gap: 10,
-    marginTop: 20,
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 6 },
-    shadowOpacity: 0.25,
+    shadowOpacity: 0.4,
     shadowRadius: 12,
-    elevation: 10,
+    elevation: 12,
+    marginTop: 20,
   },
   saveButtonText: {
-    color: '#fff',
+    color: '#1c1f33',
     fontSize: 18,
     fontWeight: 'bold',
     textAlign: 'center',
