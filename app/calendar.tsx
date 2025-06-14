@@ -21,7 +21,7 @@ import { commonStyles } from '@/styles/common-styles';
 
 const { width } = Dimensions.get('window');
 
-interface DateInfo {
+interface TodayInfo {
   gregorian: {
     date: string;
     day: string;
@@ -29,6 +29,7 @@ interface DateInfo {
     year: string;
     monthName: string;
     dayName: string;
+    fullDate: string;
   };
   hijri: {
     date: string;
@@ -37,6 +38,7 @@ interface DateInfo {
     year: string;
     monthName: string;
     dayName: string;
+    fullDate: string;
   };
 }
 
@@ -51,7 +53,7 @@ export default function CalendarScreen() {
     primary: '#4ECDC4',
   };
 
-  const [currentDate, setCurrentDate] = useState<DateInfo>({
+  const [todayInfo, setTodayInfo] = useState<TodayInfo>({
     gregorian: {
       date: '',
       day: '',
@@ -59,6 +61,7 @@ export default function CalendarScreen() {
       year: '',
       monthName: '',
       dayName: '',
+      fullDate: '',
     },
     hijri: {
       date: '',
@@ -67,6 +70,7 @@ export default function CalendarScreen() {
       year: '',
       monthName: '',
       dayName: '',
+      fullDate: '',
     },
   });
 
@@ -85,48 +89,65 @@ export default function CalendarScreen() {
   ];
 
   useEffect(() => {
-    const now = new Date();
+    const updateTodayInfo = () => {
+      const now = new Date();
 
-    // التاريخ الميلادي
-    const gregorianDate = {
-      date: now.toLocaleDateString('ar-SA'),
-      day: now.getDate().toString(),
-      month: (now.getMonth() + 1).toString(),
-      year: now.getFullYear().toString(),
-      monthName: gregorianMonths[now.getMonth()],
-      dayName: weekDays[now.getDay()],
-    };
-
-    // التاريخ الهجري (تقريبي)
-    try {
-      const hijriDateString = now.toLocaleDateString('ar-SA-u-ca-islamic');
-      const hijriDate = {
-        date: hijriDateString,
-        day: '15',
-        month: '8',
-        year: '1446',
-        monthName: 'شعبان',
+      // التاريخ الميلادي
+      const gregorianDate = {
+        date: now.toLocaleDateString('ar-SA'),
+        day: now.getDate().toString(),
+        month: (now.getMonth() + 1).toString(),
+        year: now.getFullYear().toString(),
+        monthName: gregorianMonths[now.getMonth()],
         dayName: weekDays[now.getDay()],
+        fullDate: `${weekDays[now.getDay()]}، ${now.getDate()} ${gregorianMonths[now.getMonth()]} ${now.getFullYear()}`,
       };
 
-      setCurrentDate({
-        gregorian: gregorianDate,
-        hijri: hijriDate,
-      });
-    } catch (error) {
-      // fallback if hijri conversion fails
-      setCurrentDate({
-        gregorian: gregorianDate,
-        hijri: {
-          date: 'غير متاح',
-          day: '15',
-          month: '8',
-          year: '1446',
-          monthName: 'شعبان',
+      // التاريخ الهجري (تقريبي)
+      try {
+        const hijriDateString = now.toLocaleDateString('ar-SA-u-ca-islamic');
+        const hijriParts = hijriDateString.split('/');
+        const hijriDay = hijriParts[0] || '15';
+        const hijriMonth = hijriParts[1] || '8';
+        const hijriYear = hijriParts[2] || '1446';
+        
+        const hijriDate = {
+          date: hijriDateString,
+          day: hijriDay,
+          month: hijriMonth,
+          year: hijriYear,
+          monthName: hijriMonths[parseInt(hijriMonth) - 1] || 'شعبان',
           dayName: weekDays[now.getDay()],
-        },
-      });
-    }
+          fullDate: `${weekDays[now.getDay()]}، ${hijriDay} ${hijriMonths[parseInt(hijriMonth) - 1] || 'شعبان'} ${hijriYear} هـ`,
+        };
+
+        setTodayInfo({
+          gregorian: gregorianDate,
+          hijri: hijriDate,
+        });
+      } catch (error) {
+        // fallback if hijri conversion fails
+        setTodayInfo({
+          gregorian: gregorianDate,
+          hijri: {
+            date: 'غير متاح',
+            day: '15',
+            month: '8',
+            year: '1446',
+            monthName: 'شعبان',
+            dayName: weekDays[now.getDay()],
+            fullDate: `${weekDays[now.getDay()]}، 15 شعبان 1446 هـ`,
+          },
+        });
+      }
+    };
+
+    updateTodayInfo();
+    
+    // تحديث التاريخ كل دقيقة
+    const interval = setInterval(updateTodayInfo, 60000);
+    
+    return () => clearInterval(interval);
   }, []);
 
   const handleBack = () => {
@@ -182,52 +203,52 @@ export default function CalendarScreen() {
             style={[styles.scrollView, commonStyles.scrollViewWithBottomNav]}
             showsVerticalScrollIndicator={false}
           >
-            {/* التاريخ الحالي */}
-            <ThemedView style={[styles.section, { backgroundColor: colors.card }]}>
+            {/* تاريخ اليوم - القسم الرئيسي */}
+            <ThemedView style={[styles.todaySection, { backgroundColor: colors.card }]}>
               <ThemedText style={[styles.sectionTitle, { color: colors.text }]}>
-                📆 التاريخ الحالي
+                🌟 تاريخ اليوم
               </ThemedText>
 
-              {/* التاريخ الميلادي */}
-              <ThemedView style={[styles.dateCard, { backgroundColor: colors.background }]}>
-                <ThemedView style={styles.dateHeader}>
-                  <IconSymbol size={28} name="calendar" color="#4ECDC4" />
-                  <ThemedText style={[styles.calendarType, { color: colors.text }]}>
-                    التقويم الميلادي
+              {/* التاريخ الميلادي لليوم */}
+              <ThemedView style={[styles.todayCard, { backgroundColor: 'rgba(78, 205, 196, 0.1)', borderColor: '#4ECDC4' }]}>
+                <ThemedView style={styles.todayHeader}>
+                  <IconSymbol size={32} name="calendar.circle" color="#4ECDC4" />
+                  <ThemedText style={[styles.todayType, { color: '#4ECDC4' }]}>
+                    التاريخ الميلادي
                   </ThemedText>
                 </ThemedView>
 
-                <ThemedView style={styles.dateContent}>
-                  <ThemedText style={[styles.dayName, { color: colors.text }]}>
-                    {currentDate.gregorian.dayName}
+                <ThemedView style={styles.todayContent}>
+                  <ThemedText style={[styles.todayFullDate, { color: colors.text }]}>
+                    {todayInfo.gregorian.fullDate}
                   </ThemedText>
-                  <ThemedText style={[styles.dateNumber, { color: '#4ECDC4' }]}>
-                    {currentDate.gregorian.day}
+                  <ThemedText style={[styles.todayBigDate, { color: '#4ECDC4' }]}>
+                    {todayInfo.gregorian.day}
                   </ThemedText>
-                  <ThemedText style={[styles.monthYear, { color: colors.text }]}>
-                    {currentDate.gregorian.monthName} {currentDate.gregorian.year}
+                  <ThemedText style={[styles.todayMonthYear, { color: colors.text }]}>
+                    {todayInfo.gregorian.monthName} {todayInfo.gregorian.year}
                   </ThemedText>
                 </ThemedView>
               </ThemedView>
 
-              {/* التاريخ الهجري */}
-              <ThemedView style={[styles.dateCard, { backgroundColor: colors.background }]}>
-                <ThemedView style={styles.dateHeader}>
-                  <IconSymbol size={28} name="moon.fill" color="#E67E22" />
-                  <ThemedText style={[styles.calendarType, { color: colors.text }]}>
-                    التقويم الهجري
+              {/* التاريخ الهجري لليوم */}
+              <ThemedView style={[styles.todayCard, { backgroundColor: 'rgba(230, 126, 34, 0.1)', borderColor: '#E67E22' }]}>
+                <ThemedView style={styles.todayHeader}>
+                  <IconSymbol size={32} name="moon.circle.fill" color="#E67E22" />
+                  <ThemedText style={[styles.todayType, { color: '#E67E22' }]}>
+                    التاريخ الهجري
                   </ThemedText>
                 </ThemedView>
 
-                <ThemedView style={styles.dateContent}>
-                  <ThemedText style={[styles.dayName, { color: colors.text }]}>
-                    {currentDate.hijri.dayName}
+                <ThemedView style={styles.todayContent}>
+                  <ThemedText style={[styles.todayFullDate, { color: colors.text }]}>
+                    {todayInfo.hijri.fullDate}
                   </ThemedText>
-                  <ThemedText style={[styles.dateNumber, { color: '#E67E22' }]}>
-                    {currentDate.hijri.day}
+                  <ThemedText style={[styles.todayBigDate, { color: '#E67E22' }]}>
+                    {todayInfo.hijri.day}
                   </ThemedText>
-                  <ThemedText style={[styles.monthYear, { color: colors.text }]}>
-                    {currentDate.hijri.monthName} {currentDate.hijri.year} هـ
+                  <ThemedText style={[styles.todayMonthYear, { color: colors.text }]}>
+                    {todayInfo.hijri.monthName} {todayInfo.hijri.year} هـ
                   </ThemedText>
                 </ThemedView>
               </ThemedView>
@@ -246,14 +267,14 @@ export default function CalendarScreen() {
                       styles.monthItem,
                       { 
                         backgroundColor: colors.background,
-                        borderColor: parseInt(currentDate.gregorian.month) === (index + 1) ? '#4ECDC4' : colors.border
+                        borderColor: parseInt(todayInfo.gregorian.month) === (index + 1) ? '#4ECDC4' : colors.border
                       }
                     ]}
                   >
                     <ThemedText style={[
                       styles.monthText,
                       { 
-                        color: parseInt(currentDate.gregorian.month) === (index + 1) ? '#4ECDC4' : colors.text 
+                        color: parseInt(todayInfo.gregorian.month) === (index + 1) ? '#4ECDC4' : colors.text 
                       }
                     ]}>
                       {month}
@@ -279,14 +300,14 @@ export default function CalendarScreen() {
                       styles.monthItem,
                       { 
                         backgroundColor: colors.background,
-                        borderColor: currentDate.hijri.monthName === month ? '#E67E22' : colors.border
+                        borderColor: todayInfo.hijri.monthName === month ? '#E67E22' : colors.border
                       }
                     ]}
                   >
                     <ThemedText style={[
                       styles.monthText,
                       { 
-                        color: currentDate.hijri.monthName === month ? '#E67E22' : colors.text 
+                        color: todayInfo.hijri.monthName === month ? '#E67E22' : colors.text 
                       }
                     ]}>
                       {month}
@@ -299,7 +320,7 @@ export default function CalendarScreen() {
               </ThemedView>
             </ThemedView>
 
-            {/* أدوات إضافية */}
+            {/* أدوات التقويم */}
             <ThemedView style={[styles.section, { backgroundColor: colors.card }]}>
               <ThemedText style={[styles.sectionTitle, { color: colors.text }]}>
                 🔧 أدوات التقويم
@@ -454,6 +475,63 @@ const styles = StyleSheet.create({
     flex: 1,
     padding: 20,
   },
+  
+  // أنماط قسم تاريخ اليوم المحسنة
+  todaySection: {
+    borderRadius: 20,
+    padding: 25,
+    marginBottom: 25,
+    elevation: 5,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.15,
+    shadowRadius: 8,
+  },
+  todayCard: {
+    borderRadius: 16,
+    padding: 20,
+    marginBottom: 20,
+    borderWidth: 2,
+    elevation: 3,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+  },
+  todayHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 15,
+    gap: 12,
+  },
+  todayType: {
+    fontSize: 18,
+    fontWeight: 'bold',
+    writingDirection: 'rtl',
+  },
+  todayContent: {
+    alignItems: 'center',
+    gap: 8,
+  },
+  todayFullDate: {
+    fontSize: 16,
+    fontWeight: '600',
+    textAlign: 'center',
+    writingDirection: 'rtl',
+    marginBottom: 10,
+  },
+  todayBigDate: {
+    fontSize: 56,
+    fontWeight: 'bold',
+    textAlign: 'center',
+  },
+  todayMonthYear: {
+    fontSize: 20,
+    fontWeight: '600',
+    textAlign: 'center',
+    writingDirection: 'rtl',
+  },
+  
   section: {
     borderRadius: 15,
     padding: 20,
@@ -469,48 +547,6 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
     textAlign: 'center',
     marginBottom: 20,
-    writingDirection: 'rtl',
-  },
-  dateCard: {
-    borderRadius: 12,
-    padding: 20,
-    marginBottom: 15,
-    borderWidth: 1,
-    borderColor: '#E5E5EA',
-    elevation: 1,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.1,
-    shadowRadius: 2,
-  },
-  dateHeader: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginBottom: 15,
-    gap: 10,
-  },
-  calendarType: {
-    fontSize: 16,
-    fontWeight: '600',
-    writingDirection: 'rtl',
-  },
-  dateContent: {
-    alignItems: 'center',
-  },
-  dayName: {
-    fontSize: 16,
-    fontWeight: '500',
-    marginBottom: 5,
-    writingDirection: 'rtl',
-  },
-  dateNumber: {
-    fontSize: 48,
-    fontWeight: 'bold',
-    marginBottom: 5,
-  },
-  monthYear: {
-    fontSize: 18,
-    fontWeight: '500',
     writingDirection: 'rtl',
   },
   monthsGrid: {
