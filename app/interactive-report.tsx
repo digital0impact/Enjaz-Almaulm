@@ -7,91 +7,118 @@ import { ThemedView } from '@/components/ThemedView';
 import { IconSymbol } from '@/components/ui/IconSymbol';
 import { useRouter } from 'expo-router';
 import { BottomNavigationBar } from '@/components/BottomNavigationBar';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 const { width } = Dimensions.get('window');
 
 export default function InteractiveReportScreen() {
   const router = useRouter();
   const [selectedChart, setSelectedChart] = useState('overall');
-  const [performanceData] = useState([
+  const [performanceData, setPerformanceData] = useState([]);
+  const [loading, setLoading] = useState(true);
+
+  // تحميل البيانات الفعلية من AsyncStorage
+  useEffect(() => {
+    loadPerformanceData();
+  }, []);
+
+  const loadPerformanceData = async () => {
+    try {
+      const storedData = await AsyncStorage.getItem('performanceData');
+      if (storedData) {
+        const parsedData = JSON.parse(storedData);
+        setPerformanceData(parsedData);
+      } else {
+        // إذا لم توجد بيانات محفوظة، استخدم البيانات الافتراضية
+        setPerformanceData(getDefaultPerformanceData());
+      }
+      setLoading(false);
+    } catch (error) {
+      console.log('Error loading performance data:', error);
+      setPerformanceData(getDefaultPerformanceData());
+      setLoading(false);
+    }
+  };
+
+  const getDefaultPerformanceData = () => [
     {
       id: 1,
       title: 'أداء الواجبات الوظيفية',
-      score: 95,
+      score: 0,
       weight: 10,
       category: 'وظيفي'
     },
     {
       id: 2,
       title: 'التفاعل مع المجتمع المهني',
-      score: 88,
+      score: 0,
       weight: 10,
       category: 'تفاعلي'
     },
     {
       id: 3,
       title: 'التفاعل مع أولياء الأمور',
-      score: 92,
+      score: 0,
       weight: 10,
       category: 'تفاعلي'
     },
     {
       id: 4,
-      title: 'التنويع في استراتيجيات التدريس',
-      score: 87,
+      title: 'تنويع استراتيجيات التدريس',
+      score: 0,
       weight: 10,
       category: 'تعليمي'
     },
     {
       id: 5,
       title: 'تحسين نتائج المتعلمين',
-      score: 85,
+      score: 0,
       weight: 10,
       category: 'تعليمي'
     },
     {
       id: 6,
-      title: 'إعداد وتنفيذ خطة التعلم',
-      score: 90,
+      title: 'إعداد خطة وتنفيذ التعلم',
+      score: 0,
       weight: 10,
       category: 'تخطيطي'
     },
     {
       id: 7,
-      title: 'توظيف التقنيات ووسائل التعلم',
-      score: 82,
+      title: 'توظيف تقنيات ووسائل التعلم',
+      score: 0,
       weight: 10,
       category: 'تقني'
     },
     {
       id: 8,
       title: 'تهيئة البيئة التعليمية',
-      score: 89,
+      score: 0,
       weight: 5,
       category: 'بيئي'
     },
     {
       id: 9,
       title: 'الإدارة الصفية',
-      score: 93,
+      score: 0,
       weight: 5,
       category: 'إداري'
     },
     {
       id: 10,
       title: 'تحليل نتائج المتعلمين وتشخيص مستوياتهم',
-      score: 86,
+      score: 0,
       weight: 10,
       category: 'تحليلي'
     },
     {
       id: 11,
       title: 'تنويع أساليب التقويم',
-      score: 84,
+      score: 0,
       weight: 10,
       category: 'تقويمي'
     },
-  ]);
+  ];
 
   const getScoreColor = (score: number) => {
     if (score >= 90) return '#4CAF50';
@@ -108,6 +135,7 @@ export default function InteractiveReportScreen() {
   };
 
   const calculateOverallAverage = () => {
+    if (performanceData.length === 0) return 0;
     const weightedSum = performanceData.reduce((acc, item) => acc + (item.score * item.weight), 0);
     const totalWeight = performanceData.reduce((acc, item) => acc + item.weight, 0);
     return Math.round(weightedSum / totalWeight);
@@ -131,7 +159,7 @@ export default function InteractiveReportScreen() {
 
   const renderBarChart = () => {
     const categories = getCategories();
-    const maxScore = Math.max(...categories.map(cat => cat.average));
+    const maxScore = Math.max(...categories.map(cat => cat.average), 1);
     
     return (
       <ThemedView style={styles.chartContainer}>
@@ -196,8 +224,8 @@ export default function InteractiveReportScreen() {
   const renderStatistics = () => {
     const scores = performanceData.map(item => item.score);
     const averageScore = calculateOverallAverage();
-    const maxScore = Math.max(...scores);
-    const minScore = Math.min(...scores);
+    const maxScore = Math.max(...scores, 0);
+    const minScore = Math.min(...scores, 0);
     const excellentCount = scores.filter(score => score >= 90).length;
     const goodCount = scores.filter(score => score >= 80 && score < 90).length;
     const needsImprovementCount = scores.filter(score => score < 70).length;
@@ -287,6 +315,16 @@ export default function InteractiveReportScreen() {
   const handlePrintReport = () => {
     Alert.alert('طباعة التقرير', 'سيتم فتح معاينة الطباعة قريباً');
   };
+
+  if (loading) {
+    return (
+      <ThemedView style={styles.container}>
+        <ThemedView style={styles.loadingContainer}>
+          <ThemedText>جاري تحميل البيانات...</ThemedText>
+        </ThemedView>
+      </ThemedView>
+    );
+  }
 
   return (
     <ThemedView style={styles.container}>
@@ -391,6 +429,13 @@ export default function InteractiveReportScreen() {
                       </ThemedText>
                     </ThemedView>
                   ))}
+                {performanceData.filter(item => item.score < 85).length === 0 && (
+                  <ThemedView style={styles.recommendationItem}>
+                    <ThemedText style={styles.recommendationText}>
+                      • ممتاز! جميع المحاور تحصل على درجات عالية. استمر في الأداء المتميز.
+                    </ThemedText>
+                  </ThemedView>
+                )}
               </ThemedView>
             </ThemedView>
 
@@ -430,6 +475,11 @@ const styles = StyleSheet.create({
   },
   gradientOverlay: {
     flex: 1,
+  },
+  loadingContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
   },
   header: {
     padding: 20,
