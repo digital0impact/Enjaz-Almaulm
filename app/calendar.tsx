@@ -267,6 +267,60 @@ export default function CalendarScreen() {
             </ThemedView>
 
             
+          {/* التقويم الشبكي للأشهر الهجرية */}
+            <ThemedView style={[styles.hijriCalendarSection, { backgroundColor: colors.card }]}>
+              <ThemedText style={[styles.sectionTitle, { color: colors.text }]}>
+                🌙 التقويم الهجري الشبكي
+              </ThemedText>
+              
+              <ThemedView style={styles.hijriGrid}>
+                {hijriMonths.map((month, index) => (
+                  <TouchableOpacity
+                    key={index}
+                    style={[
+                      styles.hijriMonthCard,
+                      { 
+                        backgroundColor: todayInfo.hijri.monthName === month ? 'rgba(230, 126, 34, 0.2)' : 'rgba(230, 126, 34, 0.05)',
+                        borderColor: todayInfo.hijri.monthName === month ? '#E67E22' : 'rgba(230, 126, 34, 0.3)'
+                      }
+                    ]}
+                  >
+                    <ThemedText style={[
+                      styles.hijriMonthNumber,
+                      { 
+                        color: todayInfo.hijri.monthName === month ? '#E67E22' : colors.text 
+                      }
+                    ]}>
+                      {index + 1}
+                    </ThemedText>
+                    <ThemedText style={[
+                      styles.hijriMonthName,
+                      { 
+                        color: todayInfo.hijri.monthName === month ? '#E67E22' : colors.text 
+                      }
+                    ]}>
+                      {month}
+                    </ThemedText>
+                    {todayInfo.hijri.monthName === month && (
+                      <ThemedView style={styles.currentMonthIndicator}>
+                        <IconSymbol size={12} name="star.fill" color="#E67E22" />
+                      </ThemedView>
+                    )}
+                  </TouchableOpacity>
+                ))}
+              </ThemedView>
+              
+              <ThemedView style={styles.hijriCalendarInfo}>
+                <ThemedText style={[styles.hijriInfoText, { color: colors.text }]}>
+                  📅 السنة الهجرية الحالية: {todayInfo.hijri.year} هـ
+                </ThemedText>
+                <ThemedText style={[styles.hijriInfoText, { color: colors.text }]}>
+                  🌟 الشهر الحالي: {todayInfo.hijri.monthName} ({todayInfo.hijri.month})
+                </ThemedText>
+              </ThemedView>
+            </ThemedView>
+
+            
           </ScrollView>
 
           <BottomNavigationBar />
@@ -504,6 +558,78 @@ const styles = StyleSheet.create({
     fontSize: 11,
     textAlign: 'right',
     lineHeight: 16,
+    writingDirection: 'rtl',
+  },
+  
+  // أنماط التقويم الشبكي الهجري
+  hijriCalendarSection: {
+    borderRadius: 16,
+    padding: 20,
+    marginBottom: 20,
+    elevation: 3,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+  },
+  hijriGrid: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    justifyContent: 'space-between',
+    gap: 10,
+    marginBottom: 20,
+  },
+  hijriMonthCard: {
+    width: (width - 80) / 3,
+    aspectRatio: 1.2,
+    borderRadius: 12,
+    padding: 12,
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderWidth: 2,
+    elevation: 2,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.1,
+    shadowRadius: 2,
+    position: 'relative',
+  },
+  hijriMonthNumber: {
+    fontSize: 20,
+    fontWeight: 'bold',
+    textAlign: 'center',
+    marginBottom: 4,
+  },
+  hijriMonthName: {
+    fontSize: 12,
+    fontWeight: '600',
+    textAlign: 'center',
+    writingDirection: 'rtl',
+    lineHeight: 16,
+  },
+  currentMonthIndicator: {
+    position: 'absolute',
+    top: 4,
+    right: 4,
+    backgroundColor: 'rgba(230, 126, 34, 0.2)',
+    borderRadius: 10,
+    width: 20,
+    height: 20,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  hijriCalendarInfo: {
+    backgroundColor: 'rgba(230, 126, 34, 0.1)',
+    borderRadius: 12,
+    padding: 15,
+    gap: 8,
+    borderWidth: 1,
+    borderColor: 'rgba(230, 126, 34, 0.3)',
+  },
+  hijriInfoText: {
+    fontSize: 14,
+    fontWeight: '500',
+    textAlign: 'center',
     writingDirection: 'rtl',
   },
 });
