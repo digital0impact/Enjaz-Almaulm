@@ -208,49 +208,62 @@ export default function CalendarScreen() {
                 🌟 تاريخ اليوم
               </ThemedText>
 
-              {/* التاريخ الميلادي لليوم */}
-              <ThemedView style={[styles.todayCard, { backgroundColor: 'rgba(78, 205, 196, 0.1)', borderColor: '#4ECDC4' }]}>
-                <ThemedView style={styles.todayHeader}>
-                  <IconSymbol size={32} name="calendar.circle" color="#4ECDC4" />
-                  <ThemedText style={[styles.todayType, { color: '#4ECDC4' }]}>
-                    التاريخ الميلادي
-                  </ThemedText>
+              {/* Container for Gregorian and Hijri cards */}
+              <View style={styles.cardsContainer}>
+                {/* التاريخ الميلادي لليوم */}
+                <ThemedView style={[styles.todayCardSmall, { backgroundColor: 'rgba(78, 205, 196, 0.1)', borderColor: '#4ECDC4' }]}>
+                  <ThemedView style={styles.todayHeaderSmall}>
+                    <IconSymbol size={24} name="calendar.circle" color="#4ECDC4" />
+                    <ThemedText style={[styles.todayTypeSmall, { color: '#4ECDC4' }]}>
+                      التاريخ الميلادي
+                    </ThemedText>
+                  </ThemedView>
+
+                  <ThemedView style={styles.todayContentSmall}>
+                    <ThemedView style={styles.fullDateContainer}>
+                      <ThemedText style={[styles.fullDateText, { color: colors.text }]}>
+                        {todayInfo.gregorian.fullDate}
+                      </ThemedText>
+                    </ThemedView>
+                    <ThemedText style={[styles.todayBigDateSmall, { color: '#4ECDC4' }]}>
+                      {todayInfo.gregorian.day}
+                    </ThemedText>
+                    <ThemedText style={[styles.todayMonthYearSmall, { color: colors.text }]}>
+                      {todayInfo.gregorian.monthName}
+                    </ThemedText>
+                    <ThemedText style={[styles.todayYearSmall, { color: colors.text }]}>
+                      {todayInfo.gregorian.year}
+                    </ThemedText>
+                  </ThemedView>
                 </ThemedView>
 
-                <ThemedView style={styles.todayContent}>
-                  <ThemedText style={[styles.todayFullDate, { color: colors.text }]}>
-                    {todayInfo.gregorian.fullDate}
-                  </ThemedText>
-                  <ThemedText style={[styles.todayBigDate, { color: '#4ECDC4' }]}>
-                    {todayInfo.gregorian.day}
-                  </ThemedText>
-                  <ThemedText style={[styles.todayMonthYear, { color: colors.text }]}>
-                    {todayInfo.gregorian.monthName} {todayInfo.gregorian.year}
-                  </ThemedText>
-                </ThemedView>
-              </ThemedView>
+                {/* التاريخ الهجري لليوم */}
+                <ThemedView style={[styles.todayCardSmall, { backgroundColor: 'rgba(230, 126, 34, 0.1)', borderColor: '#E67E22' }]}>
+                  <ThemedView style={styles.todayHeaderSmall}>
+                    <IconSymbol size={24} name="moon.circle.fill" color="#E67E22" />
+                    <ThemedText style={[styles.todayTypeSmall, { color: '#E67E22' }]}>
+                      التاريخ الهجري
+                    </ThemedText>
+                  </ThemedView>
 
-              {/* التاريخ الهجري لليوم */}
-              <ThemedView style={[styles.todayCard, { backgroundColor: 'rgba(230, 126, 34, 0.1)', borderColor: '#E67E22' }]}>
-                <ThemedView style={styles.todayHeader}>
-                  <IconSymbol size={32} name="moon.circle.fill" color="#E67E22" />
-                  <ThemedText style={[styles.todayType, { color: '#E67E22' }]}>
-                    التاريخ الهجري
-                  </ThemedText>
+                  <ThemedView style={styles.todayContentSmall}>
+                    <ThemedView style={styles.fullDateContainer}>
+                      <ThemedText style={[styles.fullDateText, { color: colors.text }]}>
+                        {todayInfo.hijri.fullDate}
+                      </ThemedText>
+                    </ThemedView>
+                    <ThemedText style={[styles.todayBigDateSmall, { color: '#E67E22' }]}>
+                      {todayInfo.hijri.day}
+                    </ThemedText>
+                    <ThemedText style={[styles.todayMonthYearSmall, { color: colors.text }]}>
+                      {todayInfo.hijri.monthName}
+                    </ThemedText>
+                    <ThemedText style={[styles.todayYearSmall, { color: colors.text }]}>
+                      {todayInfo.hijri.year} هـ
+                    </ThemedText>
+                  </ThemedView>
                 </ThemedView>
-
-                <ThemedView style={styles.todayContent}>
-                  <ThemedText style={[styles.todayFullDate, { color: colors.text }]}>
-                    {todayInfo.hijri.fullDate}
-                  </ThemedText>
-                  <ThemedText style={[styles.todayBigDate, { color: '#E67E22' }]}>
-                    {todayInfo.hijri.day}
-                  </ThemedText>
-                  <ThemedText style={[styles.todayMonthYear, { color: colors.text }]}>
-                    {todayInfo.hijri.monthName} {todayInfo.hijri.year} هـ
-                  </ThemedText>
-                </ThemedView>
-              </ThemedView>
+              </View>
             </ThemedView>
 
             {/* الأشهر الميلادية */}
@@ -319,82 +332,7 @@ export default function CalendarScreen() {
               </ThemedView>
             </ThemedView>
 
-            {/* أدوات التقويم */}
-            <ThemedView style={[styles.section, { backgroundColor: colors.card }]}>
-              <ThemedText style={[styles.sectionTitle, { color: colors.text }]}>
-                🔧 أدوات التقويم
-              </ThemedText>
-
-              <TouchableOpacity
-                style={[styles.toolButton, { backgroundColor: '#4ECDC4' }]}
-                onPress={navigateToMonthlyCalendar}
-              >
-                <IconSymbol size={24} name="calendar.circle" color="#fff" />
-                <ThemedText style={styles.toolButtonText}>
-                  التقويم الشهري
-                </ThemedText>
-                <ThemedText style={styles.toolButtonDesc}>
-                  عرض التقويم الشهري مع المناسبات
-                </ThemedText>
-              </TouchableOpacity>
-
-              <TouchableOpacity
-                style={[styles.toolButton, { backgroundColor: colors.background, borderWidth: 2, borderColor: '#4ECDC4' }]}
-                onPress={convertToHijri}
-              >
-                <IconSymbol size={24} name="arrow.triangle.2.circlepath" color="#4ECDC4" />
-                <ThemedText style={[styles.toolButtonText, { color: colors.text }]}>
-                  محول التاريخ
-                </ThemedText>
-                <ThemedText style={[styles.toolButtonDesc, { color: colors.text }]}>
-                  تحويل التاريخ بين الهجري والميلادي
-                </ThemedText>
-              </TouchableOpacity>
-
-              <TouchableOpacity
-                style={[styles.toolButton, { backgroundColor: colors.background, borderWidth: 2, borderColor: '#E67E22' }]}
-                onPress={navigateToOfficialHolidays}
-              >
-                <IconSymbol size={24} name="star.circle" color="#E67E22" />
-                <ThemedText style={[styles.toolButtonText, { color: colors.text }]}>
-                  المناسبات والإجازات
-                </ThemedText>
-                <ThemedText style={[styles.toolButtonDesc, { color: colors.text }]}>
-                  عرض المناسبات الرسمية والإجازات
-                </ThemedText>
-              </TouchableOpacity>
-            </ThemedView>
-
-            {/* معلومات مفيدة */}
-            <ThemedView style={[styles.section, { backgroundColor: colors.card }]}>
-              <ThemedText style={[styles.sectionTitle, { color: colors.text }]}>
-                📚 معلومات مفيدة
-              </ThemedText>
-
-              <ThemedView style={[styles.infoCard, { backgroundColor: 'rgba(78, 205, 196, 0.1)' }]}>
-                <IconSymbol size={24} name="info.circle" color="#4ECDC4" />
-                <ThemedView style={styles.infoContent}>
-                  <ThemedText style={[styles.infoTitle, { color: colors.text }]}>
-                    التقويم الميلادي
-                  </ThemedText>
-                  <ThemedText style={[styles.infoText, { color: colors.text }]}>
-                    التقويم المعتمد عالمياً والذي يعتمد على دورة الأرض حول الشمس
-                  </ThemedText>
-                </ThemedView>
-              </ThemedView>
-
-              <ThemedView style={[styles.infoCard, { backgroundColor: 'rgba(230, 126, 34, 0.1)' }]}>
-                <IconSymbol size={24} name="moon.circle" color="#E67E22" />
-                <ThemedView style={styles.infoContent}>
-                  <ThemedText style={[styles.infoTitle, { color: colors.text }]}>
-                    التقويم الهجري
-                  </ThemedText>
-                  <ThemedText style={[styles.infoText, { color: colors.text }]}>
-                    التقويم الإسلامي الذي يعتمد على دورة القمر ويبدأ من هجرة الرسول ﷺ
-                  </ThemedText>
-                </ThemedView>
-              </ThemedView>
-            </ThemedView>
+            
           </ScrollView>
 
           <BottomNavigationBar />
@@ -477,60 +415,77 @@ const styles = StyleSheet.create({
 
   // أنماط قسم تاريخ اليوم المحسنة
   todaySection: {
-    borderRadius: 12,
-    padding: 15,
-    marginBottom: 15,
+    borderRadius: 16,
+    padding: 20,
+    marginBottom: 20,
     elevation: 3,
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.1,
     shadowRadius: 4,
   },
-  todayCard: {
-    borderRadius: 10,
-    padding: 12,
-    marginBottom: 12,
-    borderWidth: 1,
+  cardsContainer: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    gap: 12,
+    marginBottom: 15,
+  },
+  todayCardSmall: {
+    flex: 1,
+    borderRadius: 12,
+    padding: 15,
+    borderWidth: 2,
     elevation: 2,
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.08,
-    shadowRadius: 3,
+    shadowOpacity: 0.1,
+    shadowRadius: 2,
   },
-  todayHeader: {
+  todayHeaderSmall: {
     flexDirection: 'row',
     alignItems: 'center',
-    marginBottom: 8,
+    marginBottom: 10,
     gap: 8,
   },
-  todayType: {
+  todayTypeSmall: {
     fontSize: 14,
     fontWeight: 'bold',
     writingDirection: 'rtl',
   },
-  todayContent: {
+  todayContentSmall: {
     alignItems: 'center',
     gap: 4,
   },
-  todayFullDate: {
-    fontSize: 12,
-    fontWeight: '600',
-    textAlign: 'center',
-    writingDirection: 'rtl',
-    marginBottom: 6,
-  },
-  todayBigDate: {
-    fontSize: 36,
+  todayBigDateSmall: {
+    fontSize: 32,
     fontWeight: 'bold',
     textAlign: 'center',
   },
-  todayMonthYear: {
+  todayMonthYearSmall: {
     fontSize: 14,
     fontWeight: '600',
     textAlign: 'center',
     writingDirection: 'rtl',
   },
-
+  todayYearSmall: {
+    fontSize: 12,
+    fontWeight: '500',
+    textAlign: 'center',
+    writingDirection: 'rtl',
+    opacity: 0.8,
+  },
+  fullDateContainer: {
+    backgroundColor: 'rgba(255, 255, 255, 0.3)',
+    borderRadius: 8,
+    padding: 12,
+    alignItems: 'center',
+  },
+  fullDateText: {
+    fontSize: 16,
+    fontWeight: '600',
+    textAlign: 'center',
+    writingDirection: 'rtl',
+  },
   section: {
     borderRadius: 10,
     padding: 12,
