@@ -759,7 +759,7 @@ const styles = StyleSheet.create({
   iconWrapper: {
     marginBottom: 10,
     padding: 15,
-    backgroundColor: '#F8F9FA',
+    backgroundColor: 'transparent',
     borderRadius: 50,
     borderWidth: 1,
     borderColor: '#E5E5EA',
