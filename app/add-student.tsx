@@ -352,7 +352,7 @@ export default function AddStudentScreen() {
                     style={styles.backButton}
                     onPress={() => router.back()}
                   >
-                    <IconSymbol size={24} name="chevron.right" color="#1c1f33" />
+                    <IconSymbol size={20} name="arrow.right" color="#1c1f33" />
                   </TouchableOpacity>
 
                   <ThemedView style={styles.iconContainer}>
@@ -757,13 +757,19 @@ const styles = StyleSheet.create({
   },
   backButton: {
     position: 'absolute',
-    top: 50,
-    right: 20,
-    padding: 10,
-    backgroundColor: '#F8F9FA',
+    top: Platform.OS === 'ios' ? 60 : 50,
+    left: 20,
+    backgroundColor: '#add4ce',
+    width: 40,
+    height: 40,
     borderRadius: 20,
-    borderWidth: 1,
-    borderColor: '#E5E5EA',
+    justifyContent: 'center',
+    alignItems: 'center',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.2,
+    shadowRadius: 8,
+    elevation: 8,
     zIndex: 1,
   },
   iconContainer: {
