@@ -545,6 +545,7 @@ export default function InteractiveReportScreen() {
       <div class="container">
         <div class="header">
           <div class="logo-section">
+            <img src="https://i.ibb.co/7XqJqK7/moe-logo.png" alt="شعار وزارة التعليم" class="logo">
             <div class="ministry-info">
               <h2 class="ministry-title">المملكة العربية السعودية</h2>
               <p class="ministry-subtitle">وزارة التعليم</p>
