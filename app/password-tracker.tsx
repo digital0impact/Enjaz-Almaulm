@@ -60,6 +60,16 @@ export default function PasswordTrackerScreen() {
     notes: ''
   });
 
+  const [editingPassword, setEditingPassword] = useState<PasswordEntry | null>(null);
+  const [editPassword, setEditPassword] = useState({
+    websiteName: '',
+    url: '',
+    username: '',
+    password: '',
+    category: 'تعليمي',
+    notes: ''
+  });
+
   const getStrengthColor = (strength: PasswordEntry['strength']) => {
     switch (strength) {
       case 'قوي': return '#4CAF50';
@@ -115,6 +125,64 @@ export default function PasswordTrackerScreen() {
     } else {
       Alert.alert('خطأ', 'الرجاء ملء جميع الحقول المطلوبة');
     }
+  };
+
+  const startEditPassword = (password: PasswordEntry) => {
+    setEditingPassword(password);
+    setEditPassword({
+      websiteName: password.websiteName,
+      url: password.url,
+      username: password.username,
+      password: password.password,
+      category: password.category,
+      notes: password.notes || ''
+    });
+    setSelectedView('edit');
+  };
+
+  const updatePassword = () => {
+    if (editPassword.websiteName.trim() && editPassword.username.trim() && editPassword.password.trim()) {
+      const updatedPasswords = passwords.map(p => 
+        p.id === editingPassword?.id ? {
+          ...p,
+          websiteName: editPassword.websiteName,
+          url: editPassword.url,
+          username: editPassword.username,
+          password: editPassword.password,
+          category: editPassword.category,
+          lastUpdated: new Date().toISOString().split('T')[0],
+          strength: getPasswordStrength(editPassword.password),
+          notes: editPassword.notes
+        } : p
+      );
+      setPasswords(updatedPasswords);
+      setEditingPassword(null);
+      setEditPassword({
+        websiteName: '',
+        url: '',
+        username: '',
+        password: '',
+        category: 'تعليمي',
+        notes: ''
+      });
+      setSelectedView('overview');
+      Alert.alert('تم بنجاح', 'تم تحديث كلمة المرور بنجاح');
+    } else {
+      Alert.alert('خطأ', 'الرجاء ملء جميع الحقول المطلوبة');
+    }
+  };
+
+  const cancelEdit = () => {
+    setEditingPassword(null);
+    setEditPassword({
+      websiteName: '',
+      url: '',
+      username: '',
+      password: '',
+      category: 'تعليمي',
+      notes: ''
+    });
+    setSelectedView('overview');
   };
 
   const renderOverviewTab = () => (
@@ -176,7 +244,7 @@ export default function PasswordTrackerScreen() {
 
               <TouchableOpacity 
                 style={styles.actionButton}
-                onPress={() => Alert.alert('تعديل', `تعديل كلمة مرور ${item.websiteName}`)}
+                onPress={() => startEditPassword(item)}
               >
                 <IconSymbol size={16} name="pencil.circle.fill" color="#FF9800" />
                 <ThemedText style={styles.actionButtonText}>تعديل</ThemedText>
@@ -291,6 +359,116 @@ export default function PasswordTrackerScreen() {
     </ThemedView>
   );
 
+  const renderEditPasswordForm = () => (
+    <ThemedView style={styles.tabContent}>
+      <ThemedView style={styles.formContainer}>
+        <ThemedText style={styles.sectionTitle}>تعديل كلمة المرور</ThemedText>
+
+        <ThemedView style={styles.formGroup}>
+          <ThemedText style={styles.formLabel}>اسم الموقع *</ThemedText>
+          <TextInput
+            style={styles.formInput}
+            value={editPassword.websiteName}
+            onChangeText={(text) => setEditPassword({ ...editPassword, websiteName: text })}
+            placeholder="أدخل اسم الموقع..."
+            placeholderTextColor="#999"
+            textAlign="right"
+          />
+        </ThemedView>
+
+        <ThemedView style={styles.formGroup}>
+          <ThemedText style={styles.formLabel}>رابط الموقع</ThemedText>
+          <TextInput
+            style={styles.formInput}
+            value={editPassword.url}
+            onChangeText={(text) => setEditPassword({ ...editPassword, url: text })}
+            placeholder="https://example.com"
+            placeholderTextColor="#999"
+            textAlign="right"
+          />
+        </ThemedView>
+
+        <ThemedView style={styles.formGroup}>
+          <ThemedText style={styles.formLabel}>اسم المستخدم *</ThemedText>
+          <TextInput
+            style={styles.formInput}
+            value={editPassword.username}
+            onChangeText={(text) => setEditPassword({ ...editPassword, username: text })}
+            placeholder="أدخل اسم المستخدم..."
+            placeholderTextColor="#999"
+            textAlign="right"
+          />
+        </ThemedView>
+
+        <ThemedView style={styles.formGroup}>
+          <ThemedText style={styles.formLabel}>كلمة المرور *</ThemedText>
+          <TextInput
+            style={styles.formInput}
+            value={editPassword.password}
+            onChangeText={(text) => setEditPassword({ ...editPassword, password: text })}
+            placeholder="أدخل كلمة مرور قوية..."
+            placeholderTextColor="#999"
+            textAlign="right"
+            secureTextEntry
+          />
+          <ThemedText style={[styles.strengthIndicator, { color: getStrengthColor(getPasswordStrength(editPassword.password)) }]}>
+            قوة كلمة المرور: {getPasswordStrength(editPassword.password)}
+          </ThemedText>
+        </ThemedView>
+
+        <ThemedView style={styles.formGroup}>
+          <ThemedText style={styles.formLabel}>الفئة</ThemedText>
+          <ThemedView style={styles.categorySelector}>
+            {['تعليمي', 'إداري', 'شخصي'].map((category) => (
+              <TouchableOpacity
+                key={category}
+                style={[
+                  styles.categoryOption,
+                  { backgroundColor: getCategoryColor(category) + '20' },
+                  editPassword.category === category && { backgroundColor: getCategoryColor(category) }
+                ]}
+                onPress={() => setEditPassword({ ...editPassword, category })}
+              >
+                <ThemedText style={[
+                  styles.categoryText,
+                  editPassword.category === category && { color: 'white' }
+                ]}>
+                  {category}
+                </ThemedText>
+              </TouchableOpacity>
+            ))}
+          </ThemedView>
+        </ThemedView>
+
+        <ThemedView style={styles.formGroup}>
+          <ThemedText style={styles.formLabel}>ملاحظات</ThemedText>
+          <TextInput
+            style={[styles.formInput, styles.textArea]}
+            value={editPassword.notes}
+            onChangeText={(text) => setEditPassword({ ...editPassword, notes: text })}
+            placeholder="أضف ملاحظات إضافية..."
+            placeholderTextColor="#999"
+            textAlign="right"
+            multiline
+            numberOfLines={3}
+          />
+        </ThemedView>
+
+        <ThemedView style={styles.formButtonsContainer}>
+          <TouchableOpacity style={styles.saveButton} onPress={updatePassword}>
+            <IconSymbol size={20} name="checkmark.circle.fill" color="#1c1f33" />
+            <ThemedText style={styles.saveButtonText}>حفظ التعديلات</ThemedText>
+          </TouchableOpacity>
+
+          <TouchableOpacity style={styles.cancelButton} onPress={cancelEdit}>
+            <IconSymbol size={20} name="xmark.circle.fill" color="#F44336" />
+            <ThemedText style={styles.cancelButtonText}>إلغاء</ThemedText>
+          </TouchableOpacity>
+        </ThemedView>
+      </ThemedView>
+    </ThemedView>
+  );
+
   const renderRecommendationsTab = () => (
     <ThemedView style={styles.tabContent}>
       <ThemedView style={styles.recommendationsContainer}>
@@ -347,6 +525,8 @@ export default function PasswordTrackerScreen() {
     switch (selectedView) {
       case 'add':
         return renderAddPasswordForm();
+      case 'edit':
+        return renderEditPasswordForm();
       case 'recommendations':
         return renderRecommendationsTab();
       default:
@@ -782,6 +962,30 @@ const styles = StyleSheet.create({
     marginBottom: 8,
     textAlign: 'right',
     writingDirection: 'rtl',
+  },
+  formButtonsContainer: {
+    flexDirection: 'row',
+    gap: 15,
+  },
+  cancelButton: {
+    flex: 1,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: '#ffebee',
+    paddingVertical: 15,
+    paddingHorizontal: 25,
+    borderRadius: 25,
+    gap: 10,
+    borderWidth: 2,
+    borderColor: '#F44336',
+  },
+  cancelButtonText: {
+    color: '#F44336',
+    fontSize: 16,
+    fontWeight: '600',
+    writingDirection: 'rtl',
+    textAlign: 'center',
   },
 
 });
