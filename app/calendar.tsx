@@ -777,7 +777,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-between',
     gap: 12,
-Add styles for the annual Hijri calendar and its components.    marginBottom: 15,
+    marginBottom: 15,
   },
   todayCardSmall: {
     flex: 1,
