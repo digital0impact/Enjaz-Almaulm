@@ -7,7 +7,7 @@ import { IconSymbol } from '@/components/ui/IconSymbol';
 import { useRouter } from 'expo-router';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { BottomNavigationBar } from '@/components/BottomNavigationBar';
-import { commonStyles } from './common-styles';
+import { commonStyles } from '@/styles/common-styles';
 
 const { width } = Dimensions.get('window');
 
