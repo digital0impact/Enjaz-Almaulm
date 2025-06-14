@@ -330,17 +330,18 @@ export default function DetailedReportScreen() {
               style={styles.backButton}
               onPress={() => router.back()}
             >
-              <IconSymbol size={24} name="chevron.right" color="#1c1f33" />
+              <IconSymbol size={20} name="arrow.right" color="#1c1f33" />
             </TouchableOpacity>
-            <ThemedView style={styles.headerContent}>
-              <IconSymbol size={50} name="doc.text.fill" color="#1c1f33" />
-              <ThemedText type="title" style={styles.headerTitle}>
-                التقرير التفصيلي
-              </ThemedText>
-              <ThemedText style={styles.headerSubtitle}>
-                تحليل شامل ومفصل لجميع جوانب أدائك المهني
-              </ThemedText>
+
+            <ThemedView style={styles.iconContainer}>
+              <IconSymbol size={60} name="doc.text.fill" color="#1c1f33" />
             </ThemedView>
+            <ThemedText type="title" style={styles.headerTitle}>
+              التقرير التفصيلي
+            </ThemedText>
+            <ThemedText style={styles.headerSubtitle}>
+              تحليل شامل ومفصل لجميع جوانب أدائك المهني
+            </ThemedText>
           </ThemedView>
 
           <ThemedView style={styles.tabSelector}>
@@ -416,39 +417,58 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   header: {
-    padding: 20,
-    paddingTop: 50,
-    flexDirection: 'row',
     alignItems: 'center',
+    paddingTop: Platform.OS === 'ios' ? 60 : 50,
+    paddingHorizontal: 30,
+    paddingBottom: 30,
     backgroundColor: 'transparent',
+    position: 'relative',
   },
   backButton: {
-    padding: 8,
-    marginRight: 10,
-    backgroundColor: '#F8F9FA',
+    position: 'absolute',
+    top: Platform.OS === 'ios' ? 60 : 50,
+    left: 20,
+    backgroundColor: '#add4ce',
+    width: 40,
+    height: 40,
     borderRadius: 20,
+    justifyContent: 'center',
+    alignItems: 'center',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.2,
+    shadowRadius: 8,
+    elevation: 8,
+    zIndex: 1,
+  },
+  iconContainer: {
+    marginBottom: 20,
+    padding: 20,
+    backgroundColor: '#F8F9FA',
+    borderRadius: 50,
     borderWidth: 1,
     borderColor: '#E5E5EA',
-  },
-  headerContent: {
-    flex: 1,
-    alignItems: 'center',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 6 },
+    shadowOpacity: 0.25,
+    shadowRadius: 12,
+    elevation: 10,
   },
   headerTitle: {
-    color: '#1c1f33',
-    fontSize: 24,
+    fontSize: 28,
     fontWeight: 'bold',
+    marginTop: 15,
+    marginBottom: 10,
     textAlign: 'center',
     writingDirection: 'rtl',
-    marginTop: 10,
+    color: '#000000',
   },
   headerSubtitle: {
-    color: '#1c1f33',
-    fontSize: 14,
+    fontSize: 16,
+    color: '#666666',
     textAlign: 'center',
     writingDirection: 'rtl',
-    opacity: 0.8,
-    marginTop: 5,
+    marginBottom: 20,
   },
   tabSelector: {
     flexDirection: 'row',
