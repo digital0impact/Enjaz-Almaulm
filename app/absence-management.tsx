@@ -1,6 +1,7 @@
 
 import React, { useState, useEffect } from 'react';
-import { StyleSheet, ScrollView, TouchableOpacity, Alert, I18nManager } from 'react-native';
+import { StyleSheet, ScrollView, TouchableOpacity, Alert, ImageBackground, Platform } from 'react-native';
+import { LinearGradient as ExpoLinearGradient } from 'expo-linear-gradient';
 import { ThemedText } from '@/components/ThemedText';
 import { ThemedView } from '@/components/ThemedView';
 import { IconSymbol } from '@/components/ui/IconSymbol';
@@ -108,240 +109,317 @@ export default function AbsenceManagementScreen() {
   };
 
   return (
-    <ScrollView style={styles.container}>
-      <ThemedView style={styles.header}>
-        <TouchableOpacity 
-          style={styles.backButton}
-          onPress={() => router.back()}
+    <ThemedView style={styles.container}>
+      <ImageBackground
+        source={require('@/assets/images/background.png')}
+        style={styles.backgroundImage}
+        resizeMode="cover"
+      >
+        <ExpoLinearGradient
+          colors={['rgba(255,255,255,0.9)', 'rgba(225,245,244,0.95)', 'rgba(173,212,206,0.8)']}
+          style={styles.gradientOverlay}
         >
-          <IconSymbol size={24} name="chevron.right" color="#fff" />
-        </TouchableOpacity>
-        <IconSymbol size={60} name="person.crop.circle.badge.xmark" color="#fff" />
-        <ThemedText type="title" style={styles.title}>
-          إدارة الغياب
-        </ThemedText>
-        <ThemedText style={styles.subtitle}>
-          متتبع شامل لسجلات الغياب والإحصائيات
-        </ThemedText>
-      </ThemedView>
+          <ScrollView style={styles.scrollContainer}>
+            <ThemedView style={styles.header}>
+              <TouchableOpacity 
+                style={styles.backButton}
+                onPress={() => router.back()}
+              >
+                <IconSymbol size={24} name="chevron.right" color="#1c1f33" />
+              </TouchableOpacity>
+              
+              <ThemedView style={styles.iconContainer}>
+                <IconSymbol size={60} name="person.crop.circle.badge.xmark" color="#1c1f33" />
+              </ThemedView>
+              
+              <ThemedText type="title" style={styles.title}>
+                إدارة الغياب
+              </ThemedText>
+              <ThemedText style={styles.subtitle}>
+                متتبع شامل لسجلات الغياب والإحصائيات
+              </ThemedText>
+            </ThemedView>
 
-      <ThemedView style={styles.content}>
-        {/* إحصائيات سريعة */}
-        <ThemedView style={styles.statsContainer}>
-          <ThemedText type="subtitle" style={styles.sectionTitle}>
-            الإحصائيات السريعة
-          </ThemedText>
-          
-          <ThemedView style={styles.statsGrid}>
-            <ThemedView style={[styles.statCard, { backgroundColor: '#FF6B6B15' }]}>
-              <IconSymbol size={32} name="chart.bar.fill" color="#FF6B6B" />
-              <ThemedText style={styles.statNumber}>{stats.totalAbsences}</ThemedText>
-              <ThemedText style={styles.statLabel}>إجمالي الغياب</ThemedText>
-            </ThemedView>
-            
-            <ThemedView style={[styles.statCard, { backgroundColor: '#4ECDC415' }]}>
-              <IconSymbol size={32} name="checkmark.circle.fill" color="#4ECDC4" />
-              <ThemedText style={styles.statNumber}>{stats.withExcuse}</ThemedText>
-              <ThemedText style={styles.statLabel}>بعذر</ThemedText>
-            </ThemedView>
-            
-            <ThemedView style={[styles.statCard, { backgroundColor: '#FF851B15' }]}>
-              <IconSymbol size={32} name="xmark.circle.fill" color="#FF851B" />
-              <ThemedText style={styles.statNumber}>{stats.withoutExcuse}</ThemedText>
-              <ThemedText style={styles.statLabel}>بدون عذر</ThemedText>
-            </ThemedView>
-            
-            <ThemedView style={[styles.statCard, { backgroundColor: '#007AFF15' }]}>
-              <IconSymbol size={32} name="calendar.circle.fill" color="#007AFF" />
-              <ThemedText style={styles.statNumber}>{stats.thisMonth}</ThemedText>
-              <ThemedText style={styles.statLabel}>هذا الشهر</ThemedText>
-            </ThemedView>
-          </ThemedView>
-        </ThemedView>
-
-        {/* إضافة غياب جديد */}
-        <ThemedView style={styles.addSection}>
-          <ThemedText type="subtitle" style={styles.sectionTitle}>
-            تسجيل غياب جديد
-          </ThemedText>
-          
-          <ThemedView style={styles.buttonGrid}>
-            <TouchableOpacity 
-              style={[styles.absenceButton, styles.medicalButton]}
-              onPress={() => addNewAbsence('مرضي', true)}
-            >
-              <IconSymbol size={28} name="medical.thermometer.fill" color="#fff" />
-              <ThemedText style={styles.buttonText}>غياب مرضي</ThemedText>
-            </TouchableOpacity>
-            
-            <TouchableOpacity 
-              style={[styles.absenceButton, styles.personalButton]}
-              onPress={() => addNewAbsence('شخصي', true)}
-            >
-              <IconSymbol size={28} name="person.fill" color="#fff" />
-              <ThemedText style={styles.buttonText}>غياب شخصي</ThemedText>
-            </TouchableOpacity>
-            
-            <TouchableOpacity 
-              style={[styles.absenceButton, styles.officialButton]}
-              onPress={() => addNewAbsence('رسمي', true)}
-            >
-              <IconSymbol size={28} name="building.2.fill" color="#fff" />
-              <ThemedText style={styles.buttonText}>غياب رسمي</ThemedText>
-            </TouchableOpacity>
-            
-            <TouchableOpacity 
-              style={[styles.absenceButton, styles.noExcuseButton]}
-              onPress={() => addNewAbsence('بدون عذر', false)}
-            >
-              <IconSymbol size={28} name="exclamationmark.triangle.fill" color="#fff" />
-              <ThemedText style={styles.buttonText}>بدون عذر</ThemedText>
-            </TouchableOpacity>
-          </ThemedView>
-        </ThemedView>
-
-        {/* سجلات الغياب الأخيرة */}
-        <ThemedView style={styles.recordsSection}>
-          <ThemedView style={styles.recordsHeader}>
-            <ThemedText type="subtitle" style={styles.sectionTitle}>
-              السجلات الأخيرة
-            </ThemedText>
-            <TouchableOpacity onPress={exportReport}>
-              <IconSymbol size={20} name="square.and.arrow.up.fill" color="#007AFF" />
-            </TouchableOpacity>
-          </ThemedView>
-          
-          {absenceRecords.length === 0 ? (
-            <ThemedView style={styles.emptyState}>
-              <IconSymbol size={48} name="tray.fill" color="#ccc" />
-              <ThemedText style={styles.emptyText}>لا توجد سجلات غياب</ThemedText>
-              <ThemedText style={styles.emptySubtext}>ابدأ بتسجيل أول غياب</ThemedText>
-            </ThemedView>
-          ) : (
-            <ThemedView style={styles.recordsList}>
-              {absenceRecords.slice(-5).reverse().map((record) => (
-                <ThemedView key={record.id} style={styles.recordCard}>
-                  <ThemedView style={styles.recordHeader}>
-                    <ThemedView style={styles.recordInfo}>
-                      <ThemedText style={styles.recordDate}>
-                        {new Date(record.date).toLocaleDateString('ar-SA')}
-                      </ThemedText>
-                      <ThemedText style={styles.recordType}>{record.type}</ThemedText>
-                    </ThemedView>
-                    <ThemedView style={[
-                      styles.statusBadge,
-                      record.withExcuse ? styles.withExcuseBadge : styles.noExcuseBadge
-                    ]}>
-                      <ThemedText style={styles.badgeText}>
-                        {record.withExcuse ? 'بعذر' : 'بدون عذر'}
-                      </ThemedText>
-                    </ThemedView>
+            <ThemedView style={styles.content}>
+              {/* إحصائيات سريعة */}
+              <ThemedView style={styles.statsContainer}>
+                <ThemedText type="subtitle" style={styles.sectionTitle}>
+                  الإحصائيات السريعة
+                </ThemedText>
+                
+                <ThemedView style={styles.statsGrid}>
+                  <ThemedView style={[styles.statCard, { backgroundColor: '#FF6B6B15' }]}>
+                    <IconSymbol size={32} name="chart.bar.fill" color="#FF6B6B" />
+                    <ThemedText style={styles.statNumber}>{stats.totalAbsences}</ThemedText>
+                    <ThemedText style={styles.statLabel}>إجمالي الغياب</ThemedText>
                   </ThemedView>
-                  <ThemedText style={styles.recordDuration}>
-                    المدة: {record.duration}
-                  </ThemedText>
+                  
+                  <ThemedView style={[styles.statCard, { backgroundColor: '#4ECDC415' }]}>
+                    <IconSymbol size={32} name="checkmark.circle.fill" color="#4ECDC4" />
+                    <ThemedText style={styles.statNumber}>{stats.withExcuse}</ThemedText>
+                    <ThemedText style={styles.statLabel}>بعذر</ThemedText>
+                  </ThemedView>
+                  
+                  <ThemedView style={[styles.statCard, { backgroundColor: '#FF851B15' }]}>
+                    <IconSymbol size={32} name="xmark.circle.fill" color="#FF851B" />
+                    <ThemedText style={styles.statNumber}>{stats.withoutExcuse}</ThemedText>
+                    <ThemedText style={styles.statLabel}>بدون عذر</ThemedText>
+                  </ThemedView>
+                  
+                  <ThemedView style={[styles.statCard, { backgroundColor: '#007AFF15' }]}>
+                    <IconSymbol size={32} name="calendar.circle.fill" color="#007AFF" />
+                    <ThemedText style={styles.statNumber}>{stats.thisMonth}</ThemedText>
+                    <ThemedText style={styles.statLabel}>هذا الشهر</ThemedText>
+                  </ThemedView>
                 </ThemedView>
-              ))}
-            </ThemedView>
-          )}
-        </ThemedView>
+              </ThemedView>
 
-        {/* أدوات إضافية */}
-        <ThemedView style={styles.toolsSection}>
-          <ThemedText type="subtitle" style={styles.sectionTitle}>
-            أدوات إضافية
-          </ThemedText>
-          
-          <TouchableOpacity 
-            style={styles.toolButton}
-            onPress={() => Alert.alert('التقرير الشهري', 'سيتم فتح التقرير الشهري المفصل')}
-          >
-            <IconSymbol size={24} name="chart.pie.fill" color="#007AFF" />
-            <ThemedText style={styles.toolButtonText}>التقرير الشهري</ThemedText>
-            <IconSymbol size={16} name="chevron.left" color="#666" />
-          </TouchableOpacity>
-          
-          <TouchableOpacity 
-            style={styles.toolButton}
-            onPress={() => Alert.alert('تصدير البيانات', 'سيتم تصدير جميع سجلات الغياب')}
-          >
-            <IconSymbol size={24} name="doc.fill" color="#4CAF50" />
-            <ThemedText style={styles.toolButtonText}>تصدير البيانات</ThemedText>
-            <IconSymbol size={16} name="chevron.left" color="#666" />
-          </TouchableOpacity>
-          
-          <TouchableOpacity 
-            style={styles.toolButton}
-            onPress={() => Alert.alert('الإعدادات', 'سيتم فتح إعدادات إدارة الغياب')}
-          >
-            <IconSymbol size={24} name="gearshape.fill" color="#FF9800" />
-            <ThemedText style={styles.toolButtonText}>الإعدادات</ThemedText>
-            <IconSymbol size={16} name="chevron.left" color="#666" />
-          </TouchableOpacity>
-        </ThemedView>
-      </ThemedView>
-    </ScrollView>
+              {/* إضافة غياب جديد */}
+              <ThemedView style={styles.addSection}>
+                <ThemedText type="subtitle" style={styles.sectionTitle}>
+                  تسجيل غياب جديد
+                </ThemedText>
+                
+                <ThemedView style={styles.buttonGrid}>
+                  <TouchableOpacity 
+                    style={[styles.absenceButton, styles.medicalButton]}
+                    onPress={() => addNewAbsence('مرضي', true)}
+                  >
+                    <ThemedView style={styles.buttonIconWrapper}>
+                      <IconSymbol size={28} name="medical.thermometer.fill" color="#fff" />
+                    </ThemedView>
+                    <ThemedText style={styles.buttonText}>غياب مرضي</ThemedText>
+                  </TouchableOpacity>
+                  
+                  <TouchableOpacity 
+                    style={[styles.absenceButton, styles.personalButton]}
+                    onPress={() => addNewAbsence('شخصي', true)}
+                  >
+                    <ThemedView style={styles.buttonIconWrapper}>
+                      <IconSymbol size={28} name="person.fill" color="#fff" />
+                    </ThemedView>
+                    <ThemedText style={styles.buttonText}>غياب شخصي</ThemedText>
+                  </TouchableOpacity>
+                  
+                  <TouchableOpacity 
+                    style={[styles.absenceButton, styles.officialButton]}
+                    onPress={() => addNewAbsence('رسمي', true)}
+                  >
+                    <ThemedView style={styles.buttonIconWrapper}>
+                      <IconSymbol size={28} name="building.2.fill" color="#fff" />
+                    </ThemedView>
+                    <ThemedText style={styles.buttonText}>غياب رسمي</ThemedText>
+                  </TouchableOpacity>
+                  
+                  <TouchableOpacity 
+                    style={[styles.absenceButton, styles.noExcuseButton]}
+                    onPress={() => addNewAbsence('بدون عذر', false)}
+                  >
+                    <ThemedView style={styles.buttonIconWrapper}>
+                      <IconSymbol size={28} name="exclamationmark.triangle.fill" color="#fff" />
+                    </ThemedView>
+                    <ThemedText style={styles.buttonText}>بدون عذر</ThemedText>
+                  </TouchableOpacity>
+                </ThemedView>
+              </ThemedView>
+
+              {/* سجلات الغياب الأخيرة */}
+              <ThemedView style={styles.recordsSection}>
+                <ThemedView style={styles.recordsHeader}>
+                  <ThemedText type="subtitle" style={styles.sectionTitle}>
+                    السجلات الأخيرة
+                  </ThemedText>
+                  <TouchableOpacity onPress={exportReport} style={styles.exportButton}>
+                    <IconSymbol size={20} name="square.and.arrow.up.fill" color="#007AFF" />
+                  </TouchableOpacity>
+                </ThemedView>
+                
+                {absenceRecords.length === 0 ? (
+                  <ThemedView style={styles.emptyState}>
+                    <IconSymbol size={48} name="tray.fill" color="#ccc" />
+                    <ThemedText style={styles.emptyText}>لا توجد سجلات غياب</ThemedText>
+                    <ThemedText style={styles.emptySubtext}>ابدأ بتسجيل أول غياب</ThemedText>
+                  </ThemedView>
+                ) : (
+                  <ThemedView style={styles.recordsList}>
+                    {absenceRecords.slice(-5).reverse().map((record) => (
+                      <ThemedView key={record.id} style={styles.recordCard}>
+                        <ThemedView style={styles.recordHeader}>
+                          <ThemedView style={styles.recordInfo}>
+                            <ThemedText style={styles.recordDate}>
+                              {new Date(record.date).toLocaleDateString('ar-SA')}
+                            </ThemedText>
+                            <ThemedText style={styles.recordType}>{record.type}</ThemedText>
+                          </ThemedView>
+                          <ThemedView style={[
+                            styles.statusBadge,
+                            record.withExcuse ? styles.withExcuseBadge : styles.noExcuseBadge
+                          ]}>
+                            <ThemedText style={styles.badgeText}>
+                              {record.withExcuse ? 'بعذر' : 'بدون عذر'}
+                            </ThemedText>
+                          </ThemedView>
+                        </ThemedView>
+                        <ThemedText style={styles.recordDuration}>
+                          المدة: {record.duration}
+                        </ThemedText>
+                      </ThemedView>
+                    ))}
+                  </ThemedView>
+                )}
+              </ThemedView>
+
+              {/* أدوات إضافية */}
+              <ThemedView style={styles.toolsSection}>
+                <ThemedText type="subtitle" style={styles.sectionTitle}>
+                  أدوات إضافية
+                </ThemedText>
+                
+                <TouchableOpacity 
+                  style={styles.toolCard}
+                  onPress={() => Alert.alert('التقرير الشهري', 'سيتم فتح التقرير الشهري المفصل')}
+                >
+                  <ThemedView style={styles.toolIconWrapper}>
+                    <IconSymbol size={24} name="chart.pie.fill" color="#1c1f33" />
+                  </ThemedView>
+                  <ThemedText style={styles.toolTitle}>التقرير الشهري</ThemedText>
+                  <ThemedText style={styles.toolDescription}>عرض تقرير شهري مفصل لسجلات الغياب</ThemedText>
+                </TouchableOpacity>
+                
+                <TouchableOpacity 
+                  style={styles.toolCard}
+                  onPress={() => Alert.alert('تصدير البيانات', 'سيتم تصدير جميع سجلات الغياب')}
+                >
+                  <ThemedView style={styles.toolIconWrapper}>
+                    <IconSymbol size={24} name="doc.fill" color="#1c1f33" />
+                  </ThemedView>
+                  <ThemedText style={styles.toolTitle}>تصدير البيانات</ThemedText>
+                  <ThemedText style={styles.toolDescription}>تصدير جميع سجلات الغياب والإحصائيات</ThemedText>
+                </TouchableOpacity>
+                
+                <TouchableOpacity 
+                  style={styles.toolCard}
+                  onPress={() => Alert.alert('الإعدادات', 'سيتم فتح إعدادات إدارة الغياب')}
+                >
+                  <ThemedView style={styles.toolIconWrapper}>
+                    <IconSymbol size={24} name="gearshape.fill" color="#1c1f33" />
+                  </ThemedView>
+                  <ThemedText style={styles.toolTitle}>الإعدادات</ThemedText>
+                  <ThemedText style={styles.toolDescription}>إعدادات وتخصيص إدارة الغياب</ThemedText>
+                </TouchableOpacity>
+              </ThemedView>
+            </ThemedView>
+          </ScrollView>
+        </ExpoLinearGradient>
+      </ImageBackground>
+    </ThemedView>
   );
 }
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#f8f9fa',
+  },
+  backgroundImage: {
+    flex: 1,
+    width: '100%',
+    height: '100%',
+  },
+  gradientOverlay: {
+    flex: 1,
+  },
+  scrollContainer: {
+    flex: 1,
+    paddingHorizontal: 20,
+    paddingBottom: 30,
+    backgroundColor: 'transparent',
   },
   header: {
-    backgroundColor: '#9C27B0',
-    padding: 20,
-    paddingTop: 40,
     alignItems: 'center',
+    paddingTop: Platform.OS === 'ios' ? 60 : 40,
+    paddingBottom: 30,
+    backgroundColor: 'transparent',
     position: 'relative',
   },
   backButton: {
     position: 'absolute',
-    top: 40,
+    top: Platform.OS === 'ios' ? 60 : 40,
     right: 20,
-    padding: 10,
+    padding: 8,
+    backgroundColor: '#F8F9FA',
+    borderRadius: 20,
+    borderWidth: 1,
+    borderColor: '#E5E5EA',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.15,
+    shadowRadius: 8,
+    elevation: 6,
+  },
+  iconContainer: {
+    marginBottom: 20,
+    padding: 20,
+    backgroundColor: '#F8F9FA',
+    borderRadius: 50,
+    borderWidth: 1,
+    borderColor: '#E5E5EA',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 6 },
+    shadowOpacity: 0.25,
+    shadowRadius: 12,
+    elevation: 10,
   },
   title: {
-    color: '#fff',
+    fontSize: 28,
+    fontWeight: 'bold',
+    marginBottom: 10,
     textAlign: 'center',
-    marginVertical: 15,
+    writingDirection: 'rtl',
+    color: '#000000',
   },
   subtitle: {
-    color: '#fff',
+    fontSize: 16,
+    color: '#666666',
     textAlign: 'center',
-    opacity: 0.9,
-    marginBottom: 10,
+    writingDirection: 'rtl',
+    marginBottom: 20,
   },
   content: {
-    flex: 1,
-    padding: 15,
+    backgroundColor: 'transparent',
+    gap: 15,
   },
   statsContainer: {
     marginBottom: 25,
+    backgroundColor: 'transparent',
   },
   sectionTitle: {
+    fontSize: 20,
+    fontWeight: 'bold',
     marginBottom: 15,
     textAlign: 'right',
-    color: '#333',
+    writingDirection: 'rtl',
+    color: '#000000',
   },
   statsGrid: {
     flexDirection: 'row',
     flexWrap: 'wrap',
+    justifyContent: 'space-between',
     gap: 10,
   },
   statCard: {
-    flex: 1,
-    minWidth: '45%',
-    backgroundColor: '#fff',
-    borderRadius: 12,
+    width: '48%',
+    backgroundColor: '#F8F9FA',
+    borderRadius: 15,
     padding: 15,
     alignItems: 'center',
-    elevation: 2,
+    borderWidth: 1,
+    borderColor: '#E5E5EA',
     shadowColor: '#000',
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.1,
-    shadowRadius: 3,
+    shadowOffset: { width: 0, height: 6 },
+    shadowOpacity: 0.25,
+    shadowRadius: 12,
+    elevation: 10,
+    marginBottom: 10,
   },
   statNumber: {
     fontSize: 24,
@@ -353,23 +431,35 @@ const styles = StyleSheet.create({
     fontSize: 12,
     color: '#666',
     textAlign: 'center',
+    writingDirection: 'rtl',
   },
   addSection: {
     marginBottom: 25,
+    backgroundColor: 'transparent',
   },
   buttonGrid: {
     flexDirection: 'row',
     flexWrap: 'wrap',
+    justifyContent: 'space-between',
     gap: 10,
   },
   absenceButton: {
-    flex: 1,
-    minWidth: '45%',
-    paddingVertical: 20,
-    paddingHorizontal: 15,
-    borderRadius: 12,
+    width: '48%',
     alignItems: 'center',
-    gap: 8,
+    padding: 20,
+    borderRadius: 15,
+    borderWidth: 1,
+    borderColor: '#E5E5EA',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 6 },
+    shadowOpacity: 0.25,
+    shadowRadius: 12,
+    elevation: 10,
+    marginBottom: 10,
+  },
+  buttonIconWrapper: {
+    marginBottom: 10,
+    backgroundColor: 'transparent',
   },
   medicalButton: {
     backgroundColor: '#E91E63',
@@ -388,9 +478,11 @@ const styles = StyleSheet.create({
     fontSize: 14,
     fontWeight: '600',
     textAlign: 'center',
+    writingDirection: 'rtl',
   },
   recordsSection: {
     marginBottom: 25,
+    backgroundColor: 'transparent',
   },
   recordsHeader: {
     flexDirection: 'row',
@@ -398,35 +490,58 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     marginBottom: 15,
   },
+  exportButton: {
+    padding: 10,
+    backgroundColor: '#F8F9FA',
+    borderRadius: 20,
+    borderWidth: 1,
+    borderColor: '#E5E5EA',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.15,
+    shadowRadius: 8,
+    elevation: 6,
+  },
   emptyState: {
-    backgroundColor: '#fff',
-    borderRadius: 12,
+    backgroundColor: '#F8F9FA',
+    borderRadius: 15,
     padding: 40,
     alignItems: 'center',
     gap: 10,
+    borderWidth: 1,
+    borderColor: '#E5E5EA',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 6 },
+    shadowOpacity: 0.25,
+    shadowRadius: 12,
+    elevation: 10,
   },
   emptyText: {
     fontSize: 16,
     color: '#666',
     textAlign: 'center',
+    writingDirection: 'rtl',
   },
   emptySubtext: {
     fontSize: 14,
     color: '#999',
     textAlign: 'center',
+    writingDirection: 'rtl',
   },
   recordsList: {
     gap: 10,
   },
   recordCard: {
-    backgroundColor: '#fff',
-    borderRadius: 12,
+    backgroundColor: '#F8F9FA',
+    borderRadius: 15,
     padding: 15,
-    elevation: 1,
+    borderWidth: 1,
+    borderColor: '#E5E5EA',
     shadowColor: '#000',
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.05,
-    shadowRadius: 2,
+    shadowOffset: { width: 0, height: 6 },
+    shadowOpacity: 0.25,
+    shadowRadius: 12,
+    elevation: 10,
   },
   recordHeader: {
     flexDirection: 'row',
@@ -442,11 +557,13 @@ const styles = StyleSheet.create({
     fontWeight: '600',
     color: '#333',
     textAlign: 'right',
+    writingDirection: 'rtl',
   },
   recordType: {
     fontSize: 14,
     color: '#666',
     textAlign: 'right',
+    writingDirection: 'rtl',
     marginTop: 2,
   },
   statusBadge: {
@@ -464,33 +581,59 @@ const styles = StyleSheet.create({
     fontSize: 12,
     fontWeight: '600',
     color: '#333',
+    writingDirection: 'rtl',
   },
   recordDuration: {
     fontSize: 12,
     color: '#999',
     textAlign: 'right',
+    writingDirection: 'rtl',
   },
   toolsSection: {
     marginBottom: 20,
+    backgroundColor: 'transparent',
   },
-  toolButton: {
-    backgroundColor: '#fff',
-    borderRadius: 12,
-    padding: 15,
-    flexDirection: 'row',
+  toolCard: {
+    width: '100%',
     alignItems: 'center',
-    gap: 15,
-    marginBottom: 10,
-    elevation: 1,
+    padding: 20,
+    backgroundColor: '#F8F9FA',
+    borderRadius: 15,
+    borderWidth: 1,
+    borderColor: '#E5E5EA',
     shadowColor: '#000',
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.05,
-    shadowRadius: 2,
+    shadowOffset: { width: 0, height: 6 },
+    shadowOpacity: 0.25,
+    shadowRadius: 12,
+    elevation: 10,
+    marginBottom: 15,
   },
-  toolButtonText: {
-    flex: 1,
+  toolIconWrapper: {
+    marginBottom: 15,
+    padding: 15,
+    backgroundColor: '#FFFFFF',
+    borderRadius: 30,
+    borderWidth: 1,
+    borderColor: '#E5E5EA',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.15,
+    shadowRadius: 8,
+    elevation: 6,
+  },
+  toolTitle: {
     fontSize: 16,
-    color: '#333',
-    textAlign: 'right',
+    fontWeight: 'bold',
+    color: '#1C1C1E',
+    textAlign: 'center',
+    writingDirection: 'rtl',
+    marginBottom: 8,
+  },
+  toolDescription: {
+    fontSize: 12,
+    color: '#8E8E93',
+    textAlign: 'center',
+    writingDirection: 'rtl',
+    lineHeight: 18,
   },
 });
