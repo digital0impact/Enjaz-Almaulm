@@ -8,6 +8,7 @@ import {
   Alert,
   Platform,
   ImageBackground,
+  Text,
 } from 'react-native';
 import { LinearGradient as ExpoLinearGradient } from 'expo-linear-gradient';
 import { ThemedText } from '@/components/ThemedText';
@@ -73,6 +74,9 @@ export default function CalendarScreen() {
     },
   });
 
+  const [currentTime, setCurrentTime] = useState(new Date());
+  const [isLiveUpdate, setIsLiveUpdate] = useState(true);
+
   const gregorianMonths = [
     'يناير', 'فبراير', 'مارس', 'أبريل', 'مايو', 'يونيو',
     'يوليو', 'أغسطس', 'سبتمبر', 'أكتوبر', 'نوفمبر', 'ديسمبر'
@@ -90,6 +94,7 @@ export default function CalendarScreen() {
   useEffect(() => {
     const updateTodayInfo = () => {
       const now = new Date();
+      setCurrentTime(now);
 
       // التاريخ الميلادي
       const gregorianDate = {
@@ -143,11 +148,21 @@ export default function CalendarScreen() {
 
     updateTodayInfo();
 
-    // تحديث التاريخ كل دقيقة
-    const interval = setInterval(updateTodayInfo, 60000);
+    // تحديث الوقت كل ثانية للساعة الحية
+    const timeInterval = setInterval(() => {
+      if (isLiveUpdate) {
+        setCurrentTime(new Date());
+      }
+    }, 1000);
 
-    return () => clearInterval(interval);
-  }, []);
+    // تحديث التاريخ كل دقيقة
+    const dateInterval = setInterval(updateTodayInfo, 60000);
+
+    return () => {
+      clearInterval(timeInterval);
+      clearInterval(dateInterval);
+    };
+  }, [isLiveUpdate]);
 
   const handleBack = () => {
     router.back();
@@ -202,11 +217,78 @@ export default function CalendarScreen() {
             style={styles.scrollView}
             contentContainerStyle={{ flexGrow: 1, ...commonStyles.scrollViewWithBottomNav }}
           >
+            {/* الساعة الرقمية الحية */}
+            <ThemedView style={[styles.liveClockSection, { backgroundColor: colors.card }]}>
+              <ThemedView style={styles.clockHeader}>
+                <IconSymbol size={20} name="clock.fill" color="#4ECDC4" />
+                <ThemedText style={[styles.clockTitle, { color: colors.text }]}>
+                  الوقت الحالي
+                </ThemedText>
+                <TouchableOpacity 
+                  onPress={() => setIsLiveUpdate(!isLiveUpdate)}
+                  style={[styles.liveToggle, { backgroundColor: isLiveUpdate ? '#4ECDC4' : '#ccc' }]}
+                >
+                  <IconSymbol 
+                    size={12} 
+                    name={isLiveUpdate ? "play.fill" : "pause.fill"} 
+                    color="#fff" 
+                  />
+                </TouchableOpacity>
+              </ThemedView>
+
+              <ThemedView style={styles.digitalClock}>
+                <ThemedText style={[styles.timeDisplay, { color: colors.text }]}>
+                  {currentTime.toLocaleTimeString('ar-SA', {
+                    hour: '2-digit',
+                    minute: '2-digit',
+                    second: '2-digit',
+                    hour12: true
+                  })}
+                </ThemedText>
+                <ThemedText style={[styles.dateDisplay, { color: colors.text }]}>
+                  {currentTime.toLocaleDateString('ar-SA', {
+                    weekday: 'long',
+                    year: 'numeric',
+                    month: 'long',
+                    day: 'numeric'
+                  })}
+                </ThemedText>
+              </ThemedView>
+
+              <ThemedView style={styles.timeInfo}>
+                <ThemedView style={styles.timeCard}>
+                  <IconSymbol size={16} name="sun.max.fill" color="#FF9800" />
+                  <ThemedText style={[styles.timeLabel, { color: colors.text }]}>
+                    الساعة: {currentTime.getHours()}
+                  </ThemedText>
+                </ThemedView>
+                <ThemedView style={styles.timeCard}>
+                  <IconSymbol size={16} name="clock.arrow.circlepath" color="#2196F3" />
+                  <ThemedText style={[styles.timeLabel, { color: colors.text }]}>
+                    الدقيقة: {currentTime.getMinutes()}
+                  </ThemedText>
+                </ThemedView>
+                <ThemedView style={styles.timeCard}>
+                  <IconSymbol size={16} name="timer" color="#4CAF50" />
+                  <ThemedText style={[styles.timeLabel, { color: colors.text }]}>
+                    الثانية: {currentTime.getSeconds()}
+                  </ThemedText>
+                </ThemedView>
+              </ThemedView>
+            </ThemedView>
+
             {/* تاريخ اليوم - القسم الرئيسي */}
             <ThemedView style={[styles.todaySection, { backgroundColor: colors.card }]}>
-              <ThemedText style={[styles.sectionTitle, { color: colors.text }]}>
-                🌟 تاريخ اليوم
-              </ThemedText>
+              <ThemedView style={styles.sectionHeader}>
+                <ThemedText style={[styles.sectionTitle, { color: colors.text }]}>
+                  🌟 تاريخ اليوم
+                </ThemedText>
+                <ThemedView style={[styles.liveBadge, { backgroundColor: isLiveUpdate ? '#4ECDC4' : '#ccc' }]}>
+                  <ThemedText style={styles.liveBadgeText}>
+                    {isLiveUpdate ? 'مباشر' : 'متوقف'}
+                  </ThemedText>
+                </ThemedView>
+              </ThemedView>
 
               {/* Container for Gregorian and Hijri cards */}
               <View style={styles.cardsContainer}>
@@ -345,6 +427,101 @@ const styles = StyleSheet.create({
   scrollView: {
     flex: 1,
     padding: 20,
+  },
+
+  // أنماط الساعة الرقمية الحية
+  liveClockSection: {
+    borderRadius: 16,
+    padding: 20,
+    marginBottom: 20,
+    elevation: 4,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 3 },
+    shadowOpacity: 0.15,
+    shadowRadius: 6,
+    borderWidth: 2,
+    borderColor: '#4ECDC4',
+  },
+  clockHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    marginBottom: 15,
+    backgroundColor: 'transparent',
+  },
+  clockTitle: {
+    fontSize: 16,
+    fontWeight: 'bold',
+    writingDirection: 'rtl',
+    flex: 1,
+    textAlign: 'center',
+  },
+  liveToggle: {
+    width: 30,
+    height: 20,
+    borderRadius: 10,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  digitalClock: {
+    alignItems: 'center',
+    backgroundColor: 'rgba(78, 205, 196, 0.1)',
+    borderRadius: 12,
+    padding: 20,
+    marginBottom: 15,
+  },
+  timeDisplay: {
+    fontSize: 36,
+    fontWeight: 'bold',
+    textAlign: 'center',
+    marginBottom: 8,
+    fontFamily: Platform.OS === 'ios' ? 'Courier' : 'monospace',
+  },
+  dateDisplay: {
+    fontSize: 14,
+    textAlign: 'center',
+    writingDirection: 'rtl',
+    opacity: 0.8,
+  },
+  timeInfo: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    gap: 8,
+    backgroundColor: 'transparent',
+  },
+  timeCard: {
+    flex: 1,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: 'rgba(255, 255, 255, 0.8)',
+    borderRadius: 8,
+    padding: 8,
+    gap: 4,
+  },
+  timeLabel: {
+    fontSize: 12,
+    fontWeight: '600',
+    textAlign: 'center',
+    writingDirection: 'rtl',
+  },
+  sectionHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    marginBottom: 12,
+    backgroundColor: 'transparent',
+  },
+  liveBadge: {
+    paddingHorizontal: 12,
+    paddingVertical: 4,
+    borderRadius: 12,
+  },
+  liveBadgeText: {
+    fontSize: 10,
+    fontWeight: 'bold',
+    color: '#fff',
+    textAlign: 'center',
   },
 
   // أنماط قسم تاريخ اليوم المحسنة
