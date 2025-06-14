@@ -409,7 +409,7 @@ export default function ScheduleScreen() {
                 style={styles.backButton}
                 onPress={() => router.back()}
               >
-                <IconSymbol size={24} name="chevron.right" color="#1c1f33" />
+                <IconSymbol size={20} name="arrow.right" color="#1c1f33" />
               </TouchableOpacity>
               <ThemedView style={styles.headerContent}>
                 <IconSymbol size={60} name="calendar.badge.clock" color="#1c1f33" />
@@ -921,7 +921,7 @@ const styles = StyleSheet.create({
     textAlign: 'center',
   },
 
-  //// نموذج الإضافة
+  ////  نموذج الإضافة
   formCard: {
     backgroundColor: '#e0f0f1',
     borderRadius: 12,
