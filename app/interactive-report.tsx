@@ -1121,7 +1121,7 @@ const styles = StyleSheet.create({
     padding: 15,
   },
   summaryCard: {
-    backgroundColor: '#fff',
+    backgroundColor: 'rgba(255, 255, 255, 0.1)',
     borderRadius: 15,
     padding: 20,
     marginBottom: 20,
