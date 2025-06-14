@@ -28,7 +28,11 @@ export default function HomeScreen() {
       });
     } else {
       navigation.setOptions({
-        tabBarStyle: { display: 'flex' }
+        tabBarStyle: { 
+          display: 'flex',
+          position: 'absolute',
+          backgroundColor: '#E8F5F4',
+        }
       });
     }
   }, [currentScreen, navigation]);
