@@ -566,8 +566,8 @@ export default function PerformanceScreen() {
               <ThemedText style={styles.averageLevel}>
                 {getScoreLevel(calculateOverallAverage())}
               </ThemedText>
-              
-              
+
+
             </ThemedView>
 
             <ThemedView style={styles.content}>
@@ -590,7 +590,7 @@ export default function PerformanceScreen() {
                               {index + 1}
                             </ThemedText>
                           </ThemedView>
-                          
+
                           <ThemedView style={styles.cardContent}>
                             <ThemedText type="defaultSemiBold" style={styles.cardTitle}>
                               {item.title}
@@ -1578,5 +1578,95 @@ const styles = StyleSheet.create({
     shadowRadius: 4,
     elevation: 3,
     marginBottom: 20,
+  },
+  mainInteractiveButton: {
+    backgroundColor: '#1c1f33',
+    paddingVertical: 12,
+    paddingHorizontal: 24,
+    borderRadius: 25,
+    marginTop: 20,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.2,
+    shadowRadius: 8,
+    elevation: 6,
+  },
+  mainInteractiveButtonHover: {
+    backgroundColor: '#373a4e',
+  },
+  mainInteractiveButtonText: {
+    color: '#fff',
+    fontSize: 18,
+    fontWeight: 'bold',
+    writingDirection: 'rtl',
+    textAlign: 'center',
+  },
+  filesContainer: {
+    backgroundColor: '#f0f8ff',
+    padding: 10,
+    borderRadius: 8,
+    marginTop: 8,
+    borderWidth: 1,
+    borderColor: '#e3f2fd',
+  },
+  filesHeaderRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 10,
+    paddingBottom: 8,
+    borderBottomWidth: 1,
+    borderBottomColor: '#e0e0e0',
+  },
+  filesCountTitle: {
+    fontSize: 13,
+    fontWeight: 'bold',
+    color: '#1976d2',
+    textAlign: 'right',
+    writingDirection: 'rtl',
+  },
+  deleteAllFilesButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#ffebee',
+    paddingHorizontal: 8,
+    paddingVertical: 4,
+    borderRadius: 6,
+    gap: 4,
+  },
+  deleteAllFilesText: {
+    fontSize: 10,
+    color: '#F44336',
+    fontWeight: '600',
+    textAlign: 'center',
+    writingDirection: 'rtl',
+  },
+  fileIndexTitle: {
+    fontSize: 11,
+    fontWeight: 'bold',
+    color: '#666',
+    textAlign: 'right',
+    writingDirection: 'rtl',
+  },
+  addMoreFilesButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: '#e3f2fd',
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+    borderRadius: 6,
+    marginTop: 10,
+    borderWidth: 1,
+    borderColor: '#2196F3',
+    borderStyle: 'dashed',
+    gap: 6,
+  },
+  addMoreFilesButtonText: {
+    fontSize: 11,
+    color: '#2196F3',
+    fontWeight: '600',
+    textAlign: 'center',
+    writingDirection: 'rtl',
   },
 });
