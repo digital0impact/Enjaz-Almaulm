@@ -3,17 +3,13 @@ import { useFonts } from 'expo-font';
 import { Stack } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
 import { I18nManager } from 'react-native';
+import { useEffect } from 'react';
+import * as SplashScreen from 'expo-splash-screen';
 import 'react-native-reanimated';
 
 import { UserProvider } from '@/contexts/UserContext';
 import { DatabaseProvider } from '@/contexts/DatabaseContext';
 import { useColorScheme } from '@/hooks/useColorScheme';
-import { useFonts } from 'expo-font';
-import { Stack } from 'expo-router';
-import * as SplashScreen from 'expo-splash-screen';
-import { StatusBar } from 'expo-status-bar';
-import { useEffect } from 'react';
-import 'react-native-reanimated/lib/reanimated2/js-reanimated';
 
 // Force RTL layout
 I18nManager.allowRTL(true);
@@ -32,7 +28,7 @@ export default function RootLayout() {
 
   return (
     <UserProvider>
-      <DatabaseProvider>
+      <DatabaseProvider userId="user-123">
         <ThemeProvider value={colorScheme === 'dark' ? DarkTheme : DefaultTheme}>
           <Stack>
             <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
