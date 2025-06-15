@@ -153,7 +153,7 @@ export default function HomeScreen() {
                 />
               </ThemedView>
               <ThemedText type="title" style={styles.title}>
-                
+
               </ThemedText>
               <ThemedText style={[styles.subtitle, { textAlign: 'center' }]}>
                 منصتك المتكاملة لإدارة وعرض إنجازاتك المهنية
@@ -242,14 +242,7 @@ export default function HomeScreen() {
                     <ThemedText style={styles.loginButtonText}>حساب Apple</ThemedText>
                   </TouchableOpacity>
 
-                  {/* Microsoft Login Button */}
-                  <TouchableOpacity 
-                    style={styles.loginButton}
-                    onPress={() => handleLogin('microsoft')}
-                  >
-                    <IconSymbol size={24} name="lock.shield.fill" color="#1c1f33" />
-                    <ThemedText style={styles.loginButtonText}>حساب Microsoft</ThemedText>
-                  </TouchableOpacity>
+                  
                 </ThemedView>
 
                 <TouchableOpacity 
@@ -769,5 +762,5 @@ const styles = StyleSheet.create({
     shadowRadius: 12,
     elevation: 10,
   },
-  
+
 });
