@@ -106,9 +106,12 @@ export default function EditAlertScreen() {
           };
 
           await AsyncStorage.setItem('alerts', JSON.stringify(alerts));
-          Alert.alert('تم الحفظ', 'تم تحديث التنبيه بنجاح', [
-            { text: 'موافق', onPress: () => router.back() }
-          ]);
+          const isNewAlert = alert?.title === `تنبيه ${alert?.type} جديد`;
+          Alert.alert(
+            isNewAlert ? 'تم الإنشاء' : 'تم الحفظ', 
+            isNewAlert ? 'تم إنشاء التنبيه بنجاح' : 'تم تحديث التنبيه بنجاح', 
+            [{ text: 'موافق', onPress: () => router.back() }]
+          );
         } else {
           Alert.alert('خطأ', 'لم يتم العثور على التنبيه');
         }
@@ -215,11 +218,11 @@ export default function EditAlertScreen() {
               </ThemedView>
               
               <ThemedText type="title" style={styles.title}>
-                تعديل التنبيه
+                {alert?.title === `تنبيه ${alert?.type} جديد` ? 'إضافة تنبيه جديد' : 'تعديل التنبيه'}
               </ThemedText>
               
               <ThemedText style={styles.subtitle}>
-                قم بتحديث معلومات التنبيه
+                {alert?.title === `تنبيه ${alert?.type} جديد` ? 'أدخل تفاصيل التنبيه الجديد' : 'قم بتحديث معلومات التنبيه'}
               </ThemedText>
             </ThemedView>
 
@@ -418,7 +421,9 @@ export default function EditAlertScreen() {
                   onPress={saveAlert}
                 >
                   <IconSymbol size={20} name="checkmark.circle.fill" color="#fff" />
-                  <ThemedText style={styles.actionButtonText}>حفظ التغييرات</ThemedText>
+                  <ThemedText style={styles.actionButtonText}>
+                    {alert?.title === `تنبيه ${alert?.type} جديد` ? 'إضافة التنبيه' : 'حفظ التغييرات'}
+                  </ThemedText>
                 </TouchableOpacity>
 
                 <TouchableOpacity

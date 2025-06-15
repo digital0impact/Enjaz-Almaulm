@@ -122,7 +122,7 @@ export default function AlertsManagementScreen() {
     );
   };
 
-  const addNewAlert = (type: string) => {
+  const addNewAlert = async (type: string) => {
     const newAlert: AlertItem = {
       id: Date.now().toString(),
       title: `تنبيه ${type} جديد`,
@@ -135,10 +135,17 @@ export default function AlertsManagementScreen() {
       createdAt: new Date().toISOString(),
     };
 
-    const updatedAlerts = [...alerts, newAlert];
-    saveAlerts(updatedAlerts);
-
-    Alert.alert('تم الإضافة', `تم إضافة تنبيه ${type} جديد بنجاح`);
+    try {
+      const updatedAlerts = [...alerts, newAlert];
+      await AsyncStorage.setItem('alerts', JSON.stringify(updatedAlerts));
+      setAlerts(updatedAlerts);
+      
+      // التوجه مباشرة إلى صفحة التعديل
+      router.push(`/edit-alert?id=${newAlert.id}`);
+    } catch (error) {
+      console.error('Error adding alert:', error);
+      Alert.alert('خطأ', 'فشل في إضافة التنبيه');
+    }
   };
 
   const getFilteredAlerts = () => {
