@@ -487,6 +487,7 @@ const styles = StyleSheet.create({
   },
   categoryInfo: {
     flex: 1,
+    backgroundColor: 'transparent',
   },
   categoryTitle: {
     fontSize: 16,
