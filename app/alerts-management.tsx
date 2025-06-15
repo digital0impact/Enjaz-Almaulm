@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { StyleSheet, ScrollView, TouchableOpacity, Alert, I18nManager, ImageBackground, Dimensions, Platform } from 'react-native';
+import { StyleSheet, ScrollView, TouchableOpacity, Alert, I18nManager, ImageBackground, Dimensions, Platform, Modal, TextInput } from 'react-native';
 import { LinearGradient as ExpoLinearGradient } from 'expo-linear-gradient';
 import { ThemedText } from '@/components/ThemedText';
 import { ThemedView } from '@/components/ThemedView';
@@ -30,6 +30,17 @@ export default function AlertsManagementScreen() {
   const [alerts, setAlerts] = useState<AlertItem[]>([]);
   const [filter, setFilter] = useState<'all' | 'active' | 'inactive'>('all');
   const [typeFilter, setTypeFilter] = useState<string>('all');
+  const [modalVisible, setModalVisible] = useState(false);
+  const [editingAlert, setEditingAlert] = useState<AlertItem | null>(null);
+  const [editTitle, setEditTitle] = useState('');
+  const [editDescription, setEditDescription] = useState('');
+  const [editDate, setEditDate] = useState('');
+  const [editTime, setEditTime] = useState('');
+  const [editType, setEditType] = useState<AlertItem['type']>('اختبار');
+  const [editPriority, setEditPriority] = useState<AlertItem['priority']>('متوسط');
+  const [editReminderBefore, setEditReminderBefore] = useState(15);
+  const [editActive, setEditActive] = useState(true);
+  const [editRepeat, setEditRepeat] = useState<AlertItem['repeat']>('none');
 
   useEffect(() => {
     loadAlerts();
@@ -122,6 +133,45 @@ export default function AlertsManagementScreen() {
     );
   };
 
+  const openEditModal = (alert: AlertItem | null = null) => {
+    if (alert) {
+      setEditingAlert(alert);
+      setEditTitle(alert.title);
+      setEditDescription(alert.description || '');
+      setEditDate(alert.date);
+      setEditTime(alert.time);
+      setEditType(alert.type);
+      setEditPriority(alert.priority);
+      setEditReminderBefore(alert.reminderBefore);
+      setEditActive(alert.active);
+      setEditRepeat(alert.repeat || 'none');
+    } else {
+      // إنشاء تنبيه جديد
+      const newAlert: AlertItem = {
+        id: Date.now().toString(),
+        title: 'تنبيه جديد',
+        date: new Date().toISOString().split('T')[0],
+        time: '09:00',
+        type: 'اختبار',
+        active: true,
+        priority: 'متوسط',
+        reminderBefore: 15,
+        createdAt: new Date().toISOString(),
+      };
+      setEditingAlert(newAlert);
+      setEditTitle(newAlert.title);
+      setEditDescription('');
+      setEditDate(newAlert.date);
+      setEditTime(newAlert.time);
+      setEditType(newAlert.type);
+      setEditPriority(newAlert.priority);
+      setEditReminderBefore(newAlert.reminderBefore);
+      setEditActive(newAlert.active);
+      setEditRepeat('none');
+    }
+    setModalVisible(true);
+  };
+
   const addNewAlert = async (type: string) => {
     const newAlert: AlertItem = {
       id: Date.now().toString(),
@@ -135,17 +185,100 @@ export default function AlertsManagementScreen() {
       createdAt: new Date().toISOString(),
     };
 
+    setEditingAlert(newAlert);
+    setEditTitle(newAlert.title);
+    setEditDescription('');
+    setEditDate(newAlert.date);
+    setEditTime(newAlert.time);
+    setEditType(newAlert.type);
+    setEditPriority(newAlert.priority);
+    setEditReminderBefore(newAlert.reminderBefore);
+    setEditActive(newAlert.active);
+    setEditRepeat('none');
+    setModalVisible(true);
+  };
+
+  const saveAlertFromModal = async () => {
+    if (!editTitle.trim()) {
+      Alert.alert('خطأ', 'يرجى إدخال عنوان التنبيه');
+      return;
+    }
+
+    if (!editDate) {
+      Alert.alert('خطأ', 'يرجى اختيار تاريخ التنبيه');
+      return;
+    }
+
+    if (!editTime) {
+      Alert.alert('خطأ', 'يرجى اختيار وقت التنبيه');
+      return;
+    }
+
     try {
-      const updatedAlerts = [...alerts, newAlert];
+      const updatedAlert: AlertItem = {
+        ...editingAlert!,
+        title: editTitle.trim(),
+        description: editDescription.trim(),
+        date: editDate,
+        time: editTime,
+        type: editType,
+        priority: editPriority,
+        reminderBefore: editReminderBefore,
+        active: editActive,
+        repeat: editRepeat,
+      };
+
+      let updatedAlerts: AlertItem[];
+      const existingIndex = alerts.findIndex(a => a.id === editingAlert!.id);
+      
+      if (existingIndex !== -1) {
+        // تحديث تنبيه موجود
+        updatedAlerts = [...alerts];
+        updatedAlerts[existingIndex] = updatedAlert;
+      } else {
+        // إضافة تنبيه جديد
+        updatedAlerts = [...alerts, updatedAlert];
+      }
+
       await AsyncStorage.setItem('alerts', JSON.stringify(updatedAlerts));
       setAlerts(updatedAlerts);
+      setModalVisible(false);
       
-      // التوجه مباشرة إلى صفحة التعديل
-      router.push(`/edit-alert?id=${newAlert.id}`);
+      const isNewAlert = existingIndex === -1;
+      Alert.alert(
+        isNewAlert ? 'تم الإنشاء' : 'تم الحفظ',
+        isNewAlert ? 'تم إنشاء التنبيه بنجاح' : 'تم تحديث التنبيه بنجاح'
+      );
     } catch (error) {
-      console.error('Error adding alert:', error);
-      Alert.alert('خطأ', 'فشل في إضافة التنبيه');
+      console.error('Error saving alert:', error);
+      Alert.alert('خطأ', 'فشل في حفظ التنبيه');
     }
+  };
+
+  const deleteAlertFromModal = () => {
+    Alert.alert(
+      'حذف التنبيه',
+      'هل أنت متأكد من رغبتك في حذف هذا التنبيه؟',
+      [
+        { text: 'إلغاء', style: 'cancel' },
+        {
+          text: 'حذف',
+          style: 'destructive',
+          onPress: async () => {
+            try {
+              const updatedAlerts = alerts.filter(a => a.id !== editingAlert!.id);
+              await AsyncStorage.setItem('alerts', JSON.stringify(updatedAlerts));
+              setAlerts(updatedAlerts);
+              setModalVisible(false);
+              Alert.alert('تم الحذف', 'تم حذف التنبيه بنجاح');
+            } catch (error) {
+              console.error('Error deleting alert:', error);
+              Alert.alert('خطأ', 'فشل في حذف التنبيه');
+            }
+          }
+        }
+      ]
+    );
   };
 
   const getFilteredAlerts = () => {
@@ -463,9 +596,7 @@ export default function AlertsManagementScreen() {
 
                                <TouchableOpacity
                                 style={styles.editButton}
-                                onPress={() => {
-                                  router.push(`/edit-alert?id=${alert.id}`);
-                                }}
+                                onPress={() => openEditModal(alert)}
                               >
                                 <IconSymbol size={18} name="gear.fill" color="#2196F3" />
                               </TouchableOpacity>
@@ -701,6 +832,202 @@ ${Object.entries(stats.byType).map(([type, count]) => `${type}: ${count}`).join(
           <BottomNavigationBar />
         </ExpoLinearGradient>
       </ImageBackground>
+
+      {/* Modal لتعديل التنبيه */}
+      <Modal
+        animationType="slide"
+        transparent={true}
+        visible={modalVisible}
+        onRequestClose={() => setModalVisible(false)}
+      >
+        <ThemedView style={styles.modalOverlay}>
+          <ThemedView style={styles.modalContent}>
+            <ScrollView style={styles.modalScrollView}>
+              <ThemedView style={styles.modalHeader}>
+                <TouchableOpacity 
+                  style={styles.modalCloseButton}
+                  onPress={() => setModalVisible(false)}
+                >
+                  <IconSymbol size={24} name="xmark.circle.fill" color="#666" />
+                </TouchableOpacity>
+                
+                <ThemedText style={styles.modalTitle}>
+                  {alerts.findIndex(a => a.id === editingAlert?.id) !== -1 ? 'تعديل التنبيه' : 'إضافة تنبيه جديد'}
+                </ThemedText>
+              </ThemedView>
+
+              {/* عنوان التنبيه */}
+              <ThemedView style={styles.modalSection}>
+                <ThemedText style={styles.modalSectionTitle}>عنوان التنبيه</ThemedText>
+                <TextInput
+                  style={styles.modalTextInput}
+                  value={editTitle}
+                  onChangeText={setEditTitle}
+                  placeholder="أدخل عنوان التنبيه"
+                  textAlign="right"
+                />
+              </ThemedView>
+
+              {/* وصف التنبيه */}
+              <ThemedView style={styles.modalSection}>
+                <ThemedText style={styles.modalSectionTitle}>الوصف (اختياري)</ThemedText>
+                <TextInput
+                  style={[styles.modalTextInput, styles.modalTextArea]}
+                  value={editDescription}
+                  onChangeText={setEditDescription}
+                  placeholder="أدخل وصف التنبيه"
+                  textAlign="right"
+                  multiline
+                  numberOfLines={3}
+                />
+              </ThemedView>
+
+              {/* نوع التنبيه */}
+              <ThemedView style={styles.modalSection}>
+                <ThemedText style={styles.modalSectionTitle}>نوع التنبيه</ThemedText>
+                <ScrollView horizontal showsHorizontalScrollIndicator={false}>
+                  <ThemedView style={styles.modalOptionsRow}>
+                    {[
+                      { value: 'اختبار', label: 'اختبار', icon: 'doc.text.fill', color: '#FF5722' },
+                      { value: 'اجتماع', label: 'اجتماع', icon: 'person.3.fill', color: '#2196F3' },
+                      { value: 'مهمة', label: 'مهمة', icon: 'checkmark.circle.fill', color: '#4CAF50' },
+                      { value: 'إجازة', label: 'إجازة', icon: 'calendar.badge.plus', color: '#FF9800' },
+                      { value: 'تدريب', label: 'تدريب', icon: 'graduationcap.fill', color: '#9C27B0' },
+                      { value: 'شخصي', label: 'شخصي', icon: 'person.fill', color: '#607D8B' },
+                    ].map((item) => (
+                      <TouchableOpacity
+                        key={item.value}
+                        style={[
+                          styles.modalOptionCard,
+                          editType === item.value && [styles.modalOptionCardActive, { borderColor: item.color }]
+                        ]}
+                        onPress={() => setEditType(item.value as AlertItem['type'])}
+                      >
+                        <IconSymbol 
+                          size={20} 
+                          name={item.icon as any} 
+                          color={editType === item.value ? item.color : '#666'} 
+                        />
+                        <ThemedText style={[
+                          styles.modalOptionText,
+                          editType === item.value && { color: item.color, fontWeight: 'bold' }
+                        ]}>
+                          {item.label}
+                        </ThemedText>
+                      </TouchableOpacity>
+                    ))}
+                  </ThemedView>
+                </ScrollView>
+              </ThemedView>
+
+              {/* التاريخ والوقت */}
+              <ThemedView style={styles.modalRow}>
+                <ThemedView style={[styles.modalSection, { flex: 1, marginRight: 10 }]}>
+                  <ThemedText style={styles.modalSectionTitle}>التاريخ</ThemedText>
+                  <TextInput
+                    style={styles.modalTextInput}
+                    value={editDate}
+                    onChangeText={setEditDate}
+                    placeholder="YYYY-MM-DD"
+                    textAlign="right"
+                  />
+                </ThemedView>
+                
+                <ThemedView style={[styles.modalSection, { flex: 1, marginLeft: 10 }]}>
+                  <ThemedText style={styles.modalSectionTitle}>الوقت</ThemedText>
+                  <TextInput
+                    style={styles.modalTextInput}
+                    value={editTime}
+                    onChangeText={setEditTime}
+                    placeholder="HH:MM"
+                    textAlign="right"
+                  />
+                </ThemedView>
+              </ThemedView>
+
+              {/* الأولوية */}
+              <ThemedView style={styles.modalSection}>
+                <ThemedText style={styles.modalSectionTitle}>الأولوية</ThemedText>
+                <ThemedView style={styles.modalOptionsRow}>
+                  {[
+                    { value: 'عالي', label: 'عالي', color: '#F44336' },
+                    { value: 'متوسط', label: 'متوسط', color: '#FF9800' },
+                    { value: 'منخفض', label: 'منخفض', color: '#4CAF50' },
+                  ].map((item) => (
+                    <TouchableOpacity
+                      key={item.value}
+                      style={[
+                        styles.modalOptionCard,
+                        editPriority === item.value && [styles.modalOptionCardActive, { borderColor: item.color }]
+                      ]}
+                      onPress={() => setEditPriority(item.value as AlertItem['priority'])}
+                    >
+                      <ThemedView style={[
+                        styles.modalPriorityDot,
+                        { backgroundColor: item.color }
+                      ]} />
+                      <ThemedText style={[
+                        styles.modalOptionText,
+                        editPriority === item.value && { color: item.color, fontWeight: 'bold' }
+                      ]}>
+                        {item.label}
+                      </ThemedText>
+                    </TouchableOpacity>
+                  ))}
+                </ThemedView>
+              </ThemedView>
+
+              {/* حالة التنبيه */}
+              <ThemedView style={styles.modalSection}>
+                <TouchableOpacity
+                  style={[styles.modalToggleCard, editActive && styles.modalToggleCardActive]}
+                  onPress={() => setEditActive(!editActive)}
+                >
+                  <IconSymbol 
+                    size={20} 
+                    name={editActive ? 'bell.fill' : 'bell.slash.fill'} 
+                    color={editActive ? '#4CAF50' : '#999'} 
+                  />
+                  <ThemedText style={[
+                    styles.modalToggleText,
+                    editActive && styles.modalToggleTextActive
+                  ]}>
+                    {editActive ? 'التنبيه نشط' : 'التنبيه معطل'}
+                  </ThemedText>
+                  <IconSymbol 
+                    size={16} 
+                    name={editActive ? 'checkmark.circle.fill' : 'circle'} 
+                    color={editActive ? '#4CAF50' : '#ccc'} 
+                  />
+                </TouchableOpacity>
+              </ThemedView>
+
+              {/* أزرار الحفظ والحذف */}
+              <ThemedView style={styles.modalButtonsContainer}>
+                <TouchableOpacity
+                  style={[styles.modalActionButton, styles.modalSaveButton]}
+                  onPress={saveAlertFromModal}
+                >
+                  <IconSymbol size={18} name="checkmark.circle.fill" color="#fff" />
+                  <ThemedText style={styles.modalActionButtonText}>
+                    {alerts.findIndex(a => a.id === editingAlert?.id) !== -1 ? 'حفظ التغييرات' : 'إضافة التنبيه'}
+                  </ThemedText>
+                </TouchableOpacity>
+
+                {alerts.findIndex(a => a.id === editingAlert?.id) !== -1 && (
+                  <TouchableOpacity
+                    style={[styles.modalActionButton, styles.modalDeleteButton]}
+                    onPress={deleteAlertFromModal}
+                  >
+                    <IconSymbol size={18} name="trash.fill" color="#fff" />
+                    <ThemedText style={styles.modalActionButtonText}>حذف التنبيه</ThemedText>
+                  </TouchableOpacity>
+                )}
+              </ThemedView>
+            </ScrollView>
+          </ThemedView>
+        </ThemedView>
+      </Modal>
     </ThemedView>
   );
 }
@@ -1106,6 +1433,162 @@ const styles = StyleSheet.create({
     fontSize: 16,
     color: '#1c1f33',
     textAlign: 'right',
+    writingDirection: 'rtl',
+  },
+  // Modal Styles
+  modalOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+    justifyContent: 'center',
+    alignItems: 'center',
+    padding: 20,
+  },
+  modalContent: {
+    backgroundColor: '#e0f0f1',
+    borderRadius: 20,
+    width: '100%',
+    maxHeight: '90%',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 10 },
+    shadowOpacity: 0.3,
+    shadowRadius: 20,
+    elevation: 20,
+  },
+  modalScrollView: {
+    maxHeight: '100%',
+  },
+  modalHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    padding: 20,
+    borderBottomWidth: 1,
+    borderBottomColor: '#E5E5EA',
+    backgroundColor: 'transparent',
+  },
+  modalCloseButton: {
+    padding: 5,
+  },
+  modalTitle: {
+    fontSize: 20,
+    fontWeight: 'bold',
+    color: '#1c1f33',
+    textAlign: 'center',
+    writingDirection: 'rtl',
+    flex: 1,
+    marginRight: 35,
+  },
+  modalSection: {
+    marginBottom: 20,
+    paddingHorizontal: 20,
+    backgroundColor: 'transparent',
+  },
+  modalSectionTitle: {
+    fontSize: 14,
+    fontWeight: 'bold',
+    marginBottom: 8,
+    color: '#1c1f33',
+    textAlign: 'right',
+    writingDirection: 'rtl',
+  },
+  modalTextInput: {
+    backgroundColor: '#fff',
+    borderRadius: 10,
+    padding: 12,
+    borderWidth: 1,
+    borderColor: '#E5E5EA',
+    fontSize: 14,
+    color: '#1c1f33',
+    textAlign: 'right',
+    writingDirection: 'rtl',
+  },
+  modalTextArea: {
+    height: 60,
+    textAlignVertical: 'top',
+  },
+  modalRow: {
+    flexDirection: 'row',
+    paddingHorizontal: 20,
+    marginBottom: 20,
+  },
+  modalOptionsRow: {
+    flexDirection: 'row',
+    gap: 8,
+  },
+  modalOptionCard: {
+    backgroundColor: '#fff',
+    borderRadius: 10,
+    padding: 12,
+    alignItems: 'center',
+    minWidth: 70,
+    borderWidth: 1,
+    borderColor: '#E5E5EA',
+    gap: 6,
+  },
+  modalOptionCardActive: {
+    borderWidth: 2,
+    backgroundColor: '#f0f8ff',
+  },
+  modalOptionText: {
+    fontSize: 11,
+    color: '#1c1f33',
+    textAlign: 'center',
+    writingDirection: 'rtl',
+  },
+  modalPriorityDot: {
+    width: 10,
+    height: 10,
+    borderRadius: 5,
+  },
+  modalToggleCard: {
+    backgroundColor: '#fff',
+    borderRadius: 10,
+    padding: 15,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    borderWidth: 1,
+    borderColor: '#E5E5EA',
+  },
+  modalToggleCardActive: {
+    borderColor: '#4CAF50',
+    backgroundColor: '#4CAF5005',
+  },
+  modalToggleText: {
+    flex: 1,
+    fontSize: 14,
+    color: '#1c1f33',
+    textAlign: 'center',
+    writingDirection: 'rtl',
+    marginHorizontal: 15,
+  },
+  modalToggleTextActive: {
+    fontWeight: 'bold',
+    color: '#4CAF50',
+  },
+  modalButtonsContainer: {
+    gap: 12,
+    padding: 20,
+    paddingTop: 10,
+  },
+  modalActionButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    padding: 15,
+    borderRadius: 10,
+    gap: 8,
+  },
+  modalSaveButton: {
+    backgroundColor: '#4CAF50',
+  },
+  modalDeleteButton: {
+    backgroundColor: '#F44336',
+  },
+  modalActionButtonText: {
+    color: '#fff',
+    fontSize: 14,
+    fontWeight: 'bold',
     writingDirection: 'rtl',
   },
 });
