@@ -664,73 +664,7 @@ export default function AlertsManagementScreen() {
                   <IconSymbol size={16} name="chevron.left" color="#666" />
                 </TouchableOpacity>
 
-                <TouchableOpacity 
-                  style={styles.settingButton}
-                  onPress={async () => {
-                    Alert.alert(
-                      'النسخ الاحتياطي',
-                      'اختر نوع النسخ الاحتياطي',
-                      [
-                        {
-                          text: 'إنشاء نسخة احتياطية',
-                          onPress: async () => {
-                            try {
-                              const alertsData = await AsyncStorage.getItem('alerts');
-                              const backupData = {
-                                alerts: alertsData ? JSON.parse(alertsData) : [],
-                                timestamp: new Date().toISOString(),
-                                version: '1.0'
-                              };
-                              console.log('تم إنشاء النسخة الاحتياطية:', backupData);
-                              Alert.alert('تم بنجاح', 'تم إنشاء النسخة الاحتياطية وحفظها محلياً');
-                            } catch (error) {
-                              Alert.alert('خطأ', 'فشل في إنشاء النسخة الاحتياطية');
-                            }
-                          }
-                        },
-                        {
-                          text: 'استعادة من نسخة احتياطية',
-                          onPress: () => {
-                            Alert.alert(
-                              'استعادة البيانات',
-                              'هل أنت متأكد من رغبتك في استعادة البيانات؟ سيتم استبدال التنبيهات الحالية.',
-                              [
-                                { text: 'إلغاء', style: 'cancel' },
-                                {
-                                  text: 'استعادة',
-                                  style: 'destructive',
-                                  onPress: () => Alert.alert('قريباً', 'سيتم إضافة ميزة الاستعادة قريباً')
-                                }
-                              ]
-                            );
-                          }
-                        },
-                        {
-                          text: 'تصدير إلى ملف',
-                          onPress: async () => {
-                            try {
-                              const alertsData = await AsyncStorage.getItem('alerts');
-                              const exportData = {
-                                alerts: alertsData ? JSON.parse(alertsData) : [],
-                                exportDate: new Date().toLocaleDateString('ar-SA'),
-                                totalAlerts: alertsData ? JSON.parse(alertsData).length : 0
-                              };
-                              console.log('بيانات التصدير:', JSON.stringify(exportData, null, 2));
-                              Alert.alert('تم التصدير', 'تم تصدير بيانات التنبيهات بنجاح');
-                            } catch (error) {
-                              Alert.alert('خطأ', 'فشل في تصدير البيانات');
-                            }
-                          }
-                        },
-                        { text: 'إلغاء', style: 'cancel' }
-                      ]
-                    );
-                  }}
-                >
-                  <IconSymbol size={24} name="icloud.and.arrow.up.fill" color="#4CAF50" />
-                  <ThemedText style={styles.settingButtonText}>النسخ الاحتياطي</ThemedText>
-                  <IconSymbol size={16} name="chevron.left" color="#666" />
-                </TouchableOpacity>
+                
 
                 <TouchableOpacity 
                   style={styles.settingButton}
