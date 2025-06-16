@@ -684,7 +684,7 @@ const styles = StyleSheet.create({
     textAlign: 'right',
   },
   themeOption: {
-    flexDirection: 'row',
+    flexDirection: 'row-reverse',
     justifyContent: 'space-between',
     alignItems: 'center',
     padding: 15,
@@ -701,5 +701,7 @@ const styles = StyleSheet.create({
     fontSize: 16,
     color: '#2C3E50',
     textAlign: 'right',
+    flex: 1,
+    writingDirection: 'rtl',
   },
 });
