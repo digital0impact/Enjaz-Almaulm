@@ -62,6 +62,22 @@ export interface Comment {
 }
 
 class DatabaseService {
+  // مثال لجلب جميع المستخدمين
+  async fetchUsers() {
+    try {
+      const { data, error } = await supabase.from('user_profiles').select('*');
+      if (error) {
+        console.error('Error:', error);
+        throw error;
+      }
+      console.log('Users:', data);
+      return data;
+    } catch (error) {
+      console.error('Error fetching users:', error);
+      throw error;
+    }
+  }
+
   // User Profile Operations
   async saveUserProfile(userProfile: UserProfile): Promise<string> {
     try {
