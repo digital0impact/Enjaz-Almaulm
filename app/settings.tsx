@@ -1,25 +1,23 @@
 import React, { useState, useEffect } from 'react';
-import { StyleSheet, ScrollView, TouchableOpacity, Alert, I18nManager, ImageBackground, Platform } from 'react-native';
+import { StyleSheet, ScrollView, TouchableOpacity, Alert, Switch, I18nManager, ImageBackground, Platform } from 'react-native';
 import { LinearGradient as ExpoLinearGradient } from 'expo-linear-gradient';
 import { ThemedText } from '@/components/ThemedText';
 import { ThemedView } from '@/components/ThemedView';
 import { IconSymbol } from '@/components/ui/IconSymbol';
 import { useRouter } from 'expo-router';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { BottomNavigationBar } from '@/components/BottomNavigationBar';
-import { Switch } from 'react-native';
 import { useTheme } from '@/contexts/ThemeContext';
+import { BottomNavigationBar } from '@/components/BottomNavigationBar';
 
 
 export default function SettingsScreen() {
   const router = useRouter();
   const [userName, setUserName] = useState('المستخدم');
-  const [darkTheme, setDarkTheme] = useState(false);
   const [notifications, setNotifications] = useState(true);
   const [autoBackup, setAutoBackup] = useState(true);
   const [userInfo, setUserInfo] = useState<any>(null);
+  const { themeName, themeMode, colors, setThemeName, setThemeMode, availableThemes } = useTheme();
   const [selectedColorScheme, setSelectedColorScheme] = useState('default');
-  const { themeName, themeMode, setThemeName, setThemeMode, availableThemes } = useTheme();
 
   useEffect(() => {
     loadSettings();
@@ -32,7 +30,6 @@ export default function SettingsScreen() {
       const settings = await AsyncStorage.getItem('appSettings');
       if (settings) {
         const parsedSettings = JSON.parse(settings);
-        setDarkTheme(parsedSettings.darkTheme || false);
         setNotifications(parsedSettings.notifications !== false);
         setAutoBackup(parsedSettings.autoBackup !== false);
         setSelectedColorScheme(parsedSettings.colorScheme || 'default');
@@ -81,17 +78,7 @@ export default function SettingsScreen() {
   };
 
   const handleThemeChange = (value: boolean) => {
-    setDarkTheme(value);
-    saveSettings({ darkTheme: value });
-    
-    // تطبيق الثيم فوراً
-    if (value) {
-      // تطبيق الوضع الداكن
-      Alert.alert('تم التفعيل', 'تم تفعيل الوضع الداكن');
-    } else {
-      // تطبيق الوضع الفاتح
-      Alert.alert('تم الإلغاء', 'تم إلغاء الوضع الداكن');
-    }
+    setThemeMode(value ? 'dark' : 'light');
   };
 
   const handleNotificationChange = (value: boolean) => {
@@ -159,27 +146,15 @@ export default function SettingsScreen() {
     );
   };
 
-  const handleColorSchemeChange = async (colorScheme: string, schemeName: string) => {
-    try {
-      setSelectedColorScheme(colorScheme);
-      await saveSettings({ colorScheme });
-      
-      // هنا يمكن إضافة منطق تطبيق الألوان على التطبيق
-      Alert.alert('تم التطبيق', `تم تطبيق نظام الألوان: ${schemeName}`);
-    } catch (error) {
-      console.log('Error saving color scheme:', error);
-      Alert.alert('خطأ', 'حدث خطأ أثناء حفظ نظام الألوان');
-    }
+  const handleColorSchemeChange = (scheme: string) => {
+    setThemeName(scheme as any);
+    setSelectedColorScheme(scheme);
   };
 
-  const getColorSchemeOptions = () => [
-    { value: 'default', name: 'الافتراضي', colors: ['#4ECDC4', '#E8F5F4', '#1c1f33'] },
-    { value: 'blue', name: 'الأزرق الكلاسيكي', colors: ['#007AFF', '#E3F2FD', '#1565C0'] },
-    { value: 'green', name: 'الأخضر الطبيعي', colors: ['#4CAF50', '#E8F5E8', '#2E7D32'] },
-    { value: 'purple', name: 'البنفسجي الأنيق', colors: ['#9C27B0', '#F3E5F5', '#6A1B9A'] },
-    { value: 'orange', name: 'البرتقالي الدافئ', colors: ['#FF9500', '#FFF3E0', '#E65100'] },
-    { value: 'pink', name: 'الوردي الناعم', colors: ['#E91E63', '#FCE4EC', '#C2185B'] }
-  ];
+  const getColorSchemeOptions = () => availableThemes.map(theme => ({
+    name: theme.name,
+    value: theme.key
+  }));
 
   const handleLogout = () => {
     Alert.alert(
@@ -212,7 +187,7 @@ export default function SettingsScreen() {
         resizeMode="cover"
       >
         <ExpoLinearGradient
-          colors={darkTheme 
+          colors={themeMode === 'dark'
             ? ['rgba(33,37,41,0.9)', 'rgba(52,58,64,0.95)', 'rgba(73,80,87,0.8)']
             : ['rgba(255,255,255,0.9)', 'rgba(225,245,244,0.95)', 'rgba(173,212,206,0.8)']
           }
@@ -239,41 +214,41 @@ export default function SettingsScreen() {
             <ThemedView style={styles.content}>
               {/* معلومات المستخدم */}
               <ThemedView style={[styles.section, { backgroundColor: 'transparent' }]}>
-                <ThemedView style={[styles.userInfo, darkTheme && styles.darkUserInfo]}>
+                <ThemedView style={[styles.userInfo, themeMode === 'dark' && styles.darkUserInfo]}>
                   <ThemedView style={styles.userAvatar}>
-                    <IconSymbol size={40} name="person.circle.fill" color={darkTheme ? "#fff" : "#1c1f33"} />
+                    <IconSymbol size={40} name="person.circle.fill" color={themeMode === 'dark' ? "#fff" : "#1c1f33"} />
                   </ThemedView>
                   <ThemedView style={styles.userDetails}>
-                    <ThemedText style={[styles.userName, darkTheme && styles.darkText]}>{userName}</ThemedText>
-                    <ThemedText style={[styles.userEmail, darkTheme && styles.darkSubtext]}>{userInfo?.email || 'teacher@example.com'}</ThemedText>
+                    <ThemedText style={[styles.userName, themeMode === 'dark' && styles.darkText]}>{userName}</ThemedText>
+                    <ThemedText style={[styles.userEmail, themeMode === 'dark' && styles.darkSubtext]}>{userInfo?.email || 'teacher@example.com'}</ThemedText>
                   </ThemedView>
                 </ThemedView>
               </ThemedView>
 
               {/* المظهر والثيمات */}
               <ThemedView style={[styles.section, { backgroundColor: 'transparent' }]}>
-                <ThemedText style={[styles.sectionTitle, darkTheme && styles.darkSectionTitle]}>المظهر والثيمات</ThemedText>
-                
+                <ThemedText style={[styles.sectionTitle, themeMode === 'dark' && styles.darkSectionTitle]}>المظهر والثيمات</ThemedText>
+
                 {/* اختيار الثيم */}
                 <ThemedView style={[styles.settingsGroup, { backgroundColor: 'transparent' }]}>
-                  <ThemedText style={[styles.groupTitle, darkTheme && styles.darkText]}>اختيار الثيم</ThemedText>
+                  <ThemedText style={[styles.groupTitle, themeMode === 'dark' && styles.darkText]}>اختيار الثيم</ThemedText>
                   {availableThemes.map((theme) => (
                     <TouchableOpacity
                       key={theme.key}
                       style={[
                         styles.themeOption,
                         themeName === theme.key && styles.selectedThemeOption,
-                        { backgroundColor: darkTheme ? '#3B4252' : '#FFFFFF' }
+                        { backgroundColor: themeMode === 'dark' ? '#3B4252' : '#FFFFFF' }
                       ]}
                       onPress={() => setThemeName(theme.key)}
                     >
-                      <ThemedText style={[styles.themeOptionText, darkTheme && styles.darkText]}>
+                      <ThemedText style={[styles.themeOptionText, themeMode === 'dark' && styles.darkText]}>
                         {theme.name}
                       </ThemedText>
                       {themeName === theme.key && (
                         <IconSymbol 
                           name="checkmark.circle.fill" 
-                          color={darkTheme ? "#88C0D0" : "#4ECDC4"} 
+                          color={themeMode === 'dark' ? "#88C0D0" : "#4ECDC4"} 
                           size={20} 
                         />
                       )}
@@ -283,23 +258,23 @@ export default function SettingsScreen() {
 
                 {/* اختيار الوضع */}
                 <ThemedView style={[styles.settingsGroup, { backgroundColor: 'transparent' }]}>
-                  <ThemedText style={[styles.groupTitle, darkTheme && styles.darkText]}>وضع العرض</ThemedText>
-                  
+                  <ThemedText style={[styles.groupTitle, themeMode === 'dark' && styles.darkText]}>وضع العرض</ThemedText>
+
                   <TouchableOpacity
                     style={[
                       styles.themeOption,
                       themeMode === 'light' && styles.selectedThemeOption,
-                      { backgroundColor: darkTheme ? '#3B4252' : '#FFFFFF' }
+                      { backgroundColor: themeMode === 'dark' ? '#3B4252' : '#FFFFFF' }
                     ]}
                     onPress={() => setThemeMode('light')}
                   >
-                    <ThemedText style={[styles.themeOptionText, darkTheme && styles.darkText]}>
+                    <ThemedText style={[styles.themeOptionText, themeMode === 'dark' && styles.darkText]}>
                       الوضع الفاتح
                     </ThemedText>
                     {themeMode === 'light' && (
                       <IconSymbol 
                         name="checkmark.circle.fill" 
-                        color={darkTheme ? "#88C0D0" : "#4ECDC4"} 
+                        color={themeMode === 'dark' ? "#88C0D0" : "#4ECDC4"} 
                         size={20} 
                       />
                     )}
@@ -309,24 +284,24 @@ export default function SettingsScreen() {
                     style={[
                       styles.themeOption,
                       themeMode === 'dark' && styles.selectedThemeOption,
-                      { backgroundColor: darkTheme ? '#3B4252' : '#FFFFFF' }
+                      { backgroundColor: themeMode === 'dark' ? '#3B4252' : '#FFFFFF' }
                     ]}
                     onPress={() => setThemeMode('dark')}
                   >
-                    <ThemedText style={[styles.themeOptionText, darkTheme && styles.darkText]}>
+                    <ThemedText style={[styles.themeOptionText, themeMode === 'dark' && styles.darkText]}>
                       الوضع المظلم
                     </ThemedText>
                     {themeMode === 'dark' && (
                       <IconSymbol 
                         name="checkmark.circle.fill" 
-                        color={darkTheme ? "#88C0D0" : "#4ECDC4"} 
+                        color={themeMode === 'dark' ? "#88C0D0" : "#4ECDC4"} 
                         size={20} 
                       />
                     )}
                   </TouchableOpacity>
                 </ThemedView>
 
-                <ThemedView style={[styles.settingItem, darkTheme && styles.darkSettingItem]}>
+                <ThemedView style={[styles.settingItem, themeMode === 'dark' && styles.darkSettingItem]}>
                   <ThemedView style={styles.settingInfo}>
                     <IconSymbol size={24} name="moon.fill" color="#8A2BE2" />
                     <ThemedView style={styles.settingText}>
@@ -335,7 +310,7 @@ export default function SettingsScreen() {
                     </ThemedView>
                   </ThemedView>
                   <Switch
-                    value={darkTheme}
+                    value={themeMode === 'dark'}
                     onValueChange={handleThemeChange}
                     trackColor={{ false: '#E5E5EA', true: '#add4ce' }}
                     thumbColor="#FFFFFF"
@@ -343,7 +318,7 @@ export default function SettingsScreen() {
                 </ThemedView>
 
                 <TouchableOpacity 
-                  style={[styles.settingItem, darkTheme && styles.darkSettingItem]}
+                  style={[styles.settingItem, themeMode === 'dark' && styles.darkSettingItem]}
                   onPress={() => {
                     const colorOptions = getColorSchemeOptions();
                     Alert.alert(
@@ -352,7 +327,7 @@ export default function SettingsScreen() {
                       [
                         ...colorOptions.map(option => ({
                           text: `${option.name} ${option.value === selectedColorScheme ? '✓' : ''}`,
-                          onPress: () => handleColorSchemeChange(option.value, option.name)
+                          onPress: () => handleColorSchemeChange(option.value)
                         })),
                         { text: 'إلغاء', style: 'cancel' }
                       ]
