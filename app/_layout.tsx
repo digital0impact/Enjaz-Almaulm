@@ -2,14 +2,13 @@ import { DarkTheme, DefaultTheme, ThemeProvider as NavigationThemeProvider } fro
 import { useFonts } from 'expo-font';
 import { Stack } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
-import { I18nManager } from 'react-native';
 import { useEffect } from 'react';
 import * as SplashScreen from 'expo-splash-screen';
 import 'react-native-reanimated';
 
 import { UserProvider } from '@/contexts/UserContext';
 import { DatabaseProvider } from '@/contexts/DatabaseContext';
-import { ThemeProvider } from '@/contexts/ThemeContext';
+import { ThemeProvider as CustomThemeProvider } from '@/contexts/ThemeContext';
 import { useColorScheme } from '@/hooks/useColorScheme';
 
 // Force RTL layout
@@ -30,7 +29,7 @@ export default function RootLayout() {
   return (
     <UserProvider>
       <DatabaseProvider userId="user-123">
-        <ThemeProvider>
+        <CustomThemeProvider>
           <NavigationThemeProvider value={colorScheme === 'dark' ? DarkTheme : DefaultTheme}>
           <Stack>
             <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
@@ -55,7 +54,7 @@ export default function RootLayout() {
           </Stack>
           <StatusBar style="auto" />
         </NavigationThemeProvider>
-        </ThemeProvider>
+        </CustomThemeProvider>
       </DatabaseProvider>
     </UserProvider>
   );
