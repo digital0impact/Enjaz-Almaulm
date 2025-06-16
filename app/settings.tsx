@@ -256,50 +256,7 @@ export default function SettingsScreen() {
                   ))}
                 </ThemedView>
 
-                {/* اختيار الوضع */}
-                <ThemedView style={[styles.settingsGroup, { backgroundColor: 'transparent' }]}>
-                  <ThemedText style={[styles.groupTitle, themeMode === 'dark' && styles.darkText]}>وضع العرض</ThemedText>
-
-                  <TouchableOpacity
-                    style={[
-                      styles.themeOption,
-                      themeMode === 'light' && styles.selectedThemeOption,
-                      { backgroundColor: themeMode === 'dark' ? '#3B4252' : '#FFFFFF' }
-                    ]}
-                    onPress={() => setThemeMode('light')}
-                  >
-                    <ThemedText style={[styles.themeOptionText, themeMode === 'dark' && styles.darkText]}>
-                      الوضع الفاتح
-                    </ThemedText>
-                    {themeMode === 'light' && (
-                      <IconSymbol 
-                        name="checkmark.circle.fill" 
-                        color={themeMode === 'dark' ? "#88C0D0" : "#4ECDC4"} 
-                        size={20} 
-                      />
-                    )}
-                  </TouchableOpacity>
-
-                  <TouchableOpacity
-                    style={[
-                      styles.themeOption,
-                      themeMode === 'dark' && styles.selectedThemeOption,
-                      { backgroundColor: themeMode === 'dark' ? '#3B4252' : '#FFFFFF' }
-                    ]}
-                    onPress={() => setThemeMode('dark')}
-                  >
-                    <ThemedText style={[styles.themeOptionText, themeMode === 'dark' && styles.darkText]}>
-                      الوضع المظلم
-                    </ThemedText>
-                    {themeMode === 'dark' && (
-                      <IconSymbol 
-                        name="checkmark.circle.fill" 
-                        color={themeMode === 'dark' ? "#88C0D0" : "#4ECDC4"} 
-                        size={20} 
-                      />
-                    )}
-                  </TouchableOpacity>
-                </ThemedView>
+                
 
                 <ThemedView style={[styles.settingItem, themeMode === 'dark' && styles.darkSettingItem]}>
                   <ThemedView style={styles.settingInfo}>
