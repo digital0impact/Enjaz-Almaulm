@@ -78,6 +78,34 @@ class DatabaseService {
     }
   }
 
+  // إضافة مستخدم جديد
+  async addUser(name: string, email: string, phoneNumber?: string, jobTitle?: string, workLocation?: string) {
+    try {
+      const { data, error } = await supabase
+        .from('user_profiles')
+        .insert([{ 
+          name, 
+          email, 
+          phone_number: phoneNumber || '',
+          job_title: jobTitle || '',
+          work_location: workLocation || ''
+        }])
+        .select()
+        .single();
+      
+      if (error) {
+        console.error('Insert error:', error);
+        throw error;
+      }
+      
+      console.log('User added:', data);
+      return data;
+    } catch (error) {
+      console.error('Error adding user:', error);
+      throw error;
+    }
+  }
+
   // User Profile Operations
   async saveUserProfile(userProfile: UserProfile): Promise<string> {
     try {
