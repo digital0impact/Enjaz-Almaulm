@@ -8,6 +8,7 @@ import { useRouter } from 'expo-router';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { BottomNavigationBar } from '@/components/BottomNavigationBar';
 import { Switch } from 'react-native';
+import { useTheme } from '@/contexts/ThemeContext';
 
 
 export default function SettingsScreen() {
@@ -18,6 +19,7 @@ export default function SettingsScreen() {
   const [autoBackup, setAutoBackup] = useState(true);
   const [userInfo, setUserInfo] = useState<any>(null);
   const [selectedColorScheme, setSelectedColorScheme] = useState('default');
+  const { themeName, themeMode, setThemeName, setThemeMode, availableThemes } = useTheme();
 
   useEffect(() => {
     loadSettings();
@@ -251,6 +253,78 @@ export default function SettingsScreen() {
               {/* المظهر والثيمات */}
               <ThemedView style={[styles.section, { backgroundColor: 'transparent' }]}>
                 <ThemedText style={[styles.sectionTitle, darkTheme && styles.darkSectionTitle]}>المظهر والثيمات</ThemedText>
+                
+                {/* اختيار الثيم */}
+                <ThemedView style={[styles.settingsGroup, { backgroundColor: 'transparent' }]}>
+                  <ThemedText style={[styles.groupTitle, darkTheme && styles.darkText]}>اختيار الثيم</ThemedText>
+                  {availableThemes.map((theme) => (
+                    <TouchableOpacity
+                      key={theme.key}
+                      style={[
+                        styles.themeOption,
+                        themeName === theme.key && styles.selectedThemeOption,
+                        { backgroundColor: darkTheme ? '#3B4252' : '#FFFFFF' }
+                      ]}
+                      onPress={() => setThemeName(theme.key)}
+                    >
+                      <ThemedText style={[styles.themeOptionText, darkTheme && styles.darkText]}>
+                        {theme.name}
+                      </ThemedText>
+                      {themeName === theme.key && (
+                        <IconSymbol 
+                          name="checkmark.circle.fill" 
+                          color={darkTheme ? "#88C0D0" : "#4ECDC4"} 
+                          size={20} 
+                        />
+                      )}
+                    </TouchableOpacity>
+                  ))}
+                </ThemedView>
+
+                {/* اختيار الوضع */}
+                <ThemedView style={[styles.settingsGroup, { backgroundColor: 'transparent' }]}>
+                  <ThemedText style={[styles.groupTitle, darkTheme && styles.darkText]}>وضع العرض</ThemedText>
+                  
+                  <TouchableOpacity
+                    style={[
+                      styles.themeOption,
+                      themeMode === 'light' && styles.selectedThemeOption,
+                      { backgroundColor: darkTheme ? '#3B4252' : '#FFFFFF' }
+                    ]}
+                    onPress={() => setThemeMode('light')}
+                  >
+                    <ThemedText style={[styles.themeOptionText, darkTheme && styles.darkText]}>
+                      الوضع الفاتح
+                    </ThemedText>
+                    {themeMode === 'light' && (
+                      <IconSymbol 
+                        name="checkmark.circle.fill" 
+                        color={darkTheme ? "#88C0D0" : "#4ECDC4"} 
+                        size={20} 
+                      />
+                    )}
+                  </TouchableOpacity>
+
+                  <TouchableOpacity
+                    style={[
+                      styles.themeOption,
+                      themeMode === 'dark' && styles.selectedThemeOption,
+                      { backgroundColor: darkTheme ? '#3B4252' : '#FFFFFF' }
+                    ]}
+                    onPress={() => setThemeMode('dark')}
+                  >
+                    <ThemedText style={[styles.themeOptionText, darkTheme && styles.darkText]}>
+                      الوضع المظلم
+                    </ThemedText>
+                    {themeMode === 'dark' && (
+                      <IconSymbol 
+                        name="checkmark.circle.fill" 
+                        color={darkTheme ? "#88C0D0" : "#4ECDC4"} 
+                        size={20} 
+                      />
+                    )}
+                  </TouchableOpacity>
+                </ThemedView>
 
                 <ThemedView style={[styles.settingItem, darkTheme && styles.darkSettingItem]}>
                   <ThemedView style={styles.settingInfo}>
@@ -598,5 +672,34 @@ const styles = StyleSheet.create({
   },
   darkSectionTitle: {
     color: '#ecf0f1',
+  },
+  settingsGroup: {
+    marginBottom: 20,
+  },
+  groupTitle: {
+    fontSize: 16,
+    fontWeight: '600',
+    marginBottom: 10,
+    color: '#2C3E50',
+    textAlign: 'right',
+  },
+  themeOption: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    padding: 15,
+    borderRadius: 12,
+    marginBottom: 8,
+    borderWidth: 1,
+    borderColor: '#E0E0E0',
+  },
+  selectedThemeOption: {
+    borderColor: '#4ECDC4',
+    backgroundColor: '#E8F5F4',
+  },
+  themeOptionText: {
+    fontSize: 16,
+    color: '#2C3E50',
+    textAlign: 'right',
   },
 });

@@ -1,14 +1,14 @@
 
-import { Colors, GlobalStyles } from '@/constants/Colors';
-import { useColorScheme } from '@/hooks/useColorScheme';
+import { GlobalStyles } from '@/constants/Colors';
+import { useTheme } from '@/contexts/ThemeContext';
 
 export function useGlobalTheme() {
-  const colorScheme = useColorScheme() ?? 'light';
+  const { colors, themeMode } = useTheme();
   
   return {
-    colors: Colors[colorScheme],
+    colors,
     styles: GlobalStyles,
-    isDark: colorScheme === 'dark',
+    isDark: themeMode === 'dark',
   };
 }
 

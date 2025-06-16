@@ -9,6 +9,7 @@ import 'react-native-reanimated';
 
 import { UserProvider } from '@/contexts/UserContext';
 import { DatabaseProvider } from '@/contexts/DatabaseContext';
+import { ThemeProvider } from '@/contexts/ThemeContext';
 import { useColorScheme } from '@/hooks/useColorScheme';
 
 // Force RTL layout
@@ -29,7 +30,8 @@ export default function RootLayout() {
   return (
     <UserProvider>
       <DatabaseProvider userId="user-123">
-        <ThemeProvider value={colorScheme === 'dark' ? DarkTheme : DefaultTheme}>
+        <ThemeProvider>
+          <ThemeProvider value={colorScheme === 'dark' ? DarkTheme : DefaultTheme}>
           <Stack>
             <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
             <Stack.Screen name="settings" options={{ headerShown: false }} />
@@ -52,6 +54,7 @@ export default function RootLayout() {
             <Stack.Screen name="+not-found" />
           </Stack>
           <StatusBar style="auto" />
+        </ThemeProvider>
         </ThemeProvider>
       </DatabaseProvider>
     </UserProvider>
