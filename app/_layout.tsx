@@ -1,4 +1,3 @@
-import { DarkTheme, DefaultTheme, ThemeProvider as NavigationThemeProvider } from '@react-navigation/native';
 import { useFonts } from 'expo-font';
 import { Stack } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
@@ -9,21 +8,62 @@ import 'react-native-reanimated';
 
 import { UserProvider } from '@/contexts/UserContext';
 import { DatabaseProvider } from '@/contexts/DatabaseContext';
-import { ThemeProvider as CustomThemeProvider } from '@/contexts/ThemeContext';
-import { useColorScheme } from '@/hooks/useColorScheme';
+import { ThemeProvider as CustomThemeProvider, useTheme } from '@/contexts/ThemeContext';
 
 // Force RTL layout
 I18nManager.allowRTL(true);
 I18nManager.forceRTL(true);
 
+// Prevent the splash screen from auto-hiding before asset loading is complete.
+SplashScreen.preventAutoHideAsync();
+
+import { NavigationContainer, DarkTheme, DefaultTheme, NavigationIndependentTree } from '@react-navigation/native';
+import { NavigationThemeProvider } from '@react-navigation/native/src/theming/ThemeProvider';
+
+function NavigationContent() {
+  const { themeMode } = useTheme();
+
+  return (
+    <NavigationThemeProvider value={themeMode === 'dark' ? DarkTheme : DefaultTheme}>
+      <Stack>
+        <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
+        <Stack.Screen name="settings" options={{ headerShown: false }} />
+        <Stack.Screen name="azkar" options={{ headerShown: false }} />
+        <Stack.Screen name="password-tracker" options={{ headerShown: false }} />
+        <Stack.Screen name="student-tracking" options={{ headerShown: false }} />
+        <Stack.Screen name="comments" options={{ headerShown: false }} />
+        <Stack.Screen name="schedule" options={{ headerShown: false }} />
+        <Stack.Screen name="calendar" options={{ headerShown: false }} />
+        <Stack.Screen name="monthly-calendar" options={{ headerShown: false }} />
+        <Stack.Screen name="official-holidays" options={{ headerShown: false }} />
+        <Stack.Screen name="absence-management" options={{ headerShown: false }} />
+        <Stack.Screen name="add-absence" options={{ headerShown: false }} />
+        <Stack.Screen name="add-student" options={{ headerShown: false }} />
+        <Stack.Screen name="alerts-management" options={{ headerShown: false }} />
+        <Stack.Screen name="edit-alert" options={{ headerShown: false }} />
+        <Stack.Screen name="improvement-plan" options={{ headerShown: false }} />
+        <Stack.Screen name="report-screen" options={{ headerShown: false }} />
+        <Stack.Screen name="detailed-report" options={{ headerShown: false }} />
+        <Stack.Screen name="interactive-report" options={{ headerShown: false }} />
+        <Stack.Screen name="+not-found" />
+      </Stack>
+      <StatusBar style="auto" />
+    </NavigationThemeProvider>
+  );
+}
+
 export default function RootLayout() {
-  const colorScheme = useColorScheme();
   const [loaded] = useFonts({
     SpaceMono: require('../assets/fonts/SpaceMono-Regular.ttf'),
   });
 
+  useEffect(() => {
+    if (loaded) {
+      SplashScreen.hideAsync();
+    }
+  }, [loaded]);
+
   if (!loaded) {
-    // Async font loading only occurs in development.
     return null;
   }
 
@@ -31,31 +71,8 @@ export default function RootLayout() {
     <UserProvider>
       <DatabaseProvider userId="user-123">
         <CustomThemeProvider>
-          <NavigationThemeProvider value={colorScheme === 'dark' ? DarkTheme : DefaultTheme}>
-          <Stack>
-            <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
-            <Stack.Screen name="settings" options={{ headerShown: false }} />
-            <Stack.Screen name="azkar" options={{ headerShown: false }} />
-            <Stack.Screen name="password-tracker" options={{ headerShown: false }} />
-            <Stack.Screen name="student-tracking" options={{ headerShown: false }} />
-            <Stack.Screen name="comments" options={{ headerShown: false }} />
-            <Stack.Screen name="schedule" options={{ headerShown: false }} />
-            <Stack.Screen name="calendar" options={{ headerShown: false }} />
-            <Stack.Screen name="monthly-calendar" options={{ headerShown: false }} />
-            <Stack.Screen name="official-holidays" options={{ headerShown: false }} />
-            <Stack.Screen name="absence-management" options={{ headerShown: false }} />
-            <Stack.Screen name="add-absence" options={{ headerShown: false }} />
-            <Stack.Screen name="add-student" options={{ headerShown: false }} />
-            <Stack.Screen name="alerts-management" options={{ headerShown: false }} />
-            <Stack.Screen name="edit-alert" options={{ headerShown: false }} />
-            <Stack.Screen name="improvement-plan" options={{ headerShown: false }} />
-            <Stack.Screen name="interactive-report" options={{ headerShown: false }} />
-            <Stack.Screen name="report-screen" options={{ headerShown: false }} />
-            <Stack.Screen name="+not-found" />
-          </Stack>
-          <StatusBar style="auto" />
-        </NavigationThemeProvider>
-        </CustomThemeProvider>
+          <NavigationContent />
+</CustomThemeProvider>
       </DatabaseProvider>
     </UserProvider>
   );
