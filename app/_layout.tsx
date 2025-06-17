@@ -17,8 +17,7 @@ I18nManager.forceRTL(true);
 // Prevent the splash screen from auto-hiding before asset loading is complete.
 SplashScreen.preventAutoHideAsync();
 
-import { NavigationContainer, DarkTheme, DefaultTheme, NavigationIndependentTree } from '@react-navigation/native';
-import { NavigationThemeProvider } from '@react-navigation/native/src/theming/ThemeProvider';
+import { NavigationContainer, DarkTheme, DefaultTheme, ThemeProvider as NavigationThemeProvider } from '@react-navigation/native';
 
 function NavigationContent() {
   const { themeMode } = useTheme();
