@@ -13,7 +13,7 @@ localPort = 8082
 externalPort = 3000
 
 [workflows]
-runButton = "Dev Server"
+runButton = "EAS Publish Preview Android"
 
 [[workflows.workflow]]
 name = "Dev Server"
@@ -52,5 +52,9 @@ name = "EAS Publish Preview Android"
 mode = "sequential"
 
 [[workflows.workflow.tasks]]
-task = "shell.exec"
-args = "npx eas build --platform android --profile preview"
+task = "workflow.run"
+args = "EAS Publish Preview Android"
+
+[[workflows.workflow.tasks]]
+task = "workflow.run"
+args = "EAS Publish Preview Android"
