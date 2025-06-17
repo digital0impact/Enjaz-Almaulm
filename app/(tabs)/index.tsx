@@ -75,7 +75,6 @@ export default function HomeScreen() {
     const loginMethods = {
       'email': 'البريد الإلكتروني',
       'google': 'حساب Google',
-      'apple': 'حساب Apple',
       'microsoft': 'حساب Microsoft'
     };
 
@@ -234,15 +233,6 @@ export default function HomeScreen() {
                     <ThemedText style={styles.loginButtonText}>حساب Google</ThemedText>
                   </TouchableOpacity>
 
-                  <TouchableOpacity 
-                    style={styles.loginButton}
-                    onPress={() => handleLogin('apple')}
-                  >
-                    <IconSymbol size={24} name="apple.logo" color="#1c1f33" />
-                    <ThemedText style={styles.loginButtonText}>حساب Apple</ThemedText>
-                  </TouchableOpacity>
-
-                  
                 </ThemedView>
 
                 <TouchableOpacity 
