@@ -612,7 +612,7 @@ const styles = StyleSheet.create({
     textAlignVertical: 'top',
   },
   gridContainer: {
-    flexDirection: 'row',
+    flexDirection: 'row-reverse',
     flexWrap: 'wrap',
     justifyContent: 'space-between',
     backgroundColor: 'transparent',
