@@ -319,21 +319,7 @@ export default function SettingsScreen() {
                   <IconSymbol size={16} name="chevron.left" color="#666666" />
                 </TouchableOpacity>
 
-                <ThemedView style={styles.settingItem}>
-                  <ThemedView style={styles.settingInfo}>
-                    <IconSymbol size={24} name="bell.fill" color="#34C759" />
-                    <ThemedView style={styles.settingText}>
-                      <ThemedText style={styles.settingTitle}>التنبيهات</ThemedText>
-                      <ThemedText style={styles.settingDescription}>تفعيل الإشعارات</ThemedText>
-                    </ThemedView>
-                  </ThemedView>
-                  <Switch
-                    value={notifications}
-                    onValueChange={handleNotificationChange}
-                    trackColor={{ false: '#E5E5EA', true: '#add4ce' }}
-                    thumbColor="#FFFFFF"
-                  />
-                </ThemedView>
+                
               </ThemedView>
 
               {/* النسخ الاحتياطي */}
