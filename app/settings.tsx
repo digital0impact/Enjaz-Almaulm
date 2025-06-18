@@ -229,32 +229,7 @@ export default function SettingsScreen() {
               <ThemedView style={[styles.section, { backgroundColor: 'transparent' }]}>
                 <ThemedText style={[styles.sectionTitle, themeMode === 'dark' && styles.darkSectionTitle]}>المظهر والثيمات</ThemedText>
 
-                {/* اختيار الثيم */}
-                <ThemedView style={[styles.settingsGroup, { backgroundColor: 'transparent' }]}>
-                  <ThemedText style={[styles.groupTitle, themeMode === 'dark' && styles.darkText]}>اختيار الثيم</ThemedText>
-                  {availableThemes.map((theme) => (
-                    <TouchableOpacity
-                      key={theme.key}
-                      style={[
-                        styles.themeOption,
-                        themeName === theme.key && styles.selectedThemeOption,
-                        { backgroundColor: themeMode === 'dark' ? '#3B4252' : '#FFFFFF' }
-                      ]}
-                      onPress={() => setThemeName(theme.key)}
-                    >
-                      <ThemedText style={[styles.themeOptionText, themeMode === 'dark' && styles.darkText]}>
-                        {theme.name}
-                      </ThemedText>
-                      {themeName === theme.key && (
-                        <IconSymbol 
-                          name="checkmark.circle.fill" 
-                          color={themeMode === 'dark' ? "#88C0D0" : "#4ECDC4"} 
-                          size={20} 
-                        />
-                      )}
-                    </TouchableOpacity>
-                  ))}
-                </ThemedView>
+                
 
                 
 
@@ -591,35 +566,5 @@ const styles = StyleSheet.create({
   darkSectionTitle: {
     color: '#ecf0f1',
   },
-  settingsGroup: {
-    marginBottom: 20,
-  },
-  groupTitle: {
-    fontSize: 16,
-    fontWeight: '600',
-    marginBottom: 10,
-    color: '#2C3E50',
-    textAlign: 'right',
-  },
-  themeOption: {
-    flexDirection: 'row-reverse',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    padding: 15,
-    borderRadius: 12,
-    marginBottom: 8,
-    borderWidth: 1,
-    borderColor: '#E0E0E0',
-  },
-  selectedThemeOption: {
-    borderColor: '#4ECDC4',
-    backgroundColor: '#E8F5F4',
-  },
-  themeOptionText: {
-    fontSize: 16,
-    color: '#2C3E50',
-    textAlign: 'right',
-    flex: 1,
-    writingDirection: 'rtl',
-  },
+  
 });
