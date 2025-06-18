@@ -158,7 +158,7 @@ class DatabaseService {
     try {
       const { data, error } = await supabase
         .from('performance_data')
-        .insert([performanceData])
+        .insert([{...performanceData, userid: performanceData.userId}])
         .select()
         .single();
       
@@ -175,7 +175,7 @@ class DatabaseService {
       const { data, error } = await supabase
         .from('performance_data')
         .select('*')
-        .eq('userId', userId)
+        .eq('userid', userId)
         .order('created_at', { ascending: false });
       
       if (error) throw error;
@@ -205,7 +205,7 @@ class DatabaseService {
     try {
       const { data, error } = await supabase
         .from('alerts')
-        .insert([alert])
+        .insert([{...alert, userid: alert.userId}])
         .select()
         .single();
       
@@ -222,7 +222,7 @@ class DatabaseService {
       const { data, error } = await supabase
         .from('alerts')
         .select('*')
-        .eq('userId', userId)
+        .eq('userid', userId)
         .order('created_at', { ascending: false });
       
       if (error) throw error;
@@ -266,7 +266,7 @@ class DatabaseService {
     try {
       const { data, error } = await supabase
         .from('comments')
-        .insert([comment])
+        .insert([{...comment, userid: comment.userId}])
         .select()
         .single();
       
@@ -283,7 +283,7 @@ class DatabaseService {
       const { data, error } = await supabase
         .from('comments')
         .select('*')
-        .eq('userId', userId)
+        .eq('userid', userId)
         .order('created_at', { ascending: false });
       
       if (error) throw error;
