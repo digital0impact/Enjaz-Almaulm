@@ -558,6 +558,7 @@ const styles = StyleSheet.create({
     elevation: 15,
     borderWidth: 1,
     borderColor: 'rgba(255, 255, 255, 0.2)',
+    minWidth: 140,
   },
   editActions: {
     flexDirection: 'row',
@@ -579,7 +580,8 @@ const styles = StyleSheet.create({
     elevation: 15,
     borderWidth: 1,
     borderColor: 'rgba(255, 255, 255, 0.2)',
-    minWidth: 120,
+    minWidth: 140,
+    maxWidth: 140,
   },
   cancelButton: {
     flex: 1,
@@ -597,7 +599,8 @@ const styles = StyleSheet.create({
     elevation: 15,
     borderWidth: 1,
     borderColor: 'rgba(255, 255, 255, 0.2)',
-    minWidth: 120,
+    minWidth: 140,
+    maxWidth: 140,
   },
   buttonText: {
     fontSize: 18,
