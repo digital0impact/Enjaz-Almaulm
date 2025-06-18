@@ -163,7 +163,7 @@ export default function BasicDataScreen() {
           {!isEditing ? (
             <TouchableOpacity 
               style={[styles.editButton, { 
-                backgroundColor: colors.primary,
+                backgroundColor: '#add4ce',
                 borderColor: themeMode === 'dark' ? 'rgba(255, 255, 255, 0.1)' : 'rgba(0, 0, 0, 0.1)'
               }]}
               onPress={() => setIsEditing(true)}
