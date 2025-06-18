@@ -68,7 +68,7 @@ export default function RootLayout() {
 
   return (
     <UserProvider>
-      <DatabaseProvider userId="user-123">
+      <DatabaseProvider userId="550e8400-e29b-41d4-a716-446655440000">
         <CustomThemeProvider>
           <NavigationContent />
 </CustomThemeProvider>
