@@ -618,6 +618,7 @@ const styles = StyleSheet.create({
     flexWrap: 'wrap',
     justifyContent: 'space-between',
     backgroundColor: 'transparent',
+    gap: 10,
   },
   gridItem: {
     width: '48%',
