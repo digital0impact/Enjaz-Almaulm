@@ -160,16 +160,38 @@ export default function BasicDataScreen() {
 
       <ThemedView style={styles.content}>
         <ThemedView style={[styles.actionButtons, { backgroundColor: 'transparent' }]}>
-          <TouchableOpacity 
-            style={[styles.editButton, { 
-              backgroundColor: 'transparent',
-              borderColor: themeMode === 'dark' ? 'rgba(255, 255, 255, 0.1)' : 'rgba(0, 0, 0, 0.1)'
-            }]}
-            onPress={() => setIsEditing(!isEditing)}
-          >
-            <IconSymbol size={20} name="pencil" color={'#1c1f33'} />
-            <ThemedText style={[styles.buttonText, { color: '#1c1f33' }]}>تعديل البيانات</ThemedText>
-          </TouchableOpacity>
+          {!isEditing ? (
+            <TouchableOpacity 
+              style={[styles.editButton, { 
+                backgroundColor: 'transparent',
+                borderColor: themeMode === 'dark' ? 'rgba(255, 255, 255, 0.1)' : 'rgba(0, 0, 0, 0.1)'
+              }]}
+              onPress={() => setIsEditing(true)}
+            >
+              <IconSymbol size={20} name="pencil" color={'#1c1f33'} />
+              <ThemedText style={[styles.buttonText, { color: '#1c1f33' }]}>تعديل البيانات</ThemedText>
+            </TouchableOpacity>
+          ) : (
+            <ThemedView style={styles.editActions}>
+              <TouchableOpacity 
+                style={styles.saveButton}
+                onPress={saveUserData}
+              >
+                <IconSymbol size={20} name="checkmark" color={'#1c1f33'} />
+                <ThemedText style={[styles.buttonText, { color: '#1c1f33' }]}>حفظ</ThemedText>
+              </TouchableOpacity>
+              <TouchableOpacity 
+                style={styles.cancelButton}
+                onPress={() => {
+                  setIsEditing(false);
+                  loadUserData();
+                }}
+              >
+                <IconSymbol size={20} name="xmark" color={'#1c1f33'} />
+                <ThemedText style={[styles.buttonText, { color: '#1c1f33' }]}>إلغاء</ThemedText>
+              </TouchableOpacity>
+            </ThemedView>
+          )}
         </ThemedView>
 
         <ThemedView style={[styles.dataSection, { backgroundColor: 'transparent' }]}>
@@ -559,7 +581,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: '#f0f0f0',
+    backgroundColor: '#f5f5f5',
     paddingVertical: 15,
     paddingHorizontal: 25,
     borderRadius: 25,
@@ -570,7 +592,7 @@ const styles = StyleSheet.create({
     shadowRadius: 12,
     elevation: 12,
     borderWidth: 1,
-    borderColor: '#e0e0e0',
+    borderColor: '#ddd',
     minHeight: 55,
   },
   buttonText: {
