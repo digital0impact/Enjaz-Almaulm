@@ -162,7 +162,10 @@ export default function BasicDataScreen() {
         <ThemedView style={[styles.actionButtons, { backgroundColor: 'transparent' }]}>
           {!isEditing ? (
             <TouchableOpacity 
-              style={[styles.editButton, { backgroundColor: colors.buttonPrimary }]}
+              style={[styles.editButton, { 
+                backgroundColor: colors.primary,
+                borderColor: themeMode === 'dark' ? 'rgba(255, 255, 255, 0.1)' : 'rgba(0, 0, 0, 0.1)'
+              }]}
               onPress={() => setIsEditing(true)}
             >
               <IconSymbol size={20} name="pencil" color={colors.buttonText} />
@@ -171,21 +174,27 @@ export default function BasicDataScreen() {
           ) : (
             <ThemedView style={styles.editActions}>
               <TouchableOpacity 
-                style={[styles.saveButton, { backgroundColor: colors.buttonPrimary }]}
+                style={[styles.saveButton, { 
+                  backgroundColor: colors.primary,
+                  borderColor: themeMode === 'dark' ? 'rgba(255, 255, 255, 0.1)' : 'rgba(0, 0, 0, 0.1)'
+                }]}
                 onPress={saveUserData}
               >
                 <IconSymbol size={20} name="checkmark" color={colors.buttonText} />
                 <ThemedText style={[styles.buttonText, { color: colors.buttonText }]}>حفظ</ThemedText>
               </TouchableOpacity>
               <TouchableOpacity 
-                style={[styles.cancelButton, { backgroundColor: colors.buttonSecondary }]}
+                style={[styles.cancelButton, { 
+                  backgroundColor: themeMode === 'dark' ? colors.secondary : colors.card,
+                  borderColor: themeMode === 'dark' ? 'rgba(255, 255, 255, 0.1)' : 'rgba(0, 0, 0, 0.1)'
+                }]}
                 onPress={() => {
                   setIsEditing(false);
                   loadUserData();
                 }}
               >
-                <IconSymbol size={20} name="xmark" color={colors.buttonText} />
-                <ThemedText style={[styles.buttonText, { color: colors.buttonText }]}>إلغاء</ThemedText>
+                <IconSymbol size={20} name="xmark" color={themeMode === 'dark' ? colors.text : colors.primary} />
+                <ThemedText style={[styles.buttonText, { color: themeMode === 'dark' ? colors.text : colors.primary }]}>إلغاء</ThemedText>
               </TouchableOpacity>
             </ThemedView>
           )}
