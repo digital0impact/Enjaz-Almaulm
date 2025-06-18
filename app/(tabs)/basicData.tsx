@@ -160,38 +160,16 @@ export default function BasicDataScreen() {
 
       <ThemedView style={styles.content}>
         <ThemedView style={[styles.actionButtons, { backgroundColor: 'transparent' }]}>
-          {!isEditing ? (
-            <TouchableOpacity 
-              style={[styles.editButton, { 
-                backgroundColor: 'transparent',
-                borderColor: themeMode === 'dark' ? 'rgba(255, 255, 255, 0.1)' : 'rgba(0, 0, 0, 0.1)'
-              }]}
-              onPress={() => setIsEditing(true)}
-            >
-              <IconSymbol size={20} name="pencil" color={'#1c1f33'} />
-              <ThemedText style={[styles.buttonText, { color: '#1c1f33' }]}>تعديل البيانات</ThemedText>
-            </TouchableOpacity>
-          ) : (
-            <ThemedView style={styles.editActions}>
-              <TouchableOpacity 
-                style={styles.saveButton}
-                onPress={saveUserData}
-              >
-                <IconSymbol size={20} name="checkmark" color={'#1c1f33'} />
-                <ThemedText style={[styles.buttonText, { color: '#1c1f33' }]}>حفظ</ThemedText>
-              </TouchableOpacity>
-              <TouchableOpacity 
-                style={styles.cancelButton}
-                onPress={() => {
-                  setIsEditing(false);
-                  loadUserData();
-                }}
-              >
-                <IconSymbol size={20} name="xmark" color={'#1c1f33'} />
-                <ThemedText style={[styles.buttonText, { color: '#1c1f33' }]}>إلغاء</ThemedText>
-              </TouchableOpacity>
-            </ThemedView>
-          )}
+          <TouchableOpacity 
+            style={[styles.editButton, { 
+              backgroundColor: 'transparent',
+              borderColor: themeMode === 'dark' ? 'rgba(255, 255, 255, 0.1)' : 'rgba(0, 0, 0, 0.1)'
+            }]}
+            onPress={() => setIsEditing(!isEditing)}
+          >
+            <IconSymbol size={20} name="pencil" color={'#1c1f33'} />
+            <ThemedText style={[styles.buttonText, { color: '#1c1f33' }]}>تعديل البيانات</ThemedText>
+          </TouchableOpacity>
         </ThemedView>
 
         <ThemedView style={[styles.dataSection, { backgroundColor: 'transparent' }]}>
