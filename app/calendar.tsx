@@ -19,6 +19,7 @@ import { useRouter } from 'expo-router';
 import { useThemeColor } from '@/hooks/useThemeColor';
 import { BottomNavigationBar } from '@/components/BottomNavigationBar';
 import { commonStyles } from '@/styles/common-styles';
+import axios from 'axios';
 
 const { width } = Dimensions.get('window');
 
@@ -218,26 +219,25 @@ export default function CalendarScreen() {
       for (const api of apis) {
         try {
           console.log(`🔄 جاري محاولة ${api.name} API...`);
-          
+
           const controller = new AbortController();
           const timeoutId = setTimeout(() => controller.abort(), 8000); // 8 seconds timeout
-          
-          const response = await fetch(api.url, {
-            method: 'GET',
+
+          const response = await axios.get(api.url, {
+            signal: controller.signal,
             headers: {
               'Accept': 'application/json',
               'Content-Type': 'application/json',
               'User-Agent': 'Teacher-App/1.0',
             },
-            signal: controller.signal,
           });
-          
+
           clearTimeout(timeoutId);
-          
-          if (response.ok) {
-            const data = await response.json();
+
+          if (response.status === 200) {
+            const data = response.data;
             const result = api.handler(data);
-            
+
             if (result) {
               console.log(`✅ تم جلب التاريخ الهجري بنجاح من ${api.name}`);
               return result;
@@ -256,11 +256,11 @@ export default function CalendarScreen() {
           continue; // جرب API التالي
         }
       }
-      
+
       // إذا فشلت جميع APIs، استخدم الحساب المحلي
       console.warn('⚠️ فشلت جميع APIs الخارجية، استخدام الحساب المحلي...');
       return convertToHijriLocal(gregorianDate);
-      
+
     } catch (error) {
       console.error('❌ خطأ عام في جلب التاريخ الهجري:', error);
       return convertToHijriLocal(gregorianDate);
@@ -269,7 +269,7 @@ export default function CalendarScreen() {
     }
   };
 
-  
+
 
   // دالة للحساب المحلي كخيار احتياطي محسنة
   const convertToHijriLocal = (gregorianDate: Date) => {
