@@ -189,8 +189,8 @@ export default function BasicDataScreen() {
             المعلومات الشخصية
           </ThemedText>
 
+          {/* الصف الأول: الاسم الكامل والبريد الإلكتروني */}
           <ThemedView style={styles.gridContainer}>
-            {/* الصف الأول: الاسم الكامل والبريد الإلكتروني */}
             <ThemedView style={[styles.dataItem, styles.gridItem]}>
               <ThemedText style={styles.label}>الاسم الكامل</ThemedText>
               {isEditing ? (
@@ -219,8 +219,10 @@ export default function BasicDataScreen() {
                 <ThemedText style={styles.value}>{userData.email}</ThemedText>
               )}
             </ThemedView>
+          </ThemedView>
 
-            {/* الصف الثاني: رقم الهاتف ومنصة X */}
+          {/* الصف الثاني: رقم الهاتف ومنصة X */}
+          <ThemedView style={styles.gridContainer}>
             <ThemedView style={[styles.dataItem, styles.gridItem]}>
               <ThemedText style={styles.label}>رقم الهاتف</ThemedText>
               {isEditing ? (
@@ -249,9 +251,11 @@ export default function BasicDataScreen() {
                 <ThemedText style={styles.value}>{userData.twitter}</ThemedText>
               )}
             </ThemedView>
+          </ThemedView>
 
-            {/* الصف الثالث: لينكدإن بعرض كامل */}
-            <ThemedView style={[styles.dataItem, styles.gridItem, styles.fullWidth]}>
+          {/* الصف الثالث: لينكدإن بعرض كامل */}
+          <ThemedView style={styles.gridContainer}>
+            <ThemedView style={[styles.dataItem, styles.fullWidth]}>
               <ThemedText style={styles.label}>لينكدإن</ThemedText>
               {isEditing ? (
                 <TextInput
