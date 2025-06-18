@@ -575,6 +575,8 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.1,
     shadowRadius: 4,
     elevation: 3,
+    flex: 1,
+    justifyContent: 'space-between',
   },
   labelRow: {
     flexDirection: 'row',
@@ -620,8 +622,12 @@ const styles = StyleSheet.create({
   gridItem: {
     width: '48%',
     marginBottom: 15,
+    minHeight: 120,
+    justifyContent: 'space-between',
   },
   fullWidth: {
     width: '100%',
+    minHeight: 120,
+    justifyContent: 'space-between',
   },
 });
