@@ -189,76 +189,78 @@ export default function BasicDataScreen() {
             المعلومات الشخصية
           </ThemedText>
 
-          <ThemedView style={styles.dataItem}>
-            <ThemedText style={styles.label}>الاسم الكامل</ThemedText>
-            {isEditing ? (
-              <TextInput
-                style={styles.input}
-                value={userData.fullName}
-                onChangeText={(text) => updateField('fullName', text)}
-                placeholder="أدخل الاسم الكامل"
-              />
-            ) : (
-              <ThemedText style={styles.value}>{userData.fullName}</ThemedText>
-            )}
-          </ThemedView>
+          <ThemedView style={styles.gridContainer}>
+            <ThemedView style={[styles.dataItem, styles.gridItem]}>
+              <ThemedText style={styles.label}>الاسم الكامل</ThemedText>
+              {isEditing ? (
+                <TextInput
+                  style={styles.input}
+                  value={userData.fullName}
+                  onChangeText={(text) => updateField('fullName', text)}
+                  placeholder="أدخل الاسم الكامل"
+                />
+              ) : (
+                <ThemedText style={styles.value}>{userData.fullName}</ThemedText>
+              )}
+            </ThemedView>
 
-          <ThemedView style={styles.dataItem}>
-            <ThemedText style={styles.label}>البريد الإلكتروني</ThemedText>
-            {isEditing ? (
-              <TextInput
-                style={styles.input}
-                value={userData.email}
-                onChangeText={(text) => updateField('email', text)}
-                placeholder="أدخل البريد الإلكتروني"
-                keyboardType="email-address"
-              />
-            ) : (
-              <ThemedText style={styles.value}>{userData.email}</ThemedText>
-            )}
-          </ThemedView>
+            <ThemedView style={[styles.dataItem, styles.gridItem]}>
+              <ThemedText style={styles.label}>البريد الإلكتروني</ThemedText>
+              {isEditing ? (
+                <TextInput
+                  style={styles.input}
+                  value={userData.email}
+                  onChangeText={(text) => updateField('email', text)}
+                  placeholder="أدخل البريد الإلكتروني"
+                  keyboardType="email-address"
+                />
+              ) : (
+                <ThemedText style={styles.value}>{userData.email}</ThemedText>
+              )}
+            </ThemedView>
 
-          <ThemedView style={styles.dataItem}>
-            <ThemedText style={styles.label}>رقم الهاتف</ThemedText>
-            {isEditing ? (
-              <TextInput
-                style={styles.input}
-                value={userData.phone}
-                onChangeText={(text) => updateField('phone', text)}
-                placeholder="أدخل رقم الهاتف"
-                keyboardType="phone-pad"
-              />
-            ) : (
-              <ThemedText style={styles.value}>{userData.phone}</ThemedText>
-            )}
-          </ThemedView>
+            <ThemedView style={[styles.dataItem, styles.gridItem]}>
+              <ThemedText style={styles.label}>رقم الهاتف</ThemedText>
+              {isEditing ? (
+                <TextInput
+                  style={styles.input}
+                  value={userData.phone}
+                  onChangeText={(text) => updateField('phone', text)}
+                  placeholder="أدخل رقم الهاتف"
+                  keyboardType="phone-pad"
+                />
+              ) : (
+                <ThemedText style={styles.value}>{userData.phone}</ThemedText>
+              )}
+            </ThemedView>
 
-          <ThemedView style={styles.dataItem}>
-            <ThemedText style={styles.label}>منصة X</ThemedText>
-            {isEditing ? (
-              <TextInput
-                style={styles.input}
-                value={userData.twitter}
-                onChangeText={(text) => updateField('twitter', text)}
-                placeholder="أدخل اسم المستخدم على منصة X"
-              />
-            ) : (
-              <ThemedText style={styles.value}>{userData.twitter}</ThemedText>
-            )}
-          </ThemedView>
+            <ThemedView style={[styles.dataItem, styles.gridItem]}>
+              <ThemedText style={styles.label}>منصة X</ThemedText>
+              {isEditing ? (
+                <TextInput
+                  style={styles.input}
+                  value={userData.twitter}
+                  onChangeText={(text) => updateField('twitter', text)}
+                  placeholder="أدخل اسم المستخدم على منصة X"
+                />
+              ) : (
+                <ThemedText style={styles.value}>{userData.twitter}</ThemedText>
+              )}
+            </ThemedView>
 
-          <ThemedView style={styles.dataItem}>
-            <ThemedText style={styles.label}>لينكدإن</ThemedText>
-            {isEditing ? (
-              <TextInput
-                style={styles.input}
-                value={userData.linkedin}
-                onChangeText={(text) => updateField('linkedin', text)}
-                placeholder="أدخل رابط الملف الشخصي على لينكدإن"
-              />
-            ) : (
-              <ThemedText style={styles.value}>{userData.linkedin}</ThemedText>
-            )}
+            <ThemedView style={[styles.dataItem, styles.gridItem]}>
+              <ThemedText style={styles.label}>لينكدإن</ThemedText>
+              {isEditing ? (
+                <TextInput
+                  style={styles.input}
+                  value={userData.linkedin}
+                  onChangeText={(text) => updateField('linkedin', text)}
+                  placeholder="أدخل رابط الملف الشخصي على لينكدإن"
+                />
+              ) : (
+                <ThemedText style={styles.value}>{userData.linkedin}</ThemedText>
+              )}
+            </ThemedView>
           </ThemedView>
         </ThemedView>
 
@@ -267,89 +269,91 @@ export default function BasicDataScreen() {
             المعلومات المهنية
           </ThemedText>
 
-          <ThemedView style={styles.dataItem}>
-            <ThemedText style={styles.label}>التخصص</ThemedText>
-            {isEditing ? (
-              <TextInput
-                style={styles.input}
-                value={userData.specialty}
-                onChangeText={(text) => updateField('specialty', text)}
-                placeholder="أدخل التخصص"
-              />
-            ) : (
-              <ThemedText style={styles.value}>{userData.specialty}</ThemedText>
-            )}
-          </ThemedView>
+          <ThemedView style={styles.gridContainer}>
+            <ThemedView style={[styles.dataItem, styles.gridItem]}>
+              <ThemedText style={styles.label}>التخصص</ThemedText>
+              {isEditing ? (
+                <TextInput
+                  style={styles.input}
+                  value={userData.specialty}
+                  onChangeText={(text) => updateField('specialty', text)}
+                  placeholder="أدخل التخصص"
+                />
+              ) : (
+                <ThemedText style={styles.value}>{userData.specialty}</ThemedText>
+              )}
+            </ThemedView>
 
-          <ThemedView style={styles.dataItem}>
-            <ThemedText style={styles.label}>سنوات الخبرة</ThemedText>
-            {isEditing ? (
-              <TextInput
-                style={styles.input}
-                value={userData.experience}
-                onChangeText={(text) => updateField('experience', text)}
-                placeholder="أدخل سنوات الخبرة"
-              />
-            ) : (
-              <ThemedText style={styles.value}>{userData.experience}</ThemedText>
-            )}
-          </ThemedView>
+            <ThemedView style={[styles.dataItem, styles.gridItem]}>
+              <ThemedText style={styles.label}>سنوات الخبرة</ThemedText>
+              {isEditing ? (
+                <TextInput
+                  style={styles.input}
+                  value={userData.experience}
+                  onChangeText={(text) => updateField('experience', text)}
+                  placeholder="أدخل سنوات الخبرة"
+                />
+              ) : (
+                <ThemedText style={styles.value}>{userData.experience}</ThemedText>
+              )}
+            </ThemedView>
 
-          <ThemedView style={styles.dataItem}>
-            <ThemedText style={styles.label}>المؤهل العلمي</ThemedText>
-            {isEditing ? (
-              <TextInput
-                style={styles.input}
-                value={userData.education}
-                onChangeText={(text) => updateField('education', text)}
-                placeholder="أدخل المؤهل العلمي"
-              />
-            ) : (
-              <ThemedText style={styles.value}>{userData.education}</ThemedText>
-            )}
-          </ThemedView>
+            <ThemedView style={[styles.dataItem, styles.gridItem]}>
+              <ThemedText style={styles.label}>المؤهل العلمي</ThemedText>
+              {isEditing ? (
+                <TextInput
+                  style={styles.input}
+                  value={userData.education}
+                  onChangeText={(text) => updateField('education', text)}
+                  placeholder="أدخل المؤهل العلمي"
+                />
+              ) : (
+                <ThemedText style={styles.value}>{userData.education}</ThemedText>
+              )}
+            </ThemedView>
 
-          <ThemedView style={styles.dataItem}>
-            <ThemedText style={styles.label}>المدرسة</ThemedText>
-            {isEditing ? (
-              <TextInput
-                style={styles.input}
-                value={userData.school}
-                onChangeText={(text) => updateField('school', text)}
-                placeholder="أدخل اسم المدرسة"
-              />
-            ) : (
-              <ThemedText style={styles.value}>{userData.school}</ThemedText>
-            )}
-          </ThemedView>
+            <ThemedView style={[styles.dataItem, styles.gridItem]}>
+              <ThemedText style={styles.label}>المدرسة</ThemedText>
+              {isEditing ? (
+                <TextInput
+                  style={styles.input}
+                  value={userData.school}
+                  onChangeText={(text) => updateField('school', text)}
+                  placeholder="أدخل اسم المدرسة"
+                />
+              ) : (
+                <ThemedText style={styles.value}>{userData.school}</ThemedText>
+              )}
+            </ThemedView>
 
-          <ThemedView style={styles.dataItem}>
-            <ThemedText style={styles.label}>الإدارة التعليمية</ThemedText>
-            {isEditing ? (
-              <TextInput
-                style={styles.input}
-                value={userData.educationDepartment}
-                onChangeText={(text) => updateField('educationDepartment', text)}
-                placeholder="أدخل اسم الإدارة التعليمية"
-              />
-            ) : (
-              <ThemedText style={styles.value}>{userData.educationDepartment}</ThemedText>
-            )}
-          </ThemedView>
+            <ThemedView style={[styles.dataItem, styles.gridItem]}>
+              <ThemedText style={styles.label}>الإدارة التعليمية</ThemedText>
+              {isEditing ? (
+                <TextInput
+                  style={styles.input}
+                  value={userData.educationDepartment}
+                  onChangeText={(text) => updateField('educationDepartment', text)}
+                  placeholder="أدخل اسم الإدارة التعليمية"
+                />
+              ) : (
+                <ThemedText style={styles.value}>{userData.educationDepartment}</ThemedText>
+              )}
+            </ThemedView>
 
-          <ThemedView style={styles.dataItem}>
-            <ThemedText style={styles.label}>المرحلة والصفوف الدراسية</ThemedText>
-            {isEditing ? (
-              <TextInput
-                style={styles.input}
-                value={userData.gradeLevel}
-                onChangeText={(text) => updateField('gradeLevel', text)}
-                placeholder="أدخل المرحلة والصفوف الدراسية"
-                multiline
-              />
-            ) : (
-              <ThemedText style={styles.value}>{userData.gradeLevel}</ThemedText>
-            )}
+            <ThemedView style={[styles.dataItem, styles.gridItem, styles.fullWidth]}>
+              <ThemedText style={styles.label}>المرحلة والصفوف الدراسية</ThemedText>
+              {isEditing ? (
+                <TextInput
+                  style={styles.input}
+                  value={userData.gradeLevel}
+                  onChangeText={(text) => updateField('gradeLevel', text)}
+                  placeholder="أدخل المرحلة والصفوف الدراسية"
+                  multiline
+                />
+              ) : (
+                <ThemedText style={styles.value}>{userData.gradeLevel}</ThemedText>
+              )}
+            </ThemedView>
           </ThemedView>
         </ThemedView>
 
@@ -606,5 +610,18 @@ const styles = StyleSheet.create({
   textArea: {
     minHeight: 80,
     textAlignVertical: 'top',
+  },
+  gridContainer: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    justifyContent: 'space-between',
+    backgroundColor: 'transparent',
+  },
+  gridItem: {
+    width: '48%',
+    marginBottom: 15,
+  },
+  fullWidth: {
+    width: '100%',
   },
 });
