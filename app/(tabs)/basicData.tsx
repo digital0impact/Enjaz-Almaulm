@@ -565,7 +565,6 @@ const styles = StyleSheet.create({
     gap: 10,
   },
   saveButton: {
-    flex: 1,
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
@@ -580,11 +579,10 @@ const styles = StyleSheet.create({
     elevation: 15,
     borderWidth: 1,
     borderColor: 'rgba(255, 255, 255, 0.2)',
-    minWidth: 140,
-    maxWidth: 140,
+    width: 150,
+    height: 56,
   },
   cancelButton: {
-    flex: 1,
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
@@ -599,8 +597,8 @@ const styles = StyleSheet.create({
     elevation: 15,
     borderWidth: 1,
     borderColor: 'rgba(255, 255, 255, 0.2)',
-    minWidth: 140,
-    maxWidth: 140,
+    width: 150,
+    height: 56,
   },
   buttonText: {
     fontSize: 18,
