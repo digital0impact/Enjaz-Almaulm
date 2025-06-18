@@ -98,17 +98,17 @@ export default function CalendarScreen() {
     try {
       setIsLoadingHijri(true);
       const formattedDate = gregorianDate.toISOString().split('T')[0]; // YYYY-MM-DD format
-      
+
       // استخدام API مجاني وموثوق للتقويم الهجري
       const response = await fetch(`https://api.aladhan.com/v1/gToH/${formattedDate}`);
       const data = await response.json();
-      
+
       if (data.code === 200 && data.data && data.data.hijri) {
         const hijriData = data.data.hijri;
         const hijriMonth = parseInt(hijriData.month.number);
         const hijriDay = parseInt(hijriData.day);
         const hijriYear = parseInt(hijriData.year);
-        
+
         // التأكد من صحة البيانات
         if (hijriDay && hijriMonth && hijriYear && hijriMonth >= 1 && hijriMonth <= 12) {
           return {
@@ -148,7 +148,7 @@ export default function CalendarScreen() {
 
     // أشهر السنة الهجرية (أيام كل شهر) - نموذج أكثر دقة
     const monthDays = [30, 29, 30, 29, 30, 29, 30, 29, 30, 29, 30, 29];
-    
+
     let hijriMonth = 1;
     let hijriDay = Math.max(1, remainingDays + 1);
 
@@ -334,7 +334,7 @@ export default function CalendarScreen() {
                 </TouchableOpacity>
               </ThemedView>
 
-              <ThemedView style={styles.digitalClock}>
+              <ThemedView style={[styles.digitalClock, { backgroundColor: colors.card, borderColor: colors.primary }]}>
                 <ThemedText style={[styles.timeDisplay, { color: colors.text }]}>
                   {currentTime.toLocaleTimeString('ar-SA', {
                     hour: '2-digit',
@@ -539,7 +539,7 @@ export default function CalendarScreen() {
                   const isCurrentMonth = monthIndex + 1 === parseInt(todayInfo.hijri.month);
                   const monthDays = [30, 29, 30, 29, 30, 29, 30, 29, 30, 29, 30, 29];
                   const daysInMonth = monthDays[monthIndex];
-                  
+
                   // إنشاء أيام الشهر
                   const calendarDays = [];
                   for (let day = 1; day <= daysInMonth; day++) {
@@ -590,7 +590,7 @@ export default function CalendarScreen() {
                       <ThemedView style={styles.monthDaysGrid}>
                         {calendarDays.map((day) => {
                           const isToday = isCurrentMonth && day === parseInt(todayInfo.hijri.day);
-                          
+
                           return (
                             <TouchableOpacity
                               key={day}
@@ -1128,5 +1128,5 @@ const styles = StyleSheet.create({
     textAlign: 'center',
     writingDirection: 'rtl',
   },
-  
+
 });
