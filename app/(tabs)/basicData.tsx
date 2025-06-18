@@ -1,13 +1,15 @@
 import React, { useState, useEffect } from 'react';
-import { StyleSheet, ScrollView, TextInput, TouchableOpacity, Alert, I18nManager, ImageBackground } from 'react-native';
+import { StyleSheet, ScrollView, TextInput, TouchableOpacity, Alert, I18nManager, ImageBackground, Image } from 'react-native';
 import { LinearGradient as ExpoLinearGradient } from 'expo-linear-gradient';
 import { ThemedText } from '@/components/ThemedText';
 import { ThemedView } from '@/components/ThemedView';
 import { IconSymbol } from '@/components/ui/IconSymbol';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import * as ImagePicker from 'expo-image-picker';
 
 export default function BasicDataScreen() {
   const [isEditing, setIsEditing] = useState(false);
+  const [profileImage, setProfileImage] = useState<string | null>(null);
   const [userData, setUserData] = useState({
     fullName: 'المعلم محمد أحمد',
     specialty: 'الرياضيات',
@@ -34,6 +36,11 @@ export default function BasicDataScreen() {
       if (storedData) {
         setUserData(JSON.parse(storedData));
       }
+      
+      const storedImage = await AsyncStorage.getItem('profileImage');
+      if (storedImage) {
+        setProfileImage(storedImage);
+      }
     } catch (error) {
       console.log('Error loading user data:', error);
     }
@@ -42,6 +49,9 @@ export default function BasicDataScreen() {
   const saveUserData = async () => {
     try {
       await AsyncStorage.setItem('basicData', JSON.stringify(userData));
+      if (profileImage) {
+        await AsyncStorage.setItem('profileImage', profileImage);
+      }
       setIsEditing(false);
       Alert.alert('تم الحفظ', 'تم حفظ البيانات بنجاح');
     } catch (error) {
@@ -51,6 +61,44 @@ export default function BasicDataScreen() {
 
   const updateField = (field: string, value: string) => {
     setUserData(prev => ({ ...prev, [field]: value }));
+  };
+
+  const pickImage = async () => {
+    // طلب الصلاحيات
+    const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
+    if (status !== 'granted') {
+      Alert.alert('عذراً', 'نحتاج إلى صلاحية الوصول للصور لتتمكن من رفع صورتك الشخصية');
+      return;
+    }
+
+    const result = await ImagePicker.launchImageLibraryAsync({
+      mediaTypes: ImagePicker.MediaTypeOptions.Images,
+      allowsEditing: true,
+      aspect: [1, 1],
+      quality: 0.8,
+    });
+
+    if (!result.canceled) {
+      setProfileImage(result.assets[0].uri);
+    }
+  };
+
+  const removeImage = () => {
+    Alert.alert(
+      'حذف الصورة',
+      'هل أنت متأكد من حذف الصورة الشخصية؟',
+      [
+        { text: 'إلغاء', style: 'cancel' },
+        { 
+          text: 'حذف', 
+          style: 'destructive',
+          onPress: () => {
+            setProfileImage(null);
+            AsyncStorage.removeItem('profileImage');
+          }
+        }
+      ]
+    );
   };
 
   return (
@@ -66,8 +114,34 @@ export default function BasicDataScreen() {
         >
           <ScrollView style={styles.scrollContainer}>
             <ThemedView style={styles.header}>
-              <ThemedView style={styles.iconContainer}>
-                <IconSymbol size={60} name="person.circle.fill" color="#1c1f33" />
+              <ThemedView style={styles.profileImageContainer}>
+                {profileImage ? (
+                  <Image source={{ uri: profileImage }} style={styles.profileImage} />
+                ) : (
+                  <ThemedView style={styles.iconContainer}>
+                    <IconSymbol size={60} name="person.circle.fill" color="#1c1f33" />
+                  </ThemedView>
+                )}
+                
+                {isEditing && (
+                  <ThemedView style={styles.imageActions}>
+                    <TouchableOpacity 
+                      style={styles.imageButton}
+                      onPress={pickImage}
+                    >
+                      <IconSymbol size={16} name="plus" color="white" />
+                    </TouchableOpacity>
+                    
+                    {profileImage && (
+                      <TouchableOpacity 
+                        style={[styles.imageButton, styles.removeButton]}
+                        onPress={removeImage}
+                      >
+                        <IconSymbol size={16} name="trash" color="white" />
+                      </TouchableOpacity>
+                    )}
+                  </ThemedView>
+                )}
               </ThemedView>
               <ThemedText type="title" style={styles.title}>
                 البيانات الأساسية
@@ -344,8 +418,11 @@ const styles = StyleSheet.create({
     padding: 30,
     backgroundColor: 'transparent',
   },
-  iconContainer: {
+  profileImageContainer: {
+    position: 'relative',
     marginBottom: 20,
+  },
+  iconContainer: {
     padding: 20,
     backgroundColor: '#F8F9FA',
     borderRadius: 50,
@@ -356,6 +433,41 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.25,
     shadowRadius: 12,
     elevation: 10,
+  },
+  profileImage: {
+    width: 120,
+    height: 120,
+    borderRadius: 60,
+    borderWidth: 3,
+    borderColor: '#add4ce',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 6 },
+    shadowOpacity: 0.25,
+    shadowRadius: 12,
+    elevation: 10,
+  },
+  imageActions: {
+    position: 'absolute',
+    bottom: 0,
+    right: 0,
+    flexDirection: 'row',
+    gap: 5,
+  },
+  imageButton: {
+    backgroundColor: '#add4ce',
+    width: 32,
+    height: 32,
+    borderRadius: 16,
+    alignItems: 'center',
+    justifyContent: 'center',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.3,
+    shadowRadius: 4,
+    elevation: 5,
+  },
+  removeButton: {
+    backgroundColor: '#FF3B30',
   },
   title: {
     fontSize: 28,
