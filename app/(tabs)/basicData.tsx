@@ -185,7 +185,7 @@ export default function BasicDataScreen() {
               </TouchableOpacity>
               <TouchableOpacity 
                 style={[styles.cancelButton, { 
-                  backgroundColor: themeMode === 'dark' ? colors.secondary : colors.card,
+                  backgroundColor: '#add4ce',
                   borderColor: themeMode === 'dark' ? 'rgba(255, 255, 255, 0.1)' : 'rgba(0, 0, 0, 0.1)'
                 }]}
                 onPress={() => {
@@ -193,8 +193,8 @@ export default function BasicDataScreen() {
                   loadUserData();
                 }}
               >
-                <IconSymbol size={20} name="xmark" color={themeMode === 'dark' ? colors.text : colors.primary} />
-                <ThemedText style={[styles.buttonText, { color: themeMode === 'dark' ? colors.text : colors.primary }]}>إلغاء</ThemedText>
+                <IconSymbol size={20} name="xmark" color={'#1c1f33'} />
+                <ThemedText style={[styles.buttonText, { color: '#1c1f33' }]}>إلغاء</ThemedText>
               </TouchableOpacity>
             </ThemedView>
           )}
