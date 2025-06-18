@@ -190,6 +190,7 @@ export default function BasicDataScreen() {
           </ThemedText>
 
           <ThemedView style={styles.gridContainer}>
+            {/* الصف الأول: الاسم الكامل والبريد الإلكتروني */}
             <ThemedView style={[styles.dataItem, styles.gridItem]}>
               <ThemedText style={styles.label}>الاسم الكامل</ThemedText>
               {isEditing ? (
@@ -219,6 +220,7 @@ export default function BasicDataScreen() {
               )}
             </ThemedView>
 
+            {/* الصف الثاني: رقم الهاتف ومنصة X */}
             <ThemedView style={[styles.dataItem, styles.gridItem]}>
               <ThemedText style={styles.label}>رقم الهاتف</ThemedText>
               {isEditing ? (
@@ -248,7 +250,8 @@ export default function BasicDataScreen() {
               )}
             </ThemedView>
 
-            <ThemedView style={[styles.dataItem, styles.gridItem]}>
+            {/* الصف الثالث: لينكدإن بعرض كامل */}
+            <ThemedView style={[styles.dataItem, styles.gridItem, styles.fullWidth]}>
               <ThemedText style={styles.label}>لينكدإن</ThemedText>
               {isEditing ? (
                 <TextInput
