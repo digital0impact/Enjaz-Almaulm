@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { StyleSheet, ScrollView, TextInput, TouchableOpacity, Alert, I18nManager, ImageBackground, Image } from 'react-native';
+import { StyleSheet, ScrollView, TextInput, TouchableOpacity, Alert, I18nManager, ImageBackground, Image, KeyboardAvoidingView, Platform } from 'react-native';
 import { LinearGradient as ExpoLinearGradient } from 'expo-linear-gradient';
 import { ThemedText } from '@/components/ThemedText';
 import { ThemedView } from '@/components/ThemedView';
@@ -112,7 +112,11 @@ export default function BasicDataScreen() {
           colors={['rgba(255,255,255,0.9)', 'rgba(225,245,244,0.95)', 'rgba(173,212,206,0.8)']}
           style={styles.gradientOverlay}
         >
-          <ScrollView style={styles.scrollContainer}>
+          <KeyboardAvoidingView
+            behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+            style={{ flex: 1 }}
+          >
+            <ScrollView contentContainerStyle={{ flexGrow: 1 }} style={styles.scrollContainer}>
             <ThemedView style={styles.header}>
               <ThemedView style={styles.profileImageContainer}>
                 {profileImage ? (
@@ -413,6 +417,7 @@ export default function BasicDataScreen() {
         </ThemedView>
       </ThemedView>
           </ScrollView>
+          </KeyboardAvoidingView>
         </ExpoLinearGradient>
       </ImageBackground>
     </ThemedView>
