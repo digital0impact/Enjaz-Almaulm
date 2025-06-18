@@ -175,13 +175,13 @@ export default function BasicDataScreen() {
             <ThemedView style={styles.editActions}>
               <TouchableOpacity 
                 style={[styles.saveButton, { 
-                  backgroundColor: colors.primary,
+                  backgroundColor: '#add4ce',
                   borderColor: themeMode === 'dark' ? 'rgba(255, 255, 255, 0.1)' : 'rgba(0, 0, 0, 0.1)'
                 }]}
                 onPress={saveUserData}
               >
                 <IconSymbol size={20} name="checkmark" color={colors.buttonText} />
-                <ThemedText style={[styles.buttonText, { color: colors.buttonText }]}>حفظ</ThemedText>
+                <ThemedText style={[styles.buttonText, { color: '#1c1f33' }]}>حفظ</ThemedText>
               </TouchableOpacity>
               <TouchableOpacity 
                 style={[styles.cancelButton, { 
