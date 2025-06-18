@@ -9,6 +9,7 @@ import {
   Platform,
   ImageBackground,
   Text,
+  KeyboardAvoidingView,
 } from 'react-native';
 import { LinearGradient as ExpoLinearGradient } from 'expo-linear-gradient';
 import { ThemedText } from '@/components/ThemedText';
@@ -363,10 +364,14 @@ export default function CalendarScreen() {
             </ThemedText>
           </ThemedView>
 
-          <ScrollView 
-            style={styles.scrollView}
-            contentContainerStyle={{ flexGrow: 1, ...commonStyles.scrollViewWithBottomNav }}
+          <KeyboardAvoidingView
+            behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+            style={{ flex: 1 }}
           >
+            <ScrollView 
+              style={styles.scrollView}
+              contentContainerStyle={{ flexGrow: 1, ...commonStyles.scrollViewWithBottomNav }}
+            >
             {/* الساعة الرقمية الحية */}
             <ThemedView style={[styles.liveClockSection, { backgroundColor: colors.card }]}>
               <ThemedView style={styles.clockHeader}>
@@ -693,6 +698,7 @@ export default function CalendarScreen() {
 
               </ThemedView>
           </ScrollView>
+          </KeyboardAvoidingView>
 
           <BottomNavigationBar />
         </ExpoLinearGradient>
