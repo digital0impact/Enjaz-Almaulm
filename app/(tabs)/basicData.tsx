@@ -174,20 +174,14 @@ export default function BasicDataScreen() {
           ) : (
             <ThemedView style={styles.editActions}>
               <TouchableOpacity 
-                style={[styles.saveButton, { 
-                  backgroundColor: 'transparent',
-                  borderColor: themeMode === 'dark' ? 'rgba(255, 255, 255, 0.1)' : 'rgba(0, 0, 0, 0.1)'
-                }]}
+                style={styles.saveButton}
                 onPress={saveUserData}
               >
                 <IconSymbol size={20} name="checkmark" color={'#1c1f33'} />
                 <ThemedText style={[styles.buttonText, { color: '#1c1f33' }]}>حفظ</ThemedText>
               </TouchableOpacity>
               <TouchableOpacity 
-                style={[styles.cancelButton, { 
-                  backgroundColor: 'transparent',
-                  borderColor: themeMode === 'dark' ? 'rgba(255, 255, 255, 0.1)' : 'rgba(0, 0, 0, 0.1)'
-                }]}
+                style={styles.cancelButton}
                 onPress={() => {
                   setIsEditing(false);
                   loadUserData();
@@ -568,6 +562,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
+    backgroundColor: '#add4ce',
     paddingVertical: 15,
     paddingHorizontal: 25,
     borderRadius: 25,
@@ -578,12 +573,15 @@ const styles = StyleSheet.create({
     shadowRadius: 12,
     elevation: 12,
     borderWidth: 1,
+    borderColor: '#add4ce',
+    minHeight: 55,
   },
   cancelButton: {
     flex: 1,
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
+    backgroundColor: '#f0f0f0',
     paddingVertical: 15,
     paddingHorizontal: 25,
     borderRadius: 25,
@@ -594,6 +592,8 @@ const styles = StyleSheet.create({
     shadowRadius: 12,
     elevation: 12,
     borderWidth: 1,
+    borderColor: '#e0e0e0',
+    minHeight: 55,
   },
   buttonText: {
     color: '#1c1f33',
