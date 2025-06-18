@@ -33,7 +33,7 @@ export default function ExploreScreen() {
               </TouchableOpacity>
 
               <ThemedView style={styles.iconContainer}>
-                <IconSymbol size={60} name="wrench.fill" color="#1c1f33" />
+                <IconSymbol size={60} name="gear" color="#1c1f33" />
               </ThemedView>
               <ThemedText type="title" style={styles.title}>
                 الأدوات المساعدة
