@@ -163,7 +163,7 @@ export default function BasicDataScreen() {
           {!isEditing ? (
             <TouchableOpacity 
               style={[styles.editButton, { 
-                backgroundColor: '#add4ce',
+                backgroundColor: 'transparent',
                 borderColor: themeMode === 'dark' ? 'rgba(255, 255, 255, 0.1)' : 'rgba(0, 0, 0, 0.1)'
               }]}
               onPress={() => setIsEditing(true)}
@@ -175,7 +175,7 @@ export default function BasicDataScreen() {
             <ThemedView style={styles.editActions}>
               <TouchableOpacity 
                 style={[styles.saveButton, { 
-                  backgroundColor: '#add4ce',
+                  backgroundColor: 'transparent',
                   borderColor: themeMode === 'dark' ? 'rgba(255, 255, 255, 0.1)' : 'rgba(0, 0, 0, 0.1)'
                 }]}
                 onPress={saveUserData}
@@ -185,7 +185,7 @@ export default function BasicDataScreen() {
               </TouchableOpacity>
               <TouchableOpacity 
                 style={[styles.cancelButton, { 
-                  backgroundColor: '#add4ce',
+                  backgroundColor: 'transparent',
                   borderColor: themeMode === 'dark' ? 'rgba(255, 255, 255, 0.1)' : 'rgba(0, 0, 0, 0.1)'
                 }]}
                 onPress={() => {
