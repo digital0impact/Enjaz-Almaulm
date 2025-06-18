@@ -389,13 +389,13 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   logoContainer: {
-    width: 250,
-    height: 250,
+    width: 320,
+    height: 320,
     marginBottom: 30,
     justifyContent: 'center',
     alignItems: 'center',
     backgroundColor: 'transparent',
-    borderRadius: 125,
+    borderRadius: 160,
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 8 },
     shadowOpacity: 0.25,
@@ -403,8 +403,8 @@ const styles = StyleSheet.create({
     elevation: 10,
   },
   logoImage: {
-    width: 300,
-    height: 300,
+    width: 380,
+    height: 380,
   },
   heroSection: {
     alignItems: 'center',
