@@ -84,6 +84,6 @@ export function useThemedStyles() {
       color: colors.placeholderText,
     },
   };
-  
+
   return themedStyles;
 }
