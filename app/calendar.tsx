@@ -94,90 +94,139 @@ export default function CalendarScreen() {
     'الأحد', 'الإثنين', 'الثلاثاء', 'الأربعاء', 'الخميس', 'الجمعة', 'السبت'
   ];
 
-  // دالة للحصول على التاريخ الهجري من API خارجي
+  // دالة للحصول على التاريخ الهجري من API خارجي مع معالجة أفضل للأخطاء
   const fetchHijriDateFromAPI = async (gregorianDate: Date) => {
     try {
       setIsLoadingHijri(true);
-      const formattedDate = gregorianDate.toISOString().split('T')[0]; // YYYY-MM-DD format
+      const day = gregorianDate.getDate();
+      const month = gregorianDate.getMonth() + 1;
+      const year = gregorianDate.getFullYear();
+      const formattedDate = `${day.toString().padStart(2, '0')}-${month.toString().padStart(2, '0')}-${year}`;
 
-      // استخدام API مجاني وموثوق للتقويم الهجري
-      const response = await fetch(`https://api.aladhan.com/v1/gToH/${formattedDate}`);
-      
-      // التحقق من استجابة الشبكة
-      if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`);
-      }
-
-      const data = await response.json();
-
-      // التحقق من صحة البيانات المستلمة
-      if (data && data.code === 200 && data.data && data.data.hijri) {
-        const hijriData = data.data.hijri;
+      // محاولة API الأول - Aladhan
+      try {
+        const response = await fetch(`https://api.aladhan.com/v1/gToH/${formattedDate}`, {
+          method: 'GET',
+          headers: {
+            'Accept': 'application/json',
+            'Content-Type': 'application/json',
+          },
+          timeout: 10000, // 10 seconds timeout
+        });
         
-        // التحقق من وجود البيانات المطلوبة
-        if (hijriData.day && hijriData.month && hijriData.year) {
-          const hijriMonth = parseInt(hijriData.month.number);
-          const hijriDay = parseInt(hijriData.day);
-          const hijriYear = parseInt(hijriData.year);
+        if (response.ok) {
+          const data = await response.json();
+          if (data && data.code === 200 && data.data && data.data.hijri) {
+            const hijriData = data.data.hijri;
+            if (hijriData.day && hijriData.month && hijriData.year) {
+              const hijriMonth = parseInt(hijriData.month.number);
+              const hijriDay = parseInt(hijriData.day);
+              const hijriYear = parseInt(hijriData.year);
 
-          // التأكد من صحة البيانات
-          if (hijriDay && hijriMonth && hijriYear && hijriMonth >= 1 && hijriMonth <= 12) {
-            return {
-              date: `${hijriDay}/${hijriMonth}/${hijriYear}`,
-              day: hijriDay.toString(),
-              month: hijriMonth.toString(),
-              year: hijriYear.toString(),
-              monthName: (hijriData.month && hijriData.month.ar) ? hijriData.month.ar : hijriMonths[hijriMonth - 1],
-              dayName: (hijriData.weekday && hijriData.weekday.ar) ? hijriData.weekday.ar : weekDays[gregorianDate.getDay()],
-              fullDate: `${(hijriData.weekday && hijriData.weekday.ar) ? hijriData.weekday.ar : weekDays[gregorianDate.getDay()]}، ${hijriDay} ${(hijriData.month && hijriData.month.ar) ? hijriData.month.ar : hijriMonths[hijriMonth - 1]} ${hijriYear} هـ`,
-            };
-          } else {
-            throw new Error('البيانات المستلمة من API غير صحيحة');
+              if (hijriDay && hijriMonth && hijriYear && hijriMonth >= 1 && hijriMonth <= 12) {
+                console.log('✅ تم جلب التاريخ الهجري بنجاح من Aladhan API');
+                return {
+                  date: `${hijriDay}/${hijriMonth}/${hijriYear}`,
+                  day: hijriDay.toString(),
+                  month: hijriMonth.toString(),
+                  year: hijriYear.toString(),
+                  monthName: (hijriData.month && hijriData.month.ar) ? hijriData.month.ar : hijriMonths[hijriMonth - 1],
+                  dayName: (hijriData.weekday && hijriData.weekday.ar) ? hijriData.weekday.ar : weekDays[gregorianDate.getDay()],
+                  fullDate: `${(hijriData.weekday && hijriData.weekday.ar) ? hijriData.weekday.ar : weekDays[gregorianDate.getDay()]}، ${hijriDay} ${(hijriData.month && hijriData.month.ar) ? hijriData.month.ar : hijriMonths[hijriMonth - 1]} ${hijriYear} هـ`,
+                };
+              }
+            }
           }
-        } else {
-          throw new Error('البيانات الأساسية مفقودة من API');
         }
-      } else {
-        throw new Error('استجابة API غير صالحة أو مفقودة');
+        throw new Error(`Aladhan API failed with status: ${response.status}`);
+      } catch (primaryError) {
+        console.warn('⚠️ فشل Aladhan API، جاري المحاولة مع API احتياطي...');
+        throw primaryError;
       }
     } catch (error) {
-      console.error('خطأ في جلب التقويم الهجري من API:', error);
-      console.warn('سيتم استخدام الحساب المحلي كبديل');
-      // العودة للحساب المحلي في حالة فشل API
+      console.error('❌ خطأ في جميع APIs:', error);
+      console.log('🔄 استخدام الحساب المحلي كبديل نهائي');
       return convertToHijriLocal(gregorianDate);
     } finally {
       setIsLoadingHijri(false);
     }
   };
 
-  // دالة API احتياطية
+  // دالة API احتياطية محسنة
   const fetchHijriFromBackupAPI = async (gregorianDate: Date) => {
     try {
       const day = gregorianDate.getDate();
       const month = gregorianDate.getMonth() + 1;
       const year = gregorianDate.getFullYear();
       
-      // استخدام API احتياطي
-      const response = await fetch(`https://api.islamicfinder.us/v1/hijri?date=${year}-${month.toString().padStart(2, '0')}-${day.toString().padStart(2, '0')}`);
-      
-      if (response.ok) {
-        const data = await response.json();
-        if (data && data.hijri) {
-          const hijriData = data.hijri;
-          return {
-            date: `${hijriData.day}/${hijriData.month}/${hijriData.year}`,
-            day: hijriData.day.toString(),
-            month: hijriData.month.toString(),
-            year: hijriData.year.toString(),
-            monthName: hijriMonths[hijriData.month - 1],
-            dayName: weekDays[gregorianDate.getDay()],
-            fullDate: `${weekDays[gregorianDate.getDay()]}، ${hijriData.day} ${hijriMonths[hijriData.month - 1]} ${hijriData.year} هـ`,
-          };
+      // محاولة APIs احتياطية متعددة
+      const backupAPIs = [
+        // API احتياطي 1 - Islamicfinder
+        {
+          url: `https://api.islamicfinder.us/v1/hijri?date=${year}-${month.toString().padStart(2, '0')}-${day.toString().padStart(2, '0')}`,
+          name: 'Islamicfinder'
+        },
+        // API احتياطي 2 - HijriDate
+        {
+          url: `https://api.hijridate.com/v1/convert?date=${day}-${month}-${year}&type=gregorian`,
+          name: 'HijriDate'
+        }
+      ];
+
+      for (const api of backupAPIs) {
+        try {
+          console.log(`🔄 محاولة ${api.name} API...`);
+          const response = await fetch(api.url, {
+            method: 'GET',
+            headers: {
+              'Accept': 'application/json',
+              'Content-Type': 'application/json',
+            },
+            timeout: 8000,
+          });
+          
+          if (response.ok) {
+            const data = await response.json();
+            
+            // معالجة استجابة Islamicfinder
+            if (api.name === 'Islamicfinder' && data && data.hijri) {
+              const hijriData = data.hijri;
+              console.log(`✅ تم جلب التاريخ الهجري بنجاح من ${api.name}`);
+              return {
+                date: `${hijriData.day}/${hijriData.month}/${hijriData.year}`,
+                day: hijriData.day.toString(),
+                month: hijriData.month.toString(),
+                year: hijriData.year.toString(),
+                monthName: hijriMonths[hijriData.month - 1],
+                dayName: weekDays[gregorianDate.getDay()],
+                fullDate: `${weekDays[gregorianDate.getDay()]}، ${hijriData.day} ${hijriMonths[hijriData.month - 1]} ${hijriData.year} هـ`,
+              };
+            }
+            
+            // معالجة استجابة HijriDate
+            if (api.name === 'HijriDate' && data && data.hijri_date) {
+              const hijriData = data.hijri_date;
+              console.log(`✅ تم جلب التاريخ الهجري بنجاح من ${api.name}`);
+              return {
+                date: `${hijriData.day}/${hijriData.month}/${hijriData.year}`,
+                day: hijriData.day.toString(),
+                month: hijriData.month.toString(),
+                year: hijriData.year.toString(),
+                monthName: hijriMonths[hijriData.month - 1],
+                dayName: weekDays[gregorianDate.getDay()],
+                fullDate: `${weekDays[gregorianDate.getDay()]}، ${hijriData.day} ${hijriMonths[hijriData.month - 1]} ${hijriData.year} هـ`,
+              };
+            }
+          }
+        } catch (apiError) {
+          console.warn(`⚠️ فشل ${api.name} API:`, apiError);
+          continue; // جرب API التالي
         }
       }
-      throw new Error('Backup API failed');
+      
+      throw new Error('جميع APIs الاحتياطية فشلت');
     } catch (error) {
-      console.warn('فشل API الاحتياطي، سيتم استخدام الحساب المحلي');
+      console.warn('❌ فشلت جميع APIs الاحتياطية، استخدام الحساب المحلي');
       return convertToHijriLocal(gregorianDate);
     }
   };
@@ -271,14 +320,21 @@ export default function CalendarScreen() {
         fullDate: `${weekDays[now.getDay()]}، ${now.getDate()} ${gregorianMonths[now.getMonth()]} ${now.getFullYear()}`,
       };
 
-      // التاريخ الهجري - من API خارجي مع API احتياطي
+      // التاريخ الهجري - من API خارجي مع معالجة محسنة للأخطاء
       try {
         let hijriDate;
         try {
+          // محاولة API الأساسي أولاً
           hijriDate = await fetchHijriDateFromAPI(now);
         } catch (primaryAPIError) {
-          console.warn('فشل API الأساسي، جاري المحاولة مع API الاحتياطي...');
-          hijriDate = await fetchHijriFromBackupAPI(now);
+          console.warn('⚠️ فشل API الأساسي، جاري المحاولة مع APIs احتياطية...');
+          try {
+            // محاولة APIs احتياطية
+            hijriDate = await fetchHijriFromBackupAPI(now);
+          } catch (backupAPIError) {
+            console.warn('⚠️ فشلت APIs الاحتياطية، استخدام الحساب المحلي...');
+            hijriDate = convertToHijriLocal(now);
+          }
         }
 
         setTodayInfo({
@@ -286,13 +342,12 @@ export default function CalendarScreen() {
           hijri: hijriDate,
         });
       } catch (error) {
-        console.error('فشلت جميع محاولات جلب التاريخ الهجري:', error);
-        // حساب تقريبي كخيار احتياطي نهائي
-        const approximateHijriDate = getApproximateHijriDate(now);
-
+        console.error('❌ خطأ عام في جلب التاريخ الهجري:', error);
+        // حساب محلي كخيار نهائي آمن
+        const localHijriDate = convertToHijriLocal(now);
         setTodayInfo({
           gregorian: gregorianDate,
-          hijri: approximateHijriDate,
+          hijri: localHijriDate,
         });
       }
     };
@@ -485,25 +540,33 @@ export default function CalendarScreen() {
                         onPress={async () => {
                           const now = new Date();
                           try {
+                            console.log('🔄 بدء تحديث التاريخ الهجري...');
                             let hijriDate;
                             try {
                               hijriDate = await fetchHijriDateFromAPI(now);
                             } catch (primaryAPIError) {
-                              console.warn('فشل API الأساسي، جاري المحاولة مع API الاحتياطي...');
-                              hijriDate = await fetchHijriFromBackupAPI(now);
+                              console.warn('⚠️ فشل API الأساسي، جاري المحاولة مع APIs احتياطية...');
+                              try {
+                                hijriDate = await fetchHijriFromBackupAPI(now);
+                              } catch (backupAPIError) {
+                                console.warn('⚠️ فشلت جميع APIs، استخدام الحساب المحلي...');
+                                hijriDate = convertToHijriLocal(now);
+                              }
                             }
                             setTodayInfo(prev => ({
                               ...prev,
                               hijri: hijriDate
                             }));
+                            console.log('✅ تم تحديث التاريخ الهجري بنجاح');
                           } catch (error) {
-                            console.error('فشل في تحديث التاريخ الهجري:', error);
-                            // استخدام الحساب المحلي كحل أخير
+                            console.error('❌ خطأ في تحديث التاريخ الهجري:', error);
+                            // استخدام الحساب المحلي كحل أخير آمن
                             const localHijriDate = convertToHijriLocal(now);
                             setTodayInfo(prev => ({
                               ...prev,
                               hijri: localHijriDate
                             }));
+                            console.log('🔄 تم استخدام الحساب المحلي كبديل');
                           }
                         }}
                         style={styles.refreshButton}
