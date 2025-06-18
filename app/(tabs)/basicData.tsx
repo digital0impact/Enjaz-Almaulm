@@ -27,8 +27,7 @@ export default function BasicDataScreen() {
     linkedin: '',
   });
 
-  const { theme } = useTheme(); // Use the useTheme hook to get the current theme
-  const colors = theme.colors; // Get the colors from the theme
+  const { colors, themeMode } = useTheme(); // Use the useTheme hook to get the current theme
 
   useEffect(() => {
     loadUserData();
@@ -659,5 +658,45 @@ const styles = StyleSheet.create({
     width: '100%',
     minHeight: 120,
     justifyContent: 'space-between',
+  },
+  sectionTitle: {
+    fontSize: 18,
+    fontWeight: 'bold',
+    textAlign: 'right',
+    writingDirection: 'rtl',
+    marginBottom: 15,
+  },
+  inputContainer: {
+    marginBottom: 15,
+  },
+  label: {
+    fontSize: 16,
+    fontWeight: '600',
+    textAlign: 'right',
+    writingDirection: 'rtl',
+    marginBottom: 8,
+  },
+  input: {
+    borderWidth: 1,
+    borderRadius: 10,
+    padding: 12,
+    fontSize: 16,
+    textAlign: 'right',
+    writingDirection: 'rtl',
+  },
+  saveButton: {
+    borderRadius: 10,
+    padding: 15,
+    alignItems: 'center',
+    marginTop: 20,
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    elevation: 3,
+  },
+  saveButtonText: {
+    fontSize: 18,
+    fontWeight: 'bold',
+    writingDirection: 'rtl',
   },
 });
