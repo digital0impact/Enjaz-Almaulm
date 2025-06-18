@@ -276,6 +276,7 @@ export default function BasicDataScreen() {
             المعلومات المهنية
           </ThemedText>
 
+          {/* الصف الأول: التخصص وسنوات الخبرة */}
           <ThemedView style={styles.gridContainer}>
             <ThemedView style={[styles.dataItem, styles.gridItem]}>
               <ThemedText style={styles.label}>التخصص</ThemedText>
@@ -304,7 +305,10 @@ export default function BasicDataScreen() {
                 <ThemedText style={styles.value}>{userData.experience}</ThemedText>
               )}
             </ThemedView>
+          </ThemedView>
 
+          {/* الصف الثاني: المؤهل العلمي والمدرسة */}
+          <ThemedView style={styles.gridContainer}>
             <ThemedView style={[styles.dataItem, styles.gridItem]}>
               <ThemedText style={styles.label}>المؤهل العلمي</ThemedText>
               {isEditing ? (
@@ -332,8 +336,11 @@ export default function BasicDataScreen() {
                 <ThemedText style={styles.value}>{userData.school}</ThemedText>
               )}
             </ThemedView>
+          </ThemedView>
 
-            <ThemedView style={[styles.dataItem, styles.gridItem]}>
+          {/* الصف الثالث: الإدارة التعليمية */}
+          <ThemedView style={styles.gridContainer}>
+            <ThemedView style={[styles.dataItem, styles.fullWidth]}>
               <ThemedText style={styles.label}>الإدارة التعليمية</ThemedText>
               {isEditing ? (
                 <TextInput
@@ -346,8 +353,11 @@ export default function BasicDataScreen() {
                 <ThemedText style={styles.value}>{userData.educationDepartment}</ThemedText>
               )}
             </ThemedView>
+          </ThemedView>
 
-            <ThemedView style={[styles.dataItem, styles.gridItem, styles.fullWidth]}>
+          {/* الصف الرابع: المرحلة والصفوف الدراسية */}
+          <ThemedView style={styles.gridContainer}>
+            <ThemedView style={[styles.dataItem, styles.fullWidth]}>
               <ThemedText style={styles.label}>المرحلة والصفوف الدراسية</ThemedText>
               {isEditing ? (
                 <TextInput
