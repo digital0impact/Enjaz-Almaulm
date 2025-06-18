@@ -136,7 +136,7 @@ export default function BasicDataScreen() {
                       style={styles.imageButton}
                       onPress={pickImage}
                     >
-                      <IconSymbol size={16} name="plus" color="white" />
+                      <IconSymbol size={16} name="plus" color="#1c1f33" />
                     </TouchableOpacity>
 
                     {profileImage && (
@@ -144,7 +144,7 @@ export default function BasicDataScreen() {
                         style={[styles.imageButton, styles.removeButton]}
                         onPress={removeImage}
                       >
-                        <IconSymbol size={16} name="trash" color="white" />
+                        <IconSymbol size={16} name="trash" color="#1c1f33" />
                       </TouchableOpacity>
                     )}
                   </ThemedView>
@@ -168,8 +168,8 @@ export default function BasicDataScreen() {
               }]}
               onPress={() => setIsEditing(true)}
             >
-              <IconSymbol size={20} name="pencil" color={colors.buttonText} />
-              <ThemedText style={[styles.buttonText, { color: colors.buttonText }]}>تعديل البيانات</ThemedText>
+              <IconSymbol size={20} name="pencil" color={'#1c1f33'} />
+              <ThemedText style={[styles.buttonText, { color: '#1c1f33' }]}>تعديل البيانات</ThemedText>
             </TouchableOpacity>
           ) : (
             <ThemedView style={styles.editActions}>
@@ -180,7 +180,7 @@ export default function BasicDataScreen() {
                 }]}
                 onPress={saveUserData}
               >
-                <IconSymbol size={20} name="checkmark" color={colors.buttonText} />
+                <IconSymbol size={20} name="checkmark" color={'#1c1f33'} />
                 <ThemedText style={[styles.buttonText, { color: '#1c1f33' }]}>حفظ</ThemedText>
               </TouchableOpacity>
               <TouchableOpacity 
@@ -518,7 +518,7 @@ const styles = StyleSheet.create({
     elevation: 5,
   },
   removeButton: {
-    backgroundColor: '#FF3B30',
+    backgroundColor: '#add4ce',
   },
   title: {
     fontSize: 28,
