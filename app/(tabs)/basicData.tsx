@@ -6,7 +6,7 @@ import { ThemedView } from '@/components/ThemedView';
 import { IconSymbol } from '@/components/ui/IconSymbol';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import * as ImagePicker from 'expo-image-picker';
-import { useTheme } from '@/hooks/useTheme'; // Import useTheme hook
+import { useTheme } from '@/contexts/ThemeContext'; // Import useTheme hook
 
 export default function BasicDataScreen() {
   const [isEditing, setIsEditing] = useState(false);
