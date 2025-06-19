@@ -143,74 +143,116 @@ export default function AddStudentScreen() {
       const result = await DocumentPicker.getDocumentAsync({
         type: '*/*',
         copyToCacheDirectory: true,
+        multiple: false,
       });
 
-      if (!result.canceled && result.assets[0]) {
+      if (!result.canceled && result.assets && result.assets[0]) {
         const file = result.assets[0];
         let fileType = 'ملف';
 
+        // تحديد نوع الملف بناءً على النوع
         if (file.mimeType?.startsWith('image/')) {
           fileType = 'صورة';
         } else if (file.mimeType?.startsWith('video/')) {
           fileType = 'فيديو';
+        } else if (file.mimeType?.includes('pdf')) {
+          fileType = 'PDF';
+        } else if (file.mimeType?.includes('word') || file.name?.endsWith('.docx')) {
+          fileType = 'مستند Word';
         }
+
+        console.log('تم اختيار الملف:', file);
 
         setNewEvidence(prev => ({
           ...prev,
-          fileName: file.name,
+          fileName: file.name || `ملف_${Date.now()}`,
           fileType: fileType
         }));
 
-        Alert.alert('تم التحميل', `تم تحميل ${fileType}: ${file.name}`);
+        Alert.alert('تم التحميل بنجاح', `تم تحميل ${fileType}: ${file.name || 'ملف جديد'}`);
+      } else {
+        console.log('تم إلغاء اختيار الملف');
       }
     } catch (error) {
-      Alert.alert('خطأ', 'فشل في تحميل الملف');
+      console.error('خطأ في تحميل الملف:', error);
+      Alert.alert('خطأ في التحميل', 'حدث خطأ أثناء تحميل الملف. يرجى المحاولة مرة أخرى.');
     }
   };
 
   const pickImage = async () => {
     try {
+      // طلب الإذن للوصول لمعرض الصور
+      const permissionResult = await ImagePicker.requestMediaLibraryPermissionsAsync();
+      
+      if (permissionResult.granted === false) {
+        Alert.alert('إذن مطلوب', 'يجب السماح بالوصول إلى معرض الصور لتحميل الصور.');
+        return;
+      }
+
       const result = await ImagePicker.launchImageLibraryAsync({
         mediaTypes: ImagePicker.MediaTypeOptions.Images,
         allowsEditing: true,
-        quality: 1,
+        aspect: [4, 3],
+        quality: 0.8,
       });
 
-      if (!result.canceled && result.assets[0]) {
+      if (!result.canceled && result.assets && result.assets[0]) {
         const image = result.assets[0];
+        const fileName = `صورة_${Date.now()}.jpg`;
+        
+        console.log('تم اختيار الصورة:', image);
+
         setNewEvidence(prev => ({
           ...prev,
-          fileName: `صورة_${Date.now()}.jpg`,
+          fileName: fileName,
           fileType: 'صورة'
         }));
 
-        Alert.alert('تم التحميل', 'تم تحميل الصورة بنجاح');
+        Alert.alert('تم التحميل بنجاح', `تم تحميل الصورة: ${fileName}`);
+      } else {
+        console.log('تم إلغاء اختيار الصورة');
       }
     } catch (error) {
-      Alert.alert('خطأ', 'فشل في تحميل الصورة');
+      console.error('خطأ في تحميل الصورة:', error);
+      Alert.alert('خطأ في التحميل', 'حدث خطأ أثناء تحميل الصورة. يرجى المحاولة مرة أخرى.');
     }
   };
 
   const pickVideo = async () => {
     try {
+      // طلب الإذن للوصول لمعرض الصور
+      const permissionResult = await ImagePicker.requestMediaLibraryPermissionsAsync();
+      
+      if (permissionResult.granted === false) {
+        Alert.alert('إذن مطلوب', 'يجب السماح بالوصول إلى معرض الصور لتحميل الفيديو.');
+        return;
+      }
+
       const result = await ImagePicker.launchImageLibraryAsync({
         mediaTypes: ImagePicker.MediaTypeOptions.Videos,
         allowsEditing: true,
-        quality: 1,
+        quality: 0.8,
       });
 
-      if (!result.canceled && result.assets[0]) {
+      if (!result.canceled && result.assets && result.assets[0]) {
         const video = result.assets[0];
+        const fileName = `فيديو_${Date.now()}.mp4`;
+        
+        console.log('تم اختيار الفيديو:', video);
+
         setNewEvidence(prev => ({
           ...prev,
-          fileName: `فيديو_${Date.now()}.mp4`,
+          fileName: fileName,
           fileType: 'فيديو'
         }));
 
-        Alert.alert('تم التحميل', 'تم تحميل الفيديو بنجاح');
+        Alert.alert('تم التحميل بنجاح', `تم تحميل الفيديو: ${fileName}`);
+      } else {
+        console.log('تم إلغاء اختيار الفيديو');
       }
     } catch (error) {
-      Alert.alert('خطأ', 'فشل في تحميل الفيديو');
+      console.error('خطأ في تحميل الفيديو:', error);
+      Alert.alert('خطأ في التحميل', 'حدث خطأ أثناء تحميل الفيديو. يرجى المحاولة مرة أخرى.');
     }
   };
 
@@ -636,49 +678,71 @@ export default function AddStudentScreen() {
 
                         <ThemedView style={styles.inputGroup}>
                           <ThemedText style={styles.label}>تحميل الشاهد</ThemedText>
-                          <TouchableOpacity 
-                            style={styles.uploadButton}
-                            onPress={() => {
-                              Alert.alert(
-                                'تحميل شاهد',
-                                'اختر نوع الملف:',
-                                [
-                                  {
-                                    text: 'صورة',
-                                    onPress: pickImage
-                                  },
-                                  {
-                                    text: 'فيديو',
-                                    onPress: pickVideo
-                                  },
-                                  {
-                                    text: 'ملف',
-                                    onPress: pickDocument
-                                  },
-                                  { text: 'إلغاء', style: 'cancel' }
-                                ]
-                              );
-                            }}
-                          >
-                            <IconSymbol size={20} name="plus.circle.fill" color="#1c1f33" />
-                            <ThemedText style={styles.uploadButtonText}>
-                              {newEvidence.fileName ? newEvidence.fileName : 'اختر ملف للتحميل'}
-                            </ThemedText>
-                          </TouchableOpacity>
-                          {newEvidence.fileName && (
-                            <ThemedView style={styles.fileInfo}>
-                              <IconSymbol 
-                                size={16} 
-                                name={
-                                  newEvidence.fileType === 'صورة' ? 'photo.fill' :
-                                  newEvidence.fileType === 'فيديو' ? 'video.fill' :
-                                  'doc.fill'
-                                } 
-                                color="#4CAF50" 
-                              />
-                              <ThemedText style={styles.fileInfoText}>
-                                {newEvidence.fileType}: {newEvidence.fileName}
-                              </ThemedText>
+                          
+                          {/* أزرار التحميل */}
+                          <ThemedView style={styles.uploadButtonsContainer}>
+                            <TouchableOpacity 
+                              style={[styles.uploadOptionButton, { backgroundColor: '#E3F2FD' }]}
+                              onPress={pickImage}
+                            >
+                              <IconSymbol size={18} name="photo.fill" color="#2196F3" />
+                              <ThemedText style={[styles.uploadOptionText, { color: '#2196F3' }]}>صورة</ThemedText>
+                            </TouchableOpacity>
+
+                            <TouchableOpacity 
+                              style={[styles.uploadOptionButton, { backgroundColor: '#F3E5F5' }]}
+                              onPress={pickVideo}
+                            >
+                              <IconSymbol size={18} name="video.fill" color="#9C27B0" />
+                              <ThemedText style={[styles.uploadOptionText, { color: '#9C27B0' }]}>فيديو</ThemedText>
+                            </TouchableOpacity>
+
+                            <TouchableOpacity 
+                              style={[styles.uploadOptionButton, { backgroundColor: '#E8F5E8' }]}
+                              onPress={pickDocument}
+                            >
+                              <IconSymbol size={18} name="doc.fill" color="#4CAF50" />
+                              <ThemedText style={[styles.uploadOptionText, { color: '#4CAF50' }]}>ملف</ThemedText>
+                            </TouchableOpacity>
+                          </ThemedView>
+
+                          {/* عرض الملف المحدد */}
+                          {newEvidence.fileName ? (
+                            <ThemedView style={styles.selectedFileContainer}>
+                              <ThemedView style={styles.fileInfo}>
+                                <IconSymbol 
+                                  size={20} 
+                                  name={
+                                    newEvidence.fileType === 'صورة' ? 'photo.fill' :
+                                    newEvidence.fileType === 'فيديو' ? 'video.fill' :
+                                    'doc.fill'
+                                  } 
+                                  color="#4CAF50" 
+                                />
+                                <ThemedView style={styles.fileDetails}>
+                                  <ThemedText style={styles.fileInfoText}>
+                                    {newEvidence.fileName}
+                                  </ThemedText>
+                                  <ThemedText style={styles.fileTypeText}>
+                                    {newEvidence.fileType}
+                                  </ThemedText>
+                                </ThemedView>
+                              </ThemedView>
+                              <TouchableOpacity 
+                                style={styles.removeFileButton}
+                                onPress={() => setNewEvidence(prev => ({
+                                  ...prev,
+                                  fileName: '',
+                                  fileType: ''
+                                }))}
+                              >
+                                <IconSymbol size={16} name="xmark.circle.fill" color="#F44336" />
+                              </TouchableOpacity>
+                            </ThemedView>
+                          ) : (
+                            <ThemedView style={styles.noFileSelected}>
+                              <IconSymbol size={24} name="doc.badge.plus" color="#999" />
+                              <ThemedText style={styles.noFileText}>لم يتم اختيار ملف بعد</ThemedText>
                             </ThemedView>
                           )}
                         </ThemedView>
@@ -1269,15 +1333,72 @@ const styles = StyleSheet.create({
     fontWeight: '500',
     textAlign: 'right',
   },
+  uploadButtonsContainer: {
+    flexDirection: 'row',
+    gap: 10,
+    marginBottom: 15,
+  },
+  uploadOptionButton: {
+    flex: 1,
+    flexDirection: 'column',
+    alignItems: 'center',
+    paddingVertical: 12,
+    paddingHorizontal: 8,
+    borderRadius: 12,
+    gap: 5,
+    borderWidth: 1,
+    borderColor: '#E5E5EA',
+  },
+  uploadOptionText: {
+    fontSize: 12,
+    fontWeight: '600',
+    textAlign: 'center',
+  },
+  selectedFileContainer: {
+    backgroundColor: '#F8F9FA',
+    borderRadius: 12,
+    padding: 15,
+    borderWidth: 1,
+    borderColor: '#E5E5EA',
+  },
   fileInfo: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 5,
-    marginTop: 5,
+    gap: 10,
+  },
+  fileDetails: {
+    flex: 1,
   },
   fileInfoText: {
+    fontSize: 14,
+    color: '#1c1f33',
+    fontWeight: '500',
+    textAlign: 'right',
+  },
+  fileTypeText: {
     fontSize: 12,
-    color: '#4CAF50',
+    color: '#666',
+    textAlign: 'right',
+    marginTop: 2,
+  },
+  removeFileButton: {
+    padding: 5,
+  },
+  noFileSelected: {
+    alignItems: 'center',
+    justifyContent: 'center',
+    padding: 20,
+    backgroundColor: '#F8F9FA',
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: '#E5E5EA',
+    borderStyle: 'dashed',
+  },
+  noFileText: {
+    fontSize: 14,
+    color: '#999',
+    textAlign: 'center',
+    marginTop: 8,
   },
   evidenceDetails: {
     marginTop: 8,
