@@ -170,7 +170,7 @@ export default function RemedialPlansScreen() {
                 <ThemedView style={styles.header}>
                   <TouchableOpacity 
                     style={styles.backButton}
-                    onPress={() => router.back()}
+                    onPress={() => router.push('/(tabs)')}
                   >
                     <IconSymbol size={20} name="arrow.right" color="#1c1f33" />
                   </TouchableOpacity>
