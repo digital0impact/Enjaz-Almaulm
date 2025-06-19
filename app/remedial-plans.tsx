@@ -7,6 +7,7 @@ import { ThemedView } from '@/components/ThemedView';
 import { IconSymbol } from '@/components/ui/IconSymbol';
 import { useRouter } from 'expo-router';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { BottomNavigationBar } from '@/components/BottomNavigationBar';
 
 interface Student {
   id: string;
@@ -412,6 +413,7 @@ export default function RemedialPlansScreen() {
           </KeyboardAvoidingView>
         </ExpoLinearGradient>
       </ImageBackground>
+      <BottomNavigationBar />
     </ThemedView>
   );
 }

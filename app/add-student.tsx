@@ -8,6 +8,7 @@ import { useRouter } from 'expo-router';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import * as DocumentPicker from 'expo-document-picker';
 import * as ImagePicker from 'expo-image-picker';
+import { BottomNavigationBar } from '@/components/BottomNavigationBar';
 
 interface Student {
   id: string;
@@ -931,6 +932,7 @@ export default function AddStudentScreen() {
           </KeyboardAvoidingView>
         </ExpoLinearGradient>
       </ImageBackground>
+      <BottomNavigationBar />
     </ThemedView>
   );
 }
