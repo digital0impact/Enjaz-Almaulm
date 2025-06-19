@@ -237,7 +237,6 @@ export default function RemedialPlansScreen() {
                         <ThemedText style={[styles.tableHeaderText, { flex: 2 }]}>اسم المتعلم</ThemedText>
                         <ThemedText style={[styles.tableHeaderText, { flex: 1.5 }]}>الصف</ThemedText>
                         <ThemedText style={[styles.tableHeaderText, { flex: 1.5 }]}>الحالة</ThemedText>
-                        <ThemedText style={[styles.tableHeaderText, { flex: 1 }]}>الخطط</ThemedText>
                         <ThemedText style={[styles.tableHeaderText, { flex: 1 }]}>التقدم</ThemedText>
                         <ThemedText style={[styles.tableHeaderText, { flex: 1.5 }]}>الاحتياجات</ThemedText>
                         <ThemedText style={[styles.tableHeaderText, { flex: 1.5 }]}>آخر تحديث</ThemedText>
@@ -260,28 +259,6 @@ export default function RemedialPlansScreen() {
                           <ThemedView style={[styles.tableCell, { flex: 1.5 }]}>
                             <ThemedView style={[styles.statusBadgeSmall, { backgroundColor: getStatusColor(student.status) }]}>
                               <ThemedText style={styles.statusTextSmall}>{student.status}</ThemedText>
-                            </ThemedView>
-                          </ThemedView>
-
-                          {/* Plans Count */}
-                          <ThemedView style={[styles.tableCell, { flex: 1 }]}>
-                            <ThemedView style={styles.plansCount}>
-                              <ThemedText style={styles.plansCountText}>
-                                {student.remedialPlans?.length || 0}
-                              </ThemedText>
-                              {student.remedialPlans && student.remedialPlans.length > 0 && (
-                                <ThemedView style={styles.plansBreakdown}>
-                                  <ThemedText style={[styles.plansBreakdownText, { color: '#4CAF50' }]}>
-                                    {student.remedialPlans.filter(plan => plan.status === 'نشط').length}ن
-                                  </ThemedText>
-                                  <ThemedText style={[styles.plansBreakdownText, { color: '#2196F3' }]}>
-                                    {student.remedialPlans.filter(plan => plan.status === 'مكتمل').length}م
-                                  </ThemedText>
-                                  <ThemedText style={[styles.plansBreakdownText, { color: '#FF9800' }]}>
-                                    {student.remedialPlans.filter(plan => plan.status === 'معلق').length}ق
-                                  </ThemedText>
-                                </ThemedView>
-                              )}
                             </ThemedView>
                           </ThemedView>
 
