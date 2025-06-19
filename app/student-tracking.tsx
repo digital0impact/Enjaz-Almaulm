@@ -254,6 +254,68 @@ export default function StudentTrackingScreen() {
                           <ThemedText style={styles.studentName}>{student.name}</ThemedText>
                           <ThemedText style={styles.studentGrade}>{student.grade}</ThemedText>
 
+                          {/* Goals Section */}
+                          {student.goals && student.goals.length > 0 && (
+                            <ThemedView style={styles.goalsSection}>
+                              <ThemedView style={styles.sectionHeader}>
+                                <IconSymbol size={14} name="target" color="#2196F3" />
+                                <ThemedText style={styles.sectionTitle}>الأهداف</ThemedText>
+                              </ThemedView>
+                              {student.goals.slice(0, 2).map((goal, index) => (
+                                <ThemedView key={goal.id} style={styles.goalItem}>
+                                  <ThemedText style={styles.goalTitle} numberOfLines={1}>
+                                    • {goal.title}
+                                  </ThemedText>
+                                  <ThemedView style={styles.goalProgress}>
+                                    <ThemedText style={styles.goalProgressText}>
+                                      {goal.progress}%
+                                    </ThemedText>
+                                    <ThemedView style={styles.goalProgressBar}>
+                                      <ThemedView 
+                                        style={[
+                                          styles.goalProgressFill,
+                                          { 
+                                            width: `${goal.progress}%`,
+                                            backgroundColor: goal.progress >= 70 ? '#4CAF50' : goal.progress >= 40 ? '#FF9800' : '#F44336'
+                                          }
+                                        ]}
+                                      />
+                                    </ThemedView>
+                                  </ThemedView>
+                                </ThemedView>
+                              ))}
+                              {student.goals.length > 2 && (
+                                <ThemedText style={styles.moreItemsText}>
+                                  +{student.goals.length - 2} أهداف أخرى
+                                </ThemedText>
+                              )}
+                            </ThemedView>
+                          )}
+
+                          {/* Needs Section */}
+                          {student.needs && student.needs.length > 0 && (
+                            <ThemedView style={styles.needsSection}>
+                              <ThemedView style={styles.sectionHeader}>
+                                <IconSymbol size={14} name="exclamationmark.circle" color="#FF5722" />
+                                <ThemedText style={styles.sectionTitle}>الاحتياجات</ThemedText>
+                              </ThemedView>
+                              <ThemedView style={styles.needsList}>
+                                {student.needs.slice(0, 3).map((need, index) => (
+                                  <ThemedView key={index} style={styles.needItem}>
+                                    <ThemedText style={styles.needText} numberOfLines={1}>
+                                      • {need}
+                                    </ThemedText>
+                                  </ThemedView>
+                                ))}
+                                {student.needs.length > 3 && (
+                                  <ThemedText style={styles.moreItemsText}>
+                                    +{student.needs.length - 3} احتياجات أخرى
+                                  </ThemedText>
+                                )}
+                              </ThemedView>
+                            </ThemedView>
+                          )}
+
                           {/* Remedial Plans Indicator */}
                           {student.remedialPlans && student.remedialPlans.length > 0 && (
                             <ThemedView style={styles.remedialPlansIndicator}>
@@ -261,26 +323,6 @@ export default function StudentTrackingScreen() {
                               <ThemedText style={styles.remedialPlansText}>
                                 {student.remedialPlans.filter(plan => plan.status === 'نشط').length} نشطة | {student.remedialPlans.filter(plan => plan.status === 'مكتمل').length} مكتملة
                               </ThemedText>
-                            </ThemedView>
-                          )}
-
-                          {/* Progress Summary */}
-                          {student.remedialPlans && student.remedialPlans.length > 0 && (
-                            <ThemedView style={styles.progressSummary}>
-                              <ThemedText style={styles.progressText}>
-                                متوسط التقدم: {Math.round(student.remedialPlans.reduce((total, plan) => total + plan.progress, 0) / student.remedialPlans.length)}%
-                              </ThemedText>
-                              <ThemedView style={styles.miniProgressBar}>
-                                <ThemedView 
-                                  style={[
-                                    styles.miniProgressFill,
-                                    { 
-                                      width: `${Math.round(student.remedialPlans.reduce((total, plan) => total + plan.progress, 0) / student.remedialPlans.length)}%`,
-                                      backgroundColor: getStatusColor(student.status)
-                                    }
-                                  ]}
-                                />
-                              </ThemedView>
                             </ThemedView>
                           )}
 
@@ -599,5 +641,88 @@ const styles = StyleSheet.create({
   miniProgressFill: {
     height: '100%',
     borderRadius: 2,
+  },
+  goalsSection: {
+    marginBottom: 12,
+    backgroundColor: '#F0F8FF',
+    padding: 10,
+    borderRadius: 10,
+    borderWidth: 1,
+    borderColor: '#E3F2FD',
+  },
+  needsSection: {
+    marginBottom: 12,
+    backgroundColor: '#FFF3E0',
+    padding: 10,
+    borderRadius: 10,
+    borderWidth: 1,
+    borderColor: '#FFE0B2',
+  },
+  sectionHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 6,
+    gap: 4,
+  },
+  sectionTitle: {
+    fontSize: 12,
+    fontWeight: '600',
+    color: '#1c1f33',
+    textAlign: 'right',
+    writingDirection: 'rtl',
+  },
+  goalItem: {
+    marginBottom: 6,
+  },
+  goalTitle: {
+    fontSize: 11,
+    color: '#1c1f33',
+    textAlign: 'right',
+    writingDirection: 'rtl',
+    marginBottom: 3,
+    fontWeight: '500',
+  },
+  goalProgress: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+  },
+  goalProgressText: {
+    fontSize: 10,
+    color: '#666',
+    minWidth: 30,
+    textAlign: 'center',
+  },
+  goalProgressBar: {
+    flex: 1,
+    height: 4,
+    backgroundColor: '#E5E5EA',
+    borderRadius: 2,
+    overflow: 'hidden',
+  },
+  goalProgressFill: {
+    height: '100%',
+    borderRadius: 2,
+  },
+  needsList: {
+    gap: 2,
+  },
+  needItem: {
+    marginBottom: 2,
+  },
+  needText: {
+    fontSize: 11,
+    color: '#1c1f33',
+    textAlign: 'right',
+    writingDirection: 'rtl',
+    fontWeight: '500',
+  },
+  moreItemsText: {
+    fontSize: 10,
+    color: '#666',
+    textAlign: 'center',
+    fontStyle: 'italic',
+    marginTop: 4,
+    writingDirection: 'rtl',
   },
 });
