@@ -141,11 +141,11 @@ export default function StudentTrackingScreen() {
                   </TouchableOpacity>
 
                   <TouchableOpacity 
-                    style={[styles.addButton, { backgroundColor: '#FFEBEE', borderColor: '#F44336' }]}
+                    style={styles.addButton}
                     onPress={() => router.push('/remedial-plans')}
                   >
-                    <IconSymbol size={20} name="heart.text.square" color="#F44336" />
-                    <ThemedText style={[styles.buttonText, { color: '#F44336' }]}>إدارة الخطط العلاجية</ThemedText>
+                    <IconSymbol size={20} name="heart.text.square" color="#1c1f33" />
+                    <ThemedText style={styles.buttonText}>إدارة الخطط العلاجية</ThemedText>
                   </TouchableOpacity>
                 </ThemedView>
 
