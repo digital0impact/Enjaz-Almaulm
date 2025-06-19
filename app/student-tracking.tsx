@@ -218,8 +218,28 @@ export default function StudentTrackingScreen() {
                             <ThemedView style={styles.remedialPlansIndicator}>
                               <IconSymbol size={16} name="heart.text.square" color="#F44336" />
                               <ThemedText style={styles.remedialPlansText}>
-                                {student.remedialPlans.filter(plan => plan.status === 'نشط').length} خطة علاجية نشطة
+                                {student.remedialPlans.filter(plan => plan.status === 'نشط').length} نشطة | {student.remedialPlans.filter(plan => plan.status === 'مكتمل').length} مكتملة
                               </ThemedText>
+                            </ThemedView>
+                          )}
+
+                          {/* Progress Summary */}
+                          {student.remedialPlans && student.remedialPlans.length > 0 && (
+                            <ThemedView style={styles.progressSummary}>
+                              <ThemedText style={styles.progressText}>
+                                متوسط التقدم: {Math.round(student.remedialPlans.reduce((total, plan) => total + plan.progress, 0) / student.remedialPlans.length)}%
+                              </ThemedText>
+                              <ThemedView style={styles.miniProgressBar}>
+                                <ThemedView 
+                                  style={[
+                                    styles.miniProgressFill,
+                                    { 
+                                      width: `${Math.round(student.remedialPlans.reduce((total, plan) => total + plan.progress, 0) / student.remedialPlans.length)}%`,
+                                      backgroundColor: getStatusColor(student.status)
+                                    }
+                                  ]}
+                                />
+                              </ThemedView>
                             </ThemedView>
                           )}
 
@@ -496,10 +516,30 @@ const styles = StyleSheet.create({
     gap: 4,
   },
   remedialPlansText: {
-    fontSize: 11,
+    fontSize: 10,
     color: '#F44336',
     fontWeight: '600',
     textAlign: 'right',
     writingDirection: 'rtl',
+  },
+  progressSummary: {
+    marginBottom: 8,
+  },
+  progressText: {
+    fontSize: 10,
+    color: '#666',
+    textAlign: 'right',
+    writingDirection: 'rtl',
+    marginBottom: 4,
+  },
+  miniProgressBar: {
+    height: 4,
+    backgroundColor: '#E5E5EA',
+    borderRadius: 2,
+    overflow: 'hidden',
+  },
+  miniProgressFill: {
+    height: '100%',
+    borderRadius: 2,
   },
 });

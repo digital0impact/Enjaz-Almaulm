@@ -131,7 +131,7 @@ export default function RemedialPlansScreen() {
                   </ThemedText>
                 </ThemedView>
 
-                {/* Statistics */}
+                {/* Main Statistics */}
                 <ThemedView style={styles.statsContainer}>
                   <ThemedView style={[styles.statCard, { backgroundColor: '#E8F5E8' }]}>
                     <IconSymbol size={24} name="play.circle.fill" color="#4CAF50" />
@@ -158,6 +158,45 @@ export default function RemedialPlansScreen() {
                   </ThemedView>
                 </ThemedView>
 
+                {/* Students Summary */}
+                <ThemedView style={styles.studentsAnalysis}>
+                  <ThemedText style={styles.analysisTitle}>تحليل المتعلمين</ThemedText>
+                  
+                  <ThemedView style={styles.analysisGrid}>
+                    <ThemedView style={[styles.analysisCard, { backgroundColor: '#F0F9FF' }]}>
+                      <IconSymbol size={20} name="person.3.fill" color="#0EA5E9" />
+                      <ThemedText style={styles.analysisNumber}>
+                        {students.filter(s => s.remedialPlans && s.remedialPlans.length > 0).length}
+                      </ThemedText>
+                      <ThemedText style={styles.analysisLabel}>لديهم خطط علاجية</ThemedText>
+                    </ThemedView>
+
+                    <ThemedView style={[styles.analysisCard, { backgroundColor: '#FEF3F2' }]}>
+                      <IconSymbol size={20} name="exclamationmark.triangle.fill" color="#EF4444" />
+                      <ThemedText style={styles.analysisNumber}>
+                        {students.filter(s => s.status === 'صعوبات التعلم').length}
+                      </ThemedText>
+                      <ThemedText style={styles.analysisLabel}>صعوبات تعلم</ThemedText>
+                    </ThemedView>
+
+                    <ThemedView style={[styles.analysisCard, { backgroundColor: '#FFFBEB' }]}>
+                      <IconSymbol size={20} name="star" color="#F59E0B" />
+                      <ThemedText style={styles.analysisNumber}>
+                        {students.filter(s => s.status === 'يحتاج إلى تطوير').length}
+                      </ThemedText>
+                      <ThemedText style={styles.analysisLabel}>يحتاج تطوير</ThemedText>
+                    </ThemedView>
+
+                    <ThemedView style={[styles.analysisCard, { backgroundColor: '#F0FDF4' }]}>
+                      <IconSymbol size={20} name="chart.line.uptrend.xyaxis" color="#22C55E" />
+                      <ThemedText style={styles.analysisNumber}>
+                        {activePlans.length > 0 ? Math.round(activePlans.reduce((total, plan) => total + plan.progress, 0) / activePlans.length) : 0}%
+                      </ThemedText>
+                      <ThemedText style={styles.analysisLabel}>متوسط التقدم</ThemedText>
+                    </ThemedView>
+                  </ThemedView>
+                </ThemedView>
+
                 {/* Add Plan Button */}
                 <ThemedView style={styles.actionButtons}>
                   <TouchableOpacity 
@@ -168,6 +207,69 @@ export default function RemedialPlansScreen() {
                     <ThemedText style={styles.buttonText}>إضافة خطة علاجية جديدة</ThemedText>
                   </TouchableOpacity>
                 </ThemedView>
+
+                {/* Students with Plans Details */}
+                {students.filter(s => s.remedialPlans && s.remedialPlans.length > 0).length > 0 && (
+                  <ThemedView style={styles.studentsWithPlans}>
+                    <ThemedText style={styles.sectionTitle}>المتعلمون والخطط العلاجية</ThemedText>
+
+                    {students.filter(s => s.remedialPlans && s.remedialPlans.length > 0).map((student) => (
+                      <ThemedView key={student.id} style={styles.studentDetailCard}>
+                        <ThemedView style={styles.studentDetailHeader}>
+                          <ThemedView style={styles.studentInfo}>
+                            <ThemedText style={styles.studentDetailName}>{student.name}</ThemedText>
+                            <ThemedText style={styles.studentDetailGrade}>{student.grade}</ThemedText>
+                          </ThemedView>
+                          <ThemedView style={[styles.statusBadge, { backgroundColor: getStatusColor(student.status) }]}>
+                            <ThemedText style={styles.statusText}>{student.status}</ThemedText>
+                          </ThemedView>
+                        </ThemedView>
+
+                        <ThemedView style={styles.plansOverview}>
+                          <ThemedView style={styles.plansSummaryRow}>
+                            <ThemedView style={styles.plansSummaryItem}>
+                              <IconSymbol size={16} name="play.circle.fill" color="#4CAF50" />
+                              <ThemedText style={styles.plansSummaryText}>
+                                {student.remedialPlans?.filter(plan => plan.status === 'نشط').length || 0} نشطة
+                              </ThemedText>
+                            </ThemedView>
+
+                            <ThemedView style={styles.plansSummaryItem}>
+                              <IconSymbol size={16} name="checkmark.circle.fill" color="#2196F3" />
+                              <ThemedText style={styles.plansSummaryText}>
+                                {student.remedialPlans?.filter(plan => plan.status === 'مكتمل').length || 0} مكتملة
+                              </ThemedText>
+                            </ThemedView>
+
+                            <ThemedView style={styles.plansSummaryItem}>
+                              <IconSymbol size={16} name="pause.circle.fill" color="#FF9800" />
+                              <ThemedText style={styles.plansSummaryText}>
+                                {student.remedialPlans?.filter(plan => plan.status === 'معلق').length || 0} معلقة
+                              </ThemedText>
+                            </ThemedView>
+                          </ThemedView>
+
+                          <ThemedView style={styles.overallProgress}>
+                            <ThemedText style={styles.progressLabel}>
+                              التقدم العام: {Math.round(student.remedialPlans?.reduce((total, plan) => total + plan.progress, 0) / (student.remedialPlans?.length || 1))}%
+                            </ThemedText>
+                            <ThemedView style={styles.progressBar}>
+                              <ThemedView 
+                                style={[
+                                  styles.progressFill,
+                                  { 
+                                    width: `${Math.round(student.remedialPlans?.reduce((total, plan) => total + plan.progress, 0) / (student.remedialPlans?.length || 1))}%`,
+                                    backgroundColor: getStatusColor(student.status)
+                                  }
+                                ]}
+                              />
+                            </ThemedView>
+                          </ThemedView>
+                        </ThemedView>
+                      </ThemedView>
+                    ))}
+                  </ThemedView>
+                )}
 
                 {/* Plans List or Empty State */}
                 {activePlans.length === 0 ? (
@@ -516,5 +618,118 @@ const styles = StyleSheet.create({
     color: '#999',
     textAlign: 'right',
     writingDirection: 'rtl',
+  },
+  studentsAnalysis: {
+    paddingHorizontal: 20,
+    marginBottom: 20,
+    backgroundColor: 'transparent',
+  },
+  analysisTitle: {
+    fontSize: 18,
+    fontWeight: 'bold',
+    marginBottom: 15,
+    color: '#1c1f33',
+    textAlign: 'center',
+    writingDirection: 'rtl',
+  },
+  analysisGrid: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 8,
+  },
+  analysisCard: {
+    width: '48%',
+    alignItems: 'center',
+    padding: 12,
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: '#E5E5EA',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    elevation: 3,
+    marginBottom: 8,
+  },
+  analysisNumber: {
+    fontSize: 16,
+    fontWeight: 'bold',
+    marginTop: 6,
+    color: '#000000',
+  },
+  analysisLabel: {
+    fontSize: 10,
+    color: '#666666',
+    marginTop: 2,
+    textAlign: 'center',
+    writingDirection: 'rtl',
+  },
+  studentsWithPlans: {
+    paddingHorizontal: 20,
+    marginBottom: 20,
+    backgroundColor: 'transparent',
+  },
+  studentDetailCard: {
+    backgroundColor: '#F8F9FA',
+    borderRadius: 15,
+    padding: 15,
+    borderWidth: 1,
+    borderColor: '#E5E5EA',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.1,
+    shadowRadius: 8,
+    elevation: 5,
+    marginBottom: 15,
+  },
+  studentDetailHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 15,
+  },
+  studentInfo: {
+    flex: 1,
+  },
+  studentDetailName: {
+    fontSize: 16,
+    fontWeight: 'bold',
+    color: '#1c1f33',
+    textAlign: 'right',
+    writingDirection: 'rtl',
+    marginBottom: 3,
+  },
+  studentDetailGrade: {
+    fontSize: 14,
+    color: '#666',
+    textAlign: 'right',
+    writingDirection: 'rtl',
+  },
+  plansOverview: {
+    backgroundColor: '#fff',
+    borderRadius: 12,
+    padding: 12,
+    borderWidth: 1,
+    borderColor: '#E5E5EA',
+  },
+  plansSummaryRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-around',
+    marginBottom: 12,
+  },
+  plansSummaryItem: {
+    alignItems: 'center',
+    gap: 4,
+  },
+  plansSummaryText: {
+    fontSize: 11,
+    color: '#666',
+    textAlign: 'center',
+    writingDirection: 'rtl',
+  },
+  overallProgress: {
+    paddingTop: 12,
+    borderTopWidth: 1,
+    borderTopColor: '#E5E5EA',
   },
 });
