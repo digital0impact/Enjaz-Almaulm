@@ -15,6 +15,18 @@ interface Student {
   status: 'تفوق' | 'يحتاج إلى تطوير' | 'صعوبات التعلم' | 'ضعف';
   lastUpdate: string;
   notes: string;
+  remedialPlans?: RemedialPlan[];
+}
+
+interface RemedialPlan {
+  id: string;
+  title: string;
+  description: string;
+  targetArea: string;
+  startDate: string;
+  endDate: string;
+  status: 'نشط' | 'مكتمل' | 'معلق';
+  progress: number; // 0-100
 }
 
 export default function StudentTrackingScreen() {
@@ -127,6 +139,14 @@ export default function StudentTrackingScreen() {
                     <IconSymbol size={20} name="plus" color="#1c1f33" />
                     <ThemedText style={styles.buttonText}>إضافة متعلم جديد</ThemedText>
                   </TouchableOpacity>
+
+                  <TouchableOpacity 
+                    style={[styles.addButton, { backgroundColor: '#FFEBEE', borderColor: '#F44336' }]}
+                    onPress={() => router.push('/remedial-plans')}
+                  >
+                    <IconSymbol size={20} name="heart.text.square" color="#F44336" />
+                    <ThemedText style={[styles.buttonText, { color: '#F44336' }]}>إدارة الخطط العلاجية</ThemedText>
+                  </TouchableOpacity>
                 </ThemedView>
 
                 {/* Students List or Empty State */}
@@ -157,6 +177,16 @@ export default function StudentTrackingScreen() {
                         </ThemedText>
                         <ThemedText style={styles.statLabel}>متفوقين</ThemedText>
                       </ThemedView>
+
+                      <ThemedView style={[styles.statCard, { backgroundColor: '#FFEBEE' }]}>
+                        <IconSymbol size={24} name="heart.text.square" color="#F44336" />
+                        <ThemedText style={styles.statNumber}>
+                          {students.reduce((total, student) => 
+                            total + (student.remedialPlans?.filter(plan => plan.status === 'نشط').length || 0), 0
+                          )}
+                        </ThemedText>
+                        <ThemedText style={styles.statLabel}>خطط علاجية نشطة</ThemedText>
+                      </ThemedView>
                     </ThemedView>
 
                     {/* Students Grid */}
@@ -182,6 +212,16 @@ export default function StudentTrackingScreen() {
 
                           <ThemedText style={styles.studentName}>{student.name}</ThemedText>
                           <ThemedText style={styles.studentGrade}>{student.grade}</ThemedText>
+
+                          {/* Remedial Plans Indicator */}
+                          {student.remedialPlans && student.remedialPlans.length > 0 && (
+                            <ThemedView style={styles.remedialPlansIndicator}>
+                              <IconSymbol size={16} name="heart.text.square" color="#F44336" />
+                              <ThemedText style={styles.remedialPlansText}>
+                                {student.remedialPlans.filter(plan => plan.status === 'نشط').length} خطة علاجية نشطة
+                              </ThemedText>
+                            </ThemedView>
+                          )}
 
                           <ThemedView style={styles.studentFooter}>
                             <ThemedText style={styles.lastUpdate}>
@@ -279,6 +319,7 @@ const styles = StyleSheet.create({
   actionButtons: {
     padding: 20,
     backgroundColor: 'transparent',
+    gap: 10,
   },
   addButton: {
     flexDirection: 'row',
@@ -294,6 +335,8 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.4,
     shadowRadius: 12,
     elevation: 12,
+    borderWidth: 1,
+    borderColor: '#add4ce',
   },
   buttonText: {
     color: '#1c1f33',
@@ -439,6 +482,23 @@ const styles = StyleSheet.create({
   lastUpdate: {
     fontSize: 12,
     color: '#999',
+    textAlign: 'right',
+    writingDirection: 'rtl',
+  },
+  remedialPlansIndicator: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#FFEBEE',
+    paddingHorizontal: 8,
+    paddingVertical: 4,
+    borderRadius: 12,
+    marginBottom: 8,
+    gap: 4,
+  },
+  remedialPlansText: {
+    fontSize: 11,
+    color: '#F44336',
+    fontWeight: '600',
     textAlign: 'right',
     writingDirection: 'rtl',
   },

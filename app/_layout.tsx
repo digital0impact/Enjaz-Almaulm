@@ -41,6 +41,7 @@ function NavigationContent() {
         <Stack.Screen name="alerts-management" options={{ headerShown: false }} />
         <Stack.Screen name="edit-alert" options={{ headerShown: false }} />
         <Stack.Screen name="improvement-plan" options={{ headerShown: false }} />
+        <Stack.Screen name="remedial-plans" options={{ headerShown: false }} />
         <Stack.Screen name="report-screen" options={{ headerShown: false }} />
         <Stack.Screen name="detailed-report" options={{ headerShown: false }} />
         <Stack.Screen name="interactive-report" options={{ headerShown: false }} />
