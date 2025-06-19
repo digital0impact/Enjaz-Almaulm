@@ -274,9 +274,8 @@ export default function AddStudentScreen() {
     }
 
     try {
-      // إظهار رسالة تحميل
-      Alert.alert('جاري الحفظ...', 'يتم حفظ بيانات المتعلم');
-
+      console.log('بدء عملية الحفظ...');
+      
       const existingStudents = await AsyncStorage.getItem('students');
       let students = existingStudents ? JSON.parse(existingStudents) : [];
 
@@ -312,20 +311,30 @@ export default function AddStudentScreen() {
       students.push(newStudent);
       await AsyncStorage.setItem('students', JSON.stringify(students));
 
-      console.log('Student saved successfully:', newStudent);
+      console.log('تم حفظ المتعلم بنجاح:', newStudent);
 
-      Alert.alert('تم بنجاح!', 'تم إضافة المتعلم بنجاح', [
-        { 
-          text: 'موافق', 
-          onPress: () => {
-            console.log('Navigating back...');
-            router.back();
+      Alert.alert(
+        'تم الحفظ بنجاح!', 
+        `تم إضافة المتعلم "${newStudent.name}" بنجاح`,
+        [
+          { 
+            text: 'موافق', 
+            onPress: () => {
+              console.log('العودة إلى الصفحة السابقة...');
+              router.back();
+            }
           }
-        }
-      ]);
+        ]
+      );
     } catch (error) {
-      console.error('Error saving student:', error);
-      Alert.alert('خطأ', 'حدث خطأ أثناء حفظ البيانات. يرجى المحاولة مرة أخرى.');
+      console.error('خطأ في حفظ المتعلم:', error);
+      Alert.alert(
+        'خطأ في الحفظ', 
+        'حدث خطأ أثناء حفظ بيانات المتعلم. يرجى المحاولة مرة أخرى.',
+        [
+          { text: 'موافق', style: 'default' }
+        ]
+      );
     }
   };
 
