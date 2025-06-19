@@ -297,12 +297,8 @@ export default function RemedialPlansScreen() {
                 {/* Plans List or Empty State */}
                 {activePlans.length === 0 ? (
                   <ThemedView style={styles.emptyState}>
-                    <ThemedView style={styles.emptyIconContainer}>
-                      <IconSymbol size={80} name="heart.text.square" color="#ccc" />
-                    </ThemedView>
-                    <ThemedText style={styles.emptyTitle}>لا توجد خطط علاجية</ThemedText>
                     <ThemedText style={styles.emptySubtitle}>
-                      اضغط على "إضافة خطة علاجية جديدة" لبدء إنشاء الخطط
+                      يمكنك متابعة تفاصيل المتعلمين من الجدول أعلاه
                     </ThemedText>
                   </ThemedView>
                 ) : (
