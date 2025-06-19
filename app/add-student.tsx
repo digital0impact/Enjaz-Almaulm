@@ -123,12 +123,19 @@ export default function AddStudentScreen() {
       return;
     }
 
+    // التحقق من عدم تكرار الاحتياج
+    if (studentData.needs.includes(newNeed.trim())) {
+      Alert.alert('تنبيه', 'هذا الاحتياج موجود بالفعل');
+      return;
+    }
+
     setStudentData(prev => ({
       ...prev,
       needs: [...prev.needs, newNeed.trim()]
     }));
 
     setNewNeed('');
+    Alert.alert('تم بنجاح', 'تم إضافة الاحتياج بنجاح');
   };
 
   const pickDocument = async () => {
@@ -515,31 +522,71 @@ export default function AddStudentScreen() {
 
                   {/* احتياجات المتعلم */}
                   <ThemedView style={styles.sectionContainer}>
-                    <ThemedText style={styles.sectionTitle}>احتياجات المتعلم</ThemedText>
+                    <ThemedView style={styles.sectionHeader}>
+                      <ThemedView style={styles.needsCounter}>
+                        <IconSymbol size={16} name="list.bullet" color="#4CAF50" />
+                        <ThemedText style={styles.counterText}>
+                          {studentData.needs.length} احتياج
+                        </ThemedText>
+                      </ThemedView>
+                      <ThemedText style={styles.sectionTitle}>احتياجات المتعلم</ThemedText>
+                    </ThemedView>
 
                     <ThemedView style={styles.inputGroup}>
+                      <ThemedText style={styles.label}>إضافة احتياج جديد</ThemedText>
                       <ThemedView style={styles.inputWithButton}>
-                        <TouchableOpacity style={styles.addSmallButton} onPress={addNeed}>
-                          <IconSymbol size={16} name="plus" color="#1c1f33" />
+                        <TouchableOpacity 
+                          style={styles.addSmallButton} 
+                          onPress={addNeed}
+                          disabled={!newNeed.trim()}
+                        >
+                          <IconSymbol size={16} name="plus" color={newNeed.trim() ? "#1c1f33" : "#999"} />
                         </TouchableOpacity>
                         <TextInput
                           style={[styles.textInput, { flex: 1 }]}
                           value={newNeed}
                           onChangeText={setNewNeed}
-                          placeholder="أدخل احتياج المتعلم"
+                          placeholder="مثال: يحتاج إلى دعم إضافي في الرياضيات"
                           textAlign="right"
+                          onSubmitEditing={addNeed}
+                          returnKeyType="done"
                         />
                       </ThemedView>
                     </ThemedView>
 
-                    {studentData.needs.map((need, index) => (
-                      <ThemedView key={index} style={styles.needItem}>
-                        <TouchableOpacity onPress={() => removeNeed(index)}>
-                          <IconSymbol size={18} name="xmark.circle.fill" color="#F44336" />
-                        </TouchableOpacity>
-                        <ThemedText style={styles.needText}>{need}</ThemedText>
+                    {/* عرض الاحتياجات المضافة */}
+                    {studentData.needs.length > 0 && (
+                      <ThemedView style={styles.needsList}>
+                        <ThemedText style={styles.listTitle}>الاحتياجات المضافة:</ThemedText>
+                        {studentData.needs.map((need, index) => (
+                          <ThemedView key={index} style={styles.needItem}>
+                            <TouchableOpacity 
+                              onPress={() => removeNeed(index)}
+                              style={styles.removeButton}
+                            >
+                              <IconSymbol size={18} name="xmark.circle.fill" color="#F44336" />
+                            </TouchableOpacity>
+                            <ThemedView style={styles.needContent}>
+                              <ThemedText style={styles.needText}>{need}</ThemedText>
+                              <ThemedText style={styles.needIndex}>#{index + 1}</ThemedText>
+                            </ThemedView>
+                          </ThemedView>
+                        ))}
                       </ThemedView>
-                    ))}
+                    )}
+
+                    {/* رسالة إرشادية إذا لم تكن هناك احتياجات */}
+                    {studentData.needs.length === 0 && (
+                      <ThemedView style={styles.emptyNeedsState}>
+                        <IconSymbol size={40} name="list.bullet.clipboard" color="#E5E5EA" />
+                        <ThemedText style={styles.emptyNeedsText}>
+                          لم يتم إضافة احتياجات بعد
+                        </ThemedText>
+                        <ThemedText style={styles.emptyNeedsSubtext}>
+                          أضف احتياجات المتعلم لتحسين خطة التعلم
+                        </ThemedText>
+                      </ThemedView>
+                    )}
                   </ThemedView>
 
                   {/* شواهد الأداء */}
@@ -1030,6 +1077,75 @@ const styles = StyleSheet.create({
     color: '#1c1f33',
     textAlign: 'right',
     writingDirection: 'rtl',
+    lineHeight: 20,
+  },
+  needsCounter: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#E8F5E8',
+    paddingVertical: 6,
+    paddingHorizontal: 12,
+    borderRadius: 15,
+    gap: 5,
+  },
+  counterText: {
+    fontSize: 12,
+    color: '#4CAF50',
+    fontWeight: '600',
+  },
+  needsList: {
+    marginTop: 10,
+  },
+  listTitle: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: '#1c1f33',
+    marginBottom: 10,
+    textAlign: 'right',
+    writingDirection: 'rtl',
+  },
+  needContent: {
+    flex: 1,
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+  },
+  needIndex: {
+    fontSize: 12,
+    color: '#999',
+    backgroundColor: '#F0F0F0',
+    paddingHorizontal: 8,
+    paddingVertical: 2,
+    borderRadius: 10,
+    textAlign: 'center',
+    minWidth: 30,
+  },
+  removeButton: {
+    padding: 5,
+  },
+  emptyNeedsState: {
+    alignItems: 'center',
+    justifyContent: 'center',
+    padding: 30,
+    backgroundColor: '#F8F9FA',
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: '#E5E5EA',
+    borderStyle: 'dashed',
+  },
+  emptyNeedsText: {
+    fontSize: 16,
+    color: '#666',
+    textAlign: 'center',
+    marginTop: 10,
+    fontWeight: '500',
+  },
+  emptyNeedsSubtext: {
+    fontSize: 14,
+    color: '#999',
+    textAlign: 'center',
+    marginTop: 5,
+    lineHeight: 20,
   },
   typeGrid: {
     flexDirection: 'row',
