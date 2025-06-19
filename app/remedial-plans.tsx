@@ -158,44 +158,7 @@ export default function RemedialPlansScreen() {
                   </ThemedView>
                 </ThemedView>
 
-                {/* Students Summary */}
-                <ThemedView style={styles.studentsAnalysis}>
-                  <ThemedText style={styles.analysisTitle}>تحليل المتعلمين</ThemedText>
-                  
-                  <ThemedView style={styles.analysisGrid}>
-                    <ThemedView style={[styles.analysisCard, { backgroundColor: '#F0F9FF' }]}>
-                      <IconSymbol size={20} name="person.3.fill" color="#0EA5E9" />
-                      <ThemedText style={styles.analysisNumber}>
-                        {students.filter(s => s.remedialPlans && s.remedialPlans.length > 0).length}
-                      </ThemedText>
-                      <ThemedText style={styles.analysisLabel}>لديهم خطط علاجية</ThemedText>
-                    </ThemedView>
-
-                    <ThemedView style={[styles.analysisCard, { backgroundColor: '#FEF3F2' }]}>
-                      <IconSymbol size={20} name="exclamationmark.triangle.fill" color="#EF4444" />
-                      <ThemedText style={styles.analysisNumber}>
-                        {students.filter(s => s.status === 'صعوبات التعلم').length}
-                      </ThemedText>
-                      <ThemedText style={styles.analysisLabel}>صعوبات تعلم</ThemedText>
-                    </ThemedView>
-
-                    <ThemedView style={[styles.analysisCard, { backgroundColor: '#FFFBEB' }]}>
-                      <IconSymbol size={20} name="star" color="#F59E0B" />
-                      <ThemedText style={styles.analysisNumber}>
-                        {students.filter(s => s.status === 'يحتاج إلى تطوير').length}
-                      </ThemedText>
-                      <ThemedText style={styles.analysisLabel}>يحتاج تطوير</ThemedText>
-                    </ThemedView>
-
-                    <ThemedView style={[styles.analysisCard, { backgroundColor: '#F0FDF4' }]}>
-                      <IconSymbol size={20} name="chart.line.uptrend.xyaxis" color="#22C55E" />
-                      <ThemedText style={styles.analysisNumber}>
-                        {activePlans.length > 0 ? Math.round(activePlans.reduce((total, plan) => total + plan.progress, 0) / activePlans.length) : 0}%
-                      </ThemedText>
-                      <ThemedText style={styles.analysisLabel}>متوسط التقدم</ThemedText>
-                    </ThemedView>
-                  </ThemedView>
-                </ThemedView>
+                
 
                 
 
