@@ -222,7 +222,6 @@ export default function RemedialPlansScreen() {
                 {students.length > 0 && (
                   <ThemedView style={styles.studentsTable}>
                     <ThemedView style={styles.tableHeaderSection}>
-                      <ThemedText style={styles.sectionTitle}>جدول تفاصيل جميع المتعلمين</ThemedText>
                       <TouchableOpacity 
                         style={styles.exportButton}
                         onPress={exportTableData}
@@ -967,7 +966,7 @@ const styles = StyleSheet.create({
   },
   tableHeaderSection: {
     flexDirection: 'row',
-    justifyContent: 'space-between',
+    justifyContent: 'flex-start',
     alignItems: 'center',
     marginBottom: 20,
     paddingHorizontal: 5,
