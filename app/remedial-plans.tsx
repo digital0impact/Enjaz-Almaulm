@@ -162,66 +162,135 @@ export default function RemedialPlansScreen() {
 
                 
 
-                {/* Students with Plans Details */}
-                {students.filter(s => s.remedialPlans && s.remedialPlans.length > 0).length > 0 && (
-                  <ThemedView style={styles.studentsWithPlans}>
-                    <ThemedText style={styles.sectionTitle}>المتعلمون والخطط العلاجية</ThemedText>
+                {/* Students Details Table */}
+                {students.length > 0 && (
+                  <ThemedView style={styles.studentsTable}>
+                    <ThemedText style={styles.sectionTitle}>جدول تفاصيل جميع المتعلمين</ThemedText>
 
-                    {students.filter(s => s.remedialPlans && s.remedialPlans.length > 0).map((student) => (
-                      <ThemedView key={student.id} style={styles.studentDetailCard}>
-                        <ThemedView style={styles.studentDetailHeader}>
-                          <ThemedView style={styles.studentInfo}>
-                            <ThemedText style={styles.studentDetailName}>{student.name}</ThemedText>
-                            <ThemedText style={styles.studentDetailGrade}>{student.grade}</ThemedText>
-                          </ThemedView>
-                          <ThemedView style={[styles.statusBadge, { backgroundColor: getStatusColor(student.status) }]}>
-                            <ThemedText style={styles.statusText}>{student.status}</ThemedText>
-                          </ThemedView>
-                        </ThemedView>
-
-                        <ThemedView style={styles.plansOverview}>
-                          <ThemedView style={styles.plansSummaryRow}>
-                            <ThemedView style={styles.plansSummaryItem}>
-                              <IconSymbol size={16} name="play.circle.fill" color="#4CAF50" />
-                              <ThemedText style={styles.plansSummaryText}>
-                                {student.remedialPlans?.filter(plan => plan.status === 'نشط').length || 0} نشطة
-                              </ThemedText>
-                            </ThemedView>
-
-                            <ThemedView style={styles.plansSummaryItem}>
-                              <IconSymbol size={16} name="checkmark.circle.fill" color="#2196F3" />
-                              <ThemedText style={styles.plansSummaryText}>
-                                {student.remedialPlans?.filter(plan => plan.status === 'مكتمل').length || 0} مكتملة
-                              </ThemedText>
-                            </ThemedView>
-
-                            <ThemedView style={styles.plansSummaryItem}>
-                              <IconSymbol size={16} name="pause.circle.fill" color="#FF9800" />
-                              <ThemedText style={styles.plansSummaryText}>
-                                {student.remedialPlans?.filter(plan => plan.status === 'معلق').length || 0} معلقة
-                              </ThemedText>
-                            </ThemedView>
-                          </ThemedView>
-
-                          <ThemedView style={styles.overallProgress}>
-                            <ThemedText style={styles.progressLabel}>
-                              التقدم العام: {Math.round(student.remedialPlans?.reduce((total, plan) => total + plan.progress, 0) / (student.remedialPlans?.length || 1))}%
-                            </ThemedText>
-                            <ThemedView style={styles.progressBar}>
-                              <ThemedView 
-                                style={[
-                                  styles.progressFill,
-                                  { 
-                                    width: `${Math.round(student.remedialPlans?.reduce((total, plan) => total + plan.progress, 0) / (student.remedialPlans?.length || 1))}%`,
-                                    backgroundColor: getStatusColor(student.status)
-                                  }
-                                ]}
-                              />
-                            </ThemedView>
-                          </ThemedView>
-                        </ThemedView>
+                    {/* Table Header */}
+                    <ThemedView style={styles.tableContainer}>
+                      <ThemedView style={styles.tableHeader}>
+                        <ThemedText style={[styles.tableHeaderText, { flex: 2 }]}>اسم المتعلم</ThemedText>
+                        <ThemedText style={[styles.tableHeaderText, { flex: 1.5 }]}>الصف</ThemedText>
+                        <ThemedText style={[styles.tableHeaderText, { flex: 1.5 }]}>الحالة</ThemedText>
+                        <ThemedText style={[styles.tableHeaderText, { flex: 1 }]}>الخطط</ThemedText>
+                        <ThemedText style={[styles.tableHeaderText, { flex: 1 }]}>التقدم</ThemedText>
+                        <ThemedText style={[styles.tableHeaderText, { flex: 1.5 }]}>الاحتياجات</ThemedText>
+                        <ThemedText style={[styles.tableHeaderText, { flex: 1.5 }]}>آخر تحديث</ThemedText>
                       </ThemedView>
-                    ))}
+
+                      {/* Table Rows */}
+                      {students.map((student, index) => (
+                        <ThemedView key={student.id} style={[styles.tableRow, { backgroundColor: index % 2 === 0 ? '#F8F9FA' : '#FFFFFF' }]}>
+                          {/* Student Name */}
+                          <ThemedView style={[styles.tableCell, { flex: 2 }]}>
+                            <ThemedText style={styles.tableCellText}>{student.name}</ThemedText>
+                          </ThemedView>
+
+                          {/* Grade */}
+                          <ThemedView style={[styles.tableCell, { flex: 1.5 }]}>
+                            <ThemedText style={styles.tableCellText}>{student.grade}</ThemedText>
+                          </ThemedView>
+
+                          {/* Status */}
+                          <ThemedView style={[styles.tableCell, { flex: 1.5 }]}>
+                            <ThemedView style={[styles.statusBadgeSmall, { backgroundColor: getStatusColor(student.status) }]}>
+                              <ThemedText style={styles.statusTextSmall}>{student.status}</ThemedText>
+                            </ThemedView>
+                          </ThemedView>
+
+                          {/* Plans Count */}
+                          <ThemedView style={[styles.tableCell, { flex: 1 }]}>
+                            <ThemedView style={styles.plansCount}>
+                              <ThemedText style={styles.plansCountText}>
+                                {student.remedialPlans?.length || 0}
+                              </ThemedText>
+                              {student.remedialPlans && student.remedialPlans.length > 0 && (
+                                <ThemedView style={styles.plansBreakdown}>
+                                  <ThemedText style={[styles.plansBreakdownText, { color: '#4CAF50' }]}>
+                                    {student.remedialPlans.filter(plan => plan.status === 'نشط').length}ن
+                                  </ThemedText>
+                                  <ThemedText style={[styles.plansBreakdownText, { color: '#2196F3' }]}>
+                                    {student.remedialPlans.filter(plan => plan.status === 'مكتمل').length}م
+                                  </ThemedText>
+                                  <ThemedText style={[styles.plansBreakdownText, { color: '#FF9800' }]}>
+                                    {student.remedialPlans.filter(plan => plan.status === 'معلق').length}ق
+                                  </ThemedText>
+                                </ThemedView>
+                              )}
+                            </ThemedView>
+                          </ThemedView>
+
+                          {/* Progress */}
+                          <ThemedView style={[styles.tableCell, { flex: 1 }]}>
+                            {student.remedialPlans && student.remedialPlans.length > 0 ? (
+                              <ThemedView style={styles.progressContainer}>
+                                <ThemedText style={styles.progressText}>
+                                  {Math.round(student.remedialPlans.reduce((total, plan) => total + plan.progress, 0) / student.remedialPlans.length)}%
+                                </ThemedText>
+                                <ThemedView style={styles.miniProgressBar}>
+                                  <ThemedView 
+                                    style={[
+                                      styles.miniProgressFill,
+                                      { 
+                                        width: `${Math.round(student.remedialPlans.reduce((total, plan) => total + plan.progress, 0) / student.remedialPlans.length)}%`,
+                                        backgroundColor: getStatusColor(student.status)
+                                      }
+                                    ]}
+                                  />
+                                </ThemedView>
+                              </ThemedView>
+                            ) : (
+                              <ThemedText style={styles.tableCellText}>-</ThemedText>
+                            )}
+                          </ThemedView>
+
+                          {/* Needs */}
+                          <ThemedView style={[styles.tableCell, { flex: 1.5 }]}>
+                            {(student as any).needs && (student as any).needs.length > 0 ? (
+                              <ThemedView style={styles.needsContainer}>
+                                <ThemedText style={styles.needsCount}>
+                                  {(student as any).needs.length} احتياج
+                                </ThemedText>
+                                <ThemedText style={styles.needsPreview} numberOfLines={2}>
+                                  {(student as any).needs.slice(0, 2).join('، ')}
+                                  {(student as any).needs.length > 2 ? '...' : ''}
+                                </ThemedText>
+                              </ThemedView>
+                            ) : (
+                              <ThemedText style={styles.tableCellText}>لا يوجد</ThemedText>
+                            )}
+                          </ThemedView>
+
+                          {/* Last Update */}
+                          <ThemedView style={[styles.tableCell, { flex: 1.5 }]}>
+                            <ThemedText style={styles.tableCellTextSmall}>{student.lastUpdate}</ThemedText>
+                          </ThemedView>
+                        </ThemedView>
+                      ))}
+                    </ThemedView>
+
+                    {/* Table Summary */}
+                    <ThemedView style={styles.tableSummary}>
+                      <ThemedView style={styles.summaryItem}>
+                        <ThemedText style={styles.summaryLabel}>إجمالي المتعلمين:</ThemedText>
+                        <ThemedText style={styles.summaryValue}>{students.length}</ThemedText>
+                      </ThemedView>
+                      <ThemedView style={styles.summaryItem}>
+                        <ThemedText style={styles.summaryLabel}>لديهم خطط علاجية:</ThemedText>
+                        <ThemedText style={styles.summaryValue}>
+                          {students.filter(s => s.remedialPlans && s.remedialPlans.length > 0).length}
+                        </ThemedText>
+                      </ThemedView>
+                      <ThemedView style={styles.summaryItem}>
+                        <ThemedText style={styles.summaryLabel}>إجمالي الخطط النشطة:</ThemedText>
+                        <ThemedText style={styles.summaryValue}>
+                          {students.reduce((total, student) => 
+                            total + (student.remedialPlans?.filter(plan => plan.status === 'نشط').length || 0), 0
+                          )}
+                        </ThemedText>
+                      </ThemedView>
+                    </ThemedView>
                   </ThemedView>
                 )}
 
@@ -685,5 +754,154 @@ const styles = StyleSheet.create({
     paddingTop: 12,
     borderTopWidth: 1,
     borderTopColor: '#E5E5EA',
+  },
+  studentsTable: {
+    paddingHorizontal: 20,
+    marginBottom: 20,
+    backgroundColor: 'transparent',
+  },
+  tableContainer: {
+    backgroundColor: '#FFFFFF',
+    borderRadius: 15,
+    borderWidth: 1,
+    borderColor: '#E5E5EA',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.1,
+    shadowRadius: 8,
+    elevation: 5,
+    overflow: 'hidden',
+  },
+  tableHeader: {
+    flexDirection: 'row',
+    backgroundColor: '#F0F9FF',
+    paddingVertical: 15,
+    paddingHorizontal: 10,
+    borderBottomWidth: 2,
+    borderBottomColor: '#0EA5E9',
+  },
+  tableHeaderText: {
+    fontSize: 12,
+    fontWeight: 'bold',
+    color: '#0EA5E9',
+    textAlign: 'center',
+    writingDirection: 'rtl',
+  },
+  tableRow: {
+    flexDirection: 'row',
+    paddingVertical: 12,
+    paddingHorizontal: 10,
+    borderBottomWidth: 1,
+    borderBottomColor: '#F0F0F0',
+    minHeight: 60,
+  },
+  tableCell: {
+    justifyContent: 'center',
+    paddingHorizontal: 5,
+  },
+  tableCellText: {
+    fontSize: 12,
+    color: '#333',
+    textAlign: 'center',
+    writingDirection: 'rtl',
+  },
+  tableCellTextSmall: {
+    fontSize: 10,
+    color: '#666',
+    textAlign: 'center',
+    writingDirection: 'rtl',
+  },
+  statusBadgeSmall: {
+    paddingHorizontal: 6,
+    paddingVertical: 3,
+    borderRadius: 8,
+    alignSelf: 'center',
+  },
+  statusTextSmall: {
+    fontSize: 9,
+    color: '#fff',
+    fontWeight: '600',
+    textAlign: 'center',
+  },
+  plansCount: {
+    alignItems: 'center',
+  },
+  plansCountText: {
+    fontSize: 14,
+    fontWeight: 'bold',
+    color: '#333',
+    textAlign: 'center',
+    marginBottom: 2,
+  },
+  plansBreakdown: {
+    flexDirection: 'row',
+    gap: 3,
+  },
+  plansBreakdownText: {
+    fontSize: 8,
+    fontWeight: '600',
+  },
+  progressContainer: {
+    alignItems: 'center',
+    width: '100%',
+  },
+  progressText: {
+    fontSize: 10,
+    color: '#333',
+    marginBottom: 4,
+    textAlign: 'center',
+  },
+  miniProgressBar: {
+    height: 4,
+    backgroundColor: '#E5E5EA',
+    borderRadius: 2,
+    overflow: 'hidden',
+    width: '100%',
+  },
+  miniProgressFill: {
+    height: '100%',
+    borderRadius: 2,
+  },
+  needsContainer: {
+    alignItems: 'center',
+  },
+  needsCount: {
+    fontSize: 10,
+    fontWeight: 'bold',
+    color: '#666',
+    marginBottom: 2,
+    textAlign: 'center',
+  },
+  needsPreview: {
+    fontSize: 9,
+    color: '#999',
+    textAlign: 'center',
+    writingDirection: 'rtl',
+  },
+  tableSummary: {
+    flexDirection: 'row',
+    justifyContent: 'space-around',
+    backgroundColor: '#F8F9FA',
+    borderRadius: 12,
+    padding: 15,
+    marginTop: 15,
+    borderWidth: 1,
+    borderColor: '#E5E5EA',
+  },
+  summaryItem: {
+    alignItems: 'center',
+  },
+  summaryLabel: {
+    fontSize: 11,
+    color: '#666',
+    marginBottom: 5,
+    textAlign: 'center',
+    writingDirection: 'rtl',
+  },
+  summaryValue: {
+    fontSize: 16,
+    fontWeight: 'bold',
+    color: '#1c1f33',
+    textAlign: 'center',
   },
 });
