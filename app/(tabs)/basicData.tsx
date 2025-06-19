@@ -176,9 +176,12 @@ export default function BasicDataScreen() {
               <TouchableOpacity 
                 style={styles.saveButton}
                 onPress={saveUserData}
+                activeOpacity={0.8}
               >
-                <IconSymbol size={20} name="checkmark" color={'#1c1f33'} />
-                <ThemedText style={[styles.buttonText, { color: '#1c1f33' }]}>حفظ</ThemedText>
+                <IconSymbol size={20} name="checkmark.circle.fill" color="#1c1f33" />
+                <ThemedText style={styles.saveButtonText}>
+                  حفظ البيانات
+                </ThemedText>
               </TouchableOpacity>
               <TouchableOpacity 
                 style={styles.cancelButton}
@@ -186,9 +189,12 @@ export default function BasicDataScreen() {
                   setIsEditing(false);
                   loadUserData();
                 }}
+                activeOpacity={0.8}
               >
-                <IconSymbol size={20} name="xmark" color={'#1c1f33'} />
-                <ThemedText style={[styles.buttonText, { color: '#1c1f33' }]}>إلغاء</ThemedText>
+                <IconSymbol size={18} name="xmark.circle.fill" color="#666" />
+                <ThemedText style={styles.cancelButtonText}>
+                  إلغاء
+                </ThemedText>
               </TouchableOpacity>
             </ThemedView>
           )}
@@ -572,28 +578,39 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.4,
     shadowRadius: 12,
     elevation: 12,
-    borderWidth: 1,
-    borderColor: '#add4ce',
-    minHeight: 55,
+    marginBottom: 15,
+  },
+  saveButtonText: {
+    color: '#1c1f33',
+    fontSize: 16,
+    fontWeight: '600',
+    writingDirection: 'rtl',
+    textAlign: 'center',
   },
   cancelButton: {
     flex: 1,
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: '#f5f5f5',
+    backgroundColor: '#F8F9FA',
     paddingVertical: 15,
     paddingHorizontal: 25,
     borderRadius: 25,
+    borderWidth: 1,
+    borderColor: '#E5E5EA',
     gap: 10,
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 6 },
-    shadowOpacity: 0.4,
+    shadowOpacity: 0.25,
     shadowRadius: 12,
-    elevation: 12,
-    borderWidth: 1,
-    borderColor: '#ddd',
-    minHeight: 55,
+    elevation: 10,
+  },
+  cancelButtonText: {
+    color: '#666',
+    fontSize: 16,
+    fontWeight: '600',
+    textAlign: 'center',
+    writingDirection: 'rtl',
   },
   buttonText: {
     color: '#1c1f33',
