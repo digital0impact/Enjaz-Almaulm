@@ -197,16 +197,7 @@ export default function RemedialPlansScreen() {
                   </ThemedView>
                 </ThemedView>
 
-                {/* Add Plan Button */}
-                <ThemedView style={styles.actionButtons}>
-                  <TouchableOpacity 
-                    style={styles.addButton}
-                    onPress={addNewPlan}
-                  >
-                    <IconSymbol size={20} name="plus" color="#1c1f33" />
-                    <ThemedText style={styles.buttonText}>إضافة خطة علاجية جديدة</ThemedText>
-                  </TouchableOpacity>
-                </ThemedView>
+                
 
                 {/* Students with Plans Details */}
                 {students.filter(s => s.remedialPlans && s.remedialPlans.length > 0).length > 0 && (
