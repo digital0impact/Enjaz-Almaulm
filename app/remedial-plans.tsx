@@ -169,7 +169,7 @@ export default function RemedialPlansScreen() {
 
                     {/* Table Header */}
                     <ThemedView style={styles.tableContainer}>
-                      <ThemedView style={styles.tableHeader}>
+                      <ThemedView style={[styles.tableHeader, { direction: 'rtl' }]}>
                         <ThemedText style={[styles.tableHeaderText, { flex: 2 }]}>اسم المتعلم</ThemedText>
                         <ThemedText style={[styles.tableHeaderText, { flex: 1.5 }]}>الصف</ThemedText>
                         <ThemedText style={[styles.tableHeaderText, { flex: 1.5 }]}>الحالة</ThemedText>
@@ -181,7 +181,7 @@ export default function RemedialPlansScreen() {
 
                       {/* Table Rows */}
                       {students.map((student, index) => (
-                        <ThemedView key={student.id} style={[styles.tableRow, { backgroundColor: index % 2 === 0 ? '#F8F9FA' : '#FFFFFF' }]}>
+                        <ThemedView key={student.id} style={[styles.tableRow, { backgroundColor: index % 2 === 0 ? '#F8F9FA' : '#FFFFFF', direction: 'rtl' }]}>
                           {/* Student Name */}
                           <ThemedView style={[styles.tableCell, { flex: 2 }]}>
                             <ThemedText style={styles.tableCellText}>{student.name}</ThemedText>
@@ -802,13 +802,13 @@ const styles = StyleSheet.create({
   tableCellText: {
     fontSize: 12,
     color: '#333',
-    textAlign: 'center',
+    textAlign: 'right',
     writingDirection: 'rtl',
   },
   tableCellTextSmall: {
     fontSize: 10,
     color: '#666',
-    textAlign: 'center',
+    textAlign: 'right',
     writingDirection: 'rtl',
   },
   statusBadgeSmall: {
