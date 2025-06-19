@@ -239,7 +239,7 @@ export default function RemedialPlansScreen() {
                         <ThemedText style={[styles.tableHeaderText, { flex: 1.5 }]}>الحالة</ThemedText>
                         <ThemedText style={[styles.tableHeaderText, { flex: 1 }]}>التقدم</ThemedText>
                         <ThemedText style={[styles.tableHeaderText, { flex: 1.5 }]}>الاحتياجات</ThemedText>
-                        <ThemedText style={[styles.tableHeaderText, { flex: 1.5 }]}>آخر تحديث</ThemedText>
+                        <ThemedText style={[styles.tableHeaderText, { flex: 1.5 }]}>الشواهد</ThemedText>
                       </ThemedView>
 
                       {/* Table Rows */}
@@ -303,9 +303,21 @@ export default function RemedialPlansScreen() {
                             )}
                           </ThemedView>
 
-                          {/* Last Update */}
+                          {/* Evidence */}
                           <ThemedView style={[styles.tableCell, { flex: 1.5 }]}>
-                            <ThemedText style={styles.tableCellTextSmall}>{student.lastUpdate}</ThemedText>
+                            {student.performanceEvidence && student.performanceEvidence.length > 0 ? (
+                              <ThemedView style={styles.evidenceContainer}>
+                                <ThemedText style={styles.evidenceCount}>
+                                  {student.performanceEvidence.length} شاهد
+                                </ThemedText>
+                                <ThemedText style={styles.evidencePreview} numberOfLines={2}>
+                                  {student.performanceEvidence.slice(0, 2).map(evidence => evidence.title).join('، ')}
+                                  {student.performanceEvidence.length > 2 ? '...' : ''}
+                                </ThemedText>
+                              </ThemedView>
+                            ) : (
+                              <ThemedText style={styles.tableCellText}>لا يوجد</ThemedText>
+                            )}
                           </ThemedView>
                         </ThemedView>
                       ))}
@@ -910,6 +922,22 @@ const styles = StyleSheet.create({
     textAlign: 'center',
   },
   needsPreview: {
+    fontSize: 9,
+    color: '#999',
+    textAlign: 'center',
+    writingDirection: 'rtl',
+  },
+  evidenceContainer: {
+    alignItems: 'center',
+  },
+  evidenceCount: {
+    fontSize: 10,
+    fontWeight: 'bold',
+    color: '#666',
+    marginBottom: 2,
+    textAlign: 'center',
+  },
+  evidencePreview: {
     fontSize: 9,
     color: '#999',
     textAlign: 'center',
