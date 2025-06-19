@@ -32,6 +32,7 @@ interface RemedialPlan {
 export default function StudentTrackingScreen() {
   const router = useRouter();
   const [students, setStudents] = useState<Student[]>([]);
+  const [expandedCards, setExpandedCards] = useState<{ [key: string]: boolean }>({});
 
   useEffect(() => {
     loadStudents();
@@ -97,6 +98,13 @@ export default function StudentTrackingScreen() {
       ],
       { cancelable: true }
     );
+  };
+
+  const toggleCardExpansion = (studentId: string) => {
+    setExpandedCards(prev => ({
+      ...prev,
+      [studentId]: !prev[studentId]
+    }));
   };
 
   const getStatusColor = (status: string) => {
@@ -221,118 +229,236 @@ export default function StudentTrackingScreen() {
 
                     {/* Students Grid */}
                     <ThemedView style={styles.studentsGrid}>
-                      {students.map((student) => (
-                        <TouchableOpacity 
-                          key={student.id}
-                          style={styles.studentCard}
-                          onPress={() => router.push(`/student-details?id=${student.id}`)}
-                        >
-                          <ThemedView style={styles.studentHeader}>
-                            <ThemedView style={styles.studentIconWrapper}>
-                              <IconSymbol 
-                                size={24} 
-                                name={getStatusIcon(student.status)} 
-                                color={getStatusColor(student.status)} 
-                              />
-                            </ThemedView>
-                            <ThemedView style={styles.studentHeaderActions}>
-                              <ThemedView style={[styles.statusBadge, { backgroundColor: getStatusColor(student.status) }]}>
-                                <ThemedText style={styles.statusText}>{student.status}</ThemedText>
+                      {students.map((student) => {
+                        const isExpanded = expandedCards[student.id];
+                        return (
+                          <ThemedView key={student.id} style={styles.studentCard}>
+                            {/* Card Header - Always Visible */}
+                            <TouchableOpacity 
+                              style={styles.cardHeader}
+                              onPress={() => toggleCardExpansion(student.id)}
+                            >
+                              <ThemedView style={styles.studentHeader}>
+                                <ThemedView style={styles.studentIconWrapper}>
+                                  <IconSymbol 
+                                    size={24} 
+                                    name={getStatusIcon(student.status)} 
+                                    color={getStatusColor(student.status)} 
+                                  />
+                                </ThemedView>
+                                <ThemedView style={styles.studentHeaderActions}>
+                                  <ThemedView style={[styles.statusBadge, { backgroundColor: getStatusColor(student.status) }]}>
+                                    <ThemedText style={styles.statusText}>{student.status}</ThemedText>
+                                  </ThemedView>
+                                  <TouchableOpacity 
+                                    style={styles.deleteButton}
+                                    onPress={(e) => {
+                                      e.stopPropagation();
+                                      confirmDeleteStudent(student.id, student.name);
+                                    }}
+                                  >
+                                    <IconSymbol size={16} name="trash.fill" color="#F44336" />
+                                  </TouchableOpacity>
+                                </ThemedView>
                               </ThemedView>
-                              <TouchableOpacity 
-                                style={styles.deleteButton}
-                                onPress={(e) => {
-                                  e.stopPropagation();
-                                  confirmDeleteStudent(student.id, student.name);
-                                }}
-                              >
-                                <IconSymbol size={16} name="trash.fill" color="#F44336" />
-                              </TouchableOpacity>
-                            </ThemedView>
-                          </ThemedView>
 
-                          <ThemedText style={styles.studentName}>{student.name}</ThemedText>
-                          <ThemedText style={styles.studentGrade}>{student.grade}</ThemedText>
+                              <ThemedText style={styles.studentName}>{student.name}</ThemedText>
+                              <ThemedText style={styles.studentGrade}>{student.grade}</ThemedText>
 
-                          {/* Goals Section */}
-                          {student.goals && student.goals.length > 0 && (
-                            <ThemedView style={styles.goalsSection}>
-                              <ThemedView style={styles.sectionHeader}>
-                                <IconSymbol size={14} name="target" color="#2196F3" />
-                                <ThemedText style={styles.sectionTitle}>الأهداف</ThemedText>
+                              {/* Expand/Collapse Indicator */}
+                              <ThemedView style={styles.expandIndicator}>
+                                <IconSymbol 
+                                  size={16} 
+                                  name={isExpanded ? "chevron.up" : "chevron.down"} 
+                                  color="#666" 
+                                />
+                                <ThemedText style={styles.expandText}>
+                                  {isExpanded ? "إخفاء التفاصيل" : "عرض التفاصيل"}
+                                </ThemedText>
                               </ThemedView>
-                              {student.goals.slice(0, 2).map((goal, index) => (
-                                <ThemedView key={goal.id} style={styles.goalItem}>
-                                  <ThemedText style={styles.goalTitle} numberOfLines={1}>
-                                    • {goal.title}
-                                  </ThemedText>
-                                  <ThemedView style={styles.goalProgress}>
-                                    <ThemedText style={styles.goalProgressText}>
-                                      {goal.progress}%
-                                    </ThemedText>
-                                    <ThemedView style={styles.goalProgressBar}>
-                                      <ThemedView 
-                                        style={[
-                                          styles.goalProgressFill,
-                                          { 
-                                            width: `${goal.progress}%`,
-                                            backgroundColor: goal.progress >= 70 ? '#4CAF50' : goal.progress >= 40 ? '#FF9800' : '#F44336'
-                                          }
-                                        ]}
-                                      />
+                            </TouchableOpacity>
+
+                            {/* Expanded Content */}
+                            {isExpanded && (
+                              <ThemedView style={styles.expandedContent}>
+                                {/* Goals Section */}
+                                {student.goals && student.goals.length > 0 && (
+                                  <ThemedView style={styles.detailSection}>
+                                    <ThemedView style={styles.sectionHeader}>
+                                      <IconSymbol size={16} name="target" color="#2196F3" />
+                                      <ThemedText style={styles.sectionTitle}>الأهداف ({student.goals.length})</ThemedText>
+                                    </ThemedView>
+                                    {student.goals.map((goal, index) => (
+                                      <ThemedView key={goal.id} style={styles.goalItemExpanded}>
+                                        <ThemedText style={styles.goalTitleExpanded}>
+                                          {index + 1}. {goal.title}
+                                        </ThemedText>
+                                        {goal.description && (
+                                          <ThemedText style={styles.goalDescription}>
+                                            {goal.description}
+                                          </ThemedText>
+                                        )}
+                                        <ThemedView style={styles.goalProgress}>
+                                          <ThemedText style={styles.goalProgressText}>
+                                            {goal.progress}%
+                                          </ThemedText>
+                                          <ThemedView style={styles.goalProgressBar}>
+                                            <ThemedView 
+                                              style={[
+                                                styles.goalProgressFill,
+                                                { 
+                                                  width: `${goal.progress}%`,
+                                                  backgroundColor: goal.progress >= 70 ? '#4CAF50' : goal.progress >= 40 ? '#FF9800' : '#F44336'
+                                                }
+                                              ]}
+                                            />
+                                          </ThemedView>
+                                        </ThemedView>
+                                        <ThemedText style={styles.goalStatus}>
+                                          الحالة: {goal.status}
+                                        </ThemedText>
+                                        {goal.targetDate && (
+                                          <ThemedText style={styles.goalTargetDate}>
+                                            التاريخ المستهدف: {goal.targetDate}
+                                          </ThemedText>
+                                        )}
+                                      </ThemedView>
+                                    ))}
+                                  </ThemedView>
+                                )}
+
+                                {/* Needs Section */}
+                                {student.needs && student.needs.length > 0 && (
+                                  <ThemedView style={styles.detailSection}>
+                                    <ThemedView style={styles.sectionHeader}>
+                                      <IconSymbol size={16} name="exclamationmark.circle" color="#FF5722" />
+                                      <ThemedText style={styles.sectionTitle}>الاحتياجات ({student.needs.length})</ThemedText>
+                                    </ThemedView>
+                                    <ThemedView style={styles.needsList}>
+                                      {student.needs.map((need, index) => (
+                                        <ThemedView key={index} style={styles.needItemExpanded}>
+                                          <ThemedText style={styles.needTextExpanded}>
+                                            {index + 1}. {need}
+                                          </ThemedText>
+                                        </ThemedView>
+                                      ))}
                                     </ThemedView>
                                   </ThemedView>
-                                </ThemedView>
-                              ))}
-                              {student.goals.length > 2 && (
-                                <ThemedText style={styles.moreItemsText}>
-                                  +{student.goals.length - 2} أهداف أخرى
-                                </ThemedText>
-                              )}
-                            </ThemedView>
-                          )}
+                                )}
 
-                          {/* Needs Section */}
-                          {student.needs && student.needs.length > 0 && (
-                            <ThemedView style={styles.needsSection}>
-                              <ThemedView style={styles.sectionHeader}>
-                                <IconSymbol size={14} name="exclamationmark.circle" color="#FF5722" />
-                                <ThemedText style={styles.sectionTitle}>الاحتياجات</ThemedText>
-                              </ThemedView>
-                              <ThemedView style={styles.needsList}>
-                                {student.needs.slice(0, 3).map((need, index) => (
-                                  <ThemedView key={index} style={styles.needItem}>
-                                    <ThemedText style={styles.needText} numberOfLines={1}>
-                                      • {need}
+                                {/* Performance Evidence Section */}
+                                {(student as any).performanceEvidence && (student as any).performanceEvidence.length > 0 && (
+                                  <ThemedView style={styles.detailSection}>
+                                    <ThemedView style={styles.sectionHeader}>
+                                      <IconSymbol size={16} name="doc.text" color="#9C27B0" />
+                                      <ThemedText style={styles.sectionTitle}>الشواهد ({(student as any).performanceEvidence.length})</ThemedText>
+                                    </ThemedView>
+                                    {(student as any).performanceEvidence.map((evidence: any, index: number) => (
+                                      <ThemedView key={evidence.id} style={styles.evidenceItem}>
+                                        <ThemedText style={styles.evidenceTitle}>
+                                          {index + 1}. {evidence.title}
+                                        </ThemedText>
+                                        <ThemedText style={styles.evidenceType}>
+                                          النوع: {evidence.type}
+                                        </ThemedText>
+                                        {evidence.fileName && (
+                                          <ThemedText style={styles.evidenceFile}>
+                                            الملف: {evidence.fileName}
+                                          </ThemedText>
+                                        )}
+                                        <ThemedText style={styles.evidenceDate}>
+                                          التاريخ: {evidence.date}
+                                        </ThemedText>
+                                        {evidence.notes && (
+                                          <ThemedText style={styles.evidenceNotes}>
+                                            ملاحظات: {evidence.notes}
+                                          </ThemedText>
+                                        )}
+                                      </ThemedView>
+                                    ))}
+                                  </ThemedView>
+                                )}
+
+                                {/* Remedial Plans Section */}
+                                {student.remedialPlans && student.remedialPlans.length > 0 && (
+                                  <ThemedView style={styles.detailSection}>
+                                    <ThemedView style={styles.sectionHeader}>
+                                      <IconSymbol size={16} name="heart.text.square" color="#F44336" />
+                                      <ThemedText style={styles.sectionTitle}>الخطط العلاجية ({student.remedialPlans.length})</ThemedText>
+                                    </ThemedView>
+                                    {student.remedialPlans.map((plan, index) => (
+                                      <ThemedView key={plan.id} style={styles.planItem}>
+                                        <ThemedText style={styles.planTitle}>
+                                          {index + 1}. {plan.title}
+                                        </ThemedText>
+                                        <ThemedText style={styles.planDescription}>
+                                          {plan.description}
+                                        </ThemedText>
+                                        <ThemedText style={styles.planTarget}>
+                                          المجال المستهدف: {plan.targetArea}
+                                        </ThemedText>
+                                        <ThemedView style={styles.planProgress}>
+                                          <ThemedText style={styles.planProgressText}>
+                                            التقدم: {plan.progress}%
+                                          </ThemedText>
+                                          <ThemedView style={styles.planProgressBar}>
+                                            <ThemedView 
+                                              style={[
+                                                styles.planProgressFill,
+                                                { 
+                                                  width: `${plan.progress}%`,
+                                                  backgroundColor: plan.progress >= 70 ? '#4CAF50' : plan.progress >= 40 ? '#FF9800' : '#F44336'
+                                                }
+                                              ]}
+                                            />
+                                          </ThemedView>
+                                        </ThemedView>
+                                        <ThemedView style={[styles.planStatusBadge, { backgroundColor: plan.status === 'نشط' ? '#4CAF50' : plan.status === 'مكتمل' ? '#2196F3' : '#FF9800' }]}>
+                                          <ThemedText style={styles.planStatusText}>{plan.status}</ThemedText>
+                                        </ThemedView>
+                                        <ThemedText style={styles.planDates}>
+                                          من {plan.startDate} إلى {plan.endDate}
+                                        </ThemedText>
+                                      </ThemedView>
+                                    ))}
+                                  </ThemedView>
+                                )}
+
+                                {/* Notes Section */}
+                                {student.notes && (
+                                  <ThemedView style={styles.detailSection}>
+                                    <ThemedView style={styles.sectionHeader}>
+                                      <IconSymbol size={16} name="note.text" color="#795548" />
+                                      <ThemedText style={styles.sectionTitle}>ملاحظات</ThemedText>
+                                    </ThemedView>
+                                    <ThemedText style={styles.notesText}>
+                                      {student.notes}
                                     </ThemedText>
                                   </ThemedView>
-                                ))}
-                                {student.needs.length > 3 && (
-                                  <ThemedText style={styles.moreItemsText}>
-                                    +{student.needs.length - 3} احتياجات أخرى
-                                  </ThemedText>
                                 )}
-                              </ThemedView>
-                            </ThemedView>
-                          )}
 
-                          {/* Remedial Plans Indicator */}
-                          {student.remedialPlans && student.remedialPlans.length > 0 && (
-                            <ThemedView style={styles.remedialPlansIndicator}>
-                              <IconSymbol size={16} name="heart.text.square" color="#F44336" />
-                              <ThemedText style={styles.remedialPlansText}>
-                                {student.remedialPlans.filter(plan => plan.status === 'نشط').length} نشطة | {student.remedialPlans.filter(plan => plan.status === 'مكتمل').length} مكتملة
+                                {/* Action Buttons */}
+                                <ThemedView style={styles.actionButtonsContainer}>
+                                  <TouchableOpacity 
+                                    style={styles.editButton}
+                                    onPress={() => router.push(`/student-details?id=${student.id}`)}
+                                  >
+                                    <IconSymbol size={16} name="pencil" color="#2196F3" />
+                                    <ThemedText style={styles.editButtonText}>تحرير البيانات</ThemedText>
+                                  </TouchableOpacity>
+                                </ThemedView>
+                              </ThemedView>
+                            )}
+
+                            {/* Footer - Always Visible */}
+                            <ThemedView style={styles.studentFooter}>
+                              <ThemedText style={styles.lastUpdate}>
+                                آخر تحديث: {student.lastUpdate}
                               </ThemedText>
                             </ThemedView>
-                          )}
-
-                          <ThemedView style={styles.studentFooter}>
-                            <ThemedText style={styles.lastUpdate}>
-                              آخر تحديث: {student.lastUpdate}
-                            </ThemedText>
                           </ThemedView>
-                        </TouchableOpacity>
-                      ))}
+                        );
+                      })}
                     </ThemedView>
                   </ThemedView>
                 )}
@@ -527,10 +653,9 @@ const styles = StyleSheet.create({
     gap: 10,
   },
   studentCard: {
-    width: '48%',
+    width: '100%',
     backgroundColor: '#F8F9FA',
     borderRadius: 15,
-    padding: 15,
     borderWidth: 1,
     borderColor: '#E5E5EA',
     shadowColor: '#000',
@@ -538,7 +663,11 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.1,
     shadowRadius: 8,
     elevation: 5,
-    marginBottom: 10,
+    marginBottom: 15,
+    overflow: 'hidden',
+  },
+  cardHeader: {
+    padding: 15,
   },
   studentHeader: {
     flexDirection: 'row',
@@ -723,6 +852,245 @@ const styles = StyleSheet.create({
     textAlign: 'center',
     fontStyle: 'italic',
     marginTop: 4,
+    writingDirection: 'rtl',
+  },
+  expandIndicator: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginTop: 10,
+    paddingTop: 10,
+    borderTopWidth: 1,
+    borderTopColor: '#E5E5EA',
+    gap: 5,
+  },
+  expandText: {
+    fontSize: 12,
+    color: '#666',
+    textAlign: 'center',
+    writingDirection: 'rtl',
+  },
+  expandedContent: {
+    backgroundColor: '#FFFFFF',
+    paddingHorizontal: 15,
+    paddingBottom: 15,
+    borderTopWidth: 1,
+    borderTopColor: '#E5E5EA',
+  },
+  detailSection: {
+    marginBottom: 15,
+    padding: 12,
+    backgroundColor: '#F9F9F9',
+    borderRadius: 10,
+    borderWidth: 1,
+    borderColor: '#E5E5EA',
+  },
+  goalItemExpanded: {
+    marginBottom: 12,
+    padding: 10,
+    backgroundColor: '#F0F8FF',
+    borderRadius: 8,
+    borderWidth: 1,
+    borderColor: '#E3F2FD',
+  },
+  goalTitleExpanded: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: '#1c1f33',
+    textAlign: 'right',
+    writingDirection: 'rtl',
+    marginBottom: 5,
+  },
+  goalDescription: {
+    fontSize: 12,
+    color: '#666',
+    textAlign: 'right',
+    writingDirection: 'rtl',
+    marginBottom: 8,
+    lineHeight: 16,
+  },
+  goalStatus: {
+    fontSize: 11,
+    color: '#2196F3',
+    textAlign: 'right',
+    writingDirection: 'rtl',
+    marginTop: 5,
+    fontWeight: '500',
+  },
+  goalTargetDate: {
+    fontSize: 11,
+    color: '#666',
+    textAlign: 'right',
+    writingDirection: 'rtl',
+    marginTop: 2,
+  },
+  needItemExpanded: {
+    marginBottom: 8,
+    padding: 8,
+    backgroundColor: '#FFF8E1',
+    borderRadius: 6,
+    borderWidth: 1,
+    borderColor: '#FFECB3',
+  },
+  needTextExpanded: {
+    fontSize: 13,
+    color: '#1c1f33',
+    textAlign: 'right',
+    writingDirection: 'rtl',
+    lineHeight: 18,
+  },
+  evidenceItem: {
+    marginBottom: 10,
+    padding: 10,
+    backgroundColor: '#F3E5F5',
+    borderRadius: 8,
+    borderWidth: 1,
+    borderColor: '#E1BEE7',
+  },
+  evidenceTitle: {
+    fontSize: 13,
+    fontWeight: '600',
+    color: '#1c1f33',
+    textAlign: 'right',
+    writingDirection: 'rtl',
+    marginBottom: 4,
+  },
+  evidenceType: {
+    fontSize: 11,
+    color: '#9C27B0',
+    textAlign: 'right',
+    writingDirection: 'rtl',
+    marginBottom: 2,
+  },
+  evidenceFile: {
+    fontSize: 11,
+    color: '#666',
+    textAlign: 'right',
+    writingDirection: 'rtl',
+    marginBottom: 2,
+  },
+  evidenceDate: {
+    fontSize: 11,
+    color: '#666',
+    textAlign: 'right',
+    writingDirection: 'rtl',
+    marginBottom: 2,
+  },
+  evidenceNotes: {
+    fontSize: 11,
+    color: '#666',
+    textAlign: 'right',
+    writingDirection: 'rtl',
+    fontStyle: 'italic',
+  },
+  planItem: {
+    marginBottom: 12,
+    padding: 10,
+    backgroundColor: '#FFEBEE',
+    borderRadius: 8,
+    borderWidth: 1,
+    borderColor: '#FFCDD2',
+  },
+  planTitle: {
+    fontSize: 13,
+    fontWeight: '600',
+    color: '#1c1f33',
+    textAlign: 'right',
+    writingDirection: 'rtl',
+    marginBottom: 5,
+  },
+  planDescription: {
+    fontSize: 12,
+    color: '#666',
+    textAlign: 'right',
+    writingDirection: 'rtl',
+    marginBottom: 5,
+    lineHeight: 16,
+  },
+  planTarget: {
+    fontSize: 11,
+    color: '#F44336',
+    textAlign: 'right',
+    writingDirection: 'rtl',
+    marginBottom: 8,
+    fontWeight: '500',
+  },
+  planProgress: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+    marginBottom: 8,
+  },
+  planProgressText: {
+    fontSize: 11,
+    color: '#666',
+    minWidth: 50,
+    textAlign: 'center',
+  },
+  planProgressBar: {
+    flex: 1,
+    height: 6,
+    backgroundColor: '#E5E5EA',
+    borderRadius: 3,
+    overflow: 'hidden',
+  },
+  planProgressFill: {
+    height: '100%',
+    borderRadius: 3,
+  },
+  planStatusBadge: {
+    alignSelf: 'flex-start',
+    paddingHorizontal: 8,
+    paddingVertical: 4,
+    borderRadius: 10,
+    marginBottom: 5,
+  },
+  planStatusText: {
+    fontSize: 10,
+    color: '#fff',
+    fontWeight: '600',
+    textAlign: 'center',
+  },
+  planDates: {
+    fontSize: 10,
+    color: '#999',
+    textAlign: 'right',
+    writingDirection: 'rtl',
+  },
+  notesText: {
+    fontSize: 12,
+    color: '#666',
+    textAlign: 'right',
+    writingDirection: 'rtl',
+    lineHeight: 18,
+    padding: 10,
+    backgroundColor: '#F5F5F5',
+    borderRadius: 8,
+  },
+  actionButtonsContainer: {
+    flexDirection: 'row',
+    justifyContent: 'center',
+    marginTop: 15,
+    paddingTop: 15,
+    borderTopWidth: 1,
+    borderTopColor: '#E5E5EA',
+  },
+  editButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#E3F2FD',
+    paddingHorizontal: 15,
+    paddingVertical: 8,
+    borderRadius: 15,
+    gap: 5,
+    borderWidth: 1,
+    borderColor: '#BBDEFB',
+  },
+  editButtonText: {
+    fontSize: 12,
+    color: '#2196F3',
+    fontWeight: '600',
+    textAlign: 'center',
     writingDirection: 'rtl',
   },
 });
