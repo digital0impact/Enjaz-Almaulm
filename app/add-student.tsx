@@ -891,38 +891,18 @@ export default function AddStudentScreen() {
                   {/* أزرار الحفظ والإلغاء */}
                   <ThemedView style={styles.buttonContainer}>
                     <TouchableOpacity 
-                      style={[
-                        styles.saveButton, 
-                        { 
-                          backgroundColor: '#4CAF50',
-                          shadowColor: '#4CAF50',
-                          shadowOffset: { width: 0, height: 8 },
-                          shadowOpacity: 0.3,
-                          shadowRadius: 15,
-                          elevation: 15,
-                        }
-                      ]} 
+                      style={styles.saveButton} 
                       onPress={saveStudent}
                       activeOpacity={0.8}
                     >
-                      <IconSymbol size={20} name="checkmark.circle.fill" color="#fff" />
-                      <ThemedText style={[styles.saveButtonText, { color: '#fff', fontSize: 16, fontWeight: 'bold' }]}>
+                      <IconSymbol size={20} name="checkmark.circle.fill" color="#1c1f33" />
+                      <ThemedText style={styles.saveButtonText}>
                         حفظ البيانات
                       </ThemedText>
                     </TouchableOpacity>
 
                     <TouchableOpacity 
-                      style={[
-                        styles.cancelButton,
-                        { 
-                          backgroundColor: '#F44336',
-                          shadowColor: '#F44336',
-                          shadowOffset: { width: 0, height: 4 },
-                          shadowOpacity: 0.2,
-                          shadowRadius: 8,
-                          elevation: 8,
-                        }
-                      ]} 
+                      style={styles.cancelButton} 
                       onPress={() => {
                         Alert.alert(
                           'تأكيد الإلغاء',
@@ -939,8 +919,8 @@ export default function AddStudentScreen() {
                       }}
                       activeOpacity={0.8}
                     >
-                      <IconSymbol size={18} name="xmark.circle.fill" color="#fff" />
-                      <ThemedText style={[styles.cancelButtonText, { color: '#fff', fontSize: 14, fontWeight: '600' }]}>
+                      <IconSymbol size={18} name="xmark.circle.fill" color="#666" />
+                      <ThemedText style={styles.cancelButtonText}>
                         إلغاء
                       </ThemedText>
                     </TouchableOpacity>
@@ -1388,19 +1368,20 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     backgroundColor: '#add4ce',
-    paddingVertical: 12,
-    paddingHorizontal: 20,
+    paddingVertical: 15,
+    paddingHorizontal: 25,
     borderRadius: 25,
-    gap: 8,
+    gap: 10,
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 6 },
     shadowOpacity: 0.4,
     shadowRadius: 12,
     elevation: 12,
+    marginBottom: 15,
   },
   saveButtonText: {
     color: '#1c1f33',
-    fontSize: 14,
+    fontSize: 16,
     fontWeight: '600',
     writingDirection: 'rtl',
     textAlign: 'center',
@@ -1412,16 +1393,22 @@ const styles = StyleSheet.create({
     backgroundColor: '#F8F9FA',
     paddingVertical: 15,
     paddingHorizontal: 25,
-    borderRadius: 12,
+    borderRadius: 25,
     borderWidth: 1,
     borderColor: '#E5E5EA',
     gap: 10,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 6 },
+    shadowOpacity: 0.25,
+    shadowRadius: 12,
+    elevation: 10,
   },
   cancelButtonText: {
     color: '#666',
     fontSize: 16,
-    fontWeight: '500',
+    fontWeight: '600',
     textAlign: 'center',
+    writingDirection: 'rtl',
   },
   uploadButton: {
     flexDirection: 'row',
