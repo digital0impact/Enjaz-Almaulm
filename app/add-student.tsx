@@ -313,75 +313,135 @@ export default function AddStudentScreen() {
   const saveStudent = async () => {
     // التحقق من البيانات المطلوبة
     if (!studentData.name.trim()) {
-      Alert.alert('خطأ', 'يرجى إدخال اسم المتعلم');
+      Alert.alert('خطأ في البيانات', 'يرجى إدخال اسم المتعلم');
       return;
     }
 
     if (!studentData.grade.trim()) {
-      Alert.alert('خطأ', 'يرجى إدخال الصف الدراسي');
+      Alert.alert('خطأ في البيانات', 'يرجى إدخال الصف الدراسي');
+      return;
+    }
+
+    // التحقق من طول الاسم
+    if (studentData.name.trim().length < 2) {
+      Alert.alert('خطأ في البيانات', 'اسم المتعلم يجب أن يكون أكثر من حرف واحد');
       return;
     }
 
     try {
-      console.log('بدء عملية الحفظ...');
+      console.log('بدء عملية حفظ بيانات المتعلم...');
       
+      // إظهار رسالة تحميل
+      const loadingAlert = Alert.alert('جاري الحفظ', 'يتم حفظ بيانات المتعلم، يرجى الانتظار...');
+
       const existingStudents = await AsyncStorage.getItem('students');
       let students = existingStudents ? JSON.parse(existingStudents) : [];
 
-      // تحديث التصنيفات القديمة في البيانات الموجودة
-      students = students.map((student: Student) => {
-        let updatedStatus = student.status;
-        if (student.status === 'ممتاز') {
-          updatedStatus = 'تفوق';
-        } else if (student.status === 'مقبول') {
-          updatedStatus = 'يحتاج إلى تطوير';
-        } else if (student.status === 'ضعيف') {
-          updatedStatus = 'صعوبات التعلم';
-        }
+      // التحقق من عدم تكرار الاسم
+      const duplicateName = students.find((student: Student) => 
+        student.name.toLowerCase().trim() === studentData.name.toLowerCase().trim()
+      );
 
-        return {
-          ...student,
-          status: updatedStatus as Student['status']
+      if (duplicateName) {
+        Alert.alert('تنبيه', 'يوجد متعلم بنفس الاسم، هل تريد المتابعة؟', [
+          { text: 'إلغاء', style: 'cancel' },
+          { text: 'متابعة', onPress: () => proceedWithSave() }
+        ]);
+        return;
+      }
+
+      await proceedWithSave();
+
+      async function proceedWithSave() {
+        // تحديث التصنيفات القديمة في البيانات الموجودة
+        students = students.map((student: Student) => {
+          let updatedStatus = student.status;
+          if (student.status === 'ممتاز') {
+            updatedStatus = 'تفوق';
+          } else if (student.status === 'مقبول') {
+            updatedStatus = 'يحتاج إلى تطوير';
+          } else if (student.status === 'ضعيف') {
+            updatedStatus = 'صعوبات التعلم';
+          }
+
+          return {
+            ...student,
+            status: updatedStatus as Student['status']
+          };
+        });
+
+        const newStudent: Student = {
+          id: Date.now().toString(),
+          name: studentData.name.trim(),
+          grade: studentData.grade.trim(),
+          status: studentData.status,
+          lastUpdate: new Date().toLocaleDateString('ar-SA'),
+          notes: studentData.notes.trim(),
+          goals: studentData.goals,
+          needs: studentData.needs,
+          performanceEvidence: studentData.performanceEvidence
         };
-      });
 
-      const newStudent: Student = {
-        id: Date.now().toString(),
-        name: studentData.name.trim(),
-        grade: studentData.grade.trim(),
-        status: studentData.status,
-        lastUpdate: new Date().toLocaleDateString('ar-SA'),
-        notes: studentData.notes.trim(),
-        goals: studentData.goals,
-        needs: studentData.needs,
-        performanceEvidence: studentData.performanceEvidence
-      };
+        students.push(newStudent);
+        await AsyncStorage.setItem('students', JSON.stringify(students));
 
-      students.push(newStudent);
-      await AsyncStorage.setItem('students', JSON.stringify(students));
+        console.log('✅ تم حفظ المتعلم بنجاح:', newStudent);
 
-      console.log('تم حفظ المتعلم بنجاح:', newStudent);
+        // التحقق من الحفظ
+        const savedStudents = await AsyncStorage.getItem('students');
+        const parsedStudents = savedStudents ? JSON.parse(savedStudents) : [];
+        const isStudentSaved = parsedStudents.find((s: Student) => s.id === newStudent.id);
 
+        if (isStudentSaved) {
+          Alert.alert(
+            '✅ تم الحفظ بنجاح!', 
+            `تم إضافة المتعلم "${newStudent.name}" بنجاح\n\nالتفاصيل:\n• الصف: ${newStudent.grade}\n• الحالة: ${newStudent.status}\n• عدد الأهداف: ${newStudent.goals.length}\n• عدد الاحتياجات: ${newStudent.needs.length}\n• عدد الشواهد: ${newStudent.performanceEvidence.length}`,
+            [
+              { 
+                text: 'عرض المتعلمين', 
+                onPress: () => {
+                  console.log('الانتقال إلى صفحة المتعلمين...');
+                  router.replace('/student-tracking');
+                }
+              },
+              { 
+                text: 'إضافة متعلم آخر', 
+                onPress: () => {
+                  console.log('إعادة تعيين النموذج...');
+                  // إعادة تعيين البيانات لإضافة متعلم جديد
+                  setStudentData({
+                    name: '',
+                    grade: '',
+                    status: 'يحتاج إلى تطوير',
+                    notes: '',
+                    goals: [],
+                    needs: [],
+                    performanceEvidence: []
+                  });
+                }
+              }
+            ]
+          );
+        } else {
+          throw new Error('فشل في التحقق من حفظ البيانات');
+        }
+      }
+
+    } catch (error) {
+      console.error('❌ خطأ في حفظ المتعلم:', error);
       Alert.alert(
-        'تم الحفظ بنجاح!', 
-        `تم إضافة المتعلم "${newStudent.name}" بنجاح`,
+        '❌ خطأ في الحفظ', 
+        `حدث خطأ أثناء حفظ بيانات المتعلم.\n\nتفاصيل الخطأ: ${error.message || 'خطأ غير معروف'}\n\nيرجى المحاولة مرة أخرى أو التحقق من البيانات المدخلة.`,
         [
           { 
-            text: 'موافق', 
-            onPress: () => {
-              console.log('العودة إلى الصفحة السابقة...');
-              router.back();
-            }
+            text: 'إعادة المحاولة', 
+            onPress: () => saveStudent(),
+            style: 'default'
+          },
+          { 
+            text: 'إلغاء', 
+            style: 'cancel' 
           }
-        ]
-      );
-    } catch (error) {
-      console.error('خطأ في حفظ المتعلم:', error);
-      Alert.alert(
-        'خطأ في الحفظ', 
-        'حدث خطأ أثناء حفظ بيانات المتعلم. يرجى المحاولة مرة أخرى.',
-        [
-          { text: 'موافق', style: 'default' }
         ]
       );
     }
@@ -830,14 +890,59 @@ export default function AddStudentScreen() {
 
                   {/* أزرار الحفظ والإلغاء */}
                   <ThemedView style={styles.buttonContainer}>
-                    <TouchableOpacity style={styles.saveButton} onPress={saveStudent}>
-                      <IconSymbol size={16} name="checkmark.circle.fill" color="#1c1f33" />
-                      <ThemedText style={styles.saveButtonText}>حفظ البيانات</ThemedText>
+                    <TouchableOpacity 
+                      style={[
+                        styles.saveButton, 
+                        { 
+                          backgroundColor: '#4CAF50',
+                          shadowColor: '#4CAF50',
+                          shadowOffset: { width: 0, height: 8 },
+                          shadowOpacity: 0.3,
+                          shadowRadius: 15,
+                          elevation: 15,
+                        }
+                      ]} 
+                      onPress={saveStudent}
+                      activeOpacity={0.8}
+                    >
+                      <IconSymbol size={20} name="checkmark.circle.fill" color="#fff" />
+                      <ThemedText style={[styles.saveButtonText, { color: '#fff', fontSize: 16, fontWeight: 'bold' }]}>
+                        حفظ البيانات
+                      </ThemedText>
                     </TouchableOpacity>
 
-                    <TouchableOpacity style={styles.saveButton} onPress={() => router.back()}>
-                      <IconSymbol size={16} name="xmark.circle.fill" color="#1c1f33" />
-                      <ThemedText style={styles.saveButtonText}>إلغاء</ThemedText>
+                    <TouchableOpacity 
+                      style={[
+                        styles.cancelButton,
+                        { 
+                          backgroundColor: '#F44336',
+                          shadowColor: '#F44336',
+                          shadowOffset: { width: 0, height: 4 },
+                          shadowOpacity: 0.2,
+                          shadowRadius: 8,
+                          elevation: 8,
+                        }
+                      ]} 
+                      onPress={() => {
+                        Alert.alert(
+                          'تأكيد الإلغاء',
+                          'هل أنت متأكد من إلغاء إضافة المتعلم؟ سيتم فقدان جميع البيانات المدخلة.',
+                          [
+                            { text: 'العودة', style: 'cancel' },
+                            { 
+                              text: 'إلغاء', 
+                              style: 'destructive',
+                              onPress: () => router.back()
+                            }
+                          ]
+                        );
+                      }}
+                      activeOpacity={0.8}
+                    >
+                      <IconSymbol size={18} name="xmark.circle.fill" color="#fff" />
+                      <ThemedText style={[styles.cancelButtonText, { color: '#fff', fontSize: 14, fontWeight: '600' }]}>
+                        إلغاء
+                      </ThemedText>
                     </TouchableOpacity>
                   </ThemedView>
                 </ThemedView>
