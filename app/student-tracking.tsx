@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { StyleSheet, ScrollView, TouchableOpacity, ImageBackground, KeyboardAvoidingView, Platform } from 'react-native';
+import { StyleSheet, ScrollView, TouchableOpacity, ImageBackground, KeyboardAvoidingView, Platform, Alert } from 'react-native';
 import { LinearGradient as ExpoLinearGradient } from 'expo-linear-gradient';
 import { ThemedText } from '@/components/ThemedText';
 import { ThemedView } from '@/components/ThemedView';
@@ -67,6 +67,36 @@ export default function StudentTrackingScreen() {
     } catch (error) {
       console.log('Error loading students:', error);
     }
+  };
+
+  const deleteStudent = async (studentId: string, studentName: string) => {
+    try {
+      const updatedStudents = students.filter(student => student.id !== studentId);
+      await AsyncStorage.setItem('students', JSON.stringify(updatedStudents));
+      setStudents(updatedStudents);
+      console.log(`تم حذف المتعلم: ${studentName}`);
+    } catch (error) {
+      console.log('Error deleting student:', error);
+    }
+  };
+
+  const confirmDeleteStudent = (studentId: string, studentName: string) => {
+    Alert.alert(
+      'تأكيد الحذف',
+      `هل أنت متأكد من حذف بيانات المتعلم "${studentName}"؟\n\nسيتم حذف جميع البيانات والخطط العلاجية المرتبطة بهذا المتعلم نهائياً.`,
+      [
+        {
+          text: 'إلغاء',
+          style: 'cancel'
+        },
+        {
+          text: 'حذف',
+          style: 'destructive',
+          onPress: () => deleteStudent(studentId, studentName)
+        }
+      ],
+      { cancelable: true }
+    );
   };
 
   const getStatusColor = (status: string) => {
@@ -205,8 +235,19 @@ export default function StudentTrackingScreen() {
                                 color={getStatusColor(student.status)} 
                               />
                             </ThemedView>
-                            <ThemedView style={[styles.statusBadge, { backgroundColor: getStatusColor(student.status) }]}>
-                              <ThemedText style={styles.statusText}>{student.status}</ThemedText>
+                            <ThemedView style={styles.studentHeaderActions}>
+                              <ThemedView style={[styles.statusBadge, { backgroundColor: getStatusColor(student.status) }]}>
+                                <ThemedText style={styles.statusText}>{student.status}</ThemedText>
+                              </ThemedView>
+                              <TouchableOpacity 
+                                style={styles.deleteButton}
+                                onPress={(e) => {
+                                  e.stopPropagation();
+                                  confirmDeleteStudent(student.id, student.name);
+                                }}
+                              >
+                                <IconSymbol size={16} name="trash.fill" color="#F44336" />
+                              </TouchableOpacity>
                             </ThemedView>
                           </ThemedView>
 
@@ -468,10 +509,27 @@ const styles = StyleSheet.create({
     backgroundColor: '#fff',
     borderRadius: 20,
   },
+  studentHeaderActions: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+  },
   statusBadge: {
     paddingHorizontal: 8,
     paddingVertical: 4,
     borderRadius: 12,
+  },
+  deleteButton: {
+    padding: 6,
+    backgroundColor: '#FFEBEE',
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: '#FFCDD2',
+    shadowColor: '#F44336',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    elevation: 2,
   },
   statusText: {
     fontSize: 10,
