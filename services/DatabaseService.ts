@@ -325,33 +325,56 @@ class DatabaseService {
   // Delete Account Operations
   async deleteUserAccount(userId: string): Promise<void> {
     try {
+      console.log('Deleting account for userId:', userId);
+      
+      if (!userId) {
+        throw new Error('معرف المستخدم مطلوب');
+      }
+
       // حذف جميع البيانات المرتبطة بالمستخدم
       
       // حذف التعليقات
-      await supabase
+      const { error: commentsError } = await supabase
         .from('comments')
         .delete()
         .eq('userid', userId);
       
+      if (commentsError) {
+        console.warn('Error deleting comments:', commentsError);
+      }
+      
       // حذف التنبيهات
-      await supabase
+      const { error: alertsError } = await supabase
         .from('alerts')
         .delete()
         .eq('userid', userId);
       
+      if (alertsError) {
+        console.warn('Error deleting alerts:', alertsError);
+      }
+      
       // حذف بيانات الأداء
-      await supabase
+      const { error: performanceError } = await supabase
         .from('performance_data')
         .delete()
         .eq('userid', userId);
       
+      if (performanceError) {
+        console.warn('Error deleting performance data:', performanceError);
+      }
+      
       // حذف الملف الشخصي أخيراً
-      const { error } = await supabase
+      const { error: profileError } = await supabase
         .from('user_profiles')
         .delete()
         .eq('id', userId);
       
-      if (error) throw error;
+      if (profileError) {
+        console.error('Error deleting user profile:', profileError);
+        throw new Error(`خطأ في حذف الملف الشخصي: ${profileError.message}`);
+      }
+      
+      console.log('Account deleted successfully');
     } catch (error) {
       console.error('Error deleting user account:', error);
       throw error;
@@ -360,17 +383,29 @@ class DatabaseService {
 
   async requestAccountDeletion(userId: string, reason?: string): Promise<void> {
     try {
+      console.log('Requesting account deletion for userId:', userId);
+      
+      if (!userId) {
+        throw new Error('معرف المستخدم مطلوب');
+      }
+
       // إنشاء طلب حذف الحساب في جدول منفصل
-      const { error } = await supabase
+      const { data, error } = await supabase
         .from('account_deletion_requests')
         .insert([{
           userid: userId,
           reason: reason || '',
           status: 'pending',
           requested_at: new Date().toISOString()
-        }]);
+        }])
+        .select();
       
-      if (error) throw error;
+      if (error) {
+        console.error('Supabase error:', error);
+        throw new Error(`خطأ في قاعدة البيانات: ${error.message}`);
+      }
+      
+      console.log('Account deletion request created:', data);
     } catch (error) {
       console.error('Error requesting account deletion:', error);
       throw error;

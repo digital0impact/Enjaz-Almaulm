@@ -202,6 +202,10 @@ export const DatabaseProvider: React.FC<DatabaseProviderProps> = ({ children, us
   const deleteUserAccount = async () => {
     try {
       setError(null);
+      setIsLoading(true);
+      if (!userId) {
+        throw new Error('معرف المستخدم غير موجود');
+      }
       await DatabaseService.deleteUserAccount(userId);
       // إعادة تعيين جميع البيانات
       setUserProfile(null);
@@ -209,17 +213,26 @@ export const DatabaseProvider: React.FC<DatabaseProviderProps> = ({ children, us
       setAlerts([]);
       setComments([]);
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'خطأ في حذف الحساب');
+      const errorMessage = err instanceof Error ? err.message : 'خطأ في حذف الحساب';
+      setError(errorMessage);
+      console.error('Delete account error:', err);
       throw err;
+    } finally {
+      setIsLoading(false);
     }
   };
 
   const requestAccountDeletion = async (reason?: string) => {
     try {
       setError(null);
+      if (!userId) {
+        throw new Error('معرف المستخدم غير موجود');
+      }
       await DatabaseService.requestAccountDeletion(userId, reason);
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'خطأ في طلب حذف الحساب');
+      const errorMessage = err instanceof Error ? err.message : 'خطأ في طلب حذف الحساب';
+      setError(errorMessage);
+      console.error('Request account deletion error:', err);
       throw err;
     }
   };

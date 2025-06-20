@@ -20,12 +20,35 @@ export default function SettingsScreen() {
   const { themeName, themeMode, colors, setThemeName, setThemeMode, availableThemes } = useTheme();
   const [selectedColorScheme, setSelectedColorScheme] = useState('default');
   const { deleteUserAccount, requestAccountDeletion, isLoading } = useDatabase();
+  const [currentUserId, setCurrentUserId] = useState<string | null>(null);
 
   useEffect(() => {
     loadSettings();
     loadUserInfo();
     loadBasicData();
+    loadCurrentUserId();
   }, []);
+
+  const loadCurrentUserId = async () => {
+    try {
+      // محاولة الحصول على معرف المستخدم من AsyncStorage
+      const userToken = await AsyncStorage.getItem('userToken');
+      const userData = await AsyncStorage.getItem('userInfo');
+      
+      if (userData) {
+        const parsedUserData = JSON.parse(userData);
+        setCurrentUserId(parsedUserData.id || '550e8400-e29b-41d4-a716-446655440000');
+      } else if (userToken) {
+        setCurrentUserId(userToken);
+      } else {
+        // استخدام معرف افتراضي إذا لم يتم العثور على معرف المستخدم
+        setCurrentUserId('550e8400-e29b-41d4-a716-446655440000');
+      }
+    } catch (error) {
+      console.log('Error loading user ID:', error);
+      setCurrentUserId('550e8400-e29b-41d4-a716-446655440000');
+    }
+  };
 
   const loadSettings = async () => {
     try {
@@ -182,6 +205,16 @@ export default function SettingsScreen() {
   };
 
   const handleDeleteAccount = () => {
+    if (!currentUserId) {
+      Alert.alert('خطأ', 'لم يتم العثور على معرف المستخدم. يرجى تسجيل الدخول مرة أخرى.');
+      return;
+    }
+
+    if (isLoading) {
+      Alert.alert('انتظار', 'يرجى الانتظار حتى انتهاء العملية السابقة.');
+      return;
+    }
+
     Alert.alert(
       'حذف الحساب',
       'اختر نوع الحذف:\n\n• الحذف الفوري: سيتم حذف حسابك وجميع بياناتك نهائياً الآن\n• طلب الحذف: سيتم إرسال طلب للمراجعة',
@@ -195,13 +228,18 @@ export default function SettingsScreen() {
               'يرجى ذكر سبب طلب حذف الحساب (اختياري):',
               async (reason) => {
                 try {
+                  console.log('Requesting account deletion for user:', currentUserId);
                   await requestAccountDeletion(reason || '');
                   Alert.alert(
                     'تم إرسال الطلب',
                     'تم إرسال طلب حذف الحساب بنجاح. سيتم معالجة طلبك في أقرب وقت ممكن.'
                   );
                 } catch (error) {
-                  Alert.alert('خطأ', 'فشل في إرسال طلب الحذف. يرجى المحاولة مرة أخرى.');
+                  console.error('Error requesting account deletion:', error);
+                  Alert.alert(
+                    'خطأ', 
+                    `فشل في إرسال طلب الحذف: ${error instanceof Error ? error.message : 'خطأ غير معروف'}`
+                  );
                 }
               }
             );
@@ -221,6 +259,7 @@ export default function SettingsScreen() {
                   style: 'destructive',
                   onPress: async () => {
                     try {
+                      console.log('Deleting account for user:', currentUserId);
                       await deleteUserAccount();
                       await AsyncStorage.multiRemove([
                         'userToken',
@@ -239,7 +278,11 @@ export default function SettingsScreen() {
                         ]
                       );
                     } catch (error) {
-                      Alert.alert('خطأ', 'فشل في حذف الحساب. يرجى المحاولة مرة أخرى.');
+                      console.error('Error deleting account:', error);
+                      Alert.alert(
+                        'خطأ', 
+                        `فشل في حذف الحساب: ${error instanceof Error ? error.message : 'خطأ غير معروف'}`
+                      );
                     }
                   }
                 }
