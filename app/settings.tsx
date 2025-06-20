@@ -179,6 +179,26 @@ export default function SettingsScreen() {
     );
   };
 
+  const handleDeleteAccount = () => {
+    Alert.alert(
+      'حذف الحساب',
+      'هل أنت متأكد من أنك تريد حذف حسابك؟ سيتم حذف جميع بياناتك نهائياً.',
+      [
+        { text: 'إلغاء', style: 'cancel' },
+        {
+          text: 'حذف',
+          style: 'destructive',
+          onPress: async () => {
+            Alert.alert(
+              'تم إرسال طلب الحذف',
+              'تم إرسال طلب حذف الحساب الخاص بك. سيتم معالجة طلبك في أقرب وقت ممكن.'
+            );
+          }
+        }
+      ]
+    );
+  };
+
   return (
     <ThemedView style={styles.container}>
       <ImageBackground
@@ -229,9 +249,9 @@ export default function SettingsScreen() {
               <ThemedView style={[styles.section, { backgroundColor: 'transparent' }]}>
                 <ThemedText style={[styles.sectionTitle, themeMode === 'dark' && styles.darkSectionTitle]}>المظهر والثيمات</ThemedText>
 
-                
 
-                
+
+
 
                 <ThemedView style={[styles.settingItem, themeMode === 'dark' && styles.darkSettingItem]}>
                   <ThemedView style={styles.settingInfo}>
@@ -294,7 +314,17 @@ export default function SettingsScreen() {
                   <IconSymbol size={16} name="chevron.left" color="#666666" />
                 </TouchableOpacity>
 
-                
+                <TouchableOpacity style={[styles.settingItem, themeMode === 'dark' && styles.darkSettingItem]} onPress={handleDeleteAccount}>
+                  <ThemedView style={styles.settingInfo}>
+                    <IconSymbol size={24} name="trash.fill" color="#FF3B30" />
+                    <ThemedView style={styles.settingText}>
+                      <ThemedText style={[styles.settingTitle, { color: '#FF3B30' }]}>حذف الحساب</ThemedText>
+                      <ThemedText style={styles.settingDescription}>حذف الحساب وجميع البيانات نهائياً</ThemedText>
+                    </ThemedView>
+                  </ThemedView>
+                  <IconSymbol size={16} name="chevron.left" color="#FF3B30" />
+                </TouchableOpacity>
+
               </ThemedView>
 
               {/* النسخ الاحتياطي */}
@@ -566,5 +596,5 @@ const styles = StyleSheet.create({
   darkSectionTitle: {
     color: '#ecf0f1',
   },
-  
+
 });
