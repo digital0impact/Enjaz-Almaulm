@@ -59,7 +59,7 @@ CREATE POLICY "Allow all operations" ON alerts FOR ALL USING (true);
 CREATE POLICY "Allow all operations" ON comments FOR ALL USING (true);
 
 -- إنشاء جدول طلبات حذف الحساب
-CREATE TABLE account_deletion_requests (
+CREATE TABLE IF NOT EXISTS account_deletion_requests (
   id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
   userid UUID NOT NULL,
   reason TEXT,
@@ -67,6 +67,11 @@ CREATE TABLE account_deletion_requests (
   requested_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
   processed_at TIMESTAMP WITH TIME ZONE,
   created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+);
+
+-- إنشاء سياسة أمان لجدول طلبات حذف الحساب
+ALTER TABLE account_deletion_requests ENABLE ROW LEVEL SECURITY;
+CREATE POLICY "Allow all operations" ON account_deletion_requests FOR ALL USING (true);TH TIME ZONE DEFAULT NOW()
 );
 
 -- إضافة سياسة للسماح بجميع العمليات

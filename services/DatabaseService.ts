@@ -389,6 +389,16 @@ class DatabaseService {
         throw new Error('معرف المستخدم مطلوب');
       }
 
+      // التحقق من وجود الجدول أولاً
+      const { data: tableCheck, error: tableError } = await supabase
+        .from('account_deletion_requests')
+        .select('count', { count: 'exact', head: true });
+      
+      if (tableError) {
+        console.error('Table check error:', tableError);
+        throw new Error(`الجدول غير موجود أو خطأ في الاتصال: ${tableError.message || tableError.details || 'خطأ غير معروف'}`);
+      }
+
       // إنشاء طلب حذف الحساب في جدول منفصل
       const { data, error } = await supabase
         .from('account_deletion_requests')
@@ -401,14 +411,24 @@ class DatabaseService {
         .select();
       
       if (error) {
-        console.error('Supabase error:', error);
-        throw new Error(`خطأ في قاعدة البيانات: ${error.message}`);
+        console.error('Supabase insert error:', error);
+        const errorMessage = error.message || error.details || error.hint || 'خطأ غير معروف في قاعدة البيانات';
+        throw new Error(`خطأ في إضافة طلب الحذف: ${errorMessage}`);
       }
       
-      console.log('Account deletion request created:', data);
+      if (!data || data.length === 0) {
+        throw new Error('فشل في إنشاء طلب الحذف - لم يتم إرجاع أي بيانات');
+      }
+      
+      console.log('Account deletion request created successfully:', data);
     } catch (error) {
       console.error('Error requesting account deletion:', error);
-      throw error;
+      // التأكد من أن الخطأ يحتوي على رسالة واضحة
+      if (error instanceof Error) {
+        throw new Error(error.message);
+      } else {
+        throw new Error('خطأ غير متوقع في طلب حذف الحساب');
+      }
     }
   }
 }
