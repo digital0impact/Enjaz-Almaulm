@@ -216,12 +216,12 @@ export default function SettingsScreen() {
     }
 
     Alert.alert(
-      'حذف الحساب',
-      'اختر نوع الحذف:\n\n• الحذف الفوري: سيتم حذف حسابك وجميع بياناتك نهائياً الآن\n• طلب الحذف: سيتم إرسال طلب للمراجعة',
+      'طلب حذف الحساب',
+      'سيتم إرسال طلب حذف الحساب للمراجعة والمعالجة من قبل الإدارة.',
       [
         { text: 'إلغاء', style: 'cancel' },
         {
-          text: 'طلب الحذف',
+          text: 'متابعة',
           onPress: () => {
             Alert.prompt(
               'سبب طلب الحذف',
@@ -242,51 +242,6 @@ export default function SettingsScreen() {
                   );
                 }
               }
-            );
-          }
-        },
-        {
-          text: 'حذف فوري',
-          style: 'destructive',
-          onPress: () => {
-            Alert.alert(
-              'تأكيد الحذف الفوري',
-              'هل أنت متأكد من أنك تريد حذف حسابك نهائياً الآن؟ لا يمكن التراجع عن هذا الإجراء.',
-              [
-                { text: 'إلغاء', style: 'cancel' },
-                {
-                  text: 'حذف نهائياً',
-                  style: 'destructive',
-                  onPress: async () => {
-                    try {
-                      console.log('Deleting account for user:', currentUserId);
-                      await deleteUserAccount();
-                      await AsyncStorage.multiRemove([
-                        'userToken',
-                        'userInfo',
-                        'basicData',
-                        'appSettings'
-                      ]);
-                      Alert.alert(
-                        'تم الحذف',
-                        'تم حذف حسابك وجميع بياناتك بنجاح.',
-                        [
-                          {
-                            text: 'موافق',
-                            onPress: () => router.replace('/(tabs)')
-                          }
-                        ]
-                      );
-                    } catch (error) {
-                      console.error('Error deleting account:', error);
-                      Alert.alert(
-                        'خطأ', 
-                        `فشل في حذف الحساب: ${error instanceof Error ? error.message : 'خطأ غير معروف'}`
-                      );
-                    }
-                  }
-                }
-              ]
             );
           }
         }
