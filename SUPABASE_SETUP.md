@@ -27,9 +27,37 @@ const supabaseAnonKey = 'YOUR_SUPABASE_ANON_KEY'; // ضع هنا anon key
 
 ### 4. إنشاء الجداول في قاعدة البيانات
 
+#### **خطوات مهمة لإنشاء جدول طلبات حذف الحساب:**
+
+1. **اذهب إلى SQL Editor في لوحة تحكم Supabase**
+2. **انسخ والصق الاستعلام التالي:**
+
+```sql
+-- إنشاء جدول طلبات حذف الحساب
+CREATE TABLE IF NOT EXISTS account_deletion_requests (
+  id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
+  userid UUID NOT NULL,
+  reason TEXT,
+  status TEXT DEFAULT 'pending',
+  requested_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+  processed_at TIMESTAMP WITH TIME ZONE,
+  created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+);
+
+-- تفعيل Row Level Security
+ALTER TABLE account_deletion_requests ENABLE ROW LEVEL SECURITY;
+
+-- إنشاء سياسة للسماح بجميع العمليات (يمكن تخصيصها لاحقاً)
+CREATE POLICY "Allow all operations" ON account_deletion_requests FOR ALL USING (true);
+```
+
+3. **انقر على "Run" لتنفيذ الاستعلام**
+
+#### الجداول الأخرى المطلوبة:
+
 انتقل إلى Table Editor في لوحة تحكم Supabase وأنشئ الجداول التالية:
 
-#### جدول user_profiles
+##### جدول user_profiles
 ```sql
 CREATE TABLE user_profiles (
   id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
@@ -43,73 +71,49 @@ CREATE TABLE user_profiles (
 );
 ```
 
-#### جدول performance_data
+##### جدول performance_data
 ```sql
 CREATE TABLE performance_data (
   id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
-  user_id TEXT NOT NULL,
-  axis_id TEXT NOT NULL,
-  axis_title TEXT NOT NULL,
-  evidences JSONB DEFAULT '[]',
-  score INTEGER DEFAULT 0,
+  userid UUID NOT NULL,
+  axisid TEXT NOT NULL,
+  axistitle TEXT NOT NULL,
+  evidences JSONB,
+  score NUMERIC,
   created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
   updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
 );
 ```
 
-#### جدول alerts
+##### جدول alerts
 ```sql
 CREATE TABLE alerts (
   id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
-  user_id TEXT NOT NULL,
+  userid UUID NOT NULL,
   title TEXT NOT NULL,
   description TEXT,
-  date TEXT NOT NULL,
-  time TEXT NOT NULL,
-  is_active BOOLEAN DEFAULT true,
+  date TEXT,
+  time TEXT,
+  isactive BOOLEAN DEFAULT true,
   created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
   updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
 );
 ```
 
-#### جدول comments
+##### جدول comments
 ```sql
 CREATE TABLE comments (
   id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
-  user_id TEXT NOT NULL,
+  userid UUID NOT NULL,
   title TEXT NOT NULL,
-  content TEXT NOT NULL,
-  date TEXT NOT NULL,
+  content TEXT,
+  date TEXT,
   created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
   updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
 );
 ```
 
-### 5. إعداد Row Level Security (RLS)
-
-لكل جدول، قم بتفعيل RLS وإضافة السياسات:
-
-```sql
--- تفعيل RLS لجميع الجداول
-ALTER TABLE user_profiles ENABLE ROW LEVEL SECURITY;
-ALTER TABLE performance_data ENABLE ROW LEVEL SECURITY;
-ALTER TABLE alerts ENABLE ROW LEVEL SECURITY;
-ALTER TABLE comments ENABLE ROW LEVEL SECURITY;
-
--- #### جدو#### جدول account_deletion_requests
-```sql
-CREATE TABLE IF NOT EXISTS account_deletion_requests (
-  id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
-  userid UUID NOT NULL,
-  reason TEXT,
-  status TEXT DEFAULT 'pending',
-  requested_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
-  processed_at TIMESTAMP WITH TIME ZONE,
-  created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
-);
-```
-
-### 5. تشغيل سكريبت إنشاء الجداول
+### 5. تشغيل سكريپت إنشاء الجداول
 يمكنك تشغيل محتوى ملف `database_setup.sql` في SQL Editor في Supabase:
 
 1. اذهب إلى SQL Editor في لوحة تحكم Supabase
@@ -141,25 +145,21 @@ import { useDatabase } from '@/contexts/DatabaseContext';
 // في أي مكون:
 const { 
   saveUserProfile, 
-  performanceData,
-  requestAccountDeletion,
-  isLoading 
-} = useDatabase();manceData, 
+  performanceData, 
   saveAlert, 
   isLoading 
 } = useDatabase();
 ```
 
 ### ملاحظات مهمة:
+- تأكد من تشغيل جميع استعلامات SQL في Supabase لإنشاء الجداول
+- **تأكد بشكل خاص من إنشاء جدول `account_deletion_requests`**
 - تأكد من حفظ مفاتيح Supabase في مكان آمن
 - لا تشارك مفاتيح API في ملفات عامة
-- يمكنك استخدام Supabase Auth لاحقاً لتأمين أفضل
-- Supabase يوفر إمكانيات أكثر مثل Real-time subscriptions و Storage
+- في الإنتاج، قم بتحديث قواعد الأمان لتكون أكثر تقييداً
 
-### الفوائد من استخدام Supabase:
-- قاعدة بيانات PostgreSQL قوية
-- API تلقائي
-- Authentication مدمج
-- Real-time subscriptions
-- Storage للملفات
-- Edge Functions
+### خطوات حل مشكلة طلب حذف الحساب:
+1. اذهب إلى SQL Editor في Supabase
+2. تأكد من وجود جدول `account_deletion_requests`
+3. إذا لم يكن موجوداً، قم بتشغيل الاستعلام أعلاه لإنشائه
+4. تأكد من تفعيل Row Level Security والسياسات
