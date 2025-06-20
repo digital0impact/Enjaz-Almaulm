@@ -389,22 +389,12 @@ class DatabaseService {
         throw new Error('معرف المستخدم مطلوب');
       }
 
-      // التحقق من وجود الجدول أولاً
-      const { data: tableCheck, error: tableError } = await supabase
-        .from('account_deletion_requests')
-        .select('count', { count: 'exact', head: true });
-      
-      if (tableError) {
-        console.error('Table check error:', tableError);
-        throw new Error(`الجدول غير موجود أو خطأ في الاتصال: ${tableError.message || tableError.details || 'خطأ غير معروف'}`);
-      }
-
-      // إنشاء طلب حذف الحساب في جدول منفصل
+      // محاولة إنشاء طلب حذف الحساب
       const { data, error } = await supabase
         .from('account_deletion_requests')
         .insert([{
           userid: userId,
-          reason: reason || '',
+          reason: reason || 'لم يتم تحديد السبب',
           status: 'pending',
           requested_at: new Date().toISOString()
         }])
@@ -412,8 +402,19 @@ class DatabaseService {
       
       if (error) {
         console.error('Supabase insert error:', error);
-        const errorMessage = error.message || error.details || error.hint || 'خطأ غير معروف في قاعدة البيانات';
-        throw new Error(`خطأ في إضافة طلب الحذف: ${errorMessage}`);
+        
+        // التحقق من نوع الخطأ
+        if (error.code === '42P01') {
+          // الجدول غير موجود
+          throw new Error('جدول طلبات حذف الحساب غير موجود في قاعدة البيانات. يرجى التواصل مع المطور لإنشاء الجدول.');
+        } else if (error.code === '23505') {
+          // مفتاح مكرر
+          throw new Error('يوجد بالفعل طلب حذف حساب قيد المعالجة لهذا المستخدم.');
+        } else {
+          // أخطاء أخرى
+          const errorMessage = error.message || error.details || error.hint || 'خطأ غير معروف في قاعدة البيانات';
+          throw new Error(`خطأ في إضافة طلب الحذف: ${errorMessage}`);
+        }
       }
       
       if (!data || data.length === 0) {
@@ -423,9 +424,10 @@ class DatabaseService {
       console.log('Account deletion request created successfully:', data);
     } catch (error) {
       console.error('Error requesting account deletion:', error);
+      
       // التأكد من أن الخطأ يحتوي على رسالة واضحة
       if (error instanceof Error) {
-        throw new Error(error.message);
+        throw error; // إرجاع الخطأ كما هو
       } else {
         throw new Error('خطأ غير متوقع في طلب حذف الحساب');
       }

@@ -96,9 +96,9 @@ ALTER TABLE performance_data ENABLE ROW LEVEL SECURITY;
 ALTER TABLE alerts ENABLE ROW LEVEL SECURITY;
 ALTER TABLE comments ENABLE ROW LEVEL SECURITY;
 
--- #### جدول account_deletion_requests
+-- #### جدو#### جدول account_deletion_requests
 ```sql
-CREATE TABLE account_deletion_requests (
+CREATE TABLE IF NOT EXISTS account_deletion_requests (
   id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
   userid UUID NOT NULL,
   reason TEXT,
@@ -109,8 +109,24 @@ CREATE TABLE account_deletion_requests (
 );
 ```
 
-### 5. إعداد السياسات
-سياسات للسماح بجميع العمليات (يمكن تخصيصها لاحقاً)
+### 5. تشغيل سكريبت إنشاء الجداول
+يمكنك تشغيل محتوى ملف `database_setup.sql` في SQL Editor في Supabase:
+
+1. اذهب إلى SQL Editor في لوحة تحكم Supabase
+2. انسخ محتوى ملف `database_setup.sql`
+3. الصق المحتوى في SQL Editor
+4. انقر على "Run" لتنفيذ الاستعلامات
+
+### 6. إعداد السياسات (اختياري للتطوير)
+```sql
+-- تفعيل RLS على الجداول
+ALTER TABLE user_profiles ENABLE ROW LEVEL SECURITY;
+ALTER TABLE performance_data ENABLE ROW LEVEL SECURITY;
+ALTER TABLE alerts ENABLE ROW LEVEL SECURITY;
+ALTER TABLE comments ENABLE ROW LEVEL SECURITY;
+ALTER TABLE account_deletion_requests ENABLE ROW LEVEL SECURITY;
+
+-- سياسات للسماح بجميع العمليات (يمكن تخصيصها لاحقاً)
 CREATE POLICY "Allow all operations" ON user_profiles FOR ALL USING (true);
 CREATE POLICY "Allow all operations" ON performance_data FOR ALL USING (true);
 CREATE POLICY "Allow all operations" ON alerts FOR ALL USING (true);
@@ -118,14 +134,17 @@ CREATE POLICY "Allow all operations" ON comments FOR ALL USING (true);
 CREATE POLICY "Allow all operations" ON account_deletion_requests FOR ALL USING (true);
 ```
 
-### 6. الاستخدام في التطبيق
+### 7. الاستخدام في التطبيق
 ```typescript
 import { useDatabase } from '@/contexts/DatabaseContext';
 
 // في أي مكون:
 const { 
   saveUserProfile, 
-  performanceData, 
+  performanceData,
+  requestAccountDeletion,
+  isLoading 
+} = useDatabase();manceData, 
   saveAlert, 
   isLoading 
 } = useDatabase();
