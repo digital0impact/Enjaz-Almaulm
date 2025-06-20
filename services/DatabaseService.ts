@@ -321,6 +321,61 @@ class DatabaseService {
       throw error;
     }
   }
+
+  // Delete Account Operations
+  async deleteUserAccount(userId: string): Promise<void> {
+    try {
+      // حذف جميع البيانات المرتبطة بالمستخدم
+      
+      // حذف التعليقات
+      await supabase
+        .from('comments')
+        .delete()
+        .eq('userid', userId);
+      
+      // حذف التنبيهات
+      await supabase
+        .from('alerts')
+        .delete()
+        .eq('userid', userId);
+      
+      // حذف بيانات الأداء
+      await supabase
+        .from('performance_data')
+        .delete()
+        .eq('userid', userId);
+      
+      // حذف الملف الشخصي أخيراً
+      const { error } = await supabase
+        .from('user_profiles')
+        .delete()
+        .eq('id', userId);
+      
+      if (error) throw error;
+    } catch (error) {
+      console.error('Error deleting user account:', error);
+      throw error;
+    }
+  }
+
+  async requestAccountDeletion(userId: string, reason?: string): Promise<void> {
+    try {
+      // إنشاء طلب حذف الحساب في جدول منفصل
+      const { error } = await supabase
+        .from('account_deletion_requests')
+        .insert([{
+          userid: userId,
+          reason: reason || '',
+          status: 'pending',
+          requested_at: new Date().toISOString()
+        }]);
+      
+      if (error) throw error;
+    } catch (error) {
+      console.error('Error requesting account deletion:', error);
+      throw error;
+    }
+  }
 }
 
 export default new DatabaseService();

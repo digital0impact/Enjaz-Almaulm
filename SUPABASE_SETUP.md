@@ -96,11 +96,26 @@ ALTER TABLE performance_data ENABLE ROW LEVEL SECURITY;
 ALTER TABLE alerts ENABLE ROW LEVEL SECURITY;
 ALTER TABLE comments ENABLE ROW LEVEL SECURITY;
 
--- سياسات للسماح بجميع العمليات (يمكن تخصيصها لاحقاً)
+-- #### جدول account_deletion_requests
+```sql
+CREATE TABLE account_deletion_requests (
+  id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
+  userid UUID NOT NULL,
+  reason TEXT,
+  status TEXT DEFAULT 'pending',
+  requested_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+  processed_at TIMESTAMP WITH TIME ZONE,
+  created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+);
+```
+
+### 5. إعداد السياسات
+سياسات للسماح بجميع العمليات (يمكن تخصيصها لاحقاً)
 CREATE POLICY "Allow all operations" ON user_profiles FOR ALL USING (true);
 CREATE POLICY "Allow all operations" ON performance_data FOR ALL USING (true);
 CREATE POLICY "Allow all operations" ON alerts FOR ALL USING (true);
 CREATE POLICY "Allow all operations" ON comments FOR ALL USING (true);
+CREATE POLICY "Allow all operations" ON account_deletion_requests FOR ALL USING (true);
 ```
 
 ### 6. الاستخدام في التطبيق

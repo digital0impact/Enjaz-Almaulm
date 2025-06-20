@@ -8,6 +8,7 @@ import { useRouter } from 'expo-router';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useTheme } from '@/contexts/ThemeContext';
 import { BottomNavigationBar } from '@/components/BottomNavigationBar';
+import { useDatabase } from '@/contexts/DatabaseContext';
 
 
 export default function SettingsScreen() {
@@ -18,6 +19,7 @@ export default function SettingsScreen() {
   const [userInfo, setUserInfo] = useState<any>(null);
   const { themeName, themeMode, colors, setThemeName, setThemeMode, availableThemes } = useTheme();
   const [selectedColorScheme, setSelectedColorScheme] = useState('default');
+  const { deleteUserAccount, requestAccountDeletion, isLoading } = useDatabase();
 
   useEffect(() => {
     loadSettings();
@@ -182,16 +184,66 @@ export default function SettingsScreen() {
   const handleDeleteAccount = () => {
     Alert.alert(
       'حذف الحساب',
-      'هل أنت متأكد من أنك تريد حذف حسابك؟ سيتم حذف جميع بياناتك نهائياً.',
+      'اختر نوع الحذف:\n\n• الحذف الفوري: سيتم حذف حسابك وجميع بياناتك نهائياً الآن\n• طلب الحذف: سيتم إرسال طلب للمراجعة',
       [
         { text: 'إلغاء', style: 'cancel' },
         {
-          text: 'حذف',
+          text: 'طلب الحذف',
+          onPress: () => {
+            Alert.prompt(
+              'سبب طلب الحذف',
+              'يرجى ذكر سبب طلب حذف الحساب (اختياري):',
+              async (reason) => {
+                try {
+                  await requestAccountDeletion(reason || '');
+                  Alert.alert(
+                    'تم إرسال الطلب',
+                    'تم إرسال طلب حذف الحساب بنجاح. سيتم معالجة طلبك في أقرب وقت ممكن.'
+                  );
+                } catch (error) {
+                  Alert.alert('خطأ', 'فشل في إرسال طلب الحذف. يرجى المحاولة مرة أخرى.');
+                }
+              }
+            );
+          }
+        },
+        {
+          text: 'حذف فوري',
           style: 'destructive',
-          onPress: async () => {
+          onPress: () => {
             Alert.alert(
-              'تم إرسال طلب الحذف',
-              'تم إرسال طلب حذف الحساب الخاص بك. سيتم معالجة طلبك في أقرب وقت ممكن.'
+              'تأكيد الحذف الفوري',
+              'هل أنت متأكد من أنك تريد حذف حسابك نهائياً الآن؟ لا يمكن التراجع عن هذا الإجراء.',
+              [
+                { text: 'إلغاء', style: 'cancel' },
+                {
+                  text: 'حذف نهائياً',
+                  style: 'destructive',
+                  onPress: async () => {
+                    try {
+                      await deleteUserAccount();
+                      await AsyncStorage.multiRemove([
+                        'userToken',
+                        'userInfo',
+                        'basicData',
+                        'appSettings'
+                      ]);
+                      Alert.alert(
+                        'تم الحذف',
+                        'تم حذف حسابك وجميع بياناتك بنجاح.',
+                        [
+                          {
+                            text: 'موافق',
+                            onPress: () => router.replace('/(tabs)')
+                          }
+                        ]
+                      );
+                    } catch (error) {
+                      Alert.alert('خطأ', 'فشل في حذف الحساب. يرجى المحاولة مرة أخرى.');
+                    }
+                  }
+                }
+              ]
             );
           }
         }

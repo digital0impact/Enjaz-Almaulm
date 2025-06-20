@@ -25,6 +25,10 @@ interface DatabaseContextType {
   updateComment: (id: string, updates: Partial<Comment>) => Promise<void>;
   deleteComment: (id: string) => Promise<void>;
   
+  // Account Management
+  deleteUserAccount: () => Promise<void>;
+  requestAccountDeletion: (reason?: string) => Promise<void>;
+  
   // Loading states
   isLoading: boolean;
   error: string | null;
@@ -195,6 +199,31 @@ export const DatabaseProvider: React.FC<DatabaseProviderProps> = ({ children, us
     }
   };
 
+  const deleteUserAccount = async () => {
+    try {
+      setError(null);
+      await DatabaseService.deleteUserAccount(userId);
+      // إعادة تعيين جميع البيانات
+      setUserProfile(null);
+      setPerformanceData([]);
+      setAlerts([]);
+      setComments([]);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'خطأ في حذف الحساب');
+      throw err;
+    }
+  };
+
+  const requestAccountDeletion = async (reason?: string) => {
+    try {
+      setError(null);
+      await DatabaseService.requestAccountDeletion(userId, reason);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'خطأ في طلب حذف الحساب');
+      throw err;
+    }
+  };
+
   const value: DatabaseContextType = {
     userProfile,
     saveUserProfile,
@@ -210,6 +239,8 @@ export const DatabaseProvider: React.FC<DatabaseProviderProps> = ({ children, us
     saveComment,
     updateComment,
     deleteComment,
+    deleteUserAccount,
+    requestAccountDeletion,
     isLoading,
     error
   };
