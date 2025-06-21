@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { StyleSheet, ScrollView, TouchableOpacity, I18nManager, ImageBackground, KeyboardAvoidingView, Platform, StatusBar } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { LinearGradient as ExpoLinearGradient } from 'expo-linear-gradient';
 import { ThemedText } from '@/components/ThemedText';
 import { ThemedView } from '@/components/ThemedView';
@@ -196,6 +197,7 @@ const azkarData = [
 
 export default function AzkarScreen() {
   const router = useRouter();
+  const insets = useSafeAreaInsets();
   const [expandedCategories, setExpandedCategories] = useState<number[]>([]);
   const [currentCounts, setCurrentCounts] = useState<{[key: string]: number}>({});
 
@@ -230,8 +232,8 @@ export default function AzkarScreen() {
     <ThemedView style={styles.container}>
       <StatusBar 
         barStyle="dark-content" 
-        backgroundColor="transparent" 
-        translucent={true}
+        backgroundColor={Platform.OS === 'ios' ? 'transparent' : '#E8F5F4'} 
+        translucent={Platform.OS === 'ios'}
       />
       <ImageBackground
         source={require('@/assets/images/background.png')}
@@ -365,7 +367,12 @@ export default function AzkarScreen() {
           </KeyboardAvoidingView>
         </ExpoLinearGradient>
       </ImageBackground>
-      <BottomNavigationBar />
+      <ThemedView style={[
+        styles.bottomNavContainer,
+        Platform.OS === 'ios' && { paddingBottom: insets.bottom }
+      ]}>
+        <BottomNavigationBar />
+      </ThemedView>
     </ThemedView>
     );
   }
@@ -373,6 +380,13 @@ export default function AzkarScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
+  },
+  bottomNavContainer: {
+    backgroundColor: 'transparent',
+    position: 'absolute',
+    bottom: 0,
+    left: 0,
+    right: 0,
   },
   backgroundImage: {
     flex: 1,

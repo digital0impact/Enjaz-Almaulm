@@ -82,6 +82,14 @@ const styles = StyleSheet.create({
     bottom: 0,
     left: 0,
     right: 0,
+    shadowColor: '#000',
+    shadowOffset: { 
+      width: 0, 
+      height: Platform.OS === 'ios' ? -2 : 2 
+    },
+    shadowOpacity: Platform.OS === 'ios' ? 0.1 : 0.25,
+    shadowRadius: Platform.OS === 'ios' ? 4 : 3.84,
+    elevation: 5,
   },
   tabButton: {
     flex: 1,
