@@ -1,5 +1,17 @@
 import React, { useState, useEffect } from 'react';
-import { StyleSheet, ScrollView, TextInput, TouchableOpacity, Alert, I18nManager, ImageBackground, Image, KeyboardAvoidingView, Platform } from 'react-native';
+import {
+  StyleSheet,
+  ScrollView,
+  TextInput,
+  TouchableOpacity,
+  Alert,
+  I18nManager,
+  ImageBackground,
+  Image,
+  KeyboardAvoidingView,
+  Platform,
+  StatusBar,
+} from 'react-native';
 import { LinearGradient as ExpoLinearGradient } from 'expo-linear-gradient';
 import { ThemedText } from '@/components/ThemedText';
 import { ThemedView } from '@/components/ThemedView';
@@ -105,7 +117,15 @@ export default function BasicDataScreen() {
   };
 
   return (
-    <ThemedView style={styles.container}>
+    <KeyboardAvoidingView 
+      style={styles.container} 
+      behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+    >
+      <StatusBar 
+        barStyle={Platform.OS === 'ios' ? 'dark-content' : 'default'}
+        backgroundColor={Platform.OS === 'android' ? '#4ECDC4' : undefined}
+        translucent={false}
+      />
       <ImageBackground
         source={require('@/assets/images/background.png')}
         style={styles.backgroundImage}
@@ -445,7 +465,7 @@ export default function BasicDataScreen() {
           </KeyboardAvoidingView>
         </ExpoLinearGradient>
       </ImageBackground>
-    </ThemedView>
+    </KeyboardAvoidingView>
   );
 }
 
