@@ -99,7 +99,7 @@ export default function AddStudentScreen() {
       id: Date.now().toString(),
       ...newGoal,
       title: newGoal.title.trim(),
-      description: newGoal.description.trim(),
+      description: '',
     };
 
     setStudentData(prev => ({
@@ -561,18 +561,7 @@ export default function AddStudentScreen() {
                           />
                         </ThemedView>
 
-                        <ThemedView style={styles.inputGroup}>
-                          <ThemedText style={styles.label}>وصف الهدف</ThemedText>
-                          <TextInput
-                            style={[styles.textInput, styles.textArea]}
-                            value={newGoal.description}
-                            onChangeText={(text) => setNewGoal({...newGoal, description: text})}
-                            placeholder="وصف تفصيلي للهدف"
-                            textAlign="right"
-                            multiline
-                            numberOfLines={3}
-                          />
-                        </ThemedView>
+                        
 
                         <ThemedView style={styles.inputGroup}>
                           <ThemedText style={styles.label}>نسبة التحقق (%)</ThemedText>
@@ -610,7 +599,7 @@ export default function AddStudentScreen() {
                           </TouchableOpacity>
                           <ThemedText style={styles.itemTitle}>{goal.title}</ThemedText>
                         </ThemedView>
-                        <ThemedText style={styles.itemDescription}>{goal.description}</ThemedText>
+                        
                         <ThemedView style={styles.progressContainer}>
                           <ThemedText style={styles.progressText}>{goal.progress}%</ThemedText>
                           <ThemedView style={styles.progressBar}>
