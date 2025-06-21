@@ -365,8 +365,8 @@ export default function AzkarScreen() {
           </KeyboardAvoidingView>
         </ExpoLinearGradient>
       </ImageBackground>
-        <BottomNavigationBar />
-      </ThemedView>
+      <BottomNavigationBar />
+    </ThemedView>
     );
   }
 

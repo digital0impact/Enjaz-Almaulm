@@ -43,7 +43,7 @@ export function BottomNavigationBar() {
         // تحسين منطق التحقق من الصفحة النشطة لتشمل المسارات الفرعية
         const isActive = pathname === tab.route || 
                          pathname.startsWith(`/(tabs)/${tab.name}`) ||
-                         (tab.name === 'explore' && pathname === '/settings') ||
+                         (tab.name === 'explore' && (pathname === '/settings' || pathname === '/azkar')) ||
                          (tab.name === 'index' && pathname === '/(tabs)');
         
         return (
