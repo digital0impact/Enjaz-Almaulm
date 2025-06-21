@@ -1176,9 +1176,7 @@ const styles = StyleSheet.create({
     writingDirection: 'rtl',
   },
   performanceGrid: {
-    flexDirection: 'row-reverse',
-    flexWrap: 'wrap',
-    justifyContent: 'space-between',
+    flexDirection: 'column',
     gap: 15,
   },
   performanceCard: {
@@ -1191,7 +1189,7 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.15,
     shadowRadius: 8,
     position: 'relative',
-    width: '48%',
+    width: '100%',
     borderWidth: 1,
     borderColor: '#E5E5EA',
     padding: 15,
