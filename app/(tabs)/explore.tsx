@@ -172,13 +172,11 @@ const styles = StyleSheet.create({
     gap: 15,
   },
   toolsGrid: {
-    flexDirection: 'row-reverse',
-    flexWrap: 'wrap',
-    justifyContent: 'space-between',
+    flexDirection: 'column',
     gap: 15,
   },
   toolCard: {
-    width: '48%',
+    width: '100%',
     alignItems: 'center',
     padding: 20,
     backgroundColor: '#F8F9FA',
