@@ -210,7 +210,7 @@ export default function PasswordTrackerScreen() {
         </ThemedView>
       </ThemedView>
 
-      <ThemedView style={styles.categoriesGrid}>
+      <ThemedView style={styles.passwordsGrid}>
         {passwords.map((item) => (
           <ThemedView key={item.id} style={styles.passwordCard}>
             <ThemedView style={styles.passwordHeader}>
@@ -779,14 +779,12 @@ const styles = StyleSheet.create({
     writingDirection: 'rtl',
     marginTop: 4,
   },
-  categoriesGrid: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    justifyContent: 'space-between',
-    gap: 10,
+  passwordsGrid: {
+    flexDirection: 'column',
+    gap: 15,
   },
   passwordCard: {
-    width: '48%',
+    width: '100%',
     backgroundColor: '#fff',
     borderRadius: 12,
     padding: 15,
