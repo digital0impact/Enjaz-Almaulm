@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Image, StyleSheet, TouchableOpacity, I18nManager, ImageBackground, LinearGradient, Alert, KeyboardAvoidingView, ScrollView, Platform } from 'react-native';
+import { Image, StyleSheet, TouchableOpacity, I18nManager, ImageBackground, LinearGradient, Alert, KeyboardAvoidingView, ScrollView, Platform, StatusBar } from 'react-native';
 import { LinearGradient as ExpoLinearGradient } from 'expo-linear-gradient';
 import { ThemedText } from '@/components/ThemedText';
 import { ThemedView } from '@/components/ThemedView';
@@ -130,6 +130,11 @@ export default function HomeScreen() {
         style={{ flex: 1 }}
         behavior={Platform.OS === 'ios' ? 'padding' : undefined}
       >
+        <StatusBar 
+          barStyle={Platform.OS === 'ios' ? 'dark-content' : 'default'}
+          backgroundColor={Platform.OS === 'android' ? '#4ECDC4' : undefined}
+          translucent={false}
+        />
         <ScrollView contentContainerStyle={{ flexGrow: 1 }}>
           <ThemedView style={styles.container}>
             <ImageBackground
@@ -194,6 +199,11 @@ export default function HomeScreen() {
         style={{ flex: 1 }}
         behavior={Platform.OS === 'ios' ? 'padding' : undefined}
       >
+        <StatusBar 
+          barStyle={Platform.OS === 'ios' ? 'dark-content' : 'default'}
+          backgroundColor={Platform.OS === 'android' ? '#4ECDC4' : undefined}
+          translucent={false}
+        />
         <ScrollView contentContainerStyle={{ flexGrow: 1 }}>
           <ThemedView style={styles.container}>
             <ImageBackground
@@ -252,6 +262,11 @@ export default function HomeScreen() {
   // Dashboard screen
   return (
     <ThemedView style={styles.dashboardContainer}>
+      <StatusBar 
+        barStyle={Platform.OS === 'ios' ? 'dark-content' : 'default'}
+        backgroundColor={Platform.OS === 'android' ? '#4ECDC4' : undefined}
+        translucent={false}
+      />
       <ImageBackground
         source={require('@/assets/images/background.png')}
         style={styles.backgroundImage}
