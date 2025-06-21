@@ -40,7 +40,11 @@ export function BottomNavigationBar() {
   return (
     <ThemedView style={styles.tabBar}>
       {tabs.map((tab) => {
-        const isActive = pathname === tab.route || pathname.startsWith(`/(tabs)/${tab.name}`);
+        // تحسين منطق التحقق من الصفحة النشطة لتشمل المسارات الفرعية
+        const isActive = pathname === tab.route || 
+                         pathname.startsWith(`/(tabs)/${tab.name}`) ||
+                         (tab.name === 'explore' && pathname === '/settings') ||
+                         (tab.name === 'index' && pathname === '/(tabs)');
         
         return (
           <TouchableOpacity

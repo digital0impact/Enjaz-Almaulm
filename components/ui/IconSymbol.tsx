@@ -38,6 +38,7 @@ const MAPPING = {
   'calendar.badge.plus': 'event-available',
   'gear': 'settings',
   'gear.fill': 'settings',
+  'wrench.fill': 'build',
   'plus.circle.fill': 'add-circle',
   'checkmark.circle.fill': 'check-circle',
   'doc.badge.plus': 'note-add',
