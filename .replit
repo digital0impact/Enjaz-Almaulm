@@ -67,3 +67,12 @@ mode = "sequential"
 [[workflows.workflow.tasks]]
 task = "shell.exec"
 args = "npx eas build --platform android --profile production"
+
+[[workflows.workflow]]
+name = "EAS Build Clean Android"
+author = 43573665
+mode = "sequential"
+
+[[workflows.workflow.tasks]]
+task = "shell.exec"
+args = "npx eas build --platform android --profile preview --clear-cache"
