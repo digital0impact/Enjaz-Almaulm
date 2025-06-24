@@ -13,7 +13,7 @@ localPort = 8082
 externalPort = 3000
 
 [workflows]
-runButton = "EAS Publish Preview iOS"
+runButton = "تشغيل محلي"
 
 [[workflows.workflow]]
 name = "Dev Server"
@@ -76,3 +76,21 @@ mode = "sequential"
 [[workflows.workflow.tasks]]
 task = "shell.exec"
 args = "npx eas build --platform android --profile preview --clear-cache"
+
+[[workflows.workflow]]
+name = "تشغيل محلي"
+author = 43573665
+mode = "sequential"
+
+[[workflows.workflow.tasks]]
+task = "shell.exec"
+args = "EXPO_PACKAGER_PROXY_URL=https://$REPLIT_DEV_DOMAIN REACT_NATIVE_PACKAGER_HOSTNAME=$REPLIT_DEV_DOMAIN npx expo start --web"
+
+[[workflows.workflow]]
+name = "خادم التطوير العربي"
+author = 43573665
+mode = "sequential"
+
+[[workflows.workflow.tasks]]
+task = "shell.exec"
+args = "npx expo start --tunnel"
