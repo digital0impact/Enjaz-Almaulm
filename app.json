@@ -11,11 +11,12 @@
     "ios": {
       "supportsTablet": true,
       "bundleIdentifier": "com.teacherperformance.tdp",
-      "buildNumber": "1",
+      "buildNumber": "2",
       "infoPlist": {
         "ITSAppUsesNonExemptEncryption": false,
         "NSCameraUsageDescription": "يحتاج التطبيق للوصول للكاميرا لالتقاط الصور",
-        "NSPhotoLibraryUsageDescription": "يحتاج التطبيق للوصول لمكتبة الصور لرفع الملفات"
+        "NSPhotoLibraryUsageDescription": "يحتاج التطبيق للوصول لمكتبة الصور لرفع الملفات",
+        "UILaunchStoryboardName": "SplashScreen"
       }
     },
     "android": {
