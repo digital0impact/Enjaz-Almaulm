@@ -16,6 +16,7 @@
         "ITSAppUsesNonExemptEncryption": false,
         "NSCameraUsageDescription": "يحتاج التطبيق للوصول للكاميرا لالتقاط الصور",
         "NSPhotoLibraryUsageDescription": "يحتاج التطبيق للوصول لمكتبة الصور لرفع الملفات",
+        "NSPhotoLibraryAddUsageDescription": "يحتاج التطبيق لحفظ الصور في مكتبة الصور",
         "UILaunchStoryboardName": "SplashScreen"
       }
     },
@@ -27,7 +28,10 @@
       },
       "permissions": [
         "android.permission.INTERNET",
-        "android.permission.SYSTEM_ALERT_WINDOW"
+        "android.permission.SYSTEM_ALERT_WINDOW",
+        "android.permission.CAMERA",
+        "android.permission.READ_EXTERNAL_STORAGE",
+        "android.permission.WRITE_EXTERNAL_STORAGE"
       ]
     },
     "web": {
@@ -44,6 +48,13 @@
           "imageWidth": 200,
           "resizeMode": "contain",
           "backgroundColor": "#ffffff"
+        }
+      ],
+      [
+        "expo-image-picker",
+        {
+          "photosPermission": "يحتاج التطبيق للوصول لمكتبة الصور لرفع الملفات",
+          "cameraPermission": "يحتاج التطبيق للوصول للكاميرا لالتقاط الصور"
         }
       ]
     ],
