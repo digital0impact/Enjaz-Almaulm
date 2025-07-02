@@ -159,7 +159,7 @@ export default function HomeScreen() {
               <ThemedText type="title" style={styles.title}>
 
               </ThemedText>
-              <ThemedText style={[styles.subtitle, { textAlign: 'center' }]}>
+              <ThemedText style={[styles.subtitle, { textAlign: 'center', fontSize: 20 }]}>
                 منصتك المتكاملة لإدارة وعرض إنجازاتك المهنية
               </ThemedText>
             </ThemedView>
