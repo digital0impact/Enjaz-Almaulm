@@ -4,6 +4,7 @@ import { LinearGradient as ExpoLinearGradient } from 'expo-linear-gradient';
 import { ThemedText } from '@/components/ThemedText';
 import { ThemedView } from '@/components/ThemedView';
 import { IconSymbol } from '@/components/ui/IconSymbol';
+import { VersionTracker } from '@/components/VersionTracker';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useRouter, useNavigation } from 'expo-router';
 
@@ -180,9 +181,10 @@ export default function HomeScreen() {
               <ThemedText style={styles.buttonText}>ابدأ الآن</ThemedText>
             </TouchableOpacity>
 
-            <ThemedText style={styles.versionText}>
-              الإصدار 1.0 - تطوير الأثر الرقمي
-            </ThemedText>
+            <VersionTracker 
+              showBuildInfo={false}
+              style={styles.versionContainer}
+            />
           </ThemedView>
             </ThemedView>
             </ExpoLinearGradient>
@@ -450,6 +452,13 @@ const styles = StyleSheet.create({
     textAlign: 'center',
     marginTop: 20,
     writingDirection: 'rtl',
+  },
+  versionContainer: {
+    marginTop: 20,
+    backgroundColor: 'rgba(255,255,255,0.6)',
+    borderRadius: 12,
+    paddingVertical: 8,
+    paddingHorizontal: 16,
   },
   welcomeContent: {
     flex: 1,
