@@ -1270,7 +1270,7 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   alertTitle: {
-    fontSize: 16,
+    fontSize: 18,
     fontWeight: '600',
     color: '#1c1f33',
     textAlign: 'right',
@@ -1278,11 +1278,11 @@ const styles = StyleSheet.create({
     writingDirection: 'rtl',
   },
   alertDescription: {
-    fontSize: 14,
+    fontSize: 16,
     color: '#666',
     textAlign: 'right',
     marginBottom: 8,
-    lineHeight: 18,
+    lineHeight: 20,
     writingDirection: 'rtl',
   },
   alertMeta: {
@@ -1291,7 +1291,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   alertDateTime: {
-    fontSize: 12,
+    fontSize: 14,
     color: '#999',
     writingDirection: 'rtl',
   },
@@ -1301,7 +1301,7 @@ const styles = StyleSheet.create({
     borderRadius: 10,
   },
   priorityText: {
-    fontSize: 10,
+    fontSize: 12,
     fontWeight: '600',
     writingDirection: 'rtl',
   },
