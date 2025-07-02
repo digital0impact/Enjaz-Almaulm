@@ -4,6 +4,7 @@ import { StatusBar } from 'expo-status-bar';
 import { I18nManager } from 'react-native';
 import { useEffect } from 'react';
 import * as SplashScreen from 'expo-splash-screen';
+import { VersionService } from '@/services/VersionService';
 import 'react-native-reanimated';
 
 import { UserProvider } from '@/contexts/UserContext';
@@ -60,6 +61,12 @@ export default function RootLayout() {
   useEffect(() => {
     if (loaded) {
       SplashScreen.hideAsync();
+      // فحص التحديثات عند بدء التطبيق
+      VersionService.checkForUpdates().then((hasUpdate) => {
+        if (hasUpdate) {
+          console.log('تم تحديث التطبيق إلى إصدار جديد');
+        }
+      });
     }
   }, [loaded]);
 

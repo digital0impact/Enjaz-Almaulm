@@ -4,10 +4,13 @@ import { LinearGradient as ExpoLinearGradient } from 'expo-linear-gradient';
 import { ThemedText } from '@/components/ThemedText';
 import { ThemedView } from '@/components/ThemedView';
 import { IconSymbol } from '@/components/ui/IconSymbol';
-import { useRouter } from 'expo-router';
+import { BottomNavigationBar } from '@/components/BottomNavigationBar';
+import { VersionTracker } from '@/components/VersionTracker';
+import { useUser } from '@/contexts/UserContext';
+import * as DocumentPicker from 'expo-document-picker';
+import * as Sharing from 'expo-sharing';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useTheme } from '@/contexts/ThemeContext';
-import { BottomNavigationBar } from '@/components/BottomNavigationBar';
 import { useDatabase } from '@/contexts/DatabaseContext';
 
 
@@ -34,7 +37,7 @@ export default function SettingsScreen() {
       // محاولة الحصول على معرف المستخدم من AsyncStorage
       const userToken = await AsyncStorage.getItem('userToken');
       const userData = await AsyncStorage.getItem('userInfo');
-      
+
       if (userData) {
         const parsedUserData = JSON.parse(userData);
         setCurrentUserId(parsedUserData.id || '550e8400-e29b-41d4-a716-446655440000');
@@ -430,8 +433,10 @@ export default function SettingsScreen() {
                 </TouchableOpacity>
               </ThemedView>
 
-              <ThemedView style={[styles.footer, { backgroundColor: 'transparent' }]}>
-                <ThemedText style={styles.versionText}>الإصدار 1.0.0</ThemedText>
+              {/* معلومات الإصدار */}
+              <ThemedView style={[styles.section, { backgroundColor: 'transparent' }]}>
+                <ThemedText style={styles.sectionTitle}>معلومات التطبيق</ThemedText>
+                <VersionTracker showBuildInfo={true} />
               </ThemedView>
             </ThemedView>
           </ScrollView>
