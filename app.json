@@ -1,7 +1,8 @@
 {
   "expo": {
-    "name": "expo-on-replit",
+    "name": "teacher-performance-app",
     "slug": "teacher-performance-app",
+    "owner": "your-expo-username",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/images/icon.png",
