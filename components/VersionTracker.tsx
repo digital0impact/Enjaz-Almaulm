@@ -16,7 +16,7 @@ export function VersionTracker({ showBuildInfo = true, style }: VersionTrackerPr
   return (
     <ThemedView style={[styles.container, style]}>
       <ThemedText style={styles.versionText}>
-        الإصدار: {versionInfo.version}
+        الإصدار {versionInfo.version} - تطوير الأثر الرقمي
       </ThemedText>
       
       {showBuildInfo && (
