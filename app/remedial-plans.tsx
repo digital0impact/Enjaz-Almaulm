@@ -1,13 +1,20 @@
-
 import React, { useState, useEffect } from 'react';
 import { StyleSheet, ScrollView, TouchableOpacity, ImageBackground, KeyboardAvoidingView, Platform, Alert } from 'react-native';
-import { LinearGradient as ExpoLinearGradient } from 'expo-linear-gradient';
+
+// تطبيق RTL عند بدء الصفحة
 import { ThemedText } from '@/components/ThemedText';
 import { ThemedView } from '@/components/ThemedView';
 import { IconSymbol } from '@/components/ui/IconSymbol';
+import { BackButton } from '@/components/BackButton';
 import { useRouter } from 'expo-router';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import * as DocumentPicker from 'expo-document-picker';
+import * as FileSystem from 'expo-file-system';
 import { BottomNavigationBar } from '@/components/BottomNavigationBar';
+import * as Sharing from 'expo-sharing';
+import * as Print from 'expo-print';
+import { StorageService } from '@/services/StorageService';
+import XLSX from 'xlsx';
 
 interface Student {
   id: string;
@@ -17,6 +24,10 @@ interface Student {
   lastUpdate: string;
   notes: string;
   remedialPlans?: RemedialPlan[];
+  goals?: { text: string; progress: number }[];
+  needs?: string[];
+  evidence?: string[];
+  averageProgress?: number;
 }
 
 interface RemedialPlan {
@@ -28,28 +39,46 @@ interface RemedialPlan {
   endDate: string;
   status: 'نشط' | 'مكتمل' | 'معلق';
   progress: number; // 0-100
+  goals?: string[];
+  needs?: string[];
+  evidence?: string[];
+  notes?: string;
 }
 
 export default function RemedialPlansScreen() {
   const router = useRouter();
   const [students, setStudents] = useState<Student[]>([]);
   const [activePlans, setActivePlans] = useState<(RemedialPlan & { studentName: string })[]>([]);
+  const [selectedCategory, setSelectedCategory] = useState<string>('ضعف');
+  const [filteredPlans, setFilteredPlans] = useState<(RemedialPlan & { studentName: string })[]>([]);
+  const [expandedCategory, setExpandedCategory] = useState<string | null>(null);
 
-  useEffect(() => {
-    loadStudentsWithPlans();
-  }, []);
+  const categories = [
+    { key: 'ضعف', label: 'الضعف', color: '#9C27B0', icon: 'minus.circle.fill' },
+    { key: 'تفوق', label: 'التفوق', color: '#4CAF50', icon: 'star.fill' },
+    { key: 'صعوبات التعلم', label: 'صعوبات التعلم', color: '#F44336', icon: 'exclamationmark.triangle.fill' },
+    { key: 'يحتاج إلى تطوير', label: 'يحتاج إلى تطوير', color: '#FF5722', icon: 'star' }
+  ];
 
   const loadStudentsWithPlans = async () => {
     try {
       const stored = await AsyncStorage.getItem('students');
       if (stored) {
         const studentsData = JSON.parse(stored);
+        console.log('Loaded students:', studentsData.length);
+        
+        // تحقق من وجود خطط علاجية
+        const studentsWithPlans = studentsData.filter(student => 
+          student.remedialPlans && student.remedialPlans.length > 0
+        );
+        console.log('Students with plans:', studentsWithPlans.length);
+        
         setStudents(studentsData);
 
         // جمع جميع الخطط العلاجية مع أسماء الطلاب
         const allPlans: (RemedialPlan & { studentName: string })[] = [];
         studentsData.forEach((student: Student) => {
-          if (student.remedialPlans) {
+          if (student.remedialPlans && student.remedialPlans.length > 0) {
             student.remedialPlans.forEach((plan) => {
               allPlans.push({
                 ...plan,
@@ -58,12 +87,47 @@ export default function RemedialPlansScreen() {
             });
           }
         });
+        console.log('Total plans loaded:', allPlans.length);
         setActivePlans(allPlans);
+
+        // تحديث الخطط المفلترة مباشرة
+        const initialFilteredPlans = allPlans.filter(plan => {
+          const student = studentsData.find(s => s.name === plan.studentName);
+          return student && student.status === selectedCategory;
+        });
+        console.log('Initial filtered plans:', initialFilteredPlans.length);
+        setFilteredPlans(initialFilteredPlans);
+      } else {
+        console.log('No students data found in storage');
+        setStudents([]);
+        setActivePlans([]);
+        setFilteredPlans([]);
       }
     } catch (error) {
-      console.log('Error loading students with plans:', error);
+      console.error('Error loading students with plans:', error);
+      Alert.alert('خطأ', 'حدث خطأ أثناء تحميل البيانات');
     }
   };
+
+  useEffect(() => {
+    loadStudentsWithPlans();
+  }, []);
+
+  useEffect(() => {
+    console.log('Category changed to:', selectedCategory);
+    console.log('Active plans count:', activePlans.length);
+    console.log('Students count:', students.length);
+
+    const newFilteredPlans = activePlans.filter(plan => {
+      const student = students.find(s => s.name === plan.studentName);
+      const matches = student && student.status === selectedCategory;
+      console.log('Student:', student?.name, 'Status:', student?.status, 'Matches:', matches);
+      return matches;
+    });
+
+    console.log('New filtered plans count:', newFilteredPlans.length);
+    setFilteredPlans(newFilteredPlans);
+  }, [selectedCategory, activePlans, students]);
 
   const getStatusColor = (status: string) => {
     switch (status) {
@@ -83,200 +147,591 @@ export default function RemedialPlansScreen() {
     }
   };
 
-  const addNewPlan = () => {
-    if (students.length === 0) {
-      Alert.alert('تنبيه', 'يجب إضافة متعلمين أولاً لإنشاء خطط علاجية لهم');
-      return;
-    }
-    router.push('/add-remedial-plan');
-  };
-
-  const exportTableData = () => {
+  const generateExcelFile = async (data: any) => {
     try {
-      // إنشاء النص المُصدَّر
-      let exportText = "جدول تفاصيل المتعلمين\n";
-      exportText += "="*50 + "\n\n";
+      const workbook = XLSX.utils.book_new();
       
-      exportText += "الإحصائيات العامة:\n";
-      exportText += `• إجمالي المتعلمين: ${students.length}\n`;
-      exportText += `• لديهم خطط علاجية: ${students.filter(s => s.remedialPlans && s.remedialPlans.length > 0).length}\n`;
-      exportText += `• الخطط النشطة: ${students.reduce((total, student) => total + (student.remedialPlans?.filter(plan => plan.status === 'نشط').length || 0), 0)}\n`;
-      exportText += `• الخطط المكتملة: ${students.reduce((total, student) => total + (student.remedialPlans?.filter(plan => plan.status === 'مكتمل').length || 0), 0)}\n`;
-      exportText += `• الخطط المعلقة: ${students.reduce((total, student) => total + (student.remedialPlans?.filter(plan => plan.status === 'معلق').length || 0), 0)}\n\n`;
+      // إنشاء ورقة الإحصائيات العامة
+      const statsData = [
+        ['تقرير الخطط العلاجية'],
+        [],
+        ['الإحصائيات العامة'],
+        ['إجمالي المتعلمين', data.students.length],
+        ['لديهم خطط علاجية', data.students.filter(s => s.remedialPlans && s.remedialPlans.length > 0).length],
+        ['الخطط النشطة', data.activePlans],
+        ['الخطط المكتملة', data.completedPlans],
+        ['الخطط المعلقة', data.pendingPlans],
+      ];
       
-      exportText += "تفاصيل المتعلمين:\n";
-      exportText += "-".repeat(80) + "\n";
+      const statsSheet = XLSX.utils.aoa_to_sheet(statsData);
+      XLSX.utils.book_append_sheet(workbook, statsSheet, 'الإحصائيات');
+
+      // إنشاء ورقة تفاصيل المتعلمين
+      const studentsHeaders = [
+        ['اسم المتعلم', 'الصف', 'الحالة', 'عدد الخطط', 'متوسط التقدم', 'الأهداف', 'الاحتياجات', 'الشواهد', 'آخر تحديث']
+      ];
+      const studentsData = data.students.map(student => [
+        student.name,
+        student.grade,
+        student.status,
+        student.remedialPlans?.length || 0,
+        `${student.averageProgress || 0}%`,
+        (student as any).goals?.join('، ') || '-',
+        (student as any).needs?.join('، ') || '-',
+        (student as any).evidence?.join('، ') || '-',
+        student.lastUpdate || '-'
+      ]);
+
+      const studentsSheet = XLSX.utils.aoa_to_sheet([...studentsHeaders, ...studentsData]);
       
-      students.forEach((student, index) => {
-        exportText += `${index + 1}. ${student.name}\n`;
-        exportText += `   الصف: ${student.grade}\n`;
-        exportText += `   الحالة: ${student.status}\n`;
-        exportText += `   عدد الخطط: ${student.remedialPlans?.length || 0}\n`;
-        
-        if (student.remedialPlans && student.remedialPlans.length > 0) {
-          const avgProgress = Math.round(student.remedialPlans.reduce((total, plan) => total + plan.progress, 0) / student.remedialPlans.length);
-          exportText += `   متوسط التقدم: ${avgProgress}%\n`;
-          
-          exportText += `   الخطط النشطة: ${student.remedialPlans.filter(plan => plan.status === 'نشط').length}\n`;
-          exportText += `   الخطط المكتملة: ${student.remedialPlans.filter(plan => plan.status === 'مكتمل').length}\n`;
-          exportText += `   الخطط المعلقة: ${student.remedialPlans.filter(plan => plan.status === 'معلق').length}\n`;
-        }
-        
-        if ((student as any).needs && (student as any).needs.length > 0) {
-          exportText += `   الاحتياجات: ${(student as any).needs.join('، ')}\n`;
-        }
-        
-        exportText += `   آخر تحديث: ${student.lastUpdate}\n`;
-        exportText += "\n";
-      });
-      
-      exportText += `\nتاريخ التصدير: ${new Date().toLocaleDateString('ar-SA')}\n`;
-      exportText += `وقت التصدير: ${new Date().toLocaleTimeString('ar-SA')}\n`;
-      
-      // محاكاة تحميل الملف
-      console.log('البيانات المُصدَّرة:', exportText);
-      
-      Alert.alert(
-        'تم التصدير بنجاح', 
-        'تم تصدير بيانات الجدول بنجاح. يمكنك العثور على الملف في مجلد التحميلات.',
-        [{ text: 'موافق', style: 'default' }]
+      // تعديل عرض الأعمدة
+      const wscols = [
+        {wch: 20}, // اسم المتعلم
+        {wch: 10}, // الصف
+        {wch: 10}, // الحالة
+        {wch: 10}, // عدد الخطط
+        {wch: 12}, // متوسط التقدم
+        {wch: 30}, // الأهداف
+        {wch: 30}, // الاحتياجات
+        {wch: 30}, // الشواهد
+        {wch: 15}, // آخر تحديث
+      ];
+      studentsSheet['!cols'] = wscols;
+
+      XLSX.utils.book_append_sheet(workbook, studentsSheet, 'تفاصيل المتعلمين');
+
+      // إنشاء ورقة تفاصيل الخطط
+      const plansHeaders = [
+        ['اسم المتعلم', 'عنوان الخطة', 'الحالة', 'نسبة التقدم', 'الأهداف', 'الاحتياجات', 'الشواهد', 'تاريخ البدء', 'تاريخ الانتهاء', 'ملاحظات']
+      ];
+      const plansData = data.students.flatMap(student => 
+        (student.remedialPlans || []).map(plan => [
+          student.name,
+          plan.title || '-',
+          plan.status || '-',
+          `${plan.progress || 0}%`,
+          plan.goals?.join('، ') || '-',
+          plan.needs?.join('، ') || '-',
+          plan.evidence?.join('، ') || '-',
+          plan.startDate || '-',
+          plan.endDate || '-',
+          plan.notes || '-'
+        ])
       );
+
+      const plansSheet = XLSX.utils.aoa_to_sheet([...plansHeaders, ...plansData]);
+      
+      // تعديل عرض الأعمدة للخطط
+      const plansCols = [
+        {wch: 20}, // اسم المتعلم
+        {wch: 25}, // عنوان الخطة
+        {wch: 10}, // الحالة
+        {wch: 12}, // نسبة التقدم
+        {wch: 30}, // الأهداف
+        {wch: 30}, // الاحتياجات
+        {wch: 30}, // الشواهد
+        {wch: 15}, // تاريخ البدء
+        {wch: 15}, // تاريخ الانتهاء
+        {wch: 30}, // ملاحظات
+      ];
+      plansSheet['!cols'] = plansCols;
+
+      XLSX.utils.book_append_sheet(workbook, plansSheet, 'تفاصيل الخطط');
+
+      // تحويل الملف إلى صيغة ثنائية
+      const wbout = XLSX.write(workbook, { type: 'base64', bookType: 'xlsx' });
+      
+      // حفظ الملف مؤقتاً
+      const timestamp = new Date().toISOString().replace(/[:.]/g, '-');
+      const fileName = `الخطط_العلاجية_${timestamp}.xlsx`;
+      const filePath = `${FileSystem.cacheDirectory}${fileName}`;
+      
+      await FileSystem.writeAsStringAsync(filePath, wbout, {
+        encoding: FileSystem.EncodingType.Base64
+      });
+
+      return filePath;
     } catch (error) {
-      console.error('خطأ في التصدير:', error);
-      Alert.alert('خطأ', 'حدث خطأ أثناء تصدير البيانات');
+      console.error('خطأ في إنشاء ملف الإكسل:', error);
+      throw error;
     }
   };
 
+  const generatePDFContent = async (data: any) => {
+    const htmlContent = `
+      <!DOCTYPE html>
+      <html dir="rtl" lang="ar">
+      <head>
+        <meta charset="UTF-8">
+        <style>
+          @page { margin: 1cm; }
+          body { 
+            font-family: Arial, sans-serif;
+            direction: rtl;
+            padding: 20px;
+          }
+          .header {
+            text-align: center;
+            margin-bottom: 30px;
+            border-bottom: 2px solid #4CAF50;
+            padding-bottom: 20px;
+          }
+          .title {
+            font-size: 24px;
+            color: #4CAF50;
+            margin-bottom: 10px;
+          }
+          .stats {
+            margin: 20px 0;
+            padding: 15px;
+            background-color: #f5f5f5;
+            border-radius: 8px;
+          }
+          .stats-title {
+            font-size: 18px;
+            color: #333;
+            margin-bottom: 15px;
+            border-bottom: 1px solid #ddd;
+            padding-bottom: 5px;
+          }
+          .table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+            background-color: white;
+            font-size: 12px;
+          }
+          .table th {
+            background-color: #4CAF50;
+            color: white;
+            padding: 12px 8px;
+            text-align: right;
+            font-weight: bold;
+          }
+          .table td {
+            padding: 8px;
+            border: 1px solid #ddd;
+            word-wrap: break-word;
+          }
+          .table tr:nth-child(even) {
+            background-color: #f9f9f9;
+          }
+          .section {
+            margin-top: 30px;
+            page-break-before: always;
+          }
+          .long-text {
+            max-width: 200px;
+            word-wrap: break-word;
+          }
+        </style>
+      </head>
+      <body>
+        <div class="header">
+          <h1 class="title">تقرير الخطط العلاجية</h1>
+          <p>تاريخ التقرير: ${new Date().toLocaleDateString('ar-SA')}</p>
+        </div>
+
+        <div class="stats">
+          <h2 class="stats-title">الإحصائيات العامة</h2>
+          <p>• إجمالي المتعلمين: ${data.students.length}</p>
+          <p>• لديهم خطط علاجية: ${data.students.filter(s => s.remedialPlans && s.remedialPlans.length > 0).length}</p>
+          <p>• الخطط النشطة: ${data.activePlans}</p>
+          <p>• الخطط المكتملة: ${data.completedPlans}</p>
+          <p>• الخطط المعلقة: ${data.pendingPlans}</p>
+        </div>
+
+        <h2 class="stats-title">تفاصيل المتعلمين</h2>
+        <table class="table">
+          <thead>
+            <tr>
+              <th>اسم المتعلم</th>
+              <th>الصف</th>
+              <th>الحالة</th>
+              <th>عدد الخطط</th>
+              <th>متوسط التقدم</th>
+              <th>الأهداف</th>
+              <th>الاحتياجات</th>
+              <th>الشواهد</th>
+              <th>آخر تحديث</th>
+            </tr>
+          </thead>
+          <tbody>
+            ${data.students.map(student => `
+              <tr>
+                <td>${student.name}</td>
+                <td>${student.grade}</td>
+                <td>${student.status}</td>
+                <td>${student.remedialPlans?.length || 0}</td>
+                <td>${student.averageProgress || 0}%</td>
+                <td class="long-text">${(student as any).goals?.join('، ') || '-'}</td>
+                <td class="long-text">${(student as any).needs?.join('، ') || '-'}</td>
+                <td class="long-text">${(student as any).evidence?.join('، ') || '-'}</td>
+                <td>${student.lastUpdate || '-'}</td>
+              </tr>
+            `).join('')}
+          </tbody>
+        </table>
+
+        <div class="section">
+          <h2 class="stats-title">تفاصيل الخطط</h2>
+          <table class="table">
+            <thead>
+              <tr>
+                <th>اسم المتعلم</th>
+                <th>عنوان الخطة</th>
+                <th>الحالة</th>
+                <th>نسبة التقدم</th>
+                <th>الأهداف</th>
+                <th>الاحتياجات</th>
+                <th>الشواهد</th>
+                <th>تاريخ البدء</th>
+                <th>تاريخ الانتهاء</th>
+                <th>ملاحظات</th>
+              </tr>
+            </thead>
+            <tbody>
+              ${data.students.flatMap(student => 
+                (student.remedialPlans || []).map(plan => `
+                  <tr>
+                    <td>${student.name}</td>
+                    <td>${plan.title || '-'}</td>
+                    <td>${plan.status || '-'}</td>
+                    <td>${plan.progress || 0}%</td>
+                    <td class="long-text">${plan.goals?.join('، ') || '-'}</td>
+                    <td class="long-text">${plan.needs?.join('، ') || '-'}</td>
+                    <td class="long-text">${plan.evidence?.join('، ') || '-'}</td>
+                    <td>${plan.startDate || '-'}</td>
+                    <td>${plan.endDate || '-'}</td>
+                    <td class="long-text">${plan.notes || '-'}</td>
+                  </tr>
+                `).join('')
+              )}
+            </tbody>
+          </table>
+        </div>
+      </body>
+      </html>
+    `;
+
+    try {
+      const { uri } = await Print.printToFileAsync({
+        html: htmlContent,
+        base64: false,
+        width: 842, // A4 width in points
+        height: 595, // A4 height in points
+      });
+      return uri;
+    } catch (error) {
+      console.error('خطأ في إنشاء ملف PDF:', error);
+      throw error;
+    }
+  };
+
+  const exportTableData = async (data: any) => {
+    Alert.alert(
+      'تحميل الجدول',
+      'اختر نوع الملف المطلوب',
+      [
+        {
+          text: 'إلغاء',
+          style: 'cancel',
+        },
+        {
+          text: 'Excel ملف',
+          onPress: async () => {
+            try {
+              // إضافة متوسط التقدم لكل طالب
+              data.students = data.students.map(student => ({
+                ...student,
+                averageProgress: student.remedialPlans?.length 
+                  ? Math.round(student.remedialPlans.reduce((total, plan) => total + plan.progress, 0) / student.remedialPlans.length)
+                  : 0
+              }));
+
+              const filePath = await generateExcelFile(data);
+              
+              if (await Sharing.isAvailableAsync()) {
+                await Sharing.shareAsync(filePath, {
+                  mimeType: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+                  dialogTitle: 'حفظ ملف Excel',
+                  UTI: 'com.microsoft.excel.xlsx'
+                });
+              }
+            } catch (error) {
+              console.error('خطأ في تحميل Excel:', error);
+              Alert.alert('خطأ', 'حدث خطأ أثناء إنشاء ملف Excel');
+            }
+          },
+          style: 'default',
+        },
+        {
+          text: 'PDF ملف',
+          onPress: async () => {
+            try {
+              // إضافة متوسط التقدم لكل طالب
+              data.students = data.students.map(student => ({
+                ...student,
+                averageProgress: student.remedialPlans?.length 
+                  ? Math.round(student.remedialPlans.reduce((total, plan) => total + plan.progress, 0) / student.remedialPlans.length)
+                  : 0
+              }));
+
+              const pdfUri = await generatePDFContent(data);
+              
+              if (await Sharing.isAvailableAsync()) {
+                await Sharing.shareAsync(pdfUri, {
+                  mimeType: 'application/pdf',
+                  dialogTitle: 'حفظ ملف PDF',
+                  UTI: 'com.adobe.pdf'
+                });
+              }
+            } catch (error) {
+              console.error('خطأ في تحميل PDF:', error);
+              Alert.alert('خطأ', 'حدث خطأ أثناء إنشاء ملف PDF');
+            }
+          },
+          style: 'default',
+        },
+      ],
+      { cancelable: true }
+    );
+  };
+
+  // حذف مصفوفة statusCategories
+  // const statusCategories = [
+  //   { key: 'جميع الحالات', label: 'جميع الحالات', color: '#666', icon: 'list.bullet' }
+  // ];
+
+  // حذف دالة getStudentsByStatus
+  // const getStudentsByStatus = (status: string) => {
+  //   if (status === 'جميع الحالات') {
+  //     return students;
+  //   }
+  //   return students.filter(student => student.status === status);
+  // };
+
+  // حذف دالة getPlansByStatus
+  // const getPlansByStatus = (status: string) => {
+  //   if (status === 'جميع الحالات') {
+  //     return activePlans;
+  //   }
+  //   return activePlans.filter(plan => {
+  //     const student = students.find(s => s.name === plan.studentName);
+  //     return student && student.status === status;
+  //   });
+  // };
+
+  // دالة مساعدة للتحقق من وجود خطط للفئة المحددة
+  const getPlansForCategory = (category: string) => {
+    return students.filter(student => 
+      student.status === category && 
+      student.remedialPlans && 
+      student.remedialPlans.length > 0
+    ).length;
+  };
+
+  // تحديث تصيير الأزرار لعرض الجداول المنسدلة
+  const renderCategoryButtons = () => {
   return (
-    <ThemedView style={styles.container}>
-      <ImageBackground
-        source={require('@/assets/images/background.png')}
-        style={styles.backgroundImage}
-        resizeMode="cover"
-      >
-        <ExpoLinearGradient
-          colors={['rgba(255,255,255,0.9)', 'rgba(225,245,244,0.95)', 'rgba(173,212,206,0.8)']}
-          style={styles.gradientOverlay}
-        >
-          <KeyboardAvoidingView
-            style={{ flex: 1 }}
-            behavior={Platform.OS === 'ios' ? 'padding' : undefined}
-          >
-            <ScrollView 
-              style={styles.scrollContainer}
-              contentContainerStyle={{ flexGrow: 1 }}
+    <ThemedView style={styles.categoriesGrid}>
+      {categories.map((category, index) => {
+        const plansCount = getPlansForCategory(category.key);
+        const isExpanded = expandedCategory === category.key;
+        const categoryStudents = students.filter(student => 
+          student.status === category.key
+        );
+        
+        console.log('Rendering category:', category.key);
+        console.log('Is expanded:', isExpanded);
+        console.log('Students count:', categoryStudents.length);
+        
+        return (
+          <ThemedView key={category.key} style={styles.categoryWrapper}>
+            <TouchableOpacity
+              style={[
+                styles.categoryButton,
+                isExpanded && { backgroundColor: category.color },
+              ]}
+              onPress={() => {
+                console.log('Category button pressed:', category.key);
+                console.log('Current expanded category:', expandedCategory);
+                setExpandedCategory(isExpanded ? null : category.key);
+                setSelectedCategory(category.key);
+              }}
             >
-              <ThemedView style={styles.content}>
-                {/* Header */}
-                <ThemedView style={styles.header}>
-                  <TouchableOpacity 
-                    style={styles.backButton}
-                    onPress={() => router.push('/(tabs)')}
-                  >
-                    <IconSymbol size={20} name="arrow.right" color="#1c1f33" />
-                  </TouchableOpacity>
+              <IconSymbol 
+                size={24} 
+                name={category.icon as any} 
+                color={isExpanded ? '#fff' : category.color} 
+              />
+              <ThemedText style={[
+                styles.categoryText,
+                isExpanded && styles.selectedCategoryText
+              ]}>
+                {category.label}
+              </ThemedText>
+              <ThemedView style={[
+                styles.categoryCount,
+                isExpanded && { backgroundColor: '#ffffff33' }
+              ]}>
+                <ThemedText style={[
+                  styles.categoryCountText,
+                  isExpanded && { color: '#fff' }
+                ]}>
+                  {plansCount}
+                </ThemedText>
+              </ThemedView>
+              <IconSymbol 
+                size={20} 
+                name={isExpanded ? "chevron.up" : "chevron.down"} 
+                color={isExpanded ? '#fff' : '#666'} 
+                style={styles.expandIcon}
+              />
+            </TouchableOpacity>
 
-                  <ThemedView style={styles.iconContainer}>
-                    <IconSymbol size={60} name="heart.text.square" color="#F44336" />
-                  </ThemedView>
-
-                  <ThemedText type="title" style={styles.title}>
-                    إدارة الخطط العلاجية
-                  </ThemedText>
-                  <ThemedText style={styles.subtitle}>
-                    متابعة وإدارة الخطط العلاجية للمتعلمين
-                  </ThemedText>
-                </ThemedView>
-
-                {/* Main Statistics */}
-                <ThemedView style={styles.statsContainer}>
-                  <ThemedView style={[styles.statCard, { backgroundColor: '#E8F5E8' }]}>
-                    <IconSymbol size={24} name="play.circle.fill" color="#4CAF50" />
-                    <ThemedText style={styles.statNumber}>
-                      {activePlans.filter(plan => plan.status === 'نشط').length}
-                    </ThemedText>
-                    <ThemedText style={styles.statLabel}>خطط نشطة</ThemedText>
-                  </ThemedView>
-
-                  <ThemedView style={[styles.statCard, { backgroundColor: '#E3F2FD' }]}>
-                    <IconSymbol size={24} name="checkmark.circle.fill" color="#2196F3" />
-                    <ThemedText style={styles.statNumber}>
-                      {activePlans.filter(plan => plan.status === 'مكتمل').length}
-                    </ThemedText>
-                    <ThemedText style={styles.statLabel}>خطط مكتملة</ThemedText>
-                  </ThemedView>
-
-                  <ThemedView style={[styles.statCard, { backgroundColor: '#FFF3E0' }]}>
-                    <IconSymbol size={24} name="pause.circle.fill" color="#FF9800" />
-                    <ThemedText style={styles.statNumber}>
-                      {activePlans.filter(plan => plan.status === 'معلق').length}
-                    </ThemedText>
-                    <ThemedText style={styles.statLabel}>خطط معلقة</ThemedText>
-                  </ThemedView>
-                </ThemedView>
-
-                
-
-                
-
-                {/* Students Details Table */}
-                {students.length > 0 && (
-                  <ThemedView style={styles.studentsTable}>
+            {isExpanded && categoryStudents.length > 0 && (
+              <ThemedView style={styles.expandedContent}>
+            <ScrollView 
+                  horizontal={true}
+                  style={styles.tableScrollView}
+                  contentContainerStyle={styles.tableScrollViewContent}
+                  showsHorizontalScrollIndicator={true}
+                >
+                  <ThemedView style={styles.tableContainer}>
+                    {/* عنوان الجدول مع زر التحميل */}
                     <ThemedView style={styles.tableHeaderSection}>
-                      <TouchableOpacity 
-                        style={styles.exportButton}
-                        onPress={exportTableData}
+                      <ThemedText style={styles.tableTitle}>
+                        {category.label}
+                      </ThemedText>
+                  <TouchableOpacity 
+                        style={styles.downloadButton}
+                        onPress={() => {
+                          // تحضير البيانات للفئة الحالية فقط
+                          const categoryData = {
+                            students: students.filter(s => s.status === category.key),
+                            activePlans: students
+                              .filter(s => s.status === category.key)
+                              .reduce((total, student) => 
+                                total + (student.remedialPlans?.filter(plan => plan.status === 'نشط').length || 0), 0),
+                            completedPlans: students
+                              .filter(s => s.status === category.key)
+                              .reduce((total, student) => 
+                                total + (student.remedialPlans?.filter(plan => plan.status === 'مكتمل').length || 0), 0),
+                            pendingPlans: students
+                              .filter(s => s.status === category.key)
+                              .reduce((total, student) => 
+                                total + (student.remedialPlans?.filter(plan => plan.status === 'معلق').length || 0), 0),
+                          };
+                          exportTableData(categoryData);
+                        }}
                       >
-                        <IconSymbol size={16} name="square.and.arrow.up" color="#1c1f33" />
-                        <ThemedText style={styles.exportButtonText}>تصدير الجدول</ThemedText>
-                      </TouchableOpacity>
+                        <IconSymbol size={16} name="arrow.down.circle" color="#1c1f33" />
+                        <ThemedText style={styles.downloadButtonText}>تحميل الجدول</ThemedText>
+                  </TouchableOpacity>
                     </ThemedView>
 
-                    {/* Table Header */}
-                    <ThemedView style={styles.tableContainer}>
-                      <ThemedView style={[styles.tableHeader, { direction: 'rtl' }]}>
-                        <ThemedText style={[styles.tableHeaderText, { flex: 2 }]}>اسم المتعلم</ThemedText>
-                        <ThemedText style={[styles.tableHeaderText, { flex: 1.5 }]}>الصف</ThemedText>
-                        <ThemedText style={[styles.tableHeaderText, { flex: 1.5 }]}>الحالة</ThemedText>
-                        <ThemedText style={[styles.tableHeaderText, { flex: 1 }]}>التقدم</ThemedText>
-                        <ThemedText style={[styles.tableHeaderText, { flex: 1.5 }]}>الاحتياجات</ThemedText>
-                        <ThemedText style={[styles.tableHeaderText, { flex: 1.5 }]}>الشواهد</ThemedText>
+                    {/* رأس الجدول */}
+                    <ThemedView style={[styles.tableHeader, { direction: 'rtl' }]}>
+                      {/* الملاحظات - أقصى اليسار */}
+                      <ThemedView style={[styles.headerCell, { minWidth: 200, flex: 2 }]}>
+                        <ThemedText style={styles.headerCellText}>الملاحظات</ThemedText>
+                      </ThemedView>
+                      
+                      {/* الشواهد */}
+                      <ThemedView style={[styles.headerCell, { minWidth: 200, flex: 2 }]}>
+                        <ThemedText style={styles.headerCellText}>الشواهد</ThemedText>
                       </ThemedView>
 
-                      {/* Table Rows */}
-                      {students.map((student, index) => (
-                        <ThemedView key={student.id} style={[styles.tableRow, { backgroundColor: index % 2 === 0 ? '#F8F9FA' : '#FFFFFF', direction: 'rtl' }]}>
-                          {/* Student Name */}
-                          <ThemedView style={[styles.tableCell, { flex: 2 }]}>
-                            <ThemedText style={styles.tableCellText}>{student.name}</ThemedText>
+                      {/* الاحتياجات */}
+                      <ThemedView style={[styles.headerCell, { minWidth: 200, flex: 2 }]}>
+                        <ThemedText style={styles.headerCellText}>الاحتياجات</ThemedText>
+                      </ThemedView>
+
+                      {/* مدى تحقق الهدف */}
+                      <ThemedView style={[styles.headerCell, { minWidth: 120, flex: 1.5 }]}>
+                        <ThemedText style={styles.headerCellText}>مدى تحقق الهدف</ThemedText>
+                      </ThemedView>
+
+                      {/* الأهداف */}
+                      <ThemedView style={[styles.headerCell, { minWidth: 200, flex: 2 }]}>
+                        <ThemedText style={styles.headerCellText}>الأهداف</ThemedText>
+                      </ThemedView>
+                      
+                      {/* الصف الدراسي */}
+                      <ThemedView style={[styles.headerCell, { minWidth: 100, flex: 1 }]}>
+                        <ThemedText style={styles.headerCellText}>الصف الدراسي</ThemedText>
+                      </ThemedView>
+
+                      {/* اسم المتعلم - أقصى اليمين */}
+                      <ThemedView style={[styles.headerCell, { minWidth: 150, flex: 2 }]}>
+                        <ThemedText style={styles.headerCellText}>اسم المتعلم</ThemedText>
+                      </ThemedView>
+                    </ThemedView>
+
+                    {/* محتوى الجدول */}
+                    <ScrollView style={styles.tableBodyScroll}>
+                      {categoryStudents.map((student, index) => (
+                        <ThemedView 
+                          key={student.id} 
+                          style={[
+                            styles.tableRow,
+                            { backgroundColor: index % 2 === 0 ? '#F8F9FA' : '#FFFFFF' }
+                          ]}
+                        >
+                          {/* الملاحظات - أقصى اليسار */}
+                          <ThemedView style={[styles.cell, { minWidth: 200, flex: 2 }]}>
+                            <ThemedText style={styles.tableCellText} numberOfLines={2}>
+                              {student.notes || '-'}
+                            </ThemedText>
                           </ThemedView>
 
-                          {/* Grade */}
-                          <ThemedView style={[styles.tableCell, { flex: 1.5 }]}>
-                            <ThemedText style={styles.tableCellText}>{student.grade}</ThemedText>
+                          {/* الشواهد */}
+                          <ThemedView style={[styles.cell, { minWidth: 200, flex: 2 }]}>
+                            {student.evidence && student.evidence.length > 0 ? (
+                              <ThemedView>
+                                <ThemedText style={styles.itemCount}>
+                                  {student.evidence.length} شواهد
+                                </ThemedText>
+                                <ThemedText style={styles.itemPreview} numberOfLines={2}>
+                                  {student.evidence.join('، ')}
+                                </ThemedText>
+                              </ThemedView>
+                            ) : (
+                              <ThemedText style={styles.tableCellText}>-</ThemedText>
+                            )}
                           </ThemedView>
 
-                          {/* Status */}
-                          <ThemedView style={[styles.tableCell, { flex: 1.5 }]}>
-                            <ThemedView style={[styles.statusBadgeSmall, { backgroundColor: getStatusColor(student.status) }]}>
-                              <ThemedText style={styles.statusTextSmall}>{student.status}</ThemedText>
-                            </ThemedView>
+                          {/* الاحتياجات */}
+                          <ThemedView style={[styles.cell, { minWidth: 200, flex: 2 }]}>
+                            {student.needs && student.needs.length > 0 ? (
+                              <ThemedView>
+                                <ThemedText style={styles.itemCount}>
+                                  {student.needs.length} احتياج
+                                </ThemedText>
+                                <ThemedText style={styles.itemPreview} numberOfLines={2}>
+                                  {student.needs.join('، ')}
+                                </ThemedText>
+                              </ThemedView>
+                            ) : (
+                              <ThemedText style={styles.tableCellText}>-</ThemedText>
+                            )}
                           </ThemedView>
 
-                          {/* Progress */}
-                          <ThemedView style={[styles.tableCell, { flex: 1 }]}>
-                            {student.remedialPlans && student.remedialPlans.length > 0 ? (
+                          {/* مدى تحقق الهدف */}
+                          <ThemedView style={[styles.cell, { minWidth: 120, flex: 1.5 }]}>
+                            {student.goals && student.goals.length > 0 ? (
                               <ThemedView style={styles.progressContainer}>
                                 <ThemedText style={styles.progressText}>
-                                  {Math.round(student.remedialPlans.reduce((total, plan) => total + plan.progress, 0) / student.remedialPlans.length)}%
+                                  {Math.round(student.goals.reduce((sum, goal) => sum + goal.progress, 0) / student.goals.length)}%
                                 </ThemedText>
-                                <ThemedView style={styles.miniProgressBar}>
+                                <ThemedView style={styles.progressBar}>
                                   <ThemedView 
                                     style={[
-                                      styles.miniProgressFill,
+                                      styles.progressFill,
                                       { 
-                                        width: `${Math.round(student.remedialPlans.reduce((total, plan) => total + plan.progress, 0) / student.remedialPlans.length)}%`,
-                                        backgroundColor: getStatusColor(student.status)
+                                        width: `${Math.round(student.goals.reduce((sum, goal) => sum + goal.progress, 0) / student.goals.length)}%`,
+                                        backgroundColor: category.color
                                       }
                                     ]}
                                   />
@@ -287,131 +742,139 @@ export default function RemedialPlansScreen() {
                             )}
                           </ThemedView>
 
-                          {/* Needs */}
-                          <ThemedView style={[styles.tableCell, { flex: 1.5 }]}>
-                            {(student as any).needs && (student as any).needs.length > 0 ? (
-                              <ThemedView style={styles.needsContainer}>
-                                <ThemedText style={styles.needsCount}>
-                                  {(student as any).needs.length} احتياج
+                          {/* الأهداف */}
+                          <ThemedView style={[styles.cell, { minWidth: 200, flex: 2 }]}>
+                            {student.goals && student.goals.length > 0 ? (
+                              <ThemedView>
+                                <ThemedText style={styles.itemCount}>
+                                  {student.goals.length} أهداف
                                 </ThemedText>
-                                <ThemedText style={styles.needsPreview} numberOfLines={2}>
-                                  {(student as any).needs.slice(0, 2).join('، ')}
-                                  {(student as any).needs.length > 2 ? '...' : ''}
+                                <ThemedText style={styles.itemPreview} numberOfLines={2}>
+                                  {student.goals.map(goal => goal.text).join('، ')}
                                 </ThemedText>
-                              </ThemedView>
+                            </ThemedView>
                             ) : (
-                              <ThemedText style={styles.tableCellText}>لا يوجد</ThemedText>
+                              <ThemedText style={styles.tableCellText}>-</ThemedText>
                             )}
                           </ThemedView>
 
-                          {/* Evidence */}
-                          <ThemedView style={[styles.tableCell, { flex: 1.5 }]}>
-                            {student.performanceEvidence && student.performanceEvidence.length > 0 ? (
-                              <ThemedView style={styles.evidenceContainer}>
-                                <ThemedText style={styles.evidenceCount}>
-                                  {student.performanceEvidence.length} شاهد
-                                </ThemedText>
-                                <ThemedText style={styles.evidencePreview} numberOfLines={2}>
-                                  {student.performanceEvidence.slice(0, 2).map(evidence => evidence.title).join('، ')}
-                                  {student.performanceEvidence.length > 2 ? '...' : ''}
-                                </ThemedText>
-                              </ThemedView>
-                            ) : (
-                              <ThemedText style={styles.tableCellText}>لا يوجد</ThemedText>
-                            )}
+                          {/* الصف الدراسي */}
+                          <ThemedView style={[styles.cell, { minWidth: 100, flex: 1 }]}>
+                            <ThemedText style={styles.tableCellText}>{student.grade}</ThemedText>
+                          </ThemedView>
+
+                          {/* اسم المتعلم - أقصى اليمين */}
+                          <ThemedView style={[styles.cell, { minWidth: 150, flex: 2 }]}>
+                            <TouchableOpacity 
+                              style={styles.studentNameButton}
+                              onPress={() => {
+                                AsyncStorage.setItem('selectedStudentId', student.id)
+                                  .then(() => router.push('/student-tracking'))
+                                  .catch(error => {
+                                    console.error('Error saving selected student:', error);
+                                    Alert.alert('خطأ', 'حدث خطأ أثناء فتح بطاقة المتعلم');
+                                  });
+                              }}
+                            >
+                              <ThemedText style={styles.studentNameText}>
+                                {student.name}
+                              </ThemedText>
+                              <IconSymbol size={16} name="chevron.left" color="#2196F3" />
+                            </TouchableOpacity>
                           </ThemedView>
                         </ThemedView>
                       ))}
+                    </ScrollView>
                     </ThemedView>
-
-                    {/* Table Summary */}
-                    <ThemedView style={styles.tableSummary}>
-                      <ThemedView style={styles.summaryItem}>
-                        <ThemedText style={styles.summaryLabel}>إجمالي المتعلمين:</ThemedText>
-                        <ThemedText style={styles.summaryValue}>{students.length}</ThemedText>
+                </ScrollView>
                       </ThemedView>
-                      <ThemedView style={styles.summaryItem}>
-                        <ThemedText style={styles.summaryLabel}>لديهم خطط علاجية:</ThemedText>
-                        <ThemedText style={styles.summaryValue}>
-                          {students.filter(s => s.remedialPlans && s.remedialPlans.length > 0).length}
-                        </ThemedText>
+            )}
                       </ThemedView>
-                      <ThemedView style={styles.summaryItem}>
-                        <ThemedText style={styles.summaryLabel}>إجمالي الخطط النشطة:</ThemedText>
-                        <ThemedText style={styles.summaryValue}>
-                          {students.reduce((total, student) => 
-                            total + (student.remedialPlans?.filter(plan => plan.status === 'نشط').length || 0), 0
-                          )}
-                        </ThemedText>
-                      </ThemedView>
+        );
+      })}
                     </ThemedView>
-                  </ThemedView>
-                )}
+    );
+  };
 
-                {/* Plans List or Empty State */}
-                {activePlans.length === 0 ? (
-                  <ThemedView style={styles.emptyState}>
-                    <ThemedText style={styles.emptySubtitle}>
-                      يمكنك متابعة تفاصيل المتعلمين من الجدول أعلاه
-                    </ThemedText>
-                  </ThemedView>
-                ) : (
-                  <ThemedView style={styles.plansSection}>
-                    <ThemedText style={styles.sectionTitle}>الخطط العلاجية</ThemedText>
+  return (
+    <ThemedView style={styles.container}>
+      <ImageBackground
+        source={require('@/assets/images/background.png')}
+        style={styles.backgroundImage}
+        resizeMode="cover"
+      >
+                  <ScrollView 
+          style={styles.scrollView}
+          contentContainerStyle={{ flexGrow: 1 }}
+          showsVerticalScrollIndicator={false}
+        >
+          <KeyboardAvoidingView
+            style={{ flex: 1 }}
+            behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+          >
+            <ThemedView style={styles.content}>
+              {/* Header */}
+              <ThemedView style={styles.header}>
+                    <TouchableOpacity 
+                  style={styles.backButton}
+                  onPress={() => router.push('/student-tracking')}
+                    >
+                  <IconSymbol size={20} name="chevron.left" color="#1c1f33" />
+                    </TouchableOpacity>
 
-                    {activePlans.map((plan) => (
-                      <ThemedView key={plan.id} style={styles.planCard}>
-                        <ThemedView style={styles.planHeader}>
-                          <ThemedView style={styles.planIconWrapper}>
-                            <IconSymbol 
-                              size={24} 
-                              name={getStatusIcon(plan.status)} 
-                              color={getStatusColor(plan.status)} 
-                            />
-                          </ThemedView>
-                          <ThemedView style={[styles.statusBadge, { backgroundColor: getStatusColor(plan.status) }]}>
-                            <ThemedText style={styles.statusText}>{plan.status}</ThemedText>
-                          </ThemedView>
+                <ThemedView style={styles.iconContainer}>
+                  <IconSymbol size={60} name="doc.text.fill" color="#1c1f33" />
+                    </ThemedView>
+                <ThemedText type="title" style={styles.title}>
+                  إدارة الخطط العلاجية
+                </ThemedText>
+                <ThemedText style={styles.subtitle}>
+                  متابعة وإدارة الخطط العلاجية للمتعلمين
+                </ThemedText>
                         </ThemedView>
 
-                        <ThemedText style={styles.planTitle}>{plan.title}</ThemedText>
-                        <ThemedText style={styles.studentName}>المتعلم: {plan.studentName}</ThemedText>
-                        <ThemedText style={styles.targetArea}>المجال المستهدف: {plan.targetArea}</ThemedText>
-                        <ThemedText style={styles.planDescription}>{plan.description}</ThemedText>
-
-                        {/* Progress Bar */}
-                        <ThemedView style={styles.progressSection}>
-                          <ThemedView style={styles.progressInfo}>
-                            <ThemedText style={styles.progressLabel}>
-                              التقدم: {plan.progress}%
-                            </ThemedText>
-                          </ThemedView>
-                          <ThemedView style={styles.progressBar}>
-                            <ThemedView 
-                              style={[
-                                styles.progressFill,
-                                { 
-                                  width: `${plan.progress}%`,
-                                  backgroundColor: getStatusColor(plan.status)
-                                }
-                              ]}
-                            />
-                          </ThemedView>
+              {/* Main Statistics */}
+              <ThemedView style={styles.statsContainer}>
+                <ThemedView style={[styles.statCard, { backgroundColor: '#E8F5E8' }]}>
+                  <IconSymbol size={24} name="play.circle.fill" color="#4CAF50" />
+                  <ThemedText style={styles.statNumber}>
+                    {activePlans.filter(plan => plan.status === 'نشط').length}
+                  </ThemedText>
+                  <ThemedText style={styles.statLabel}>خطط نشطة</ThemedText>
                         </ThemedView>
 
-                        <ThemedView style={styles.planFooter}>
-                          <ThemedText style={styles.planDates}>
-                            من {plan.startDate} إلى {plan.endDate}
-                          </ThemedText>
+                <ThemedView style={[styles.statCard, { backgroundColor: '#E3F2FD' }]}>
+                  <IconSymbol size={24} name="checkmark.circle.fill" color="#2196F3" />
+                  <ThemedText style={styles.statNumber}>
+                    {activePlans.filter(plan => plan.status === 'مكتمل').length}
+                  </ThemedText>
+                  <ThemedText style={styles.statLabel}>خطط مكتملة</ThemedText>
                         </ThemedView>
-                      </ThemedView>
-                    ))}
+
+                <ThemedView style={[styles.statCard, { backgroundColor: '#FFF3E0' }]}>
+                  <IconSymbol size={24} name="pause.circle.fill" color="#FF9800" />
+                  <ThemedText style={styles.statNumber}>
+                    {activePlans.filter(plan => plan.status === 'معلق').length}
+                  </ThemedText>
+                  <ThemedText style={styles.statLabel}>خطط معلقة</ThemedText>
+                        </ThemedView>
+
+                <ThemedView style={[styles.statCard, { backgroundColor: '#F3E5F5' }]}>
+                  <IconSymbol size={24} name="person.2.fill" color="#9C27B0" />
+                  <ThemedText style={styles.statNumber}>
+                    {students.length}
+                      </ThemedText>
+                  <ThemedText style={styles.statLabel}>إجمالي المتعلمين</ThemedText>
                   </ThemedView>
-                )}
+                </ThemedView>
+
+              {/* Categories */}
+              <ThemedView style={styles.categoriesContainer}>
+                {renderCategoryButtons()}
               </ThemedView>
-            </ScrollView>
+            </ThemedView>
           </KeyboardAvoidingView>
-        </ExpoLinearGradient>
+        </ScrollView>
       </ImageBackground>
       <BottomNavigationBar />
     </ThemedView>
@@ -421,86 +884,86 @@ export default function RemedialPlansScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
+    direction: 'rtl',
   },
   backgroundImage: {
     flex: 1,
     width: '100%',
     height: '100%',
   },
+  scrollView: {
+    flex: 1,
+  },
   gradientOverlay: {
     flex: 1,
   },
   scrollContainer: {
     flex: 1,
+    backgroundColor: 'transparent',
   },
   content: {
     flex: 1,
-    paddingHorizontal: 0,
-    paddingVertical: 10,
-    backgroundColor: 'transparent',
+    padding: 16,
+    direction: 'rtl',
   },
   header: {
-    padding: 20,
+    paddingHorizontal: 20,
+    paddingTop: 60,
+    paddingBottom: 20,
     alignItems: 'center',
-    position: 'relative',
+    direction: 'rtl',
   },
   backButton: {
     position: 'absolute',
-    top: Platform.OS === 'ios' ? 60 : 50,
+    top: 60,
     left: 20,
-    backgroundColor: '#add4ce',
     width: 40,
     height: 40,
     borderRadius: 20,
-    justifyContent: 'center',
+    backgroundColor: '#FFFFFF',
     alignItems: 'center',
+    justifyContent: 'center',
     shadowColor: '#000',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.2,
-    shadowRadius: 8,
-    elevation: 8,
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    elevation: 3,
     zIndex: 1,
   },
   iconContainer: {
-    marginBottom: 20,
-    padding: 20,
-    backgroundColor: '#F8F9FA',
-    borderRadius: 50,
-    borderWidth: 1,
-    borderColor: '#E5E5EA',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 6 },
-    shadowOpacity: 0.25,
-    shadowRadius: 12,
-    elevation: 10,
+    marginBottom: 16,
+    alignItems: 'center',
+  },
+  headerIcon: {
+    transform: Platform.OS === 'android' ? [] : [{ rotateY: '180deg' }],
   },
   title: {
     fontSize: 28,
     fontWeight: 'bold',
-    textAlign: 'center',
-    marginBottom: 10,
     color: '#1c1f33',
+    marginBottom: 8,
+    textAlign: 'center',
     writingDirection: 'rtl',
   },
   subtitle: {
     fontSize: 16,
-    textAlign: 'center',
-    marginBottom: 30,
-    lineHeight: 24,
-    paddingHorizontal: 20,
     color: '#666666',
+    marginBottom: 24,
+    textAlign: 'center',
     writingDirection: 'rtl',
   },
   statsContainer: {
     flexDirection: 'row',
-    gap: 8,
-    marginBottom: 25,
-    paddingHorizontal: 20,
+    flexWrap: 'wrap',
+    gap: 10,
+    marginHorizontal: 20,
+    marginBottom: 20,
   },
   statCard: {
     flex: 1,
+    minWidth: '23%',
     alignItems: 'center',
-    padding: 12,
+    padding: 15,
     borderRadius: 12,
     borderWidth: 1,
     borderColor: '#E5E5EA',
@@ -511,17 +974,15 @@ const styles = StyleSheet.create({
     elevation: 3,
   },
   statNumber: {
-    fontSize: 18,
+    fontSize: 24,
     fontWeight: 'bold',
-    marginTop: 6,
-    color: '#000000',
+    color: '#1c1f33',
+    marginVertical: 8,
   },
   statLabel: {
-    fontSize: 10,
+    fontSize: 12,
     color: '#666666',
-    marginTop: 2,
     textAlign: 'center',
-    writingDirection: 'rtl',
   },
   actionButtons: {
     padding: 20,
@@ -531,31 +992,31 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: '#FFEBEE',
     paddingVertical: 15,
     paddingHorizontal: 25,
-    borderRadius: 25,
+    backgroundColor: 'rgba(255, 255, 255, 0.2)',
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: 'rgba(229, 229, 234, 0.4)',
     gap: 10,
     shadowColor: '#000',
-    shadowOffset: { width: 0, height: 6 },
-    shadowOpacity: 0.4,
-    shadowRadius: 12,
-    elevation: 12,
-    borderWidth: 1,
-    borderColor: '#F44336',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    elevation: 3,
   },
-  buttonText: {
-    color: '#F44336',
+  addButtonText: {
+    color: '#1c1f33',
     fontSize: 16,
-    fontWeight: '600',
+    fontWeight: 'bold',
     textAlign: 'center',
-    writingDirection: 'rtl',
   },
   emptyState: {
     alignItems: 'center',
     justifyContent: 'center',
     padding: 40,
     backgroundColor: 'transparent',
+    direction: 'rtl',
   },
   emptyIconContainer: {
     marginBottom: 20,
@@ -569,14 +1030,14 @@ const styles = StyleSheet.create({
     fontSize: 20,
     fontWeight: 'bold',
     color: '#333',
-    textAlign: 'center',
+    textAlign: 'right',
     marginBottom: 10,
     writingDirection: 'rtl',
   },
   emptySubtitle: {
     fontSize: 16,
     color: '#666',
-    textAlign: 'center',
+    textAlign: 'right',
     lineHeight: 24,
     writingDirection: 'rtl',
   },
@@ -677,6 +1138,7 @@ const styles = StyleSheet.create({
     backgroundColor: '#E5E5EA',
     borderRadius: 3,
     overflow: 'hidden',
+    marginTop: 4,
   },
   progressFill: {
     height: '100%',
@@ -812,46 +1274,37 @@ const styles = StyleSheet.create({
     backgroundColor: 'transparent',
   },
   tableContainer: {
-    backgroundColor: '#FFFFFF',
-    borderRadius: 15,
-    borderWidth: 1,
-    borderColor: '#E5E5EA',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.1,
-    shadowRadius: 8,
-    elevation: 5,
-    overflow: 'hidden',
+    width: '100%',
+    direction: 'rtl',
   },
   tableHeader: {
-    flexDirection: 'row',
-    backgroundColor: '#F0F9FF',
-    paddingVertical: 15,
-    paddingHorizontal: 10,
-    borderBottomWidth: 2,
-    borderBottomColor: '#0EA5E9',
+    flexDirection: 'row-reverse',
+    backgroundColor: '#F8F9FA',
+    paddingVertical: 12,
+    paddingHorizontal: 16,
+    borderBottomWidth: 1,
+    borderBottomColor: '#E5E5EA',
+    width: '100%',
   },
   tableHeaderText: {
-    fontSize: 12,
+    fontSize: 14,
     fontWeight: 'bold',
-    color: '#0EA5E9',
-    textAlign: 'center',
-    writingDirection: 'rtl',
+    color: '#1c1f33',
+    textAlign: 'right',
   },
   tableRow: {
-    flexDirection: 'row',
+    flexDirection: 'row-reverse',
     paddingVertical: 12,
-    paddingHorizontal: 10,
+    paddingHorizontal: 16,
     borderBottomWidth: 1,
-    borderBottomColor: '#F0F0F0',
-    minHeight: 60,
+    borderBottomColor: '#E5E5EA',
   },
   tableCell: {
     justifyContent: 'center',
-    paddingHorizontal: 5,
+    alignItems: 'flex-end',
   },
   tableCellText: {
-    fontSize: 12,
+    fontSize: 14,
     color: '#333',
     textAlign: 'right',
     writingDirection: 'rtl',
@@ -897,10 +1350,11 @@ const styles = StyleSheet.create({
     width: '100%',
   },
   progressText: {
-    fontSize: 10,
-    color: '#333',
-    marginBottom: 4,
-    textAlign: 'center',
+    fontSize: 12,
+    color: '#666666',
+    textAlign: 'right',
+    writingDirection: 'rtl',
+    marginBottom: 2,
   },
   miniProgressBar: {
     height: 4,
@@ -921,12 +1375,13 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
     color: '#666',
     marginBottom: 2,
-    textAlign: 'center',
+    textAlign: 'right',
+    writingDirection: 'rtl',
   },
   needsPreview: {
     fontSize: 9,
     color: '#999',
-    textAlign: 'center',
+    textAlign: 'right',
     writingDirection: 'rtl',
   },
   evidenceContainer: {
@@ -937,68 +1392,262 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
     color: '#666',
     marginBottom: 2,
-    textAlign: 'center',
+    textAlign: 'right',
+    writingDirection: 'rtl',
   },
   evidencePreview: {
     fontSize: 9,
     color: '#999',
-    textAlign: 'center',
+    textAlign: 'right',
     writingDirection: 'rtl',
   },
   tableSummary: {
     flexDirection: 'row',
     justifyContent: 'space-around',
     backgroundColor: '#F8F9FA',
+    paddingVertical: 16,
+    paddingHorizontal: 20,
     borderRadius: 12,
-    padding: 15,
-    marginTop: 15,
     borderWidth: 1,
     borderColor: '#E5E5EA',
   },
   summaryItem: {
-    alignItems: 'center',
+    alignItems: 'flex-end',
   },
   summaryLabel: {
-    fontSize: 11,
-    color: '#666',
-    marginBottom: 5,
-    textAlign: 'center',
+    fontSize: 12,
+    color: '#666666',
+    marginBottom: 4,
+    textAlign: 'right',
     writingDirection: 'rtl',
   },
   summaryValue: {
     fontSize: 16,
     fontWeight: 'bold',
     color: '#1c1f33',
-    textAlign: 'center',
+    textAlign: 'right',
+    writingDirection: 'rtl',
   },
   tableHeaderSection: {
-    flexDirection: 'row',
-    justifyContent: 'flex-start',
+    flexDirection: 'row-reverse',
+    justifyContent: 'space-between',
     alignItems: 'center',
-    marginBottom: 20,
-    paddingHorizontal: 5,
+    paddingHorizontal: 16,
+    paddingVertical: 12,
+    borderBottomWidth: 1,
+    borderBottomColor: '#E5E5EA',
+    backgroundColor: '#F8F9FA',
   },
-  exportButton: {
-    flexDirection: 'row',
+  tableTitle: {
+    fontSize: 16,
+    fontWeight: 'bold',
+    color: '#1c1f33',
+    textAlign: 'right',
+  },
+  downloadButton: {
+    flexDirection: 'row-reverse',
     alignItems: 'center',
-    backgroundColor: '#E8F5E8',
-    paddingVertical: 8,
+    backgroundColor: '#F0F0F0',
     paddingHorizontal: 12,
-    borderRadius: 20,
-    gap: 6,
+    paddingVertical: 6,
+    borderRadius: 6,
+  },
+  downloadButtonText: {
+    fontSize: 14,
+    color: '#1c1f33',
+    marginRight: 8,
+    fontWeight: '500',
+  },
+  plansTableContainer: {
+    marginTop: 20,
+    backgroundColor: '#FFFFFF',
+    borderRadius: 12,
+    overflow: 'hidden',
+    borderWidth: 1,
+    borderColor: '#E5E5EA',
+    marginHorizontal: 20,
+  },
+  studentNameButton: {
+    flexDirection: 'row-reverse',
+    alignItems: 'center',
+    justifyContent: 'flex-end',
+  },
+  studentNameText: {
+    color: '#2196F3',
+    textDecorationLine: 'underline',
+    marginLeft: 8,
+    textAlign: 'right',
+    writingDirection: 'rtl',
+  },
+  studentNameIcon: {
+    marginRight: 4,
+  },
+  goalsContainer: {
+    flex: 1,
+  },
+  goalsCount: {
+    fontSize: 12,
+    color: '#666',
+    marginBottom: 4,
+    textAlign: 'right',
+  },
+  goalsPreview: {
+    fontSize: 14,
+    color: '#333',
+    textAlign: 'right',
+  },
+  needsContainer: {
+    flex: 1,
+  },
+  needsCount: {
+    fontSize: 12,
+    color: '#666',
+    marginBottom: 4,
+    textAlign: 'right',
+  },
+  needsPreview: {
+    fontSize: 14,
+    color: '#333',
+    textAlign: 'right',
+  },
+  evidenceContainer: {
+    flex: 1,
+  },
+  evidenceCount: {
+    fontSize: 12,
+    color: '#666',
+    marginBottom: 4,
+    textAlign: 'right',
+  },
+  evidencePreview: {
+    fontSize: 14,
+    color: '#333',
+    textAlign: 'right',
+  },
+  categoriesContainer: {
+    paddingHorizontal: 20,
+    marginBottom: 20,
+    direction: 'rtl',
+  },
+  categoriesGrid: {
+    flexDirection: 'column',
+    gap: 10,
+    direction: 'rtl',
+  },
+  categoryButton: {
+    flexDirection: 'row-reverse',
+    alignItems: 'center',
+    justifyContent: 'flex-start',
+    paddingVertical: 15,
+    paddingHorizontal: 20,
+    borderRadius: 12,
+    backgroundColor: '#FFFFFF',
+    borderWidth: 1,
+    borderColor: '#E5E5EA',
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.1,
     shadowRadius: 4,
     elevation: 3,
-    borderWidth: 1,
-    borderColor: '#4CAF50',
+    width: '100%',
   },
-  exportButtonText: {
-    color: '#4CAF50',
-    fontSize: 12,
-    fontWeight: '600',
-    textAlign: 'center',
+  categoryButtonLeft: {
+    marginRight: 0,
+  },
+  categoryButtonTop: {
+    marginTop: 0,
+  },
+  categoryText: {
+    fontSize: 14,
+    fontWeight: 'bold',
+    color: '#1c1f33',
+    marginRight: 10,
+    marginLeft: 'auto',
+    textAlign: 'right',
     writingDirection: 'rtl',
   },
+  selectedCategoryText: {
+    color: '#FFFFFF',
+  },
+  categoryCount: {
+    backgroundColor: '#F0F0F0',
+    paddingHorizontal: 8,
+    paddingVertical: 4,
+    borderRadius: 12,
+    marginLeft: 10,
+  },
+  categoryCountText: {
+    fontSize: 12,
+    fontWeight: 'bold',
+    color: '#666666',
+  },
+  categoryWrapper: {
+    width: '100%',
+    marginBottom: 10,
+  },
+  expandIcon: {
+    marginRight: 10,
+  },
+  expandedContent: {
+    marginTop: 10,
+    backgroundColor: '#FFFFFF',
+    borderRadius: 12,
+    overflow: 'hidden',
+    borderWidth: 1,
+    borderColor: '#E5E5EA',
+    width: '100%',
+  },
+  headerCell: {
+    paddingHorizontal: 8,
+    paddingVertical: 10,
+    justifyContent: 'flex-end',
+    alignItems: 'center',
+  },
+  headerCellText: {
+    fontSize: 16,
+    fontWeight: 'bold',
+    color: '#000000',
+    textAlign: 'right',
+  },
+  itemCount: {
+    fontSize: 12,
+    color: '#666666',
+    marginBottom: 2,
+    textAlign: 'right',
+  },
+  itemPreview: {
+    fontSize: 14,
+    color: '#333333',
+    textAlign: 'right',
+  },
+  tableScrollView: {
+    width: '100%',
+  },
+  tableScrollViewContent: {
+    paddingBottom: 20,
+  },
+  tableContainer: {
+    minWidth: '100%',
+  },
+  tableBodyScroll: {
+    width: '100%',
+  },
+  cell: {
+    paddingHorizontal: 8,
+    paddingVertical: 6,
+    justifyContent: 'center',
+    alignItems: 'flex-end',
+  },
+  downloadButtonContainer: {
+    flexDirection: 'row-reverse',
+    alignItems: 'center',
+    alignSelf: 'flex-start',
+    backgroundColor: '#F0F0F0',
+    paddingHorizontal: 16,
+    paddingVertical: 8,
+    borderRadius: 8,
+    marginBottom: 16,
+    marginRight: 16,
+  },
 });
+

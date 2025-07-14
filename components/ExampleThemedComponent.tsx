@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { View, Text, TouchableOpacity } from 'react-native';
 import { useTheme } from '@/contexts/ThemeContext';
@@ -11,7 +10,7 @@ export default function MyComponent() {
       <Text style={{ color: colors.text }}>مرحبًا!</Text>
 
       <View style={{
-        backgroundColor: colors.card,
+        backgroundColor: colors.surface,
         padding: 20,
         borderRadius: 12,
         margin: 10,
@@ -22,13 +21,13 @@ export default function MyComponent() {
       </View>
 
       <TouchableOpacity style={{
-        backgroundColor: colors.buttonPrimary,
+        backgroundColor: colors.primary,
         padding: 12,
         borderRadius: 10,
         margin: 10,
         alignItems: 'center'
       }}>
-        <Text style={{ color: colors.buttonText }}>زر</Text>
+        <Text style={{ color: colors.text }}>زر</Text>
       </TouchableOpacity>
     </View>
   );

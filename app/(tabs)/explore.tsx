@@ -1,6 +1,6 @@
 import React from 'react';
 import { StyleSheet, ScrollView, TouchableOpacity, ImageBackground, Platform } from 'react-native';
-import { LinearGradient as ExpoLinearGradient } from 'expo-linear-gradient';
+
 import { ThemedText } from '@/components/ThemedText';
 import { ThemedView } from '@/components/ThemedView';
 import { IconSymbol } from '@/components/ui/IconSymbol';
@@ -16,10 +16,6 @@ export default function ExploreScreen() {
         style={styles.backgroundImage}
         resizeMode="cover"
       >
-        <ExpoLinearGradient
-          colors={['rgba(255,255,255,0.9)', 'rgba(225,245,244,0.95)', 'rgba(173,212,206,0.8)']}
-          style={styles.gradientOverlay}
-        >
           <ScrollView 
             style={styles.scrollContainer}
             contentContainerStyle={{ flexGrow: 1 }}
@@ -29,7 +25,7 @@ export default function ExploreScreen() {
                 style={styles.backButton}
                 onPress={() => router.back()}
               >
-                <IconSymbol size={20} name="arrow.right" color="#1c1f33" />
+                <IconSymbol size={20} name="chevron.left" color="#1c1f33" />
               </TouchableOpacity>
 
               <ThemedView style={styles.iconContainer}>
@@ -72,7 +68,7 @@ export default function ExploreScreen() {
                   onPress={() => router.push('/absence-management')}
                 >
                   <ThemedView style={styles.toolIconWrapper}>
-                    <IconSymbol size={28} name="calendar.badge.minus" color="#1c1f33" />
+                    <IconSymbol size={28} name="calendar.badge.exclamationmark" color="#1c1f33" />
                   </ThemedView>
                   <ThemedText style={styles.toolTitle}>إدارة غيابي</ThemedText>
                   <ThemedText style={styles.toolDescription}>تسجيل ومتابعة أيام الغياب الشخصية</ThemedText>
@@ -91,7 +87,6 @@ export default function ExploreScreen() {
               </ThemedView>
             </ThemedView>
           </ScrollView>
-        </ExpoLinearGradient>
       </ImageBackground>
     </ThemedView>
   );
@@ -159,6 +154,7 @@ const styles = StyleSheet.create({
     textAlign: 'center',
     writingDirection: 'rtl',
     color: '#000000',
+    backgroundColor: 'transparent',
   },
   subtitle: {
     fontSize: 16,
@@ -174,6 +170,7 @@ const styles = StyleSheet.create({
   toolsGrid: {
     flexDirection: 'column',
     gap: 15,
+    backgroundColor: 'transparent',
   },
   toolCard: {
     width: '100%',

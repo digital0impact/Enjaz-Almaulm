@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { StyleSheet, ScrollView, TouchableOpacity, TextInput, Alert, ImageBackground, KeyboardAvoidingView, Platform } from 'react-native';
-import { LinearGradient as ExpoLinearGradient } from 'expo-linear-gradient';
+
 import { ThemedText } from '@/components/ThemedText';
 import { ThemedView } from '@/components/ThemedView';
 import { IconSymbol } from '@/components/ui/IconSymbol';
@@ -14,7 +14,7 @@ interface Student {
   id: string;
   name: string;
   grade: string;
-  status: 'تفوق' | 'يحتاج إلى تطوير' | 'صعوبات التعلم' | 'ضعف';
+  status: 'تفوق' | 'يحتاج إلى تطوير' | 'صعوبات التعلم' | 'ضعف' | 'ممتاز' | 'مقبول';
   lastUpdate: string;
   notes: string;
   goals: Goal[];
@@ -56,7 +56,6 @@ export default function AddStudentScreen() {
   const [newGoal, setNewGoal] = useState({
     title: '',
     description: '',
-    targetDate: '',
     progress: 0,
     status: 'لم يبدأ' as Goal['status']
   });
@@ -73,11 +72,12 @@ export default function AddStudentScreen() {
 
   const [showGoalForm, setShowGoalForm] = useState(false);
   const [showEvidenceForm, setShowEvidenceForm] = useState(false);
+  const [showNeedForm, setShowNeedForm] = useState(false);
 
   const statusOptions = [
-    { value: 'تفوق', label: 'تفوق', color: '#4CAF50', icon: 'star.fill' },
-    { value: 'يحتاج إلى تطوير', label: 'يحتاج إلى تطوير', color: '#FF5722', icon: 'star' },
     { value: 'صعوبات التعلم', label: 'صعوبات التعلم', color: '#F44336', icon: 'exclamationmark.triangle.fill' },
+    { value: 'يحتاج إلى تطوير', label: 'يحتاج إلى تطوير', color: '#FF5722', icon: 'star' },
+    { value: 'تفوق', label: 'تفوق', color: '#4CAF50', icon: 'star.fill' },
     { value: 'ضعف', label: 'ضعف', color: '#9C27B0', icon: 'minus.circle.fill' }
   ];
 
@@ -110,7 +110,6 @@ export default function AddStudentScreen() {
     setNewGoal({
       title: '',
       description: '',
-      targetDate: '',
       progress: 0,
       status: 'لم يبدأ'
     });
@@ -258,7 +257,7 @@ export default function AddStudentScreen() {
   };
 
   const addEvidence = () => {
-    if (!newEvidence.title.trim()) {
+    if (!newEvidence.title?.trim()) {
       Alert.alert('خطأ', 'يرجى إدخال عنوان الشاهد');
       return;
     }
@@ -266,7 +265,7 @@ export default function AddStudentScreen() {
     const evidence: PerformanceEvidence = {
       id: Date.now().toString(),
       type: newEvidence.type as string,
-      title: newEvidence.title.trim(),
+      title: newEvidence.title?.trim() || '',
       fileName: newEvidence.fileName,
       fileType: newEvidence.fileType,
       date: newEvidence.date || new Date().toLocaleDateString('ar-SA'),
@@ -357,11 +356,11 @@ export default function AddStudentScreen() {
         // تحديث التصنيفات القديمة في البيانات الموجودة
         students = students.map((student: Student) => {
           let updatedStatus = student.status;
-          if (student.status === 'ممتاز') {
+          if (student.status === 'ممتاز' as any) {
             updatedStatus = 'تفوق';
-          } else if (student.status === 'مقبول') {
+          } else if (student.status === 'مقبول' as any) {
             updatedStatus = 'يحتاج إلى تطوير';
-          } else if (student.status === 'ضعيف') {
+          } else if (student.status === 'ضعيف' as any) {
             updatedStatus = 'صعوبات التعلم';
           }
 
@@ -432,7 +431,7 @@ export default function AddStudentScreen() {
       console.error('❌ خطأ في حفظ المتعلم:', error);
       Alert.alert(
         '❌ خطأ في الحفظ', 
-        `حدث خطأ أثناء حفظ بيانات المتعلم.\n\nتفاصيل الخطأ: ${error.message || 'خطأ غير معروف'}\n\nيرجى المحاولة مرة أخرى أو التحقق من البيانات المدخلة.`,
+        `حدث خطأ أثناء حفظ بيانات المتعلم.\n\nتفاصيل الخطأ: ${error instanceof Error ? error.message : 'خطأ غير معروف'}\n\nيرجى المحاولة مرة أخرى أو التحقق من البيانات المدخلة.`,
         [
           { 
             text: 'إعادة المحاولة', 
@@ -455,15 +454,29 @@ export default function AddStudentScreen() {
         style={styles.backgroundImage}
         resizeMode="cover"
       >
-        <ExpoLinearGradient
-          colors={['rgba(255,255,255,0.9)', 'rgba(225,245,244,0.95)', 'rgba(173,212,206,0.8)']}
-          style={styles.gradientOverlay}
-        >
+        
           <KeyboardAvoidingView
             style={{ flex: 1 }}
-            behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+            behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+            keyboardVerticalOffset={Platform.OS === 'ios' ? 0 : 25}
           >
-            <ScrollView style={styles.scrollContainer}>
+            <ScrollView
+              style={styles.scrollContainer}
+              contentContainerStyle={styles.scrollContentContainer}
+              keyboardShouldPersistTaps="handled"
+              showsVerticalScrollIndicator={false}
+              bounces={true}
+              bouncesZoom={true}
+              alwaysBounceVertical={true}
+              decelerationRate="normal"
+              scrollEventThrottle={16}
+              overScrollMode="always"
+              fadingEdgeLength={Platform.OS === 'android' ? 100 : 0}
+              maintainVisibleContentPosition={{
+                minIndexForVisible: 0,
+                autoscrollToTopThreshold: 100
+              }}
+            >
               <ThemedView style={styles.content}>
                 {/* Header */}
                 <ThemedView style={styles.header}>
@@ -471,7 +484,7 @@ export default function AddStudentScreen() {
                     style={styles.backButton}
                     onPress={() => router.back()}
                   >
-                    <IconSymbol size={20} name="arrow.right" color="#1c1f33" />
+                    <IconSymbol size={20} name="chevron.left" color="#1c1f33" />
                   </TouchableOpacity>
 
                   <ThemedView style={styles.iconContainer}>
@@ -527,7 +540,7 @@ export default function AddStudentScreen() {
                             ]}
                             onPress={() => setStudentData({...studentData, status: option.value as Student['status']})}
                           >
-                            <IconSymbol size={18} name={option.icon} color="#fff" />
+                            <IconSymbol size={18} name={option.icon as any} color="#fff" />
                             <ThemedText style={styles.statusText}>{option.label}</ThemedText>
                           </TouchableOpacity>
                         ))}
@@ -549,32 +562,27 @@ export default function AddStudentScreen() {
                     </ThemedView>
 
                     {showGoalForm && (
-                      <ThemedView style={styles.formCard}>
-                        <ThemedView style={styles.inputGroup}>
-                          <ThemedText style={styles.label}>عنوان الهدف</ThemedText>
-                          <TextInput
-                            style={styles.textInput}
-                            value={newGoal.title}
-                            onChangeText={(text) => setNewGoal({...newGoal, title: text})}
-                            placeholder="أدخل عنوان الهدف"
-                            textAlign="right"
-                          />
-                        </ThemedView>
-
-                        
-
-                        <ThemedView style={styles.inputGroup}>
-                          <ThemedText style={styles.label}>نسبة التحقق (%)</ThemedText>
-                          <TextInput
-                            style={styles.textInput}
-                            value={newGoal.progress.toString()}
-                            onChangeText={(text) => setNewGoal({...newGoal, progress: parseInt(text) || 0})}
-                            placeholder="0-100"
-                            keyboardType="numeric"
-                            textAlign="right"
-                          />
-                        </ThemedView>
-
+                      <ThemedView style={styles.formContainer}>
+                        <TextInput
+                          style={styles.input}
+                          placeholder="عنوان الهدف"
+                          value={newGoal.title}
+                          onChangeText={(text) => setNewGoal(prev => ({ ...prev, title: text }))}
+                        />
+                        <TextInput
+                          style={styles.input}
+                          placeholder="نسبة تحقق الهدف (0-100)"
+                          keyboardType="numeric"
+                          value={newGoal.progress.toString()}
+                          onChangeText={(text) => {
+                            const progress = parseInt(text);
+                            if (!isNaN(progress) && progress >= 0 && progress <= 100) {
+                              setNewGoal(prev => ({ ...prev, progress }));
+                            } else if (text === '') {
+                              setNewGoal(prev => ({ ...prev, progress: 0 }));
+                            }
+                          }}
+                        />
                         <ThemedView style={styles.buttonRow}>
                           <TouchableOpacity style={styles.addButton} onPress={addGoal}>
                             <IconSymbol size={16} name="checkmark.circle.fill" color="#1c1f33" />
@@ -615,70 +623,56 @@ export default function AddStudentScreen() {
                   {/* احتياجات المتعلم */}
                   <ThemedView style={styles.sectionContainer}>
                     <ThemedView style={styles.sectionHeader}>
-                      <ThemedView style={styles.needsCounter}>
-                        <IconSymbol size={16} name="list.bullet" color="#4CAF50" />
-                        <ThemedText style={styles.counterText}>
-                          {studentData.needs.length} احتياج
-                        </ThemedText>
-                      </ThemedView>
+                      <TouchableOpacity 
+                        style={styles.addButton}
+                        onPress={() => setShowNeedForm(true)}
+                      >
+                        <IconSymbol size={16} name="plus.circle.fill" color="#1c1f33" />
+                        <ThemedText style={styles.addButtonText}>إضافة احتياج</ThemedText>
+                      </TouchableOpacity>
                       <ThemedText style={styles.sectionTitle}>احتياجات المتعلم</ThemedText>
                     </ThemedView>
 
-                    <ThemedView style={styles.inputGroup}>
-                      <ThemedText style={styles.label}>إضافة احتياج جديد</ThemedText>
-                      <ThemedView style={styles.inputWithButton}>
-                        <TouchableOpacity 
-                          style={styles.addSmallButton} 
-                          onPress={addNeed}
-                          disabled={!newNeed.trim()}
-                        >
-                          <IconSymbol size={16} name="plus" color={newNeed.trim() ? "#1c1f33" : "#999"} />
-                        </TouchableOpacity>
-                        <TextInput
-                          style={[styles.textInput, { flex: 1 }]}
-                          value={newNeed}
-                          onChangeText={setNewNeed}
-                          placeholder="مثال: يحتاج إلى دعم إضافي في الرياضيات"
-                          textAlign="right"
-                          onSubmitEditing={addNeed}
-                          returnKeyType="done"
-                        />
-                      </ThemedView>
-                    </ThemedView>
+                    {showNeedForm && (
+                      <ThemedView style={styles.formCard}>
+                        <ThemedView style={styles.inputGroup}>
+                          <ThemedText style={styles.label}>الاحتياج</ThemedText>
+                          <TextInput
+                            style={styles.textInput}
+                            value={newNeed}
+                            onChangeText={setNewNeed}
+                            placeholder="مثال: يحتاج إلى دعم إضافي في الرياضيات"
+                            textAlign="right"
+                            multiline
+                          />
+                        </ThemedView>
 
-                    {/* عرض الاحتياجات المضافة */}
-                    {studentData.needs.length > 0 && (
-                      <ThemedView style={styles.needsList}>
-                        <ThemedText style={styles.listTitle}>الاحتياجات المضافة:</ThemedText>
-                        {studentData.needs.map((need, index) => (
-                          <ThemedView key={index} style={styles.needItem}>
-                            <TouchableOpacity 
-                              onPress={() => removeNeed(index)}
-                              style={styles.removeButton}
-                            >
-                              <IconSymbol size={18} name="xmark.circle.fill" color="#F44336" />
-                            </TouchableOpacity>
-                            <ThemedView style={styles.needContent}>
-                              <ThemedText style={styles.needText}>{need}</ThemedText>
-                              <ThemedText style={styles.needIndex}>#{index + 1}</ThemedText>
-                            </ThemedView>
-                          </ThemedView>
-                        ))}
+                        <ThemedView style={styles.buttonRow}>
+                          <TouchableOpacity style={styles.addButton} onPress={addNeed}>
+                            <IconSymbol size={16} name="checkmark.circle.fill" color="#1c1f33" />
+                            <ThemedText style={styles.addButtonText}>حفظ</ThemedText>
+                          </TouchableOpacity>
+                          <TouchableOpacity 
+                            style={styles.addButton} 
+                            onPress={() => setShowNeedForm(false)}
+                          >
+                            <IconSymbol size={16} name="xmark.circle.fill" color="#1c1f33" />
+                            <ThemedText style={styles.addButtonText}>إلغاء</ThemedText>
+                          </TouchableOpacity>
+                        </ThemedView>
                       </ThemedView>
                     )}
 
-                    {/* رسالة إرشادية إذا لم تكن هناك احتياجات */}
-                    {studentData.needs.length === 0 && (
-                      <ThemedView style={styles.emptyNeedsState}>
-                        <IconSymbol size={40} name="list.bullet.clipboard" color="#E5E5EA" />
-                        <ThemedText style={styles.emptyNeedsText}>
-                          لم يتم إضافة احتياجات بعد
-                        </ThemedText>
-                        <ThemedText style={styles.emptyNeedsSubtext}>
-                          أضف احتياجات المتعلم لتحسين خطة التعلم
-                        </ThemedText>
+                    {studentData.needs.map((need, index) => (
+                      <ThemedView key={index} style={styles.itemCard}>
+                        <ThemedView style={styles.itemHeader}>
+                          <TouchableOpacity onPress={() => removeNeed(index)}>
+                            <IconSymbol size={20} name="xmark.circle.fill" color="#F44336" />
+                          </TouchableOpacity>
+                          <ThemedText style={styles.itemTitle}>{need}</ThemedText>
+                        </ThemedView>
                       </ThemedView>
-                    )}
+                    ))}
                   </ThemedView>
 
                   {/* شواهد الأداء */}
@@ -708,7 +702,7 @@ export default function AddStudentScreen() {
                                 ]}
                                 onPress={() => setNewEvidence({...newEvidence, type: type.value as PerformanceEvidence['type']})}
                               >
-                                <IconSymbol size={16} name={type.icon} color="#1c1f33" />
+                                <IconSymbol size={16} name={type.icon as any} color="#1c1f33" />
                                 <ThemedText style={styles.typeText}>{type.label}</ThemedText>
                               </TouchableOpacity>
                             ))}
@@ -919,7 +913,7 @@ export default function AddStudentScreen() {
               </ThemedView>
             </ScrollView>
           </KeyboardAvoidingView>
-        </ExpoLinearGradient>
+        
       </ImageBackground>
       <BottomNavigationBar />
     </ThemedView>
@@ -935,11 +929,13 @@ const styles = StyleSheet.create({
     width: '100%',
     height: '100%',
   },
-  gradientOverlay: {
-    flex: 1,
-  },
   scrollContainer: {
     flex: 1,
+  },
+  scrollContentContainer: {
+    flexGrow: 1,
+    paddingBottom: Platform.OS === 'ios' ? 40 : 20,
+    paddingTop: Platform.OS === 'ios' ? 0 : 2,
   },
   content: {
     flex: 1,
@@ -948,8 +944,12 @@ const styles = StyleSheet.create({
     backgroundColor: 'transparent',
   },
   header: {
-    padding: 20,
     alignItems: 'center',
+    paddingTop: Platform.OS === 'ios' ? 60 : 50,
+    paddingHorizontal: 30,
+    paddingBottom: 30,
+    backgroundColor: 'transparent',
+    position: 'relative',
   },
   backButton: {
     position: 'absolute',
@@ -984,23 +984,25 @@ const styles = StyleSheet.create({
   title: {
     fontSize: 28,
     fontWeight: 'bold',
-    textAlign: 'center',
+    marginTop: 15,
     marginBottom: 10,
-    color: '#1c1f33',
+    textAlign: 'center',
     writingDirection: 'rtl',
+    color: '#000000',
   },
   subtitle: {
     fontSize: 16,
-    textAlign: 'center',
-    marginBottom: 30,
-    lineHeight: 24,
-    paddingHorizontal: 20,
     color: '#666666',
+    textAlign: 'center',
     writingDirection: 'rtl',
+    marginBottom: 20,
   },
   formContainer: {
-    padding: 20,
-    backgroundColor: 'transparent',
+    padding: 15,
+    borderRadius: 10,
+    backgroundColor: 'rgba(255, 255, 255, 0.9)',
+    marginBottom: 15,
+    width: '100%',
   },
   sectionContainer: {
     marginBottom: 30,
@@ -1009,7 +1011,7 @@ const styles = StyleSheet.create({
   sectionTitle: {
     fontSize: 18,
     fontWeight: 'bold',
-    color: '#1c1f33',
+    color: '#333',
     marginBottom: 15,
     textAlign: 'right',
     writingDirection: 'rtl',
@@ -1033,18 +1035,15 @@ const styles = StyleSheet.create({
     writingDirection: 'rtl',
   },
   textInput: {
-    backgroundColor: '#F8F9FA',
-    borderWidth: 1,
-    borderColor: '#E5E5EA',
+    backgroundColor: '#fff',
     borderRadius: 12,
     padding: 15,
     fontSize: 16,
     color: '#1c1f33',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
-    elevation: 3,
+    textAlign: 'right',
+    writingDirection: 'rtl',
+    borderWidth: 1,
+    borderColor: '#E5E5EA',
   },
   textArea: {
     height: 100,
@@ -1059,10 +1058,10 @@ const styles = StyleSheet.create({
   statusOption: {
     flexDirection: 'column',
     alignItems: 'center',
-    paddingVertical: 8,
-    paddingHorizontal: 10,
-    borderRadius: 10,
-    gap: 4,
+    paddingVertical: 12,
+    paddingHorizontal: 15,
+    borderRadius: 12,
+    gap: 6,
     flex: 1,
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 2 },
@@ -1072,64 +1071,52 @@ const styles = StyleSheet.create({
   },
   selectedStatus: {
     borderWidth: 3,
-    borderColor: '#1c1f33',
+    borderColor: '#fff',
   },
   statusText: {
     color: '#fff',
-    fontSize: 11,
+    fontSize: 12,
     fontWeight: '600',
     textAlign: 'center',
   },
   addButton: {
     flexDirection: 'row',
     alignItems: 'center',
+    justifyContent: 'center',
+    paddingVertical: 12,
+    paddingHorizontal: 20,
     backgroundColor: '#add4ce',
-    paddingVertical: 8,
-    paddingHorizontal: 15,
-    borderRadius: 20,
-    gap: 5,
+    borderRadius: 25,
+    gap: 8,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.2,
+    shadowRadius: 4,
+    elevation: 4,
   },
   addButtonText: {
     color: '#1c1f33',
     fontSize: 14,
     fontWeight: '600',
+    textAlign: 'center',
   },
   formCard: {
-    backgroundColor: '#F8F9FA',
+    backgroundColor: '#fff',
     borderRadius: 12,
-    padding: 15,
+    padding: 20,
     marginBottom: 15,
     borderWidth: 1,
     borderColor: '#E5E5EA',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    elevation: 3,
   },
   buttonRow: {
     flexDirection: 'row',
     gap: 10,
-    marginTop: 10,
-  },
-  saveSmallButton: {
-    flex: 1,
-    backgroundColor: '#4CAF50',
-    paddingVertical: 10,
-    borderRadius: 8,
-    alignItems: 'center',
-  },
-  saveSmallButtonText: {
-    color: '#fff',
-    fontSize: 14,
-    fontWeight: '600',
-  },
-  cancelSmallButton: {
-    flex: 1,
-    backgroundColor: '#F44336',
-    paddingVertical: 10,
-    borderRadius: 8,
-    alignItems: 'center',
-  },
-  cancelSmallButtonText: {
-    color: '#fff',
-    fontSize: 14,
-    fontWeight: '600',
+    marginTop: 15,
   },
   itemCard: {
     backgroundColor: '#fff',
@@ -1157,13 +1144,6 @@ const styles = StyleSheet.create({
     flex: 1,
     textAlign: 'right',
     writingDirection: 'rtl',
-  },
-  itemDescription: {
-    fontSize: 14,
-    color: '#666',
-    textAlign: 'right',
-    writingDirection: 'rtl',
-    marginBottom: 10,
   },
   progressContainer: {
     flexDirection: 'row',
@@ -1295,14 +1275,17 @@ const styles = StyleSheet.create({
   typeOption: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#E5E5EA',
+    backgroundColor: '#F8F9FA',
     paddingVertical: 8,
     paddingHorizontal: 12,
     borderRadius: 8,
     gap: 5,
+    borderWidth: 1,
+    borderColor: '#E5E5EA',
   },
   selectedType: {
     backgroundColor: '#add4ce',
+    borderColor: '#add4ce',
   },
   typeText: {
     fontSize: 12,
@@ -1401,21 +1384,6 @@ const styles = StyleSheet.create({
     textAlign: 'center',
     writingDirection: 'rtl',
   },
-  uploadButton: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: '#E5E5EA',
-    paddingVertical: 12,
-    paddingHorizontal: 15,
-    borderRadius: 12,
-    gap: 10,
-  },
-  uploadButtonText: {
-    fontSize: 14,
-    color: '#1c1f33',
-    fontWeight: '500',
-    textAlign: 'right',
-  },
   uploadButtonsContainer: {
     flexDirection: 'row',
     gap: 10,
@@ -1513,4 +1481,27 @@ const styles = StyleSheet.create({
     fontSize: 12,
     color: '#2196F3',
   },
+  input: {
+    backgroundColor: '#fff',
+    padding: 10,
+    borderRadius: 8,
+    marginBottom: 10,
+    width: '100%',
+    textAlign: 'right',
+    borderWidth: 1,
+    borderColor: '#ddd',
+  },
+  statusSelector: {
+    backgroundColor: '#f0f0f0',
+    padding: 10,
+    borderRadius: 8,
+    marginBottom: 10,
+    alignItems: 'center',
+  },
+  buttonText: {
+    color: '#fff',
+    fontSize: 16,
+    fontWeight: 'bold',
+  },
+
 });

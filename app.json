@@ -1,30 +1,58 @@
 {
   "expo": {
-    "name": "teacher-performance-app",
+    "name": "enjaz-almualm",
     "slug": "teacher-performance-app",
-    "owner": "your-expo-username",
-    "version": "1.0.0",
+    "owner": "amalshaman",
+    "version": "1.0.8",
     "orientation": "portrait",
-    "icon": "./assets/images/icon.png",
-    "scheme": "myapp",
+    "icon": "./assets/images/Logo.png",
+    "scheme": "enjazalmualm",
     "userInterfaceStyle": "automatic",
     "newArchEnabled": true,
+    "locales": {
+      "ar": "./assets/locales/ar.json"
+    },
+    "primaryLanguage": "ar",
+    "extra": {
+      "router": {},
+      "supabaseUrl": "YOUR_SUPABASE_URL",
+      "supabaseAnonKey": "YOUR_SUPABASE_ANON_KEY",
+      "eas": {
+        "projectId": "e1a21878-53e7-4976-9884-6206e56653c3"
+      }
+    },
     "ios": {
       "supportsTablet": true,
-      "bundleIdentifier": "com.teacherperformance.tdp",
-      "buildNumber": "2",
+      "bundleIdentifier": "com.enjazalmualm.app",
+      "buildNumber": "40",
       "infoPlist": {
         "ITSAppUsesNonExemptEncryption": false,
         "NSCameraUsageDescription": "يحتاج التطبيق للوصول للكاميرا لالتقاط الصور",
         "NSPhotoLibraryUsageDescription": "يحتاج التطبيق للوصول لمكتبة الصور لرفع الملفات",
         "NSPhotoLibraryAddUsageDescription": "يحتاج التطبيق لحفظ الصور في مكتبة الصور",
-        "UILaunchStoryboardName": "SplashScreen"
-      }
+        "UILaunchStoryboardName": "SplashScreen",
+        "CFBundleURLTypes": [
+          {
+            "CFBundleURLName": "auth",
+            "CFBundleURLSchemes": [
+              "enjazalmualm"
+            ]
+          }
+        ]
+      },
+      "config": {
+        "usesNonExemptEncryption": false
+      },
+      "inAppPurchases": [
+        "com.enjazalmualm.subscription.yearly",
+        "com.enjazalmualm.subscription.halfyearly"
+      ]
     },
     "android": {
-      "package": "com.teacherperformance.tdp",
+      "package": "com.enjazalmualm.teacherperformance",
+      "versionCode": 40,
       "adaptiveIcon": {
-        "foregroundImage": "./assets/images/adaptive-icon.png",
+        "foregroundImage": "./assets/images/Logo.png",
         "backgroundColor": "#ffffff"
       },
       "permissions": [
@@ -32,20 +60,42 @@
         "android.permission.SYSTEM_ALERT_WINDOW",
         "android.permission.CAMERA",
         "android.permission.READ_EXTERNAL_STORAGE",
-        "android.permission.WRITE_EXTERNAL_STORAGE"
-      ]
+        "android.permission.WRITE_EXTERNAL_STORAGE",
+        "com.android.vending.BILLING",
+        "android.permission.RECORD_AUDIO"
+      ],
+      "intentFilters": [
+        {
+          "action": "VIEW",
+          "autoVerify": true,
+          "data": [
+            {
+              "scheme": "enjazalmualm"
+            }
+          ],
+          "category": [
+            "BROWSABLE",
+            "DEFAULT"
+          ]
+        }
+      ],
+      "allowBackup": true,
+      "enableProguardInReleaseBuilds": true,
+      "enableShrinkResourcesInReleaseBuilds": true,
+      "supportsRtl": true,
+      "softwareKeyboardLayoutMode": "pan"
     },
     "web": {
       "bundler": "metro",
       "output": "static",
-      "favicon": "./assets/images/favicon.png"
+      "favicon": "./assets/images/Logo.png"
     },
     "plugins": [
       "expo-router",
       [
         "expo-splash-screen",
         {
-          "image": "./assets/images/splash-icon.png",
+          "image": "./assets/images/Logo.png",
           "imageWidth": 200,
           "resizeMode": "contain",
           "backgroundColor": "#ffffff"
@@ -62,18 +112,11 @@
     "experiments": {
       "typedRoutes": true
     },
-    "extra": {
-      "router": {},
-      "eas": {
-        "projectId": "41ab8ba4-a69b-4e11-af79-ef240b5d24a6"
-      }
-    },
     "runtimeVersion": {
       "policy": "appVersion"
     },
     "updates": {
       "url": "https://u.expo.dev/409190b4-990f-426b-939f-2d3922e5f30a"
-    },
-    "owner": "amalshaman"
+    }
   }
 }

@@ -1,7 +1,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { StyleSheet, ScrollView, TouchableOpacity, Alert, TextInput, ImageBackground } from 'react-native';
-import { LinearGradient as ExpoLinearGradient } from 'expo-linear-gradient';
+
 import { ThemedText } from '@/components/ThemedText';
 import { ThemedView } from '@/components/ThemedView';
 import { IconSymbol } from '@/components/ui/IconSymbol';
@@ -200,10 +200,6 @@ export default function EditAlertScreen() {
         style={styles.backgroundImage}
         resizeMode="cover"
       >
-        <ExpoLinearGradient
-          colors={['rgba(255,255,255,0.9)', 'rgba(225,245,244,0.95)', 'rgba(173,212,206,0.8)']}
-          style={styles.gradientOverlay}
-        >
           <ScrollView style={styles.scrollContainer}>
             <ThemedView style={styles.header}>
               <TouchableOpacity 
@@ -436,7 +432,6 @@ export default function EditAlertScreen() {
               </ThemedView>
             </ThemedView>
           </ScrollView>
-        </ExpoLinearGradient>
       </ImageBackground>
     </ThemedView>
   );

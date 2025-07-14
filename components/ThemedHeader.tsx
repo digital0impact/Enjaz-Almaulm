@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { TouchableOpacity } from 'react-native';
 import { ThemedView } from './ThemedView';
@@ -39,7 +38,7 @@ export function ThemedHeader({
     <ThemedView style={styles.header}>
       {showBackButton && (
         <TouchableOpacity style={styles.headerButton} onPress={handleBackPress}>
-          <IconSymbol size={24} name="chevron.left" color={colors.headerText} />
+          <IconSymbol size={24} name="chevron.left" color={colors.text} />
         </TouchableOpacity>
       )}
       
@@ -47,7 +46,7 @@ export function ThemedHeader({
       
       {rightButton ? (
         <TouchableOpacity style={styles.headerButton} onPress={rightButton.onPress}>
-          <IconSymbol size={24} name={rightButton.icon} color={colors.headerText} />
+          <IconSymbol size={24} name={rightButton.icon as any} color={colors.text} />
         </TouchableOpacity>
       ) : (
         <ThemedView style={{ width: 40 }} />

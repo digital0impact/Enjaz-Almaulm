@@ -1,23 +1,39 @@
 import React, { useState, useEffect } from 'react';
-import { StyleSheet, ScrollView, TouchableOpacity, Alert, I18nManager, ImageBackground, Dimensions, Platform } from 'react-native';
-import { LinearGradient as ExpoLinearGradient } from 'expo-linear-gradient';
+import { StyleSheet, ScrollView, TouchableOpacity, Alert, ImageBackground, KeyboardAvoidingView, Platform, StatusBar, I18nManager, Dimensions, View } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { BarChart } from 'react-native-chart-kit';
+
 import { ThemedText } from '@/components/ThemedText';
 import { ThemedView } from '@/components/ThemedView';
 import { IconSymbol } from '@/components/ui/IconSymbol';
 import { useRouter } from 'expo-router';
-import { BottomNavigationBar } from '@/components/BottomNavigationBar';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { commonStyles } from '@/styles/common-styles';
+import { BottomNavigationBar } from '@/components/BottomNavigationBar';
 import * as Sharing from 'expo-sharing';
 import * as Print from 'expo-print';
 import * as FileSystem from 'expo-file-system';
 
 const { width } = Dimensions.get('window');
 
+type Evidence = {
+  name: string;
+  available: boolean;
+};
+
+type PerformanceItem = {
+  id: number | string;
+  title: string;
+  score: number;
+  weight: number;
+  category: string;
+  evidence?: Evidence[];
+};
+
 export default function InteractiveReportScreen() {
   const router = useRouter();
+  const insets = useSafeAreaInsets();
   const [selectedChart, setSelectedChart] = useState('overall');
-  const [performanceData, setPerformanceData] = useState([]);
+  const [performanceData, setPerformanceData] = useState<PerformanceItem[]>([]);
   const [loading, setLoading] = useState(true);
 
   // تحميل البيانات الفعلية من AsyncStorage
@@ -30,10 +46,23 @@ export default function InteractiveReportScreen() {
       const storedData = await AsyncStorage.getItem('performanceData');
       if (storedData) {
         const parsedData = JSON.parse(storedData);
-        setPerformanceData(parsedData);
+        // معالجة: إضافة category افتراضي إذا لم يوجد
+        const normalizedData = Array.isArray(parsedData)
+          ? parsedData.map(item => ({
+              ...item,
+              category: item.category || 'غير محدد',
+            }))
+          : [];
+        if (Array.isArray(normalizedData) && normalizedData.length > 0) {
+          setPerformanceData(normalizedData);
+          console.log('Loaded performanceData from AsyncStorage:', normalizedData);
+        } else {
+          setPerformanceData(getDefaultPerformanceData());
+          console.log('No valid data in AsyncStorage, using default data');
+        }
       } else {
-        // إذا لم توجد بيانات محفوظة، استخدم البيانات الافتراضية
         setPerformanceData(getDefaultPerformanceData());
+        console.log('No data in AsyncStorage, using default data');
       }
       setLoading(false);
     } catch (error) {
@@ -47,77 +76,77 @@ export default function InteractiveReportScreen() {
     {
       id: 1,
       title: 'أداء الواجبات الوظيفية',
-      score: 0,
+      score: 85,
       weight: 10,
       category: 'وظيفي'
     },
     {
       id: 2,
       title: 'التفاعل مع المجتمع المهني',
-      score: 0,
+      score: 78,
       weight: 10,
       category: 'تفاعلي'
     },
     {
       id: 3,
       title: 'التفاعل مع أولياء الأمور',
-      score: 0,
+      score: 92,
       weight: 10,
       category: 'تفاعلي'
     },
     {
       id: 4,
       title: 'تنويع استراتيجيات التدريس',
-      score: 0,
+      score: 88,
       weight: 10,
       category: 'تعليمي'
     },
     {
       id: 5,
       title: 'تحسين نتائج المتعلمين',
-      score: 0,
+      score: 75,
       weight: 10,
       category: 'تعليمي'
     },
     {
       id: 6,
       title: 'إعداد خطة وتنفيذ التعلم',
-      score: 0,
+      score: 82,
       weight: 10,
       category: 'تخطيطي'
     },
     {
       id: 7,
       title: 'توظيف تقنيات ووسائل التعلم',
-      score: 0,
+      score: 90,
       weight: 10,
       category: 'تقني'
     },
     {
       id: 8,
       title: 'تهيئة البيئة التعليمية',
-      score: 0,
+      score: 85,
       weight: 5,
       category: 'بيئي'
     },
     {
       id: 9,
       title: 'الإدارة الصفية',
-      score: 0,
+      score: 88,
       weight: 5,
       category: 'إداري'
     },
     {
       id: 10,
       title: 'تحليل نتائج المتعلمين وتشخيص مستوياتهم',
-      score: 0,
+      score: 80,
       weight: 10,
       category: 'تحليلي'
     },
     {
       id: 11,
       title: 'تنويع أساليب التقويم',
-      score: 0,
+      score: 85,
       weight: 10,
       category: 'تقويمي'
     },
@@ -145,76 +174,49 @@ export default function InteractiveReportScreen() {
   };
 
   const getCategoryAverage = (category: string) => {
+    if (!category || !performanceData || performanceData.length === 0) {
+      return 0;
+    }
+    
     const categoryItems = performanceData.filter(item => item.category === category);
     if (categoryItems.length === 0) return 0;
-    const sum = categoryItems.reduce((acc, item) => acc + item.score, 0);
+    const sum = categoryItems.reduce((acc, item) => acc + (item.score || 0), 0);
     return Math.round(sum / categoryItems.length);
   };
 
   const getCategories = () => {
-    const categories = [...new Set(performanceData.map(item => item.category))];
-    return categories.map(category => ({
-      name: category,
-      average: getCategoryAverage(category),
-      count: performanceData.filter(item => item.category === category).length
+    if (!performanceData || performanceData.length === 0) {
+      return [];
+    }
+    
+    // استخدام عناوين المحاور بدلاً من الفئات
+    return performanceData.map(item => ({
+      name: item.title || 'غير محدد',
+      average: item.score || 0,
+      count: 1
     }));
-  };
-
-  const renderBarChart = () => {
-    const categories = getCategories();
-    const maxScore = Math.max(...categories.map(cat => cat.average), 1);
-
-    return (
-      <ThemedView style={styles.chartContainer}>
-        <ThemedText style={styles.chartTitle}>متوسط الدرجات حسب الفئة</ThemedText>
-        <ThemedView style={styles.barsContainer}>
-          {categories.map((category, index) => (
-            <ThemedView key={index} style={styles.barWrapper}>
-              <ThemedView 
-                style={[
-                  styles.bar,
-                  { 
-                    height: (category.average / maxScore) * 120,
-                    backgroundColor: getScoreColor(category.average)
-                  }
-                ]}
-              />
-              <ThemedText style={styles.barLabel}>{category.name}</ThemedText>
-              <ThemedText style={[styles.barValue, { color: getScoreColor(category.average) }]}>
-                {category.average}%
-              </ThemedText>
-            </ThemedView>
-          ))}
-        </ThemedView>
-      </ThemedView>
-    );
   };
 
   const renderProgressChart = () => {
     const sortedData = [...performanceData].sort((a, b) => b.score - a.score);
-
     return (
       <ThemedView style={styles.chartContainer}>
         <ThemedText style={styles.chartTitle}>ترتيب المحاور حسب الأداء</ThemedText>
-        <ThemedView style={styles.progressList}>
+        <ThemedView>
           {sortedData.map((item, index) => (
-            <ThemedView key={item.id} style={styles.progressItem}>
-              <ThemedView style={styles.progressHeader}>
-                <ThemedText style={styles.progressRank}>#{index + 1}</ThemedText>
-                <ThemedText style={styles.progressTitle} numberOfLines={1}>{item.title}</ThemedText>
-                <ThemedText style={[styles.progressScore, { color: getScoreColor(item.score) }]}>
-                  {item.score}%
-                </ThemedText>
+            <ThemedView key={item.id} style={{ marginBottom: 8 }}>
+              <ThemedView style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 4 }}>
+                <ThemedText style={{ fontSize: 12, fontWeight: 'bold' }}>{item.title}</ThemedText>
+                <ThemedText style={{ fontSize: 12, color: getScoreColor(item.score) }}>{item.score}%</ThemedText>
               </ThemedView>
-              <ThemedView style={styles.progressBarWrapper}>
+              <ThemedView style={{ height: 20, backgroundColor: '#f0f0f0', borderRadius: 10, overflow: 'hidden' }}>
                 <ThemedView 
-                  style={[
-                    styles.progressBar,
-                    { 
-                      width: `${item.score}%`,
-                      backgroundColor: getScoreColor(item.score)
-                    }
-                  ]}
+                  style={{ 
+                    height: '100%', 
+                    backgroundColor: getScoreColor(item.score),
+                    width: `${Math.min(100, item.score)}%`,
+                    borderRadius: 10
+                  }} 
                 />
               </ThemedView>
             </ThemedView>
@@ -225,68 +227,221 @@ export default function InteractiveReportScreen() {
   };
 
   const renderStatistics = () => {
-    const scores = performanceData.map(item => item.score);
-    const averageScore = calculateOverallAverage();
-    const maxScore = Math.max(...scores, 0);
-    const minScore = Math.min(...scores, 0);
-    const excellentCount = scores.filter(score => score >= 90).length;
-    const goodCount = scores.filter(score => score >= 80 && score < 90).length;
-    const needsImprovementCount = scores.filter(score => score < 70).length;
+    const overallAverage = calculateOverallAverage();
+    const categories = getCategories();
 
     return (
-      <ThemedView style={styles.chartContainer}>
-        <ThemedText style={styles.chartTitle}>الإحصائيات التفصيلية</ThemedText>
+      <ThemedView style={styles.statisticsContainer}>
+        <ThemedText style={styles.sectionTitle}>الإحصائيات العامة</ThemedText>
+        
         <ThemedView style={styles.statsGrid}>
-          <ThemedView style={[styles.statCard, { backgroundColor: 'rgba(232, 245, 232, 0.7)' }]}>
-            <IconSymbol size={24} name="chart.bar.fill" color="#4CAF50" />
-            <ThemedText style={styles.statValue}>{averageScore}%</ThemedText>
-            <ThemedText style={styles.statLabel}>المتوسط العام</ThemedText>
+          <ThemedView style={styles.statCard}>
+            <ThemedText style={[styles.statValue, { color: getScoreColor(overallAverage) }]}>
+              {overallAverage}%
+            </ThemedText>
+            <ThemedText style={styles.statLabel}>المعدل العام</ThemedText>
           </ThemedView>
-
-          <ThemedView style={[styles.statCard, { backgroundColor: 'rgba(227, 242, 253, 0.7)' }]}>
-            <IconSymbol size={24} name="arrow.up.circle.fill" color="#2196F3" />
-            <ThemedText style={styles.statValue}>{maxScore}%</ThemedText>
-            <ThemedText style={styles.statLabel}>أعلى درجة</ThemedText>
+          
+          <ThemedView style={styles.statCard}>
+            <ThemedText style={styles.statValue}>
+              {performanceData.length}
+            </ThemedText>
+            <ThemedText style={styles.statLabel}>عدد المحاور</ThemedText>
           </ThemedView>
-
-          <ThemedView style={[styles.statCard, { backgroundColor: 'rgba(255, 243, 224, 0.7)' }]}>
-            <IconSymbol size={24} name="arrow.down.circle.fill" color="#FF9800" />
-            <ThemedText style={styles.statValue}>{minScore}%</ThemedText>
-            <ThemedText style={styles.statLabel}>أقل درجة</ThemedText>
+          
+          <ThemedView style={styles.statCard}>
+            <ThemedText style={styles.statValue}>
+              {categories.length}
+            </ThemedText>
+            <ThemedText style={styles.statLabel}>عدد الفئات</ThemedText>
           </ThemedView>
-
-          <ThemedView style={[styles.statCard, { backgroundColor: 'rgba(243, 229, 245, 0.7)' }]}>
-            <IconSymbol size={24} name="star.fill" color="#9C27B0" />
-            <ThemedText style={styles.statValue}>{excellentCount}</ThemedText>
-            <ThemedText style={styles.statLabel}>محاور ممتازة</ThemedText>
-          </ThemedView>
-
-          <ThemedView style={[styles.statCard, { backgroundColor: 'rgba(232, 245, 232, 0.7)' }]}>
-            <IconSymbol size={24} name="checkmark.circle.fill" color="#4CAF50" />
-            <ThemedText style={styles.statValue}>{goodCount}</ThemedText>
-            <ThemedText style={styles.statLabel}>محاور جيدة</ThemedText>
-          </ThemedView>
-
-          <ThemedView style={[styles.statCard, { backgroundColor: needsImprovementCount > 0 ? 'rgba(255, 235, 238, 0.7)' : 'rgba(232, 245, 232, 0.7)' }]}>
-            <IconSymbol size={24} name="exclamationmark.triangle.fill" color={needsImprovementCount > 0 ? "#F44336" : "#4CAF50"} />
-            <ThemedText style={styles.statValue}>{needsImprovementCount}</ThemedText>
-            <ThemedText style={styles.statLabel}>تحتاج تحسين</ThemedText>
+          
+          <ThemedView style={styles.statCard}>
+            <ThemedText style={styles.statValue}>
+              {getScoreLevel(overallAverage)}
+            </ThemedText>
+            <ThemedText style={styles.statLabel}>المستوى</ThemedText>
           </ThemedView>
         </ThemedView>
       </ThemedView>
     );
   };
 
+  const renderCategoriesChart = () => {
+    const categories = getCategories();
+    const screenWidth = Dimensions.get('window').width - 40;
+    const minBarWidth = 80; // عرض أدنى لكل عمود
+    const chartWidth = Math.max(screenWidth, categories.length * minBarWidth);
+
+    // التأكد من وجود بيانات
+    if (!categories || categories.length === 0) {
+      return (
+        <ThemedView style={styles.chartContainer}>
+          <ThemedText style={styles.chartTitle}>توزيع محاور الأداء المهني</ThemedText>
+          <ThemedView style={styles.emptyState}>
+            <ThemedText style={styles.emptyStateText}>لا توجد بيانات متاحة للعرض</ThemedText>
+          </ThemedView>
+        </ThemedView>
+      );
+    }
+
+    // التأكد من أن البيانات صحيحة
+    const validCategories = categories.filter(cat => cat && cat.name && typeof cat.average === 'number');
+    
+    if (validCategories.length === 0) {
+      return (
+        <ThemedView style={styles.chartContainer}>
+          <ThemedText style={styles.chartTitle}>توزيع محاور الأداء المهني</ThemedText>
+          <ThemedView style={styles.emptyState}>
+            <ThemedText style={styles.emptyStateText}>البيانات غير صحيحة</ThemedText>
+          </ThemedView>
+        </ThemedView>
+      );
+    }
+
+    const data = {
+      labels: validCategories.map(cat => {
+        const name = String(cat.name || 'غير محدد');
+        // تقصير العناوين أكثر لأندرويد
+        return name.length > 6 ? name.substring(0, 6) + '...' : name;
+      }),
+      datasets: [
+        {
+          data: validCategories.map(cat => Math.max(0, cat.average || 0)),
+        }
+      ]
+    };
+
+    const chartConfig = {
+      backgroundColor: '#ffffff',
+      backgroundGradientFrom: '#ffffff',
+      backgroundGradientTo: '#ffffff',
+      decimalPlaces: 0,
+      color: (opacity = 1, index) => {
+        const score = validCategories[index]?.average || 0;
+        const color = getScoreColor(score);
+        // تحويل اللون إلى rgba
+        if (color === '#4CAF50') return `rgba(76, 175, 80, ${opacity})`; // أخضر
+        if (color === '#2196F3') return `rgba(33, 150, 243, ${opacity})`; // أزرق
+        if (color === '#FF9800') return `rgba(255, 152, 0, ${opacity})`; // برتقالي
+        if (color === '#F44336') return `rgba(244, 67, 54, ${opacity})`; // أحمر
+        return `rgba(33, 150, 243, ${opacity})`; // لون افتراضي
+      },
+      labelColor: (opacity = 1) => `rgba(28, 31, 51, ${opacity})`,
+      style: {
+        borderRadius: 16
+      },
+      barPercentage: 0.6,
+      propsForBackgroundLines: {
+        strokeDasharray: '',
+        stroke: 'rgba(0, 0, 0, 0.1)',
+        strokeWidth: 1,
+      },
+      propsForLabels: {
+        fontSize: 9,
+        fontWeight: 'bold',
+        fill: '#1c1f33',
+      },
+      propsForVerticalLabels: {
+        fontSize: 9,
+        fontWeight: 'bold',
+        fill: '#1c1f33',
+      },
+      propsForValues: {
+        fontSize: 11,
+        fontWeight: 'bold',
+        fill: '#1c1f33',
+      },
+    };
+
+
+
+    return (
+      <ThemedView style={styles.chartContainer}>
+        <ThemedText style={styles.chartTitle}>توزيع محاور الأداء المهني</ThemedText>
+
+        {/* محاولة عرض الرسم البياني مع معالجة خاصة لأندرويد */}
+        {Platform.OS === 'android' ? (
+          <ScrollView 
+            horizontal={true}
+            showsHorizontalScrollIndicator={true}
+            indicatorStyle="black"
+            contentContainerStyle={{ paddingHorizontal: 20 }}
+            style={{ marginVertical: 10 }}
+          >
+            <BarChart
+              data={data}
+              width={chartWidth}
+              height={280}
+              chartConfig={chartConfig}
+              style={{
+                marginVertical: 8,
+                borderRadius: 16,
+              }}
+              fromZero={true}
+              showBarTops={true}
+              showValuesOnTopOfBars={true}
+              withInnerLines={true}
+              withVerticalLabels={true}
+              withHorizontalLabels={true}
+              segments={5}
+              bezier={false}
+              withDots={false}
+              withShadow={false}
+              yAxisLabel=""
+              yAxisSuffix=""
+              yLabelsOffset={10}
+              xLabelsOffset={-10}
+            />
+          </ScrollView>
+                ) : (
+          <ScrollView 
+            horizontal={true}
+            showsHorizontalScrollIndicator={true}
+            indicatorStyle="black"
+            contentContainerStyle={{ paddingHorizontal: 20 }}
+            style={{ marginVertical: 10 }}
+          >
+            <BarChart
+              data={data}
+              width={chartWidth}
+              height={280}
+              chartConfig={chartConfig}
+              style={{
+                marginVertical: 8,
+                borderRadius: 16,
+              }}
+              fromZero={true}
+              showBarTops={true}
+              showValuesOnTopOfBars={true}
+              withInnerLines={true}
+              withVerticalLabels={true}
+              withHorizontalLabels={true}
+              segments={5}
+              bezier={false}
+              withDots={false}
+              withShadow={false}
+            />
+          </ScrollView>
+        )}
+
+
+        
+
+      </ThemedView>
+    );
+  };
+
   const renderChart = () => {
     switch (selectedChart) {
-      case 'categories':
-        return renderBarChart();
-      case 'progress':
-        return renderProgressChart();
       case 'statistics':
         return renderStatistics();
+      case 'overall':
+        return renderProgressChart();
+      case 'categories':
+        return renderCategoriesChart();
       default:
-        return renderBarChart();
+        return renderStatistics();
     }
   };
 
@@ -315,13 +470,29 @@ export default function InteractiveReportScreen() {
       phone: 'غير محدد'
     };
 
+    // تحميل الشواهد المرفقة
+    let uploadedFiles = {};
+    let performanceDataWithEvidence = [];
+
     try {
       const storedData = await AsyncStorage.getItem('basicData');
       if (storedData) {
         userData = { ...userData, ...JSON.parse(storedData) };
       }
+
+      // تحميل بيانات الأداء مع الشواهد
+      const storedPerformanceData = await AsyncStorage.getItem('performanceData');
+      if (storedPerformanceData) {
+        performanceDataWithEvidence = JSON.parse(storedPerformanceData);
+      }
+
+      // تحميل الملفات المرفقة
+      const storedFiles = await AsyncStorage.getItem('uploadedFiles');
+      if (storedFiles) {
+        uploadedFiles = JSON.parse(storedFiles);
+      }
     } catch (error) {
-      console.log('Error loading user data for report:', error);
+      console.log('Error loading data for report:', error);
     }
 
     return `
@@ -529,6 +700,89 @@ export default function InteractiveReportScreen() {
           background: rgba(255, 152, 0, 0.1);
           border-radius: 8px;
         }
+        .evidence-section {
+          background: #f0f8ff;
+          padding: 25px;
+          border-radius: 15px;
+          margin-top: 30px;
+          border-right: 5px solid #4A90E2;
+        }
+        .evidence-section h3 {
+          color: #333;
+          margin-bottom: 20px;
+          text-align: center;
+        }
+        .performance-evidence {
+          margin-bottom: 25px;
+          background: white;
+          padding: 20px;
+          border-radius: 12px;
+          border: 2px solid #e1f5fe;
+        }
+        .performance-evidence h4 {
+          color: #1c1f33;
+          margin-bottom: 15px;
+          border-bottom: 2px solid #4A90E2;
+          padding-bottom: 8px;
+        }
+        .evidence-list {
+          margin-left: 20px;
+        }
+        .evidence-item {
+          margin-bottom: 15px;
+          padding: 12px;
+          background: #f8f9fa;
+          border-radius: 8px;
+          border-right: 3px solid #4A90E2;
+        }
+        .evidence-name {
+          font-weight: bold;
+          color: #333;
+          margin-bottom: 8px;
+        }
+        .evidence-status {
+          display: inline-block;
+          padding: 4px 8px;
+          border-radius: 12px;
+          font-size: 12px;
+          font-weight: bold;
+          margin-bottom: 8px;
+        }
+        .evidence-available {
+          background: #4CAF50;
+          color: white;
+        }
+        .evidence-unavailable {
+          background: #F44336;
+          color: white;
+        }
+        .evidence-files {
+          margin-top: 10px;
+        }
+        .file-item {
+          display: flex;
+          align-items: center;
+          padding: 8px;
+          background: #e3f2fd;
+          border-radius: 6px;
+          margin-bottom: 5px;
+          font-size: 12px;
+        }
+        .file-icon {
+          margin-left: 8px;
+          font-size: 16px;
+        }
+        .file-info {
+          flex: 1;
+        }
+        .file-name {
+          font-weight: bold;
+          color: #1976d2;
+        }
+        .file-details {
+          color: #666;
+          font-size: 11px;
+        }
         .footer {
           text-align: center;
           margin-top: 40px;
@@ -676,6 +930,50 @@ export default function InteractiveReportScreen() {
             '<div class="recommendation-item">• ممتاز! جميع المحاور تحصل على درجات عالية. استمر في الأداء المتميز.</div>' : ''}
         </div>
 
+        <div class="page-break"></div>
+
+        <div class="evidence-section">
+          <h3>📎 الشواهد المرفقة</h3>
+          ${performanceDataWithEvidence.length > 0 ? 
+            performanceDataWithEvidence
+              .filter(item => item.evidence && item.evidence.length > 0)
+              .map((item, index) => `
+                <div class="performance-evidence">
+                  <h4>${index + 1}. ${item.title}</h4>
+                  <div class="evidence-list">
+                    ${item.evidence.map((evidence, evidenceIndex) => {
+                      const fileKey = `${item.id}_${evidenceIndex}`;
+                      const files = uploadedFiles[fileKey] || [];
+                      return `
+                        <div class="evidence-item">
+                          <div class="evidence-name">${evidence.name}</div>
+                          <div class="evidence-status ${evidence.available ? 'evidence-available' : 'evidence-unavailable'}">
+                            ${evidence.available ? 'متوفر' : 'غير متوفر'}
+                          </div>
+                          ${files.length > 0 ? `
+                            <div class="evidence-files">
+                              <strong>الملفات المرفقة:</strong>
+                              ${files.map(file => `
+                                <div class="file-item">
+                                  <span class="file-icon">📎</span>
+                                  <div class="file-info">
+                                    <div class="file-name">${file.name}</div>
+                                    <div class="file-details">${file.size} • ${file.type} • ${file.date}</div>
+                                  </div>
+                                </div>
+                              `).join('')}
+                            </div>
+                          ` : '<div class="evidence-files"><em>لا توجد ملفات مرفقة</em></div>'}
+                        </div>
+                      `;
+                    }).join('')}
+                  </div>
+                </div>
+              `).join('') : 
+            '<div class="performance-evidence"><p>لا توجد شواهد مرفقة حالياً</p></div>'
+          }
+        </div>
+
         <div class="footer">
           <p>تم إنشاء هذا التقرير تلقائياً بواسطة نظام تقييم الأداء المهني</p>
           <p>© ${new Date().getFullYear()} - جميع الحقوق محفوظة</p>
@@ -777,13 +1075,29 @@ export default function InteractiveReportScreen() {
         phone: 'غير محدد'
       };
 
+      // تحميل الشواهد المرفقة
+      let uploadedFiles = {};
+      let performanceDataWithEvidence = [];
+
       try {
         const storedData = await AsyncStorage.getItem('basicData');
         if (storedData) {
           userData = { ...userData, ...JSON.parse(storedData) };
         }
+
+        // تحميل بيانات الأداء مع الشواهد
+        const storedPerformanceData = await AsyncStorage.getItem('performanceData');
+        if (storedPerformanceData) {
+          performanceDataWithEvidence = JSON.parse(storedPerformanceData);
+        }
+
+        // تحميل الملفات المرفقة
+        const storedFiles = await AsyncStorage.getItem('uploadedFiles');
+        if (storedFiles) {
+          uploadedFiles = JSON.parse(storedFiles);
+        }
       } catch (error) {
-        console.log('Error loading user data for text export:', error);
+        console.log('Error loading data for text export:', error);
       }
 
       const textContent = `
@@ -838,6 +1152,27 @@ ${performanceData
 
 ${performanceData.filter(item => item.score < 85).length === 0 ? 
   '• ممتاز! جميع المحاور تحصل على درجات عالية. استمر في الأداء المتميز.' : ''}
+
+📎 الشواهد المرفقة:
+========================================
+${performanceDataWithEvidence.length > 0 ? 
+  performanceDataWithEvidence
+    .filter(item => item.evidence && item.evidence.length > 0)
+    .map((item, index) => `
+${index + 1}. ${item.title}:
+${item.evidence.map((evidence, evidenceIndex) => {
+  const fileKey = `${item.id}_${evidenceIndex}`;
+  const files = uploadedFiles[fileKey] || [];
+  return `
+  - ${evidence.name} (${evidence.available ? 'متوفر' : 'غير متوفر'})
+    ${files.length > 0 ? 
+      files.map(file => `    📎 ${file.name} (${file.size}, ${file.type}, ${file.date})`).join('\n') : 
+      '    لا توجد ملفات مرفقة'
+    }`;
+}).join('\n')}`
+    ).join('\n\n') : 
+  'لا توجد شواهد مرفقة حالياً'
+}
 
 ========================================
 تم إنشاء هذا التقرير تلقائياً بواسطة نظام تقييم الأداء المهني
@@ -919,37 +1254,46 @@ ${performanceData.filter(item => item.score < 85).length === 0 ?
 
   return (
     <ThemedView style={styles.container}>
+      <StatusBar 
+        barStyle="dark-content" 
+        backgroundColor={Platform.OS === 'ios' ? 'transparent' : '#E8F5F4'} 
+        translucent={Platform.OS === 'ios'}
+      />
       <ImageBackground
         source={require('@/assets/images/background.png')}
         style={styles.backgroundImage}
         resizeMode="cover"
       >
-        <ExpoLinearGradient
-          colors={['rgba(255,255,255,0.9)', 'rgba(225,245,244,0.95)', 'rgba(173,212,206,0.8)']}
-          style={styles.gradientOverlay}
+        <KeyboardAvoidingView
+          style={{ flex: 1 }}
+          behavior={Platform.OS === 'ios' ? 'padding' : undefined}
         >
-          <ThemedView style={styles.header}>
-            <TouchableOpacity 
-              style={styles.backButton}
-              onPress={() => router.back()}
-            >
-              <IconSymbol size={20} name="arrow.right" color="#1c1f33" />
-            </TouchableOpacity>
-            <ThemedView style={styles.headerContent}>
-              <IconSymbol size={50} name="chart.line.uptrend.xyaxis" color="#1c1f33" />
-              <ThemedText type="title" style={styles.headerTitle}>
+          <ScrollView 
+            style={styles.scrollContainer}
+            contentContainerStyle={{ paddingBottom: 120 }}
+            showsVerticalScrollIndicator={true}
+            indicatorStyle="black"
+          >
+            <ThemedView style={styles.header}>
+              <TouchableOpacity 
+                style={styles.backButton}
+                onPress={() => router.back()}
+              >
+                <IconSymbol size={20} name="chevron.left" color="#1c1f33" />
+              </TouchableOpacity>
+
+              <ThemedView style={styles.iconContainer}>
+                <IconSymbol size={60} name="chart.line.uptrend.xyaxis" color="#1c1f33" />
+              </ThemedView>
+              <ThemedText type="title" style={styles.title}>
                 التقرير التفاعلي
               </ThemedText>
-              <ThemedText style={styles.headerSubtitle}>
+              <ThemedText style={styles.subtitle}>
                 تحليل شامل لأداءك المهني مع مؤشرات تفاعلية
               </ThemedText>
             </ThemedView>
-          </ThemedView>
 
-          <ScrollView 
-              style={styles.content}
-              contentContainerStyle={{ flexGrow: 1, ...commonStyles.scrollViewWithBottomNav }}
-            >
+            <ThemedView style={styles.content}>
               <ThemedView style={styles.summaryCard}>
               <ThemedText type="subtitle" style={styles.summaryTitle}>
                 ملخص الأداء العام
@@ -984,11 +1328,11 @@ ${performanceData.filter(item => item.score < 85).length === 0 ?
                 </TouchableOpacity>
 
                 <TouchableOpacity
-                  style={[styles.selectorButton, selectedChart === 'progress' && styles.activeSelectorButton]}
-                  onPress={() => setSelectedChart('progress')}
+                  style={[styles.selectorButton, selectedChart === 'overall' && styles.activeSelectorButton]}
+                  onPress={() => setSelectedChart('overall')}
                 >
-                  <IconSymbol size={16} name="list.bullet" color={selectedChart === 'progress' ? '#fff' : '#666'} />
-                  <ThemedText style={[styles.selectorButtonText, selectedChart === 'progress' && styles.activeSelectorButtonText]}>
+                  <IconSymbol size={16} name="list.bullet" color={selectedChart === 'overall' ? '#fff' : '#666'} />
+                  <ThemedText style={[styles.selectorButtonText, selectedChart === 'overall' && styles.activeSelectorButtonText]}>
                     الترتيب
                   </ThemedText>
                 </TouchableOpacity>
@@ -999,7 +1343,7 @@ ${performanceData.filter(item => item.score < 85).length === 0 ?
                 >
                   <IconSymbol size={16} name="chart.bar.fill" color={selectedChart === 'categories' ? '#fff' : '#666'} />
                   <ThemedText style={[styles.selectorButtonText, selectedChart === 'categories' && styles.activeSelectorButtonText]}>
-                    الفئات
+                    الفئة
                   </ThemedText>
                 </TouchableOpacity>
               </ThemedView>
@@ -1019,12 +1363,12 @@ ${performanceData.filter(item => item.score < 85).length === 0 ?
                   .map((item, index) => (
                     <ThemedView key={item.id} style={styles.recommendationItem}>
                       <ThemedText style={styles.recommendationText}>
-                        • ركز على تحسين "{item.title}" (الدرجة الحالية: {item.score}%)
+                        • ركز على تحسين &quot;{item.title}&quot; (الدرجة الحالية: {item.score}%)
                       </ThemedText>
                     </ThemedView>
                   ))}
                 {performanceData.filter(item => item.score < 85).length === 0 && (
-                  <ThemedView style={styles.recommendationItem}>
+                  <ThemedView key="no-improvements-needed" style={styles.recommendationItem}>
                     <ThemedText style={styles.recommendationText}>
                       • ممتاز! جميع المحاور تحصل على درجات عالية. استمر في الأداء المتميز.
                     </ThemedText>
@@ -1050,8 +1394,9 @@ ${performanceData.filter(item => item.score < 85).length === 0 ?
                 <ThemedText style={styles.buttonText}>طباعة</ThemedText>
               </TouchableOpacity>
             </ThemedView>
+            </ThemedView>
           </ScrollView>
-        </ExpoLinearGradient>
+        </KeyboardAvoidingView>
       </ImageBackground>
       <BottomNavigationBar />
     </ThemedView>
@@ -1067,7 +1412,7 @@ const styles = StyleSheet.create({
     width: '100%',
     height: '100%',
   },
-  gradientOverlay: {
+  scrollContainer: {
     flex: 1,
   },
   loadingContainer: {
@@ -1100,100 +1445,122 @@ const styles = StyleSheet.create({
     elevation: 8,
     zIndex: 1,
   },
-  headerContent: {
-    alignItems: 'center',
+  iconContainer: {
+    marginBottom: 20,
+    padding: 20,
+    backgroundColor: '#F8F9FA',
+    borderRadius: 50,
+    borderWidth: 1,
+    borderColor: '#E5E5EA',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 6 },
+    shadowOpacity: 0.25,
+    shadowRadius: 12,
+    elevation: 10,
   },
-  headerTitle: {
-    color: '#1c1f33',
-    fontSize: 24,
+  title: {
+    fontSize: 28,
     fontWeight: 'bold',
+    marginTop: 15,
+    marginBottom: 10,
     textAlign: 'center',
     writingDirection: 'rtl',
-    marginTop: 10,
+    textDirection: 'rtl',
+    color: '#000000',
   },
-  headerSubtitle: {
-    color: '#1c1f33',
-    fontSize: 14,
+  subtitle: {
+    fontSize: 16,
+    color: '#666666',
     textAlign: 'center',
     writingDirection: 'rtl',
-    opacity: 0.8,
-    marginTop: 5,
+    textDirection: 'rtl',
+    marginBottom: 2,
   },
   content: {
-    flex: 1,
-    padding: 15,
+    padding: 20,
+    backgroundColor: 'transparent',
   },
   summaryCard: {
-    backgroundColor: 'rgba(255, 255, 255, 0.15)',
-    borderRadius: 20,
-    paddingHorizontal: 25,
-    paddingVertical: 30,
     marginBottom: 20,
-    elevation: 4,
+    padding: 25,
+    backgroundColor: 'rgba(255, 255, 255, 0.9)',
+    borderRadius: 16,
+    borderWidth: 1,
+    borderColor: 'rgba(229, 229, 234, 0.5)',
     shadowColor: '#000',
-    shadowOffset: { width: 0, height: 3 },
+    shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.15,
-    shadowRadius: 6,
-    minHeight: 140,
-    justifyContent: 'center',
+    shadowRadius: 8,
+    elevation: 6,
+    minHeight: 120,
   },
   summaryTitle: {
-    fontSize: 20,
+    fontSize: 22,
     fontWeight: 'bold',
+    marginBottom: 20,
     color: '#1c1f33',
     textAlign: 'center',
     writingDirection: 'rtl',
-    marginBottom: 20,
-    lineHeight: 26,
-    includeFontPadding: false,
-    textAlignVertical: 'center',
+    textDirection: 'rtl',
   },
   summaryRow: {
     flexDirection: 'row',
     justifyContent: 'space-around',
     alignItems: 'center',
-    paddingHorizontal: 10,
+    paddingHorizontal: 15,
+    gap: 20,
   },
   summaryItem: {
     alignItems: 'center',
     flex: 1,
-    paddingVertical: 10,
+    paddingVertical: 20,
+    paddingHorizontal: 15,
+    backgroundColor: 'rgba(173, 212, 206, 0.1)',
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: 'rgba(173, 212, 206, 0.3)',
+    minHeight: 80,
+    justifyContent: 'center',
   },
   summaryValue: {
     fontSize: 32,
     fontWeight: 'bold',
-    marginBottom: 8,
-    lineHeight: 38,
-    includeFontPadding: false,
-    textAlignVertical: 'center',
+    marginBottom: 12,
+    textAlign: 'center',
+    writingDirection: 'rtl',
+    textDirection: 'rtl',
+    textShadowColor: 'rgba(0, 0, 0, 0.1)',
+    textShadowOffset: { width: 1, height: 1 },
+    textShadowRadius: 2,
+    lineHeight: 36,
   },
   summaryLabel: {
     fontSize: 16,
     color: '#1c1f33',
     textAlign: 'center',
     writingDirection: 'rtl',
-    lineHeight: 20,
-    includeFontPadding: false,
-    textAlignVertical: 'center',
+    textDirection: 'rtl',
     fontWeight: '600',
+    textShadowColor: 'rgba(0, 0, 0, 0.05)',
+    textShadowOffset: { width: 0.5, height: 0.5 },
+    textShadowRadius: 1,
+    lineHeight: 20,
   },
   chartSelector: {
-    backgroundColor: '#fff',
-    borderRadius: 15,
-    padding: 15,
     marginBottom: 20,
-    elevation: 2,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.1,
-    shadowRadius: 3,
+    padding: 20,
+    backgroundColor: 'rgba(255, 255, 255, 0.9)',
+    borderRadius: 16,
+    borderWidth: 1,
+    borderColor: 'rgba(229, 229, 234, 0.5)',
   },
   selectorTitle: {
     fontSize: 16,
     fontWeight: 'bold',
-    color: '#333',
+    color: '#1c1f33',
     textAlign: 'right',
     writingDirection: 'rtl',
+    textDirection: 'rtl',
     marginBottom: 10,
   },
   selectorButtons: {
@@ -1203,111 +1570,228 @@ const styles = StyleSheet.create({
   selectorButton: {
     flexDirection: 'row',
     alignItems: 'center',
-    paddingHorizontal: 15,
-    paddingVertical: 10,
-    borderRadius: 20,
-    backgroundColor: '#f0f0f0',
-    gap: 5,
+    paddingHorizontal: 18,
+    paddingVertical: 12,
+    borderRadius: 25,
+    backgroundColor: '#f8f9fa',
+    gap: 8,
+    borderWidth: 1,
+    borderColor: '#e9ecef',
   },
   activeSelectorButton: {
-    backgroundColor: '#1c1f33',
+    backgroundColor: '#add4ce',
+    borderColor: '#add4ce',
   },
   selectorButtonText: {
     fontSize: 14,
     color: '#666',
     fontWeight: '600',
+    textAlign: 'right',
+    writingDirection: 'rtl',
+    textDirection: 'rtl',
   },
   activeSelectorButtonText: {
-    color: '#fff',
+    color: '#1c1f33',
+    fontWeight: 'bold',
   },
   chartContainer: {
-    backgroundColor: '#fff',
-    borderRadius: 15,
-    padding: 20,
     marginBottom: 20,
-    elevation: 2,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.1,
-    shadowRadius: 3,
+    padding: 20,
+    backgroundColor: 'rgba(255, 255, 255, 0.9)',
+    borderRadius: 16,
+    borderWidth: 1,
+    borderColor: 'rgba(229, 229, 234, 0.5)',
+    alignItems: 'center',
+  },
+  horizontalScrollContainer: {
+    marginVertical: 10,
+    borderRadius: 16,
+    overflow: 'hidden',
+  },
+  colorLegend: {
+    marginTop: 15,
+    padding: 15,
+    backgroundColor: 'rgba(255, 255, 255, 0.8)',
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: 'rgba(229, 229, 234, 0.5)',
+  },
+  legendTitle: {
+    fontSize: 14,
+    fontWeight: 'bold',
+    color: '#1c1f33',
+    textAlign: 'center',
+    writingDirection: 'rtl',
+    textDirection: 'rtl',
+    marginBottom: 10,
+  },
+  legendItems: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    justifyContent: 'space-around',
+    gap: 8,
+  },
+  legendItem: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    minWidth: '45%',
+  },
+  legendColor: {
+    width: 16,
+    height: 16,
+    borderRadius: 8,
+    borderWidth: 1,
+    borderColor: 'rgba(0, 0, 0, 0.1)',
+  },
+  legendText: {
+    fontSize: 12,
+    color: '#333',
+    textAlign: 'right',
+    writingDirection: 'rtl',
+    textDirection: 'rtl',
+    flex: 1,
   },
   chartTitle: {
+    fontSize: 18,
+    fontWeight: 'bold',
+    color: '#1c1f33',
+    textAlign: 'center',
+    writingDirection: 'rtl',
+    textDirection: 'rtl',
+    marginBottom: 15,
+  },
+  pieLegendContainer: {
+    marginTop: 20,
+    width: '100%',
+  },
+  pieLegendItem: {
+    marginBottom: 15,
+  },
+  pieLegend: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 10,
+  },
+  pieColor: {
+    width: 20,
+    height: 20,
+    borderRadius: 10,
+    borderWidth: 2,
+    borderColor: '#ffffff',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.2,
+    shadowRadius: 4,
+    elevation: 4,
+  },
+  pieInfo: {
+    flex: 1,
+  },
+  pieLabel: {
     fontSize: 16,
     fontWeight: 'bold',
-    color: '#333',
-    textAlign: 'center',
+    color: '#1c1f33',
+    textAlign: 'right',
     writingDirection: 'rtl',
-    marginBottom: 20,
-  },
-  barsContainer: {
-    flexDirection: 'row',
-    justifyContent: 'space-around',
-    alignItems: 'flex-end',
-    height: 180,
-  },
-  barWrapper: {
-    alignItems: 'center',
-    flex: 1,
-    marginHorizontal: 2,
-  },
-  bar: {
-    width: 25,
-    borderRadius: 4,
-    marginBottom: 8,
-  },
-  barLabel: {
-    fontSize: 10,
-    color: '#666',
-    textAlign: 'center',
-    writingDirection: 'rtl',
+    textDirection: 'rtl',
     marginBottom: 4,
   },
-  barValue: {
-    fontSize: 12,
-    fontWeight: 'bold',
-    textAlign: 'center',
+  pieDetails: {
+    fontSize: 14,
+    color: '#666666',
+    textAlign: 'right',
+    writingDirection: 'rtl',
+    textDirection: 'rtl',
+    marginBottom: 2,
+  },
+  pieAverage: {
+    fontSize: 14,
+    fontWeight: '600',
+    textAlign: 'right',
+    writingDirection: 'rtl',
+    textDirection: 'rtl',
   },
   progressList: {
     gap: 12,
   },
   progressItem: {
-    backgroundColor: '#f8f9fa',
-    borderRadius: 8,
-    padding: 12,
+    backgroundColor: 'rgba(255, 255, 255, 0.9)',
+    borderRadius: 16,
+    padding: 20,
+    marginBottom: 12,
+    borderWidth: 1,
+    borderColor: 'rgba(229, 229, 234, 0.5)',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 3 },
+    shadowOpacity: 0.15,
+    shadowRadius: 6,
+    elevation: 4,
   },
   progressHeader: {
     flexDirection: 'row',
     alignItems: 'center',
-    marginBottom: 8,
-    gap: 10,
+    marginBottom: 12,
+    gap: 15,
   },
   progressRank: {
-    fontSize: 14,
+    fontSize: 24,
     fontWeight: 'bold',
-    color: '#1c1f33',
-    minWidth: 25,
+    color: '#FFFFFF',
+    minWidth: 60,
+    height: 60,
+    textAlign: 'center',
+    writingDirection: 'rtl',
+    textDirection: 'rtl',
+    backgroundColor: '#add4ce',
+    borderRadius: 30,
+    lineHeight: 60,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.4,
+    shadowRadius: 8,
+    elevation: 8,
   },
   progressTitle: {
     flex: 1,
-    fontSize: 14,
+    fontSize: 16,
     color: '#333',
     textAlign: 'right',
     writingDirection: 'rtl',
+    textDirection: 'rtl',
+    fontWeight: '500',
   },
   progressScore: {
-    fontSize: 14,
+    fontSize: 18,
     fontWeight: 'bold',
+    textAlign: 'center',
+    writingDirection: 'rtl',
+    textDirection: 'rtl',
+    marginTop: 6,
+    paddingVertical: 6,
+    paddingHorizontal: 16,
+    backgroundColor: 'rgba(173, 212, 206, 0.1)',
+    borderRadius: 10,
+    alignSelf: 'center',
   },
   progressBarWrapper: {
-    height: 6,
+    height: 12,
     backgroundColor: '#E5E5EA',
-    borderRadius: 3,
+    borderRadius: 6,
     overflow: 'hidden',
+    marginTop: 12,
   },
   progressBar: {
     height: '100%',
-    borderRadius: 3,
+    borderRadius: 6,
+    backgroundColor: '#add4ce',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.3,
+    shadowRadius: 3,
+    elevation: 3,
   },
+
   statsGrid: {
     flexDirection: 'row',
     flexWrap: 'wrap',
@@ -1327,47 +1811,51 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
     color: '#333',
     marginVertical: 5,
+    textAlign: 'center',
+    writingDirection: 'rtl',
+    textDirection: 'rtl',
   },
   statLabel: {
     fontSize: 12,
     color: '#666',
     textAlign: 'center',
     writingDirection: 'rtl',
+    textDirection: 'rtl',
   },
   recommendationsCard: {
-    backgroundColor: '#fff',
-    borderRadius: 15,
-    padding: 20,
     marginBottom: 20,
-    elevation: 2,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.1,
-    shadowRadius: 3,
+    padding: 20,
+    backgroundColor: 'rgba(255, 255, 255, 0.9)',
+    borderRadius: 16,
+    borderWidth: 1,
+    borderColor: 'rgba(229, 229, 234, 0.5)',
   },
   recommendationsTitle: {
     fontSize: 16,
     fontWeight: 'bold',
-    color: '#333',
+    color: '#1c1f33',
     textAlign: 'right',
     writingDirection: 'rtl',
+    textDirection: 'rtl',
     marginBottom: 15,
   },
   recommendationsList: {
     gap: 8,
   },
   recommendationItem: {
-    backgroundColor: 'rgba(255, 248, 225, 0.3)',
-    padding: 12,
-    borderRadius: 8,
+    backgroundColor: 'rgba(173, 212, 206, 0.1)',
+    padding: 15,
+    borderRadius: 12,
     borderLeftWidth: 4,
-    borderLeftColor: '#FF9800',
+    borderLeftColor: '#add4ce',
+    marginBottom: 8,
   },
   recommendationText: {
     fontSize: 14,
     color: '#333',
     textAlign: 'right',
     writingDirection: 'rtl',
+    textDirection: 'rtl',
     lineHeight: 20,
   },
   actionButtons: {
@@ -1412,6 +1900,116 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: '600',
     writingDirection: 'rtl',
+    textDirection: 'rtl',
     textAlign: 'center',
+  },
+  statisticsContainer: {
+    marginBottom: 20,
+    padding: 20,
+    backgroundColor: 'rgba(255, 255, 255, 0.9)',
+    borderRadius: 16,
+    borderWidth: 1,
+    borderColor: 'rgba(229, 229, 234, 0.5)',
+  },
+  sectionTitle: {
+    fontSize: 18,
+    fontWeight: 'bold',
+    color: '#1c1f33',
+    textAlign: 'right',
+    writingDirection: 'rtl',
+    textDirection: 'rtl',
+    marginBottom: 15,
+  },
+  // أنماط التمثيل البصري الجديد
+  visualRepresentation: {
+    gap: 12,
+  },
+  visualItem: {
+    backgroundColor: 'rgba(255, 255, 255, 0.9)',
+    borderRadius: 12,
+    padding: 15,
+    marginBottom: 8,
+    borderWidth: 1,
+    borderColor: 'rgba(229, 229, 234, 0.3)',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    elevation: 2,
+  },
+  visualHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 10,
+    gap: 12,
+  },
+  rankContainer: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    backgroundColor: '#add4ce',
+    justifyContent: 'center',
+    alignItems: 'center',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.2,
+    shadowRadius: 3,
+    elevation: 3,
+  },
+  rankText: {
+    fontSize: 16,
+    fontWeight: 'bold',
+    color: '#1c1f33',
+    textAlign: 'center',
+  },
+  titleContainer: {
+    flex: 1,
+  },
+  itemTitle: {
+    fontSize: 14,
+    fontWeight: '500',
+    color: '#333',
+    textAlign: 'right',
+    writingDirection: 'rtl',
+    textDirection: 'rtl',
+    lineHeight: 18,
+  },
+  scoreContainer: {
+    minWidth: 50,
+    alignItems: 'center',
+  },
+  scoreText: {
+    fontSize: 16,
+    fontWeight: 'bold',
+    textAlign: 'center',
+  },
+  progressBarContainer: {
+    height: 8,
+    backgroundColor: '#f0f0f0',
+    borderRadius: 4,
+    overflow: 'hidden',
+  },
+  progressBarFill: {
+    height: '100%',
+    borderRadius: 4,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.2,
+    shadowRadius: 2,
+    elevation: 2,
+  },
+  emptyState: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    padding: 40,
+    minHeight: 200,
+  },
+  emptyStateText: {
+    fontSize: 16,
+    color: '#666666',
+    textAlign: 'center',
+    writingDirection: 'rtl',
+    textDirection: 'rtl',
   },
 });

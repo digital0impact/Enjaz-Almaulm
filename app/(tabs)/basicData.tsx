@@ -12,7 +12,7 @@ import {
   Platform,
   StatusBar,
 } from 'react-native';
-import { LinearGradient as ExpoLinearGradient } from 'expo-linear-gradient';
+
 import { ThemedText } from '@/components/ThemedText';
 import { ThemedView } from '@/components/ThemedView';
 import { IconSymbol } from '@/components/ui/IconSymbol';
@@ -35,11 +35,13 @@ export default function BasicDataScreen() {
     mission: 'تقديم تعليم نوعي يركز على بناء الشخصية المتكاملة للطالب',
     email: 'teacher@example.com',
     phone: '+966123456789',
-    twitter: '',
-    linkedin: '',
+    socialMedia: '',
+    appointmentDate: '2014/09/01',
+    rank: 'معلم',
+    experiences: 'تدريس الرياضيات للمرحلة الثانوية، تدريب المعلمين الجدد، إعداد المناهج الدراسية',
   });
 
-  const { colors, themeMode } = useTheme(); // Use the useTheme hook to get the current theme
+  const { colors } = useTheme(); // Use the useTheme hook to get the current theme
 
   useEffect(() => {
     loadUserData();
@@ -131,10 +133,6 @@ export default function BasicDataScreen() {
         style={styles.backgroundImage}
         resizeMode="cover"
       >
-        <ExpoLinearGradient
-          colors={['rgba(255,255,255,0.9)', 'rgba(225,245,244,0.95)', 'rgba(173,212,206,0.8)']}
-          style={styles.gradientOverlay}
-        >
           <KeyboardAvoidingView
             behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
             style={{ flex: 1 }}
@@ -184,7 +182,7 @@ export default function BasicDataScreen() {
             <TouchableOpacity 
               style={[styles.editButton, { 
                 backgroundColor: 'transparent',
-                borderColor: themeMode === 'dark' ? 'rgba(255, 255, 255, 0.1)' : 'rgba(0, 0, 0, 0.1)'
+                borderColor: 'rgba(0, 0, 0, 0.1)'
               }]}
               onPress={() => setIsEditing(true)}
             >
@@ -221,17 +219,17 @@ export default function BasicDataScreen() {
         </ThemedView>
 
         <ThemedView style={[styles.dataSection, { backgroundColor: 'transparent' }]}>
-          <ThemedText type="subtitle" style={styles.sectionTitle}>
+          <ThemedText type="subtitle" style={styles.sectionTitleMain}>
             المعلومات الشخصية
           </ThemedText>
 
           {/* الصف الأول: الاسم الكامل والبريد الإلكتروني */}
           <ThemedView style={styles.gridContainer}>
             <ThemedView style={[styles.dataItem, styles.gridItem, { backgroundColor: colors.card }]}>
-              <ThemedText style={[styles.label, { color: colors.textSecondary }]}>الاسم الكامل</ThemedText>
+              <ThemedText style={[styles.labelMain, { color: colors.textSecondary }]}>الاسم الكامل</ThemedText>
               {isEditing ? (
                 <TextInput
-                  style={[styles.input, { backgroundColor: colors.inputBackground, color: colors.inputText }]}
+                  style={[styles.inputMain, { backgroundColor: colors.inputBackground, color: colors.inputText }]}
                   value={userData.fullName}
                   onChangeText={(text) => updateField('fullName', text)}
                   placeholder="أدخل الاسم الكامل"
@@ -243,10 +241,10 @@ export default function BasicDataScreen() {
             </ThemedView>
 
             <ThemedView style={[styles.dataItem, styles.gridItem, { backgroundColor: colors.card }]}>
-              <ThemedText style={[styles.label, { color: colors.textSecondary }]}>البريد الإلكتروني</ThemedText>
+              <ThemedText style={[styles.labelMain, { color: colors.textSecondary }]}>البريد الإلكتروني</ThemedText>
               {isEditing ? (
                 <TextInput
-                  style={[styles.input, { backgroundColor: colors.inputBackground, color: colors.inputText }]}
+                  style={[styles.inputMain, { backgroundColor: colors.inputBackground, color: colors.inputText }]}
                   value={userData.email}
                   onChangeText={(text) => updateField('email', text)}
                   placeholder="أدخل البريد الإلكتروني"
@@ -259,13 +257,13 @@ export default function BasicDataScreen() {
             </ThemedView>
           </ThemedView>
 
-          {/* الصف الثاني: رقم الهاتف ومنصة X */}
+          {/* الصف الثاني: رقم الهاتف ووسائل التواصل الاجتماعي */}
           <ThemedView style={styles.gridContainer}>
             <ThemedView style={[styles.dataItem, styles.gridItem, { backgroundColor: colors.card }]}>
-              <ThemedText style={[styles.label, { color: colors.textSecondary }]}>رقم الهاتف</ThemedText>
+              <ThemedText style={[styles.labelMain, { color: colors.textSecondary }]}>رقم الهاتف</ThemedText>
               {isEditing ? (
                 <TextInput
-                  style={[styles.input, { backgroundColor: colors.inputBackground, color: colors.inputText }]}
+                  style={[styles.inputMain, { backgroundColor: colors.inputBackground, color: colors.inputText }]}
                   value={userData.phone}
                   onChangeText={(text) => updateField('phone', text)}
                   placeholder="أدخل رقم الهاتف"
@@ -278,85 +276,34 @@ export default function BasicDataScreen() {
             </ThemedView>
 
             <ThemedView style={[styles.dataItem, styles.gridItem, { backgroundColor: colors.card }]}>
-              <ThemedText style={[styles.label, { color: colors.textSecondary }]}>منصة X</ThemedText>
+              <ThemedText style={[styles.labelMain, { color: colors.textSecondary }]}>وسائل التواصل الاجتماعي</ThemedText>
               {isEditing ? (
                 <TextInput
-                  style={[styles.input, { backgroundColor: colors.inputBackground, color: colors.inputText }]}
-                  value={userData.twitter}
-                  onChangeText={(text) => updateField('twitter', text)}
-                  placeholder="أدخل اسم المستخدم على منصة X"
+                  style={[styles.inputMain, { backgroundColor: colors.inputBackground, color: colors.inputText }]}
+                  value={userData.socialMedia}
+                  onChangeText={(text) => updateField('socialMedia', text)}
+                  placeholder="أدخل روابط وسائل التواصل الاجتماعي"
                   placeholderTextColor={colors.inputPlaceholder}
                 />
               ) : (
-                <ThemedText style={[styles.value, { color: colors.text }]}>{userData.twitter}</ThemedText>
-              )}
-            </ThemedView>
-          </ThemedView>
-
-          {/* الصف الثالث: لينكدإن بعرض كامل */}
-          <ThemedView style={styles.gridContainer}>
-            <ThemedView style={[styles.dataItem, styles.fullWidth, { backgroundColor: colors.card }]}>
-              <ThemedText style={[styles.label, { color: colors.textSecondary }]}>لينكدإن</ThemedText>
-              {isEditing ? (
-                <TextInput
-                  style={[styles.input, { backgroundColor: colors.inputBackground, color: colors.inputText }]}
-                  value={userData.linkedin}
-                  onChangeText={(text) => updateField('linkedin', text)}
-                  placeholder="أدخل رابط الملف الشخصي على لينكدإن"
-                  placeholderTextColor={colors.inputPlaceholder}
-                />
-              ) : (
-                <ThemedText style={[styles.value, { color: colors.text }]}>{userData.linkedin}</ThemedText>
+                <ThemedText style={[styles.value, { color: colors.text }]}>{userData.socialMedia}</ThemedText>
               )}
             </ThemedView>
           </ThemedView>
         </ThemedView>
 
         <ThemedView style={[styles.dataSection, { backgroundColor: 'transparent' }]}>
-          <ThemedText type="subtitle" style={styles.sectionTitle}>
+          <ThemedText type="subtitle" style={styles.sectionTitleMain}>
             المعلومات المهنية
           </ThemedText>
 
-          {/* الصف الأول: التخصص وسنوات الخبرة */}
-          <ThemedView style={styles.gridContainer}>
-            <ThemedView style={[styles.dataItem, styles.gridItem, { backgroundColor: colors.card }]}>
-              <ThemedText style={[styles.label, { color: colors.textSecondary }]}>التخصص</ThemedText>
-              {isEditing ? (
-                <TextInput
-                  style={[styles.input, { backgroundColor: colors.inputBackground, color: colors.inputText }]}
-                  value={userData.specialty}
-                  onChangeText={(text) => updateField('specialty', text)}
-                  placeholder="أدخل التخصص"
-                  placeholderTextColor={colors.inputPlaceholder}
-                />
-              ) : (
-                <ThemedText style={[styles.value, { color: colors.text }]}>{userData.specialty}</ThemedText>
-              )}
-            </ThemedView>
-
-            <ThemedView style={[styles.dataItem, styles.gridItem, { backgroundColor: colors.card }]}>
-              <ThemedText style={[styles.label, { color: colors.textSecondary }]}>سنوات الخبرة</ThemedText>
-              {isEditing ? (
-                <TextInput
-                  style={[styles.input, { backgroundColor: colors.inputBackground, color: colors.inputText }]}
-                  value={userData.experience}
-                  onChangeText={(text) => updateField('experience', text)}
-                  placeholder="أدخل سنوات الخبرة"
-                  placeholderTextColor={colors.inputPlaceholder}
-                />
-              ) : (
-                <ThemedText style={[styles.value, { color: colors.text }]}>{userData.experience}</ThemedText>
-              )}
-            </ThemedView>
-          </ThemedView>
-
-          {/* الصف الثاني: المؤهل العلمي والمدرسة */}
+          {/* الصف الأول: المؤهل العلمي والتخصص */}
           <ThemedView style={styles.gridContainer}>
             <ThemedView style={[styles.dataItem, styles.gridItem, { backgroundColor: colors.card }]}>
               <ThemedText style={[styles.label, { color: colors.textSecondary }]}>المؤهل العلمي</ThemedText>
               {isEditing ? (
                 <TextInput
-                  style={[styles.input, { backgroundColor: colors.inputBackground, color: colors.inputText }]}
+                  style={[styles.inputMain, { backgroundColor: colors.inputBackground, color: colors.inputText }]}
                   value={userData.education}
                   onChangeText={(text) => updateField('education', text)}
                   placeholder="أدخل المؤهل العلمي"
@@ -368,28 +315,98 @@ export default function BasicDataScreen() {
             </ThemedView>
 
             <ThemedView style={[styles.dataItem, styles.gridItem, { backgroundColor: colors.card }]}>
-              <ThemedText style={[styles.label, { color: colors.textSecondary }]}>المدرسة</ThemedText>
+              <ThemedText style={[styles.label, { color: colors.textSecondary }]}>التخصص</ThemedText>
               {isEditing ? (
                 <TextInput
-                  style={[styles.input, { backgroundColor: colors.inputBackground, color: colors.inputText }]}
-                  value={userData.school}
-                  onChangeText={(text) => updateField('school', text)}
-                  placeholder="أدخل اسم المدرسة"
+                  style={[styles.inputMain, { backgroundColor: colors.inputBackground, color: colors.inputText }]}
+                  value={userData.specialty}
+                  onChangeText={(text) => updateField('specialty', text)}
+                  placeholder="أدخل التخصص"
                   placeholderTextColor={colors.inputPlaceholder}
                 />
               ) : (
-                <ThemedText style={[styles.value, { color: colors.text }]}>{userData.school}</ThemedText>
+                <ThemedText style={[styles.value, { color: colors.text }]}>{userData.specialty}</ThemedText>
               )}
             </ThemedView>
           </ThemedView>
 
-          {/* الصف الثالث: الإدارة التعليمية */}
+          {/* الصف الثاني: تاريخ التعيين والرتبة */}
+          <ThemedView style={styles.gridContainer}>
+            <ThemedView style={[styles.dataItem, styles.gridItem, { backgroundColor: colors.card }]}>
+              <ThemedText style={[styles.label, { color: colors.textSecondary }]}>تاريخ التعيين</ThemedText>
+              {isEditing ? (
+                <TextInput
+                  style={[styles.inputMain, { backgroundColor: colors.inputBackground, color: colors.inputText }]}
+                  value={userData.appointmentDate}
+                  onChangeText={(text) => updateField('appointmentDate', text)}
+                  placeholder="أدخل تاريخ التعيين"
+                  placeholderTextColor={colors.inputPlaceholder}
+                />
+              ) : (
+                <ThemedText style={[styles.value, { color: colors.text }]}>{userData.appointmentDate}</ThemedText>
+              )}
+            </ThemedView>
+
+            <ThemedView style={[styles.dataItem, styles.gridItem, { backgroundColor: colors.card }]}>
+              <ThemedText style={[styles.label, { color: colors.textSecondary }]}>الرتبة</ThemedText>
+              {isEditing ? (
+                <TextInput
+                  style={[styles.inputMain, { backgroundColor: colors.inputBackground, color: colors.inputText }]}
+                  value={userData.rank}
+                  onChangeText={(text) => updateField('rank', text)}
+                  placeholder="أدخل الرتبة"
+                  placeholderTextColor={colors.inputPlaceholder}
+                />
+              ) : (
+                <ThemedText style={[styles.value, { color: colors.text }]}>{userData.rank}</ThemedText>
+              )}
+            </ThemedView>
+          </ThemedView>
+
+          {/* الصف الثالث: عدد سنوات الخبرة */}
+          <ThemedView style={styles.gridContainer}>
+            <ThemedView style={[styles.dataItem, styles.gridItem, { backgroundColor: colors.card }]}>
+              <ThemedText style={[styles.label, { color: colors.textSecondary }]}>عدد سنوات الخبرة</ThemedText>
+              {isEditing ? (
+                <TextInput
+                  style={[styles.inputMain, { backgroundColor: colors.inputBackground, color: colors.inputText }]}
+                  value={userData.experience}
+                  onChangeText={(text) => updateField('experience', text)}
+                  placeholder="أدخل عدد سنوات الخبرة"
+                  placeholderTextColor={colors.inputPlaceholder}
+                />
+              ) : (
+                <ThemedText style={[styles.value, { color: colors.text }]}>{userData.experience}</ThemedText>
+              )}
+            </ThemedView>
+          </ThemedView>
+
+          {/* الصف الرابع: الخبرات */}
+          <ThemedView style={styles.gridContainer}>
+            <ThemedView style={[styles.dataItem, styles.fullWidth, { backgroundColor: colors.card }]}>
+              <ThemedText style={[styles.label, { color: colors.textSecondary }]}>الخبرات</ThemedText>
+              {isEditing ? (
+                <TextInput
+                  style={[styles.inputMain, styles.textArea, { backgroundColor: colors.inputBackground, color: colors.inputText }]}
+                  value={userData.experiences}
+                  onChangeText={(text) => updateField('experiences', text)}
+                  placeholder="أدخل الخبرات المهنية"
+                  multiline
+                  placeholderTextColor={colors.inputPlaceholder}
+                />
+              ) : (
+                <ThemedText style={[styles.value, { color: colors.text }]}>{userData.experiences}</ThemedText>
+              )}
+            </ThemedView>
+          </ThemedView>
+
+          {/* الصف الخامس: الإدارة التعليمية */}
           <ThemedView style={styles.gridContainer}>
             <ThemedView style={[styles.dataItem, styles.fullWidth, { backgroundColor: colors.card }]}>
               <ThemedText style={[styles.label, { color: colors.textSecondary }]}>الإدارة التعليمية</ThemedText>
               {isEditing ? (
                 <TextInput
-                  style={[styles.input, { backgroundColor: colors.inputBackground, color: colors.inputText }]}
+                  style={[styles.inputMain, { backgroundColor: colors.inputBackground, color: colors.inputText }]}
                   value={userData.educationDepartment}
                   onChangeText={(text) => updateField('educationDepartment', text)}
                   placeholder="أدخل اسم الإدارة التعليمية"
@@ -401,13 +418,31 @@ export default function BasicDataScreen() {
             </ThemedView>
           </ThemedView>
 
-          {/* الصف الرابع: المرحلة والصفوف الدراسية */}
+          {/* الصف السادس: المدرسة */}
+          <ThemedView style={styles.gridContainer}>
+            <ThemedView style={[styles.dataItem, styles.fullWidth, { backgroundColor: colors.card }]}>
+              <ThemedText style={[styles.label, { color: colors.textSecondary }]}>المدرسة</ThemedText>
+              {isEditing ? (
+                <TextInput
+                  style={[styles.inputMain, { backgroundColor: colors.inputBackground, color: colors.inputText }]}
+                  value={userData.school}
+                  onChangeText={(text) => updateField('school', text)}
+                  placeholder="أدخل اسم المدرسة"
+                  placeholderTextColor={colors.inputPlaceholder}
+                />
+              ) : (
+                <ThemedText style={[styles.value, { color: colors.text }]}>{userData.school}</ThemedText>
+              )}
+            </ThemedView>
+          </ThemedView>
+
+          {/* الصف السابع: المرحلة والصفوف الدراسية */}
           <ThemedView style={styles.gridContainer}>
             <ThemedView style={[styles.dataItem, styles.fullWidth, { backgroundColor: colors.card }]}>
               <ThemedText style={[styles.label, { color: colors.textSecondary }]}>المرحلة والصفوف الدراسية</ThemedText>
               {isEditing ? (
                 <TextInput
-                  style={[styles.input, styles.textArea, { backgroundColor: colors.inputBackground, color: colors.inputText }]}
+                  style={[styles.inputMain, styles.textArea, { backgroundColor: colors.inputBackground, color: colors.inputText }]}
                   value={userData.gradeLevel}
                   onChangeText={(text) => updateField('gradeLevel', text)}
                   placeholder="أدخل المرحلة والصفوف الدراسية"
@@ -430,7 +465,7 @@ export default function BasicDataScreen() {
             <ThemedText style={[styles.label, { color: colors.textSecondary }]}>الرؤية</ThemedText>
             {isEditing ? (
               <TextInput
-                style={[styles.input, styles.textArea, { backgroundColor: colors.inputBackground, color: colors.inputText }]}
+                style={[styles.inputMain, styles.textArea, { backgroundColor: colors.inputBackground, color: colors.inputText }]}
                 value={userData.vision}
                 onChangeText={(text) => updateField('vision', text)}
                 placeholder="أدخل رؤيتك التعليمية"
@@ -447,7 +482,7 @@ export default function BasicDataScreen() {
             <ThemedText style={[styles.label, { color: colors.textSecondary }]}>الرسالة</ThemedText>
             {isEditing ? (
               <TextInput
-                style={[styles.input, styles.textArea, { backgroundColor: colors.inputBackground, color: colors.inputText }]}
+                style={[styles.inputMain, styles.textArea, { backgroundColor: colors.inputBackground, color: colors.inputText }]}
                 value={userData.mission}
                 onChangeText={(text) => updateField('mission', text)}
                 placeholder="أدخل رسالتك التعليمية"
@@ -463,7 +498,6 @@ export default function BasicDataScreen() {
       </ThemedView>
           </ScrollView>
           </KeyboardAvoidingView>
-        </ExpoLinearGradient>
       </ImageBackground>
     </KeyboardAvoidingView>
   );
@@ -554,14 +588,14 @@ const styles = StyleSheet.create({
     color: '#666666',
     textAlign: 'center',
     writingDirection: 'rtl',
-    marginBottom: 20,
+    marginBottom: 5,
   },
   content: {
     padding: 20,
     backgroundColor: 'transparent',
   },
   actionButtons: {
-    marginBottom: 20,
+    marginBottom: 0,
   },
   editButton: {
     flex: 1,
@@ -573,17 +607,12 @@ const styles = StyleSheet.create({
     paddingHorizontal: 25,
     borderRadius: 25,
     gap: 10,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 6 },
-    shadowOpacity: 0.4,
-    shadowRadius: 12,
-    elevation: 12,
   },
   editActions: {
     flexDirection: 'row',
     gap: 10,
   },
-  saveButton: {
+  saveButtonMain: {
     flex: 1,
     flexDirection: 'row',
     alignItems: 'center',
@@ -593,14 +622,9 @@ const styles = StyleSheet.create({
     paddingHorizontal: 25,
     borderRadius: 25,
     gap: 10,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 6 },
-    shadowOpacity: 0.4,
-    shadowRadius: 12,
-    elevation: 12,
     marginBottom: 15,
   },
-  saveButtonText: {
+  saveButtonTextMain: {
     color: '#1c1f33',
     fontSize: 16,
     fontWeight: '600',
@@ -612,21 +636,14 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: '#F8F9FA',
+    backgroundColor: '#add4ce',
     paddingVertical: 15,
     paddingHorizontal: 25,
     borderRadius: 25,
-    borderWidth: 1,
-    borderColor: '#E5E5EA',
     gap: 10,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 6 },
-    shadowOpacity: 0.25,
-    shadowRadius: 12,
-    elevation: 10,
   },
   cancelButtonText: {
-    color: '#666',
+    color: '#1c1f33',
     fontSize: 16,
     fontWeight: '600',
     textAlign: 'center',
@@ -642,7 +659,7 @@ const styles = StyleSheet.create({
   dataSection: {
     marginBottom: 30,
   },
-  sectionTitle: {
+  sectionTitleMain: {
     fontSize: 20,
     fontWeight: 'bold',
     marginBottom: 15,
@@ -671,7 +688,7 @@ const styles = StyleSheet.create({
     marginBottom: 8,
     gap: 8,
   },
-  label: {
+  labelMain: {
     fontSize: 14,
     fontWeight: '600',
     textAlign: 'right',
@@ -687,7 +704,7 @@ const styles = StyleSheet.create({
     fontWeight: '500',
     lineHeight: 24,
   },
-  input: {
+  inputMain: {
     fontSize: 16,
     borderWidth: 1,
     borderColor: '#E5E5EA',

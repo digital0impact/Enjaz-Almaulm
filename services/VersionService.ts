@@ -1,6 +1,6 @@
-
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { VERSION_INFO } from '@/constants/Version';
+import { logError } from '@/utils/logger';
 
 export class VersionService {
   private static readonly VERSION_KEY = 'app_version_info';
@@ -16,7 +16,7 @@ export class VersionService {
       
       await AsyncStorage.setItem(this.VERSION_KEY, JSON.stringify(versionData));
     } catch (error) {
-      console.error('خطأ في حفظ معلومات الإصدار:', error);
+      logError('خطأ في حفظ معلومات الإصدار', 'VersionService', error);
     }
   }
 
@@ -26,7 +26,7 @@ export class VersionService {
       const savedVersion = await AsyncStorage.getItem(this.VERSION_KEY);
       return savedVersion ? JSON.parse(savedVersion) : null;
     } catch (error) {
-      console.error('خطأ في استرجاع معلومات الإصدار:', error);
+      logError('خطأ في استرجاع معلومات الإصدار', 'VersionService', error);
       return null;
     }
   }
@@ -46,7 +46,7 @@ export class VersionService {
 
       await AsyncStorage.setItem(this.UPDATES_KEY, JSON.stringify(existingLogs));
     } catch (error) {
-      console.error('خطأ في تسجيل تحديث الإصدار:', error);
+      logError('خطأ في تسجيل تحديث الإصدار', 'VersionService', error);
     }
   }
 
@@ -56,7 +56,7 @@ export class VersionService {
       const logs = await AsyncStorage.getItem(this.UPDATES_KEY);
       return logs ? JSON.parse(logs) : [];
     } catch (error) {
-      console.error('خطأ في استرجاع سجل التحديثات:', error);
+      logError('خطأ في استرجاع سجل التحديثات', 'VersionService', error);
       return [];
     }
   }
@@ -91,7 +91,7 @@ export class VersionService {
 
       return false;
     } catch (error) {
-      console.error('خطأ في فحص التحديثات:', error);
+      logError('خطأ في فحص التحديثات', 'VersionService', error);
       return false;
     }
   }
@@ -114,7 +114,7 @@ export class VersionService {
         installDate: savedVersion?.timestamp || null
       };
     } catch (error) {
-      console.error('خطأ في الحصول على إحصائيات الإصدار:', error);
+      logError('خطأ في الحصول على إحصائيات الإصدار', 'VersionService', error);
       return {
         currentVersion: VERSION_INFO.getFullVersion(),
         totalUpdates: 0,

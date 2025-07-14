@@ -1,5 +1,4 @@
-
-import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
+import React, { createContext, useContext, useState, useEffect, ReactNode, useCallback } from 'react';
 import DatabaseService, { UserProfile, PerformanceData, Alert, Comment } from '../services/DatabaseService';
 
 interface DatabaseContextType {
@@ -19,11 +18,8 @@ interface DatabaseContextType {
   updateAlert: (id: string, updates: Partial<Alert>) => Promise<void>;
   deleteAlert: (id: string) => Promise<void>;
   
-  // Comments
-  comments: Comment[];
-  saveComment: (comment: Comment) => Promise<void>;
-  updateComment: (id: string, updates: Partial<Comment>) => Promise<void>;
-  deleteComment: (id: string) => Promise<void>;
+
+  
   
   // Account Management
   deleteUserAccount: () => Promise<void>;
@@ -45,17 +41,11 @@ export const DatabaseProvider: React.FC<DatabaseProviderProps> = ({ children, us
   const [userProfile, setUserProfile] = useState<UserProfile | null>(null);
   const [performanceData, setPerformanceData] = useState<PerformanceData[]>([]);
   const [alerts, setAlerts] = useState<Alert[]>([]);
-  const [comments, setComments] = useState<Comment[]>([]);
+
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  useEffect(() => {
-    if (userId) {
-      loadUserData();
-    }
-  }, [userId]);
-
-  const loadUserData = async () => {
+  const loadUserData = useCallback(async () => {
     setIsLoading(true);
     setError(null);
     
@@ -72,16 +62,20 @@ export const DatabaseProvider: React.FC<DatabaseProviderProps> = ({ children, us
       const userAlerts = await DatabaseService.getAlerts(userId);
       setAlerts(userAlerts);
       
-      // Load comments
-      const userComments = await DatabaseService.getComments(userId);
-      setComments(userComments);
+
       
     } catch (err) {
       setError(err instanceof Error ? err.message : 'حدث خطأ غير متوقع');
     } finally {
       setIsLoading(false);
     }
-  };
+  }, [userId]);
+
+  useEffect(() => {
+    if (userId) {
+      loadUserData();
+    }
+  }, [userId, loadUserData]);
 
   const saveUserProfile = async (profile: UserProfile) => {
     try {
@@ -164,40 +158,7 @@ export const DatabaseProvider: React.FC<DatabaseProviderProps> = ({ children, us
     }
   };
 
-  const saveComment = async (comment: Comment) => {
-    try {
-      setError(null);
-      const id = await DatabaseService.saveComment({ ...comment, userId });
-      setComments(prev => [{ ...comment, id }, ...prev]);
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'خطأ في حفظ التعليق');
-      throw err;
-    }
-  };
 
-  const updateComment = async (id: string, updates: Partial<Comment>) => {
-    try {
-      setError(null);
-      await DatabaseService.updateComment(id, updates);
-      setComments(prev => 
-        prev.map(item => item.id === id ? { ...item, ...updates } : item)
-      );
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'خطأ في تحديث التعليق');
-      throw err;
-    }
-  };
-
-  const deleteComment = async (id: string) => {
-    try {
-      setError(null);
-      await DatabaseService.deleteComment(id);
-      setComments(prev => prev.filter(item => item.id !== id));
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'خطأ في حذف التعليق');
-      throw err;
-    }
-  };
 
   const deleteUserAccount = async () => {
     try {
@@ -211,7 +172,7 @@ export const DatabaseProvider: React.FC<DatabaseProviderProps> = ({ children, us
       setUserProfile(null);
       setPerformanceData([]);
       setAlerts([]);
-      setComments([]);
+
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : 'خطأ في حذف الحساب';
       setError(errorMessage);
@@ -248,10 +209,7 @@ export const DatabaseProvider: React.FC<DatabaseProviderProps> = ({ children, us
     saveAlert,
     updateAlert,
     deleteAlert,
-    comments,
-    saveComment,
-    updateComment,
-    deleteComment,
+    
     deleteUserAccount,
     requestAccountDeletion,
     isLoading,

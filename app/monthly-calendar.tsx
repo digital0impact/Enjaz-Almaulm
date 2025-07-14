@@ -1,6 +1,5 @@
-
 import React, { useState } from 'react';
-import { StyleSheet, ScrollView, TouchableOpacity, View, Alert, Platform } from 'react-native';
+import { StyleSheet, ScrollView, TouchableOpacity, View, Alert, Platform, ImageBackground } from 'react-native';
 import { ThemedText } from '@/components/ThemedText';
 import { ThemedView } from '@/components/ThemedView';
 import { IconSymbol } from '@/components/ui/IconSymbol';
@@ -11,7 +10,7 @@ import { commonStyles } from '@/styles/common-styles';
 
 export default function MonthlyCalendarScreen() {
   const router = useRouter();
-  const { colors, globalStyles } = useGlobalTheme();
+  const { colors } = useGlobalTheme();
   const [currentDate, setCurrentDate] = useState(new Date());
   const [selectedDate, setSelectedDate] = useState<number | null>(null);
 
@@ -128,129 +127,141 @@ export default function MonthlyCalendarScreen() {
   const calendarData = getCalendarData();
 
   return (
-    <ThemedView style={[styles.container, { backgroundColor: colors.background }]}>
-      <ScrollView style={[styles.scrollContainer, commonStyles.scrollViewWithBottomNav]}>
-        {/* Header */}
-        <ThemedView style={styles.header}>
-        <TouchableOpacity 
-          style={styles.backButton}
-          onPress={() => router.back()}
-        >
-          <IconSymbol size={20} name="arrow.right" color="#1c1f33" />
-        </TouchableOpacity>
-
-        <ThemedView style={styles.iconContainer}>
-          <IconSymbol size={60} name="calendar" color="#1c1f33" />
-        </ThemedView>
-        <ThemedText type="title" style={styles.title}>
-          التقويم الشهري
-        </ThemedText>
-        <ThemedText style={styles.subtitle}>
-          تصفح الأيام والشهور وإدارة الأحداث
-        </ThemedText>
-      </ThemedView>
-
-      <ThemedView style={styles.content}>
-        {/* Month Navigation */}
-        <ThemedView style={[styles.monthNavigation, { backgroundColor: colors.card }]}>
+    <ImageBackground
+      source={require('@/assets/images/background.png')}
+      style={styles.backgroundImage}
+      resizeMode="cover"
+    >
+      <ThemedView style={[styles.container, { backgroundColor: 'transparent' }]}>
+        <ScrollView style={[styles.scrollContainer, commonStyles.scrollViewWithBottomNav]}>
+          {/* Header */}
+          <ThemedView style={styles.header}>
           <TouchableOpacity 
-            style={styles.navButton}
-            onPress={() => navigateMonth('next')}
+            style={styles.backButton}
+            onPress={() => router.back()}
           >
-            <IconSymbol size={20} name="chevron.left" color={colors.primary} />
+            <IconSymbol size={20} name="chevron.left" color="#1c1f33" />
           </TouchableOpacity>
-          
-          <ThemedText style={[styles.monthTitle, { color: colors.text }]}>
-            {calendarData.monthName} {calendarData.year}
+
+          <ThemedView style={styles.iconContainer}>
+            <IconSymbol size={60} name="calendar" color="#1c1f33" />
+          </ThemedView>
+          <ThemedText type="title" style={styles.title}>
+            التقويم الشهري
           </ThemedText>
-          
-          <TouchableOpacity 
-            style={styles.navButton}
-            onPress={() => navigateMonth('prev')}
-          >
-            <IconSymbol size={20} name="chevron.right" color={colors.primary} />
-          </TouchableOpacity>
-        </ThemedView>
-
-        {/* Days Header */}
-        <ThemedView style={[styles.daysHeader, { backgroundColor: colors.card }]}>
-          {dayAbbreviations.map((day, index) => (
-            <ThemedView key={index} style={styles.dayHeaderContainer}>
-              <ThemedText style={[styles.dayHeaderText, { color: colors.text }]}>
-                {day}
-              </ThemedText>
-            </ThemedView>
-          ))}
-        </ThemedView>
-
-        {/* Calendar Grid */}
-        <ThemedView style={[styles.calendarGrid, { backgroundColor: colors.card }]}>
-          {calendarData.days.map((day, index) => renderCalendarDay(day, index))}
-        </ThemedView>
-
-        
-
-        {/* Legend */}
-        <ThemedView style={[styles.legend, { backgroundColor: colors.card }]}>
-          <ThemedText style={[styles.legendTitle, { color: colors.text }]}>
-            📋 مفتاح الألوان:
+          <ThemedText style={styles.subtitle}>
+            تصفح الأيام والشهور وإدارة الأحداث
           </ThemedText>
-          <ThemedView style={styles.legendItems}>
-            <ThemedView style={styles.legendItem}>
-              <View style={[styles.legendColor, { backgroundColor: colors.primary }]} />
-              <ThemedText style={[styles.legendText, { color: colors.text }]}>اليوم الحالي</ThemedText>
-            </ThemedView>
-            <ThemedView style={styles.legendItem}>
-              <View style={[styles.legendColor, { backgroundColor: colors.accent }]} />
-              <ThemedText style={[styles.legendText, { color: colors.text }]}>اليوم المحدد</ThemedText>
+        </ThemedView>
+
+        <ThemedView style={styles.content}>
+          {/* Month Navigation */}
+          <ThemedView style={[styles.monthNavigation, { backgroundColor: colors.surface }]}>
+            <TouchableOpacity 
+              style={styles.navButton}
+              onPress={() => navigateMonth('next')}
+            >
+              <IconSymbol size={20} name="chevron.left" color={colors.primary} />
+            </TouchableOpacity>
+            
+            <ThemedText style={[styles.monthTitle, { color: colors.text }]}>
+              {calendarData.monthName} {calendarData.year}
+            </ThemedText>
+            
+            <TouchableOpacity 
+              style={styles.navButton}
+              onPress={() => navigateMonth('prev')}
+            >
+              <IconSymbol size={20} name="chevron.right" color={colors.primary} />
+            </TouchableOpacity>
+          </ThemedView>
+
+          {/* Days Header */}
+          <ThemedView style={[styles.daysHeader, { backgroundColor: colors.surface }]}>
+            {dayAbbreviations.map((day, index) => (
+              <ThemedView key={index} style={styles.dayHeaderContainer}>
+                <ThemedText style={[styles.dayHeaderText, { color: colors.text }]}>
+                  {day}
+                </ThemedText>
+              </ThemedView>
+            ))}
+          </ThemedView>
+
+          {/* Calendar Grid */}
+          <ThemedView style={[styles.calendarGrid, { backgroundColor: colors.surface }]}>
+            {calendarData.days.map((day, index) => renderCalendarDay(day, index))}
+          </ThemedView>
+
+          
+
+          {/* Legend */}
+          <ThemedView style={[styles.legend, { backgroundColor: colors.surface }]}>
+            <ThemedText style={[styles.legendTitle, { color: colors.text }]}>
+              📋 مفتاح الألوان:
+            </ThemedText>
+            <ThemedView style={styles.legendItems}>
+              <ThemedView style={styles.legendItem}>
+                <View style={[styles.legendColor, { backgroundColor: colors.primary }]} />
+                <ThemedText style={[styles.legendText, { color: colors.text }]}>اليوم الحالي</ThemedText>
+              </ThemedView>
+              <ThemedView style={styles.legendItem}>
+                <View style={[styles.legendColor, { backgroundColor: colors.primary }]} />
+                <ThemedText style={[styles.legendText, { color: colors.text }]}>اليوم المحدد</ThemedText>
+              </ThemedView>
             </ThemedView>
           </ThemedView>
+
+          {/* Quick Actions */}
+          <ThemedView style={[styles.quickActions, { backgroundColor: colors.surface }]}>
+            <ThemedText style={[styles.sectionTitle, { color: colors.text }]}>
+              ⚡ إجراءات سريعة
+            </ThemedText>
+            
+            <TouchableOpacity
+              style={[styles.actionButton, commonStyles.primaryButton]}
+              onPress={() => Alert.alert('اليوم', 'الانتقال إلى تاريخ اليوم')}
+            >
+              <IconSymbol size={20} name="calendar.badge.clock" color="#fff" />
+              <ThemedText style={[styles.actionButtonText, commonStyles.primaryButtonText]}>
+                الانتقال لليوم
+              </ThemedText>
+            </TouchableOpacity>
+
+            <TouchableOpacity
+              style={[styles.actionButton, commonStyles.secondaryButton]}
+              onPress={() => Alert.alert('إضافة حدث', 'إضافة حدث جديد للتقويم')}
+            >
+              <IconSymbol size={20} name="plus.circle" color={colors.primary} />
+              <ThemedText style={[styles.actionButtonText, commonStyles.secondaryButtonText]}>
+                إضافة حدث جديد
+              </ThemedText>
+            </TouchableOpacity>
+
+            <TouchableOpacity
+              style={[styles.actionButton, commonStyles.secondaryButton]}
+              onPress={() => Alert.alert('عرض الأحداث', 'عرض جميع أحداث الشهر')}
+            >
+              <IconSymbol size={20} name="list.bullet" color={colors.primary} />
+              <ThemedText style={[styles.actionButtonText, commonStyles.secondaryButtonText]}>
+                عرض أحداث الشهر
+              </ThemedText>
+            </TouchableOpacity>
+          </ThemedView>
         </ThemedView>
-
-        {/* Quick Actions */}
-        <ThemedView style={[styles.quickActions, { backgroundColor: colors.card }]}>
-          <ThemedText style={[styles.sectionTitle, { color: colors.text }]}>
-            ⚡ إجراءات سريعة
-          </ThemedText>
-          
-          <TouchableOpacity
-            style={[styles.actionButton, globalStyles.primaryButton]}
-            onPress={() => Alert.alert('اليوم', 'الانتقال إلى تاريخ اليوم')}
-          >
-            <IconSymbol size={20} name="calendar.badge.clock" color="#fff" />
-            <ThemedText style={[styles.actionButtonText, globalStyles.primaryButtonText]}>
-              الانتقال لليوم
-            </ThemedText>
-          </TouchableOpacity>
-
-          <TouchableOpacity
-            style={[styles.actionButton, globalStyles.secondaryButton]}
-            onPress={() => Alert.alert('إضافة حدث', 'إضافة حدث جديد للتقويم')}
-          >
-            <IconSymbol size={20} name="plus.circle" color={colors.primary} />
-            <ThemedText style={[styles.actionButtonText, globalStyles.secondaryButtonText]}>
-              إضافة حدث جديد
-            </ThemedText>
-          </TouchableOpacity>
-
-          <TouchableOpacity
-            style={[styles.actionButton, globalStyles.secondaryButton]}
-            onPress={() => Alert.alert('عرض الأحداث', 'عرض جميع أحداث الشهر')}
-          >
-            <IconSymbol size={20} name="list.bullet" color={colors.primary} />
-            <ThemedText style={[styles.actionButtonText, globalStyles.secondaryButtonText]}>
-              عرض أحداث الشهر
-            </ThemedText>
-          </TouchableOpacity>
-        </ThemedView>
+        </ScrollView>
+        <BottomNavigationBar />
       </ThemedView>
-      </ScrollView>
-      <BottomNavigationBar />
-    </ThemedView>
+    </ImageBackground>
   );
 }
 
 const styles = StyleSheet.create({
+  backgroundImage: {
+    flex: 1,
+    resizeMode: 'cover',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
   container: {
     flex: 1,
   },
@@ -454,5 +465,5 @@ const styles = StyleSheet.create({
     fontWeight: '600',
     textAlign: 'center',
   },
-  
+
 });

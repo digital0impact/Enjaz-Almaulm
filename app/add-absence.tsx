@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { StyleSheet, ScrollView, TouchableOpacity, Alert, ImageBackground, Platform } from 'react-native';
-import { LinearGradient as ExpoLinearGradient } from 'expo-linear-gradient';
+
 import { ThemedText } from '@/components/ThemedText';
 import { ThemedView } from '@/components/ThemedView';
 import { IconSymbol } from '@/components/ui/IconSymbol';
@@ -42,6 +42,38 @@ export default function AddAbsenceScreen() {
         return;
       }
 
+      // التحقق من عدم وجود سجل غياب في نفس التاريخ
+      const existingRecords = await AsyncStorage.getItem('absenceRecords');
+      const records = existingRecords ? JSON.parse(existingRecords) : [];
+      
+      const existingRecord = records.find((record: AbsenceRecord) => record.date === formData.date);
+      if (existingRecord) {
+        Alert.alert(
+          'تنبيه',
+          'يوجد سجل غياب في هذا التاريخ بالفعل. هل تريد المتابعة؟',
+          [
+            {
+              text: 'إلغاء',
+              style: 'cancel'
+            },
+            {
+              text: 'متابعة',
+              onPress: () => saveAbsenceRecord(records)
+            }
+          ]
+        );
+        return;
+      }
+
+      await saveAbsenceRecord(records);
+    } catch (error) {
+      console.error('Error saving absence:', error);
+      Alert.alert('خطأ', 'حدث خطأ في حفظ البيانات');
+    }
+  };
+
+  const saveAbsenceRecord = async (existingRecords: AbsenceRecord[]) => {
+    try {
       const newAbsence: AbsenceRecord = {
         id: Date.now().toString(),
         date: formData.date,
@@ -52,24 +84,33 @@ export default function AddAbsenceScreen() {
         createdAt: new Date().toISOString()
       };
 
-      const existingRecords = await AsyncStorage.getItem('absenceRecords');
-      const records = existingRecords ? JSON.parse(existingRecords) : [];
-      records.push(newAbsence);
+      existingRecords.push(newAbsence);
 
-      await AsyncStorage.setItem('absenceRecords', JSON.stringify(records));
+      await AsyncStorage.setItem('absenceRecords', JSON.stringify(existingRecords));
 
       Alert.alert(
         'تم الحفظ',
         'تم حفظ سجل الغياب بنجاح',
         [
           {
-            text: 'موافق',
-            onPress: () => router.back()
+            text: 'عرض السجلات',
+            onPress: () => router.push('/absence-management')
+          },
+          {
+            text: 'إضافة آخر',
+            onPress: () => {
+              setFormData({
+                date: new Date().toISOString().split('T')[0],
+                type: 'شخصي',
+                reason: '',
+                withExcuse: true
+              });
+            }
           }
         ]
       );
     } catch (error) {
-      console.error('Error saving absence:', error);
+      console.error('Error saving absence record:', error);
       Alert.alert('خطأ', 'حدث خطأ في حفظ البيانات');
     }
   };
@@ -81,17 +122,13 @@ export default function AddAbsenceScreen() {
         style={styles.backgroundImage}
         resizeMode="cover"
       >
-        <ExpoLinearGradient
-          colors={['rgba(255,255,255,0.9)', 'rgba(225,245,244,0.95)', 'rgba(173,212,206,0.8)']}
-          style={styles.gradientOverlay}
-        >
           <ScrollView style={styles.scrollContainer}>
             <ThemedView style={styles.header}>
               <TouchableOpacity 
                 style={styles.backButton}
                 onPress={() => router.back()}
               >
-                <IconSymbol size={20} name="arrow.right" color="#1c1f33" />
+                <IconSymbol size={20} name="chevron.left" color="#1c1f33" />
               </TouchableOpacity>
 
               <ThemedView style={styles.iconContainer}>
@@ -192,7 +229,6 @@ export default function AddAbsenceScreen() {
               </TouchableOpacity>
             </ThemedView>
           </ScrollView>
-        </ExpoLinearGradient>
       </ImageBackground>
     </ThemedView>
   );

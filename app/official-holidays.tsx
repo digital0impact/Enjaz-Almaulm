@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
-import { StyleSheet, ScrollView, TouchableOpacity, Alert, I18nManager, ImageBackground, Modal, TextInput } from 'react-native';
-import { LinearGradient as ExpoLinearGradient } from 'expo-linear-gradient';
+import { StyleSheet, ScrollView, TouchableOpacity, Alert, I18nManager, ImageBackground, Modal, TextInput, Platform } from 'react-native';
+
 import { ThemedText } from '@/components/ThemedText';
 import { ThemedView } from '@/components/ThemedView';
 import { IconSymbol } from '@/components/ui/IconSymbol';
@@ -212,17 +212,14 @@ export default function OfficialHolidaysScreen() {
         style={styles.backgroundImage}
         resizeMode="cover"
       >
-        <ExpoLinearGradient
-          colors={['rgba(255,255,255,0.9)', 'rgba(225,245,244,0.95)', 'rgba(173,212,206,0.8)']}
-          style={styles.gradientOverlay}
-        >
+        
           <ScrollView style={[styles.scrollView, commonStyles.scrollViewWithBottomNav]}>
             <ThemedView style={styles.header}>
               <TouchableOpacity 
                 style={styles.backButton}
                 onPress={() => router.back()}
               >
-                <IconSymbol size={20} name="arrow.right" color="#1c1f33" />
+                <IconSymbol size={20} name="chevron.left" color="#1c1f33" />
               </TouchableOpacity>
               <ThemedView style={styles.iconContainer}>
                 <IconSymbol size={48} name="calendar.badge.clock" color="#1c1f33" />
@@ -235,7 +232,7 @@ export default function OfficialHolidaysScreen() {
               </ThemedText>
             </ThemedView>
 
-        <ThemedView style={styles.content}>
+            <ThemedView style={styles.content}>
           {/* الإجازة القادمة */}
           {nextHoliday && (
             <ThemedView style={styles.nextHolidayCard}>
@@ -272,7 +269,7 @@ export default function OfficialHolidaysScreen() {
                 { key: 'all', label: 'الكل', icon: 'list.bullet' },
                 { key: 'national', label: 'وطنية', icon: 'flag.fill' },
                 { key: 'religious', label: 'دينية', icon: 'moon.stars.fill' },
-                { key: 'international', label: 'دولية', icon: 'globe' },
+                { key: 'international', label: 'دولية', icon: Platform.OS === 'ios' ? 'questionmark.circle' : 'help' },
               ].map((filter) => (
                 <TouchableOpacity
                   key={filter.key}
@@ -429,7 +426,7 @@ export default function OfficialHolidaysScreen() {
                     value={newHoliday.nameEn}
                     onChangeText={(text) => setNewHoliday({...newHoliday, nameEn: text})}
                     placeholder="Founding Day"
-                    textAlign="left"
+                    textAlign="right"
                   />
                 </ThemedView>
 
@@ -529,7 +526,7 @@ export default function OfficialHolidaysScreen() {
             </ThemedView>
           </Modal>
           <BottomNavigationBar />
-        </ExpoLinearGradient>
+        
       </ImageBackground>
     </ThemedView>
   );
@@ -951,4 +948,5 @@ const styles = StyleSheet.create({
   categoryButtonTextActive: {
     color: '#fff',
   },
+
 });

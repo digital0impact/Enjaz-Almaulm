@@ -9,6 +9,9 @@
       "distribution": "internal",
       "ios": {
         "resourceClass": "m-medium"
+      },
+      "android": {
+        "resourceClass": "medium"
       }
     },
     "preview": {
@@ -16,11 +19,19 @@
       "ios": {
         "resourceClass": "m-medium",
         "simulator": false
+      },
+      "android": {
+        "resourceClass": "medium",
+        "buildType": "apk"
       }
     },
     "production": {
       "ios": {
         "resourceClass": "m-medium"
+      },
+      "android": {
+        "resourceClass": "medium",
+        "buildType": "app-bundle"
       }
     }
   },

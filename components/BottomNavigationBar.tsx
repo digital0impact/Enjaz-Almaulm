@@ -1,104 +1,150 @@
-
 import React from 'react';
-import { StyleSheet, TouchableOpacity, Platform } from 'react-native';
+import { StyleSheet, TouchableOpacity, View, Platform, I18nManager } from 'react-native';
+import { useRouter, usePathname } from 'expo-router';
 import { ThemedView } from '@/components/ThemedView';
 import { ThemedText } from '@/components/ThemedText';
 import { IconSymbol } from '@/components/ui/IconSymbol';
-import { useRouter, usePathname } from 'expo-router';
+import { TabRoute } from '@/types';
 
-export function BottomNavigationBar() {
+const tabs: TabRoute[] = [
+  {
+    key: 'index',
+    title: 'الرئيسية',
+    icon: 'house.fill',
+    route: '/(tabs)'
+  },
+  {
+    key: 'basicData',
+    title: 'البيانات الأساسية',
+    icon: 'person.circle.fill',
+    route: '/(tabs)/basicData'
+  },
+  {
+    key: 'performance',
+    title: 'الأداء المهني',
+    icon: 'chart.bar.fill',
+    route: '/(tabs)/performance'
+  },
+  {
+    key: 'explore',
+    title: 'الأدوات المساعدة',
+    icon: 'gear',
+    route: '/(tabs)/explore'
+  }
+];
+
+export const BottomNavigationBar: React.FC = () => {
   const router = useRouter();
   const pathname = usePathname();
 
-  const tabs = [
-    {
-      name: 'explore',
-      title: 'الأدوات المساعدة',
-      icon: 'gear.fill',
-      route: '/(tabs)/explore'
-    },
-    {
-      name: 'performance',
-      title: 'الأداء المهني',
-      icon: 'chart.bar.fill',
-      route: '/(tabs)/performance'
-    },
-    {
-      name: 'basicData',
-      title: 'البيانات الأساسية',
-      icon: 'person.circle.fill',
-      route: '/(tabs)/basicData'
-    },
-    {
-      name: 'index',
-      title: 'الرئيسية',
-      icon: 'house.fill',
-      route: '/(tabs)/'
+  const isActive = (route: string): boolean => {
+    if (route === '/(tabs)' && pathname === '/(tabs)') {
+      return true;
     }
-  ];
+    return pathname === route;
+  };
+
+  const handleTabPress = (tab: TabRoute) => {
+    if (!isActive(tab.route)) {
+      // إضافة تأثير هزاز خفيف (مثل HapticTab)
+      if (Platform.OS === 'ios') {
+        // يمكن إضافة Haptics هنا إذا كان مطلوباً
+      }
+      router.push(tab.route);
+    }
+  };
 
   return (
-    <ThemedView style={styles.tabBar}>
-      {tabs.map((tab) => {
-        // تحسين منطق التحقق من الصفحة النشطة لتشمل المسارات الفرعية
-        const isActive = pathname === tab.route || 
-                         pathname.startsWith(`/(tabs)/${tab.name}`) ||
-                         (tab.name === 'explore' && (pathname === '/settings' || pathname === '/azkar')) ||
-                         (tab.name === 'index' && pathname === '/(tabs)');
-        
-        return (
-          <TouchableOpacity
-            key={tab.name}
-            style={styles.tabButton}
-            onPress={() => router.push(tab.route as any)}
-          >
-            <IconSymbol 
-              size={28} 
-              name={tab.icon as any} 
-              color={isActive ? '#595b59' : '#999'} 
-            />
-            <ThemedText style={[
-              styles.tabLabel,
-              { color: isActive ? '#595b59' : '#999' }
-            ]}>
-              {tab.title}
-            </ThemedText>
-          </TouchableOpacity>
-        );
-      })}
+    <ThemedView style={styles.container}>
+      <ThemedView style={styles.tabBar}>
+        {tabs.map((tab) => {
+          const active = isActive(tab.route);
+          return (
+            <TouchableOpacity
+              key={tab.key}
+              style={[styles.tab, active && styles.activeTab]}
+              onPress={() => handleTabPress(tab)}
+              activeOpacity={0.7}
+            >
+              <IconSymbol
+                size={28}
+                name={tab.icon as any}
+                color={active ? '#595b59' : '#595b59'}
+                style={[
+                  { marginBottom: 2 },
+                  { transform: [{ scaleX: I18nManager.isRTL ? -1 : 1 }] }
+                ]}
+              />
+              <ThemedText style={[styles.tabText, active && styles.activeTabText]}>
+                {tab.title}
+              </ThemedText>
+            </TouchableOpacity>
+          );
+        })}
+      </ThemedView>
     </ThemedView>
   );
-}
+};
 
 const styles = StyleSheet.create({
+  container: {
+    backgroundColor: 'transparent',
+  },
   tabBar: {
-    flexDirection: 'row',
+    flexDirection: 'row-reverse',
     backgroundColor: '#E8F5F4',
-    paddingBottom: Platform.OS === 'ios' ? 25 : 10,
-    paddingTop: 10,
     borderTopWidth: 1,
     borderTopColor: '#E5E5EA',
-    position: 'absolute',
-    bottom: 0,
-    left: 0,
-    right: 0,
+    paddingHorizontal: 10,
+    paddingVertical: 8,
     shadowColor: '#000',
-    shadowOffset: { 
-      width: 0, 
-      height: Platform.OS === 'ios' ? -2 : 2 
-    },
-    shadowOpacity: Platform.OS === 'ios' ? 0.1 : 0.25,
-    shadowRadius: Platform.OS === 'ios' ? 4 : 3.84,
-    elevation: 5,
+    shadowOffset: { width: 0, height: -2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    elevation: 8,
+    ...Platform.select({
+      ios: {
+        position: 'absolute',
+        bottom: 0,
+        left: 0,
+        right: 0,
+        height: 88,
+        paddingBottom: 20,
+        paddingTop: 8,
+      },
+      default: {
+        position: 'absolute',
+        bottom: 0,
+        left: 0,
+        right: 0,
+        height: 68,
+        paddingTop: 8,
+      },
+    }),
   },
-  tabButton: {
+  tab: {
     flex: 1,
     alignItems: 'center',
-    paddingVertical: 5,
+    justifyContent: 'center',
+    paddingVertical: 8,
+    borderRadius: 12,
+    minHeight: 44,
+    paddingHorizontal: 4,
   },
-  tabLabel: {
-    fontSize: 10,
-    marginTop: 2,
+  activeTab: {
+    backgroundColor: 'transparent',
+  },
+  tabText: {
+    fontSize: 12,
+    color: '#595b59',
+    marginTop: 4,
     textAlign: 'center',
+    writingDirection: 'rtl',
+    fontWeight: '400',
+    lineHeight: 16,
+  },
+  activeTabText: {
+    color: '#595b59',
+    fontWeight: '600',
   },
 });

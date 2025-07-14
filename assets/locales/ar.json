@@ -1,0 +1,88 @@
+{
+  "app": {
+    "name": "إنجاز المعلم",
+    "welcome": "مرحباً بك في تطبيق إنجاز المعلم",
+    "loading": "جاري التحميل...",
+    "error": "حدث خطأ",
+    "success": "تم بنجاح",
+    "cancel": "إلغاء",
+    "save": "حفظ",
+    "delete": "حذف",
+    "edit": "تعديل",
+    "add": "إضافة",
+    "back": "رجوع",
+    "next": "التالي",
+    "previous": "السابق",
+    "submit": "إرسال",
+    "confirm": "تأكيد",
+    "yes": "نعم",
+    "no": "لا",
+    "ok": "موافق"
+  },
+  "navigation": {
+    "home": "الرئيسية",
+    "profile": "الملف الشخصي",
+    "settings": "الإعدادات",
+    "logout": "تسجيل الخروج"
+  },
+  "auth": {
+    "login": "تسجيل الدخول",
+    "signup": "إنشاء حساب",
+    "email": "البريد الإلكتروني",
+    "password": "كلمة المرور",
+    "confirmPassword": "تأكيد كلمة المرور",
+    "forgotPassword": "نسيت كلمة المرور؟",
+    "loginSuccess": "تم تسجيل الدخول بنجاح",
+    "signupSuccess": "تم إنشاء الحساب بنجاح"
+  },
+  "performance": {
+    "title": "تقييم الأداء",
+    "evaluation": "التقييم",
+    "evidence": "الأدلة",
+    "goals": "الأهداف",
+    "improvement": "خطة التحسين"
+  },
+  "students": {
+    "title": "الطلاب",
+    "addStudent": "إضافة طالب",
+    "studentName": "اسم الطالب",
+    "studentId": "رقم الطالب",
+    "tracking": "متابعة الطلاب"
+  },
+  "schedule": {
+    "title": "الجدول الدراسي",
+    "today": "اليوم",
+    "week": "الأسبوع",
+    "month": "الشهر"
+  },
+  "calendar": {
+    "title": "التقويم",
+    "events": "الأحداث",
+    "holidays": "العطل الرسمية"
+  },
+  "absence": {
+    "title": "إدارة الغياب",
+    "addAbsence": "إضافة غياب",
+    "absenceDate": "تاريخ الغياب",
+    "absenceReason": "سبب الغياب"
+  },
+  "reports": {
+    "title": "التقارير",
+    "detailed": "تقرير مفصل",
+    "interactive": "تقرير تفاعلي"
+  },
+  "azkar": {
+    "title": "الأذكار",
+    "morning": "أذكار الصباح",
+    "evening": "أذكار المساء",
+    "count": "العدد"
+  },
+  "settings": {
+    "title": "الإعدادات",
+    "language": "اللغة",
+    "theme": "المظهر",
+    "notifications": "الإشعارات",
+    "about": "حول التطبيق",
+    "version": "الإصدار"
+  }
+} 

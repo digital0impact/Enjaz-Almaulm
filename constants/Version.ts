@@ -2,9 +2,9 @@
 export const VERSION_INFO = {
   major: 1,
   minor: 0,
-  patch: 0,
-  build: 1,
-  releaseDate: '2025-01-13',
+  patch: 8,
+  build: 40,
+  releaseDate: '2025-07-13',
   
   // تنسيق رقم الإصدار
   getVersion(): string {
@@ -30,6 +30,50 @@ export const VERSION_INFO = {
       buildNumber: this.build
     };
   },
+
+  // الحصول على نوع الإصدار (تطوير، تجريبي، نهائي)
+  getVersionType(): string {
+    if (this.build < 10) return 'تطوير';
+    if (this.build < 50) return 'تجريبي';
+    return 'نهائي';
+  },
+
+  // الحصول على عمر الإصدار بالأيام
+  getVersionAge(): number {
+    const releaseDate = new Date(this.releaseDate);
+    const today = new Date();
+    const diffTime = Math.abs(today.getTime() - releaseDate.getTime());
+    return Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+  },
+
+  // التحقق من وجود تحديث جديد
+  hasUpdate(currentVersion: string): boolean {
+    const current = currentVersion.split('.').map(Number);
+    const latest = [this.major, this.minor, this.patch, this.build];
+    
+    for (let i = 0; i < Math.min(current.length, latest.length); i++) {
+      if (latest[i] > current[i]) return true;
+      if (latest[i] < current[i]) return false;
+    }
+    return false;
+  },
+
+  // الحصول على ملخص الإصدار
+  getVersionSummary(): {
+    version: string;
+    buildNumber: number;
+    type: string;
+    age: number;
+    isLatest: boolean;
+  } {
+    return {
+      version: this.getVersion(),
+      buildNumber: this.build,
+      type: this.getVersionType(),
+      age: this.getVersionAge(),
+      isLatest: true
+    };
+  },
   
   // زيادة رقم الإصدار
   incrementPatch(): void {
@@ -48,5 +92,10 @@ export const VERSION_INFO = {
     this.minor = 0;
     this.patch = 0;
     this.build += 1;
+  },
+
+  // تحديث تاريخ الإصدار
+  updateReleaseDate(): void {
+    this.releaseDate = new Date().toISOString().split('T')[0];
   }
 };

@@ -1,14 +1,16 @@
 
-import { StyleSheet, Platform } from 'react-native';
+import { StyleSheet } from 'react-native';
+import { RTLStyles } from '@/utils/localization';
 
 export const commonStyles = StyleSheet.create({
-  containerWithBottomNav: {
+  container: {
     flex: 1,
-    paddingBottom: Platform.OS === 'ios' ? 90 : 75, // Space for bottom navigation
+    ...RTLStyles.view,
   },
-  scrollViewWithBottomNav: {
-    paddingBottom: Platform.OS === 'ios' ? 90 : 75, // Space for bottom navigation
+  text: {
+    ...RTLStyles.text,
+  },
+  icon: {
+    ...RTLStyles.icon,
   },
 });
-
-export default commonStyles;

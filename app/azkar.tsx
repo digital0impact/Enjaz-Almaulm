@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { StyleSheet, ScrollView, TouchableOpacity, I18nManager, ImageBackground, KeyboardAvoidingView, Platform, StatusBar } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { LinearGradient as ExpoLinearGradient } from 'expo-linear-gradient';
+
 import { ThemedText } from '@/components/ThemedText';
 import { ThemedView } from '@/components/ThemedView';
 import { IconSymbol } from '@/components/ui/IconSymbol';
@@ -240,10 +240,7 @@ export default function AzkarScreen() {
         style={styles.backgroundImage}
         resizeMode="cover"
       >
-        <ExpoLinearGradient
-          colors={['rgba(255,255,255,0.9)', 'rgba(225,245,244,0.95)', 'rgba(173,212,206,0.8)']}
-          style={styles.gradientOverlay}
-        >
+        
           <KeyboardAvoidingView
             style={{ flex: 1 }}
             behavior={Platform.OS === 'ios' ? 'padding' : undefined}
@@ -257,7 +254,7 @@ export default function AzkarScreen() {
                   style={styles.backButton}
                   onPress={() => router.back()}
                 >
-                  <IconSymbol size={20} name="arrow.right" color="#1c1f33" />
+                  <IconSymbol size={20} name="chevron.left" color="#1c1f33" />
                 </TouchableOpacity>
 
                 <ThemedView style={styles.iconContainer}>
@@ -298,11 +295,7 @@ export default function AzkarScreen() {
                             </ThemedText>
                           </ThemedView>
 
-                          <IconSymbol 
-                            size={20} 
-                            name={expandedCategories.includes(category.id) ? "chevron.up" : "chevron.down"} 
-                            color="#C7C7CC" 
-                          />
+
                         </ThemedView>
                       </TouchableOpacity>
 
@@ -350,7 +343,7 @@ export default function AzkarScreen() {
                                       style={styles.resetButton}
                                       onPress={() => resetCount(category.id, index)}
                                     >
-                                      <IconSymbol size={16} name="arrow.clockwise" color="#FF3B30" />
+                                      <IconSymbol size={16} name="xmark" color="#FF3B30" />
                                     </TouchableOpacity>
                                   </ThemedView>
                                 </ThemedView>
@@ -365,14 +358,9 @@ export default function AzkarScreen() {
               </ThemedView>
             </ScrollView>
           </KeyboardAvoidingView>
-        </ExpoLinearGradient>
+        
       </ImageBackground>
-      <ThemedView style={[
-        styles.bottomNavContainer,
-        Platform.OS === 'ios' && { paddingBottom: insets.bottom }
-      ]}>
-        <BottomNavigationBar />
-      </ThemedView>
+      <BottomNavigationBar />
     </ThemedView>
     );
   }
@@ -381,13 +369,7 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
   },
-  bottomNavContainer: {
-    backgroundColor: 'transparent',
-    position: 'absolute',
-    bottom: 0,
-    left: 0,
-    right: 0,
-  },
+
   backgroundImage: {
     flex: 1,
     width: '100%',
@@ -444,6 +426,7 @@ const styles = StyleSheet.create({
     marginBottom: 10,
     textAlign: 'center',
     writingDirection: 'rtl',
+    textDirection: 'rtl',
     color: '#000000',
   },
   subtitle: {
@@ -451,6 +434,7 @@ const styles = StyleSheet.create({
     color: '#666666',
     textAlign: 'center',
     writingDirection: 'rtl',
+    textDirection: 'rtl',
     marginBottom: 20,
   },
   content: {
@@ -468,6 +452,7 @@ const styles = StyleSheet.create({
     color: '#1c1f33',
     textAlign: 'center',
     writingDirection: 'rtl',
+    textDirection: 'rtl',
   },
   categoryContainer: {
     marginBottom: 10,
@@ -509,6 +494,7 @@ const styles = StyleSheet.create({
     color: '#000000',
     textAlign: 'right',
     writingDirection: 'rtl',
+    textDirection: 'rtl',
     marginBottom: 4,
   },
   categoryCount: {
@@ -516,6 +502,7 @@ const styles = StyleSheet.create({
     color: '#8E8E93',
     textAlign: 'right',
     writingDirection: 'rtl',
+    textDirection: 'rtl',
   },
   azkarDropdown: {
     marginTop: 10,
@@ -545,6 +532,7 @@ const styles = StyleSheet.create({
     lineHeight: 28,
     textAlign: 'right',
     writingDirection: 'rtl',
+    textDirection: 'rtl',
     color: '#000000',
     marginBottom: 15,
   },
@@ -557,6 +545,9 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: 'bold',
     color: '#007AFF',
+    textAlign: 'right',
+    writingDirection: 'rtl',
+    textDirection: 'rtl',
   },
   counterButtons: {
     flexDirection: 'row',

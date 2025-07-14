@@ -1,11 +1,10 @@
 // Fallback for using MaterialIcons on Android and web.
 
 import MaterialIcons from '@expo/vector-icons/MaterialIcons';
-import { SymbolWeight, SymbolViewProps } from 'expo-symbols';
 import { ComponentProps } from 'react';
 import { OpaqueColorValue, type StyleProp, type TextStyle } from 'react-native';
 
-type IconMapping = Record<SymbolViewProps['name'], ComponentProps<typeof MaterialIcons>['name']>;
+type IconMapping = Record<string, ComponentProps<typeof MaterialIcons>['name']>;
 type IconSymbolName = keyof typeof MAPPING;
 
 /**
@@ -22,9 +21,12 @@ const MAPPING = {
   'person.fill': 'person',
   'person.circle.fill': 'account-circle',
   'chart.bar.fill': 'bar-chart',
+  'chart.line.uptrend.xyaxis': 'show-chart',
   'wrench.fill': 'build',
   'envelope.fill': 'mail',
   'globe': 'public',
+  'questionmark.circle': 'help',
+  'help': 'help',
   'apple.logo': 'phone-iphone',
   'power': 'power-settings-new',
   'arrow.left': 'arrow-back',
@@ -38,7 +40,6 @@ const MAPPING = {
   'calendar.badge.plus': 'event-available',
   'gear': 'settings',
   'gear.fill': 'settings',
-  'wrench.fill': 'build',
   'plus.circle.fill': 'add-circle',
   'checkmark.circle.fill': 'check-circle',
   'doc.badge.plus': 'note-add',
@@ -61,14 +62,66 @@ const MAPPING = {
   'trash': 'delete',
   'eye': 'visibility',
   'eye.slash': 'visibility-off',
-  'chevron.right': 'chevron-right',
   'person.crop.circle.badge.plus': 'person-add-alt-1',
   'microsoft': 'business',
+  
+  'hourglass.fill': 'hourglass-full',
+  'check': 'check',
+  'close': 'close',
+  
+  // إضافة الأيقونات المفقودة
+  'arrow.clockwise': 'refresh',
+  'key.fill': 'vpn-key',
+  'checkmark.shield.fill': 'verified-user',
+  'exclamationmark.triangle.fill': 'warning',
+  'eye.fill': 'visibility',
+  'doc.on.doc.fill': 'content-copy',
+  'pencil.circle.fill': 'edit',
+  'xmark.circle.fill': 'cancel',
+  'star.fill': 'star',
+  'list.bullet': 'list',
+  'heart.fill': 'favorite',
+  'note.text': 'note',
+  'person.3.fill': 'group',
+  'star': 'star-border',
+  'arrow.down.circle': 'keyboard-arrow-down',
+  'doc.text': 'description',
+  'doc.pdf': 'picture-as-pdf',
+  'person.2.slash': 'person-off',
+  'creditcard.fill': 'credit-card',
+  'trash.fill': 'delete',
+  'info.circle.fill': 'info',
+  'plus.circle': 'add-circle-outline',
+  'square.and.arrow.up': 'share',
+  'square.and.arrow.up.fill': 'share',
+  'printer.fill': 'print',
+  'arrow.up.circle.fill': 'keyboard-arrow-up',
+  'play.circle.fill': 'play-circle',
+  'pause.circle.fill': 'pause-circle',
+  'pause.circle': 'pause-circle-outline',
+  'checkmark.circle': 'check-circle-outline',
+  'xmark.circle': 'cancel',
+  'chevron.up': 'keyboard-arrow-up',
+  'chevron.down': 'keyboard-arrow-down',
+  'heart.text.square': 'favorite',
+  'person.text.rectangle': 'person',
+  
+  // أيقونات الأذكار
+  'book.closed.fill': 'book',
+  'sun.and.horizon.fill': 'wb-sunny',
+  'hands.clap.fill': 'pan-tool',
+  'bed.double.fill': 'hotel',
+  'fork.knife': 'restaurant',
+  'door.left.hand.open': 'door-front-door',
+  
+  // أيقونات الإجازات الرسمية
+  'moon.stars.fill': 'nights-stay',
+  'flag.fill': 'flag',
 } as IconMapping;
 
 /**
- * An icon component that uses native SF Symbols on iOS, and Material Icons on Android and web.
- * This ensures a consistent look across platforms, and optimal resource usage.
+ * An icon component that uses Material Icons across all platforms.
+ * This ensures a consistent look and optimal resource usage.
  * Icon `name`s are based on SF Symbols and require manual mapping to Material Icons.
  */
 export function IconSymbol({
@@ -81,7 +134,7 @@ export function IconSymbol({
   size?: number;
   color: string | OpaqueColorValue;
   style?: StyleProp<TextStyle>;
-  weight?: SymbolWeight;
+  weight?: string;
 }) {
   return <MaterialIcons color={color} size={size} name={MAPPING[name]} style={style} />;
 }

@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { StyleSheet, ScrollView, TouchableOpacity, Alert, I18nManager, ImageBackground, Dimensions, Platform, Modal, TextInput } from 'react-native';
-import { LinearGradient as ExpoLinearGradient } from 'expo-linear-gradient';
+
 import { ThemedText } from '@/components/ThemedText';
 import { ThemedView } from '@/components/ThemedView';
 import { IconSymbol } from '@/components/ui/IconSymbol';
@@ -355,10 +355,7 @@ export default function AlertsManagementScreen() {
         style={styles.backgroundImage}
         resizeMode="cover"
       >
-        <ExpoLinearGradient
-          colors={['rgba(255,255,255,0.9)', 'rgba(225,245,244,0.95)', 'rgba(173,212,206,0.8)']}
-          style={styles.gradientOverlay}
-        >
+        
           <ScrollView 
             style={styles.scrollContainer}
             contentContainerStyle={{ flexGrow: 1 }}
@@ -368,7 +365,7 @@ export default function AlertsManagementScreen() {
                 style={styles.backButton}
                 onPress={() => router.back()}
               >
-                <IconSymbol size={20} name="arrow.right" color="#1c1f33" />
+                <IconSymbol size={20} name="chevron.left" color="#1c1f33" />
               </TouchableOpacity>
               <ThemedView style={styles.iconContainer}>
                 <IconSymbol size={60} name="bell.fill" color="#1c1f33" />
@@ -764,7 +761,7 @@ ${Object.entries(stats.byType).map(([type, count]) => `${type}: ${count}`).join(
             </ThemedView>
           </ScrollView>
           <BottomNavigationBar />
-        </ExpoLinearGradient>
+        
       </ImageBackground>
 
       {/* Modal لتعديل التنبيه */}
@@ -1525,4 +1522,5 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
     writingDirection: 'rtl',
   },
+
 });

@@ -1,7 +1,6 @@
-
 import React, { useState, useEffect, useRef } from 'react';
 import { StyleSheet, ScrollView, TouchableOpacity, Alert, I18nManager, ImageBackground, Dimensions, Platform, Share } from 'react-native';
-import { LinearGradient as ExpoLinearGradient } from 'expo-linear-gradient';
+
 import { ThemedText } from '@/components/ThemedText';
 import { ThemedView } from '@/components/ThemedView';
 import { IconSymbol } from '@/components/ui/IconSymbol';
@@ -9,12 +8,30 @@ import { useRouter } from 'expo-router';
 import { BottomNavigationBar } from '@/components/BottomNavigationBar';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
+// Types
+interface Evidence {
+  name: string;
+  available: boolean;
+}
+
+interface PerformanceItem {
+  id: number;
+  title: string;
+  score: number;
+  weight: number;
+  category: string;
+  details: string;
+  strengths: string[];
+  improvements: string[];
+  evidence: Evidence[];
+}
+
 const { width } = Dimensions.get('window');
 
 export default function DetailedReportScreen() {
   const router = useRouter();
   const [selectedView, setSelectedView] = useState('overview');
-  const [performanceData, setPerformanceData] = useState([]);
+  const [performanceData, setPerformanceData] = useState<PerformanceItem[]>([]);
 
   // البيانات الحقيقية للمحاور والشواهد
   const initialAxes = [
@@ -488,7 +505,7 @@ export default function DetailedReportScreen() {
             {lowPerformanceAxes.length > 0 ? (
               lowPerformanceAxes.map(item => (
                 <ThemedText key={item.id} style={styles.recommendationText}>
-                  • ركز على تحسين "{item.title}" (الدرجة الحالية: {item.score}%)
+                  • ركز على تحسين &quot;{item.title}&quot; (الدرجة الحالية: {item.score}%)
                 </ThemedText>
               ))
             ) : (
@@ -587,16 +604,13 @@ ${axis.title}: ${axis.score}%
         style={styles.backgroundImage}
         resizeMode="cover"
       >
-        <ExpoLinearGradient
-          colors={['rgba(255,255,255,0.9)', 'rgba(225,245,244,0.95)', 'rgba(173,212,206,0.8)']}
-          style={styles.gradientOverlay}
-        >
+        
           <ThemedView style={styles.header}>
             <TouchableOpacity 
               style={styles.backButton}
               onPress={() => router.back()}
             >
-              <IconSymbol size={20} name="arrow.right" color="#1c1f33" />
+              <IconSymbol size={20} name="chevron.left" color="#1c1f33" />
             </TouchableOpacity>
 
             <ThemedView style={styles.iconContainer}>
@@ -712,7 +726,7 @@ ${axis.title}: ${axis.score}%
               </TouchableOpacity>
             </ThemedView>
           </ScrollView>
-        </ExpoLinearGradient>
+        
       </ImageBackground>
       <BottomNavigationBar />
     </ThemedView>
@@ -1318,4 +1332,5 @@ const styles = StyleSheet.create({
     writingDirection: 'rtl',
     textAlign: 'center',
   },
+
 });

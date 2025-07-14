@@ -1,22 +1,25 @@
 import React, { useState, useEffect } from 'react';
-import { StyleSheet, ScrollView, TouchableOpacity, ImageBackground, KeyboardAvoidingView, Platform, Alert } from 'react-native';
-import { LinearGradient as ExpoLinearGradient } from 'expo-linear-gradient';
+import { 
+  ScrollView, 
+  TouchableOpacity, 
+  ImageBackground, 
+  Platform, 
+  Alert, 
+  RefreshControl, 
+  StatusBar, 
+  I18nManager,
+  KeyboardAvoidingView,
+  ActivityIndicator,
+  StyleSheet
+} from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { ThemedText } from '@/components/ThemedText';
 import { ThemedView } from '@/components/ThemedView';
 import { IconSymbol } from '@/components/ui/IconSymbol';
 import { useRouter } from 'expo-router';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { BottomNavigationBar } from '@/components/BottomNavigationBar';
-
-interface Student {
-  id: string;
-  name: string;
-  grade: string;
-  status: 'تفوق' | 'يحتاج إلى تطوير' | 'صعوبات التعلم' | 'ضعف';
-  lastUpdate: string;
-  notes: string;
-  remedialPlans?: RemedialPlan[];
-}
+import { Student } from '@/types';
 
 interface RemedialPlan {
   id: string;
@@ -26,20 +29,39 @@ interface RemedialPlan {
   startDate: string;
   endDate: string;
   status: 'نشط' | 'مكتمل' | 'معلق';
-  progress: number; // 0-100
+  progress: number;
 }
 
 export default function StudentTrackingScreen() {
   const router = useRouter();
+  const insets = useSafeAreaInsets();
   const [students, setStudents] = useState<Student[]>([]);
   const [expandedCards, setExpandedCards] = useState<{ [key: string]: boolean }>({});
+  const [refreshing, setRefreshing] = useState(false);
+  const [loading, setLoading] = useState(true);
+  const [selectedStudentId, setSelectedStudentId] = useState<string | null>(null);
 
   useEffect(() => {
     loadStudents();
+    checkSelectedStudent();
   }, []);
+
+  const checkSelectedStudent = async () => {
+    try {
+      const storedId = await AsyncStorage.getItem('selectedStudentId');
+      if (storedId) {
+        setSelectedStudentId(storedId);
+        // مسح المعرف المخزن بعد استخدامه
+        await AsyncStorage.removeItem('selectedStudentId');
+      }
+    } catch (error) {
+      console.error('Error checking selected student:', error);
+    }
+  };
 
   const loadStudents = async () => {
     try {
+      setLoading(true);
       const stored = await AsyncStorage.getItem('students');
       if (stored) {
         let students = JSON.parse(stored);
@@ -51,7 +73,7 @@ export default function StudentTrackingScreen() {
             updatedStatus = 'تفوق';
           } else if (student.status === 'مقبول') {
             updatedStatus = 'يحتاج إلى تطوير';
-          } else if (student.status === 'ضعيف') {
+          } else if (student.status === 'ضعيف' || student.status === 'ضعف') {
             updatedStatus = 'صعوبات التعلم';
           }
 
@@ -61,13 +83,34 @@ export default function StudentTrackingScreen() {
           };
         });
 
-        // حفظ البيانات المحدثة
         await AsyncStorage.setItem('students', JSON.stringify(students));
         setStudents(students);
+        
+        // إذا كان هناك متعلم محدد، قم بالتمرير إلى بطاقته
+        if (selectedStudentId) {
+          const selectedStudentIndex = students.findIndex((s: Student) => s.id === selectedStudentId);
+          if (selectedStudentIndex !== -1) {
+            // استخدم setTimeout للسماح للقائمة بالتحميل أولاً
+            setTimeout(() => {
+              const studentCard = document.getElementById(`student-card-${selectedStudentId}`);
+              if (studentCard) {
+                studentCard.scrollIntoView({ behavior: 'smooth', block: 'center' });
+              }
+            }, 500);
+          }
+        }
       }
     } catch (error) {
-      console.log('Error loading students:', error);
+      console.error('خطأ في تحميل بيانات الطلاب:', error);
+    } finally {
+      setLoading(false);
     }
+  };
+
+  const onRefresh = async () => {
+    setRefreshing(true);
+    await loadStudents();
+    setRefreshing(false);
   };
 
   const deleteStudent = async (studentId: string, studentName: string) => {
@@ -75,9 +118,8 @@ export default function StudentTrackingScreen() {
       const updatedStudents = students.filter(student => student.id !== studentId);
       await AsyncStorage.setItem('students', JSON.stringify(updatedStudents));
       setStudents(updatedStudents);
-      console.log(`تم حذف المتعلم: ${studentName}`);
     } catch (error) {
-      console.log('Error deleting student:', error);
+      console.error('خطأ في حذف الطالب:', error);
     }
   };
 
@@ -109,364 +151,338 @@ export default function StudentTrackingScreen() {
 
   const getStatusColor = (status: string) => {
     switch (status) {
-      case 'تفوق': return '#4CAF50';  // تفوق - أخضر
-      case 'يحتاج إلى تطوير': return '#FF5722'; // يحتاج إلى تطوير - برتقالي
-      case 'صعوبات التعلم': return '#F44336'; // صعوبات التعلم - أحمر
-      case 'ضعف': return '#9C27B0';  // ضعف - بنفسجي
-      default: return '#999';
+      case 'تفوق':
+      case 'ممتاز':
+        return '#4CAF50';
+      case 'يحتاج إلى تطوير':
+      case 'مقبول':
+        return '#FF5722';
+      case 'صعوبات التعلم':
+      case 'ضعيف':
+      case 'ضعف':
+        return '#F44336';
+      default:
+        return '#999';
     }
   };
 
   const getStatusIcon = (status: string) => {
     switch (status) {
-      case 'تفوق': return 'star.fill';                    // تفوق
-      case 'يحتاج إلى تطوير': return 'star';                        // يحتاج إلى تطوير
-      case 'صعوبات التعلم': return 'exclamationmark.triangle.fill'; // صعوبات التعلم
-      case 'ضعف': return 'minus.circle.fill';             // ضعف
-      default: return 'person.circle';
+      case 'تفوق':
+      case 'ممتاز':
+        return 'star.fill';
+      case 'يحتاج إلى تطوير':
+      case 'مقبول':
+        return 'star';
+      case 'صعوبات التعلم':
+      case 'ضعيف':
+      case 'ضعف':
+        return 'exclamationmark.triangle.fill';
+      default:
+        return 'person.circle';
     }
+  };
+
+  const getGoalStatusColor = (status: string) => {
+    switch (status) {
+      case 'مكتمل':
+        return '#4CAF50';
+      case 'معلق':
+        return '#FF9800';
+      default:
+        return '#2196F3';
+    }
+  };
+
+  const renderStudentCard = (student: Student) => {
+    const isExpanded = expandedCards[student.id] || false;
+    
+    return (
+      <ThemedView key={student.id} style={styles.studentCard} id={`student-card-${student.id}`}>
+        <TouchableOpacity
+          style={styles.studentHeader}
+          onPress={() => toggleCardExpansion(student.id)}
+        >
+          <ThemedView style={styles.studentMainInfo}>
+            <ThemedView style={styles.studentIconContainer}>
+              <IconSymbol 
+                size={40} 
+                name={getStatusIcon(student.status)} 
+                color={getStatusColor(student.status)} 
+              />
+            </ThemedView>
+            
+            <ThemedView style={styles.studentDetails}>
+              <ThemedText style={styles.studentName}>{student.name}</ThemedText>
+              <ThemedText style={styles.studentGrade}>الصف: {student.grade}</ThemedText>
+              <ThemedView style={[styles.statusBadge, { backgroundColor: getStatusColor(student.status) }]}>
+                <ThemedText style={styles.statusText}>{student.status}</ThemedText>
+              </ThemedView>
+            </ThemedView>
+          </ThemedView>
+          
+          <IconSymbol 
+            size={20} 
+            name={isExpanded ? "chevron.up" : "chevron.down"} 
+            color="#666" 
+          />
+        </TouchableOpacity>
+
+        {isExpanded && (
+          <ThemedView style={styles.expandedContent}>
+            {/* عرض الأهداف والاحتياجات والشواهد */}
+            <ThemedView style={styles.studentDetails}>
+              {/* الأهداف */}
+              {student.goals && student.goals.length > 0 && (
+                <ThemedView style={styles.detailSection}>
+                  <ThemedView style={styles.sectionHeader}>
+                    <IconSymbol size={16} name="target" color="#4CAF50" />
+                    <ThemedText style={styles.sectionTitle}>الأهداف</ThemedText>
+                  </ThemedView>
+                  <ThemedView style={styles.itemsList}>
+                    {student.goals.map((goal, index) => (
+                      <ThemedView key={goal.id || index} style={styles.itemCard}>
+                        <ThemedView style={styles.itemHeader}>
+                          <ThemedText style={styles.itemTitle}>{goal.title}</ThemedText>
+                          <ThemedView style={[styles.statusBadge, { backgroundColor: getGoalStatusColor(goal.status) }]}>
+                            <ThemedText style={styles.statusText}>{goal.status}</ThemedText>
+                          </ThemedView>
+                        </ThemedView>
+                        {goal.description && (
+                          <ThemedText style={styles.itemDescription}>{goal.description}</ThemedText>
+                        )}
+                        <ThemedView style={styles.progressContainer}>
+                          <ThemedText style={styles.progressText}>التقدم: {goal.progress}%</ThemedText>
+                          <ThemedView style={styles.progressBar}>
+                            <ThemedView 
+                              style={[
+                                styles.progressFill, 
+                                { width: `${goal.progress}%`, backgroundColor: getGoalStatusColor(goal.status) }
+                              ]} 
+                            />
+                          </ThemedView>
+                        </ThemedView>
+                      </ThemedView>
+                    ))}
+                  </ThemedView>
+                </ThemedView>
+              )}
+
+              {/* الاحتياجات */}
+              {student.needs && student.needs.length > 0 && (
+                <ThemedView style={styles.detailSection}>
+                  <ThemedView style={styles.sectionHeader}>
+                    <IconSymbol size={16} name="heart.fill" color="#FF5722" />
+                    <ThemedText style={styles.sectionTitle}>الاحتياجات</ThemedText>
+                  </ThemedView>
+                  <ThemedView style={styles.itemsList}>
+                    {student.needs.map((need, index) => (
+                      <ThemedView key={index} style={styles.itemCard}>
+                        <ThemedText style={styles.itemText}>• {need}</ThemedText>
+                      </ThemedView>
+                    ))}
+                  </ThemedView>
+                </ThemedView>
+              )}
+
+              {/* الشواهد */}
+              {student.performanceEvidence && student.performanceEvidence.length > 0 && (
+                <ThemedView style={styles.detailSection}>
+                  <ThemedView style={styles.sectionHeader}>
+                    <IconSymbol size={16} name="doc.text.fill" color="#2196F3" />
+                    <ThemedText style={styles.sectionTitle}>الشواهد</ThemedText>
+                  </ThemedView>
+                  <ThemedView style={styles.itemsList}>
+                    {student.performanceEvidence.map((evidence, index) => (
+                      <ThemedView key={evidence.id || index} style={styles.itemCard}>
+                        <ThemedView style={styles.itemHeader}>
+                          <ThemedText style={styles.itemTitle}>{evidence.title}</ThemedText>
+                          <ThemedView style={[styles.statusBadge, { backgroundColor: evidence.achieved ? '#4CAF50' : '#FF9800' }]}>
+                            <ThemedText style={styles.statusText}>{evidence.achieved ? 'محقق' : 'قيد التحقيق'}</ThemedText>
+                          </ThemedView>
+                        </ThemedView>
+                        <ThemedText style={styles.itemType}>النوع: {evidence.type}</ThemedText>
+                        {evidence.notes && (
+                          <ThemedText style={styles.itemDescription}>{evidence.notes}</ThemedText>
+                        )}
+                        <ThemedText style={styles.itemDate}>التاريخ: {evidence.date}</ThemedText>
+                      </ThemedView>
+                    ))}
+                  </ThemedView>
+                </ThemedView>
+              )}
+
+              {/* الملاحظات */}
+              {student.notes && (
+                <ThemedView style={styles.detailSection}>
+                  <ThemedView style={styles.sectionHeader}>
+                    <IconSymbol size={16} name="note.text" color="#9C27B0" />
+                    <ThemedText style={styles.sectionTitle}>الملاحظات</ThemedText>
+                  </ThemedView>
+                  <ThemedView style={styles.notesCard}>
+                    <ThemedText style={styles.notesText}>{student.notes}</ThemedText>
+                  </ThemedView>
+                </ThemedView>
+              )}
+            </ThemedView>
+
+            <ThemedView style={styles.actionButtons}>
+              <TouchableOpacity
+                style={[styles.actionButton, styles.editButton]}
+                onPress={() => router.push(`/add-student?id=${student.id}&edit=true`)}
+              >
+                <IconSymbol size={16} name="pencil" color="#fff" />
+                <ThemedText style={styles.actionButtonText}>تعديل</ThemedText>
+              </TouchableOpacity>
+              
+              <TouchableOpacity
+                style={[styles.actionButton, styles.deleteButton]}
+                onPress={() => confirmDeleteStudent(student.id, student.name)}
+              >
+                <IconSymbol size={16} name="trash" color="#fff" />
+                <ThemedText style={styles.actionButtonText}>حذف</ThemedText>
+              </TouchableOpacity>
+            </ThemedView>
+          </ThemedView>
+        )}
+      </ThemedView>
+    );
+  };
+
+  const renderStatsCard = () => {
+    const totalStudents = students.length;
+    const excellentStudents = students.filter(s => s.status === 'تفوق' || s.status === 'ممتاز').length;
+    const needsDevelopment = students.filter(s => s.status === 'يحتاج إلى تطوير' || s.status === 'مقبول').length;
+    const learningDifficulties = students.filter(s => s.status === 'صعوبات التعلم' || s.status === 'ضعيف' || s.status === 'ضعف').length;
+
+    return (
+      <ThemedView style={styles.statsCard}>
+        <ThemedText style={styles.statsTitle}>إحصائيات المتعلمين</ThemedText>
+        <ThemedView style={styles.statsGrid}>
+          <ThemedView style={styles.statItem}>
+            <IconSymbol size={30} name="person.3.fill" color="#4CAF50" />
+            <ThemedText style={styles.statNumber}>{totalStudents}</ThemedText>
+            <ThemedText style={styles.statLabel}>إجمالي المتعلمين</ThemedText>
+          </ThemedView>
+          
+          <ThemedView style={styles.statItem}>
+            <IconSymbol size={30} name="star.fill" color="#4CAF50" />
+            <ThemedText style={styles.statNumber}>{excellentStudents}</ThemedText>
+            <ThemedText style={styles.statLabel}>متفوقون</ThemedText>
+          </ThemedView>
+          
+          <ThemedView style={styles.statItem}>
+            <IconSymbol size={30} name="star" color="#FF5722" />
+            <ThemedText style={styles.statNumber}>{needsDevelopment}</ThemedText>
+            <ThemedText style={styles.statLabel}>يحتاجون تطوير</ThemedText>
+          </ThemedView>
+          
+          <ThemedView style={styles.statItem}>
+            <IconSymbol size={30} name="exclamationmark.triangle.fill" color="#F44336" />
+            <ThemedText style={styles.statNumber}>{learningDifficulties}</ThemedText>
+            <ThemedText style={styles.statLabel}>صعوبات التعلم</ThemedText>
+          </ThemedView>
+        </ThemedView>
+      </ThemedView>
+    );
   };
 
   return (
     <ThemedView style={styles.container}>
+      <StatusBar 
+        barStyle="dark-content" 
+        backgroundColor={Platform.OS === 'ios' ? 'transparent' : '#E8F5F4'} 
+        translucent={Platform.OS === 'ios'}
+      />
+      
       <ImageBackground
         source={require('@/assets/images/background.png')}
         style={styles.backgroundImage}
         resizeMode="cover"
       >
-        <ExpoLinearGradient
-          colors={['rgba(255,255,255,0.9)', 'rgba(225,245,244,0.95)', 'rgba(173,212,206,0.8)']}
-          style={styles.gradientOverlay}
+        <KeyboardAvoidingView
+          style={{ flex: 1 }}
+          behavior={Platform.OS === 'ios' ? 'padding' : undefined}
         >
-          <KeyboardAvoidingView
-            style={{ flex: 1 }}
-            behavior={Platform.OS === 'ios' ? 'padding' : undefined}
-          >
-            <ScrollView 
-              style={styles.scrollContainer}
-              contentContainerStyle={{ flexGrow: 1 }}
+          {/* Header */}
+          <ThemedView style={[styles.header, { paddingTop: insets.top + 20 }]}>
+            <TouchableOpacity 
+              style={styles.backButton}
+              onPress={() => router.push('/(tabs)')}
             >
-              <ThemedView style={styles.content}>
-                {/* Header */}
-                <ThemedView style={styles.header}>
-                  <TouchableOpacity 
-                    style={styles.backButton}
-                    onPress={() => router.back()}
-                  >
-                    <IconSymbol size={20} name="arrow.right" color="#1c1f33" />
-                  </TouchableOpacity>
+              <IconSymbol size={20} name="chevron.left" color="#1c1f33" />
+            </TouchableOpacity>
 
-                  <ThemedView style={styles.iconContainer}>
-                    <IconSymbol size={60} name="person.crop.circle.badge.plus" color="#1c1f33" />
-                  </ThemedView>
-
-                  <ThemedText type="title" style={styles.title}>
-                    تتبع حالة متعلم
-                  </ThemedText>
-                  <ThemedText style={styles.subtitle}>
-                    متابعة تقدم وأداء الطلاب
-                  </ThemedText>
-                </ThemedView>
-
-                {/* Add Student Button */}
-                <ThemedView style={styles.actionButtons}>
-                  <TouchableOpacity 
-                    style={styles.addButton}
-                    onPress={() => router.push('/add-student')}
-                  >
-                    <IconSymbol size={20} name="plus" color="#1c1f33" />
-                    <ThemedText style={styles.buttonText}>إضافة متعلم جديد</ThemedText>
-                  </TouchableOpacity>
-
-                  <TouchableOpacity 
-                    style={styles.addButton}
-                    onPress={() => router.push('/remedial-plans')}
-                  >
-                    <IconSymbol size={20} name="heart.text.square" color="#1c1f33" />
-                    <ThemedText style={styles.buttonText}>إدارة الخطط العلاجية</ThemedText>
-                  </TouchableOpacity>
-                </ThemedView>
-
-                {/* Students List or Empty State */}
-                {students.length === 0 ? (
-                  <ThemedView style={styles.emptyState}>
-                    <ThemedView style={styles.emptyIconContainer}>
-                      <IconSymbol size={80} name="person.crop.circle.badge.plus" color="#ccc" />
-                    </ThemedView>
-                    <ThemedText style={styles.emptyTitle}>لا توجد بيانات متعلمين</ThemedText>
-                    <ThemedText style={styles.emptySubtitle}>اضغط على "إضافة متعلم جديد" لبدء المتابعة</ThemedText>
-                  </ThemedView>
-                ) : (
-                  <ThemedView style={styles.studentsSection}>
-                    <ThemedText style={styles.sectionTitle}>قائمة المتعلمين</ThemedText>
-
-                    {/* Statistics */}
-                    <ThemedView style={styles.statsContainer}>
-                      <ThemedView style={[styles.statCard, { backgroundColor: '#E8F5E8' }]}>
-                        <IconSymbol size={24} name="person.3.fill" color="#4CAF50" />
-                        <ThemedText style={styles.statNumber}>{students.length}</ThemedText>
-                        <ThemedText style={styles.statLabel}>إجمالي المتعلمين</ThemedText>
-                      </ThemedView>
-
-                      <ThemedView style={[styles.statCard, { backgroundColor: '#FFF3E0' }]}>
-                        <IconSymbol size={24} name="star.fill" color="#FF9800" />
-                        <ThemedText style={styles.statNumber}>
-                          {students.filter(s => s.status === 'تفوق').length}
-                        </ThemedText>
-                        <ThemedText style={styles.statLabel}>متفوقين</ThemedText>
-                      </ThemedView>
-
-                      <ThemedView style={[styles.statCard, { backgroundColor: '#FFEBEE' }]}>
-                        <IconSymbol size={24} name="heart.text.square" color="#F44336" />
-                        <ThemedText style={styles.statNumber}>
-                          {students.reduce((total, student) => 
-                            total + (student.remedialPlans?.filter(plan => plan.status === 'نشط').length || 0), 0
-                          )}
-                        </ThemedText>
-                        <ThemedText style={styles.statLabel}>خطط علاجية نشطة</ThemedText>
-                      </ThemedView>
-                    </ThemedView>
-
-                    {/* Students Grid */}
-                    <ThemedView style={styles.studentsGrid}>
-                      {students.map((student) => {
-                        const isExpanded = expandedCards[student.id];
-                        return (
-                          <ThemedView key={student.id} style={styles.studentCard}>
-                            {/* Card Header - Always Visible */}
-                            <TouchableOpacity 
-                              style={styles.cardHeader}
-                              onPress={() => toggleCardExpansion(student.id)}
-                            >
-                              <ThemedView style={styles.studentHeader}>
-                                <ThemedView style={styles.studentIconWrapper}>
-                                  <IconSymbol 
-                                    size={24} 
-                                    name={getStatusIcon(student.status)} 
-                                    color={getStatusColor(student.status)} 
-                                  />
-                                </ThemedView>
-                                <ThemedView style={styles.studentHeaderActions}>
-                                  <ThemedView style={[styles.statusBadge, { backgroundColor: getStatusColor(student.status) }]}>
-                                    <ThemedText style={styles.statusText}>{student.status}</ThemedText>
-                                  </ThemedView>
-                                  <TouchableOpacity 
-                                    style={styles.deleteButton}
-                                    onPress={(e) => {
-                                      e.stopPropagation();
-                                      confirmDeleteStudent(student.id, student.name);
-                                    }}
-                                  >
-                                    <IconSymbol size={16} name="trash.fill" color="#F44336" />
-                                  </TouchableOpacity>
-                                </ThemedView>
-                              </ThemedView>
-
-                              <ThemedText style={styles.studentName}>{student.name}</ThemedText>
-                              <ThemedText style={styles.studentGrade}>{student.grade}</ThemedText>
-
-                              {/* Expand/Collapse Indicator */}
-                              <ThemedView style={styles.expandIndicator}>
-                                <IconSymbol 
-                                  size={16} 
-                                  name={isExpanded ? "chevron.up" : "chevron.down"} 
-                                  color="#666" 
-                                />
-                                <ThemedText style={styles.expandText}>
-                                  {isExpanded ? "إخفاء التفاصيل" : "عرض التفاصيل"}
-                                </ThemedText>
-                              </ThemedView>
-                            </TouchableOpacity>
-
-                            {/* Expanded Content */}
-                            {isExpanded && (
-                              <ThemedView style={styles.expandedContent}>
-                                {/* Goals Section */}
-                                {student.goals && student.goals.length > 0 && (
-                                  <ThemedView style={styles.detailSection}>
-                                    <ThemedView style={styles.sectionHeader}>
-                                      <IconSymbol size={16} name="target" color="#2196F3" />
-                                      <ThemedText style={styles.sectionTitle}>الأهداف ({student.goals.length})</ThemedText>
-                                    </ThemedView>
-                                    {student.goals.map((goal, index) => (
-                                      <ThemedView key={goal.id} style={styles.goalItemExpanded}>
-                                        <ThemedText style={styles.goalTitleExpanded}>
-                                          {index + 1}. {goal.title}
-                                        </ThemedText>
-                                        {goal.description && (
-                                          <ThemedText style={styles.goalDescription}>
-                                            {goal.description}
-                                          </ThemedText>
-                                        )}
-                                        <ThemedView style={styles.goalProgress}>
-                                          <ThemedText style={styles.goalProgressText}>
-                                            {goal.progress}%
-                                          </ThemedText>
-                                          <ThemedView style={styles.goalProgressBar}>
-                                            <ThemedView 
-                                              style={[
-                                                styles.goalProgressFill,
-                                                { 
-                                                  width: `${goal.progress}%`,
-                                                  backgroundColor: goal.progress >= 70 ? '#4CAF50' : goal.progress >= 40 ? '#FF9800' : '#F44336'
-                                                }
-                                              ]}
-                                            />
-                                          </ThemedView>
-                                        </ThemedView>
-                                        <ThemedText style={styles.goalStatus}>
-                                          الحالة: {goal.status}
-                                        </ThemedText>
-                                        {goal.targetDate && (
-                                          <ThemedText style={styles.goalTargetDate}>
-                                            التاريخ المستهدف: {goal.targetDate}
-                                          </ThemedText>
-                                        )}
-                                      </ThemedView>
-                                    ))}
-                                  </ThemedView>
-                                )}
-
-                                {/* Needs Section */}
-                                {student.needs && student.needs.length > 0 && (
-                                  <ThemedView style={styles.detailSection}>
-                                    <ThemedView style={styles.sectionHeader}>
-                                      <IconSymbol size={16} name="exclamationmark.circle" color="#FF5722" />
-                                      <ThemedText style={styles.sectionTitle}>الاحتياجات ({student.needs.length})</ThemedText>
-                                    </ThemedView>
-                                    <ThemedView style={styles.needsList}>
-                                      {student.needs.map((need, index) => (
-                                        <ThemedView key={index} style={styles.needItemExpanded}>
-                                          <ThemedText style={styles.needTextExpanded}>
-                                            {index + 1}. {need}
-                                          </ThemedText>
-                                        </ThemedView>
-                                      ))}
-                                    </ThemedView>
-                                  </ThemedView>
-                                )}
-
-                                {/* Performance Evidence Section */}
-                                {(student as any).performanceEvidence && (student as any).performanceEvidence.length > 0 && (
-                                  <ThemedView style={styles.detailSection}>
-                                    <ThemedView style={styles.sectionHeader}>
-                                      <IconSymbol size={16} name="doc.text" color="#9C27B0" />
-                                      <ThemedText style={styles.sectionTitle}>الشواهد ({(student as any).performanceEvidence.length})</ThemedText>
-                                    </ThemedView>
-                                    {(student as any).performanceEvidence.map((evidence: any, index: number) => (
-                                      <ThemedView key={evidence.id} style={styles.evidenceItem}>
-                                        <ThemedText style={styles.evidenceTitle}>
-                                          {index + 1}. {evidence.title}
-                                        </ThemedText>
-                                        <ThemedText style={styles.evidenceType}>
-                                          النوع: {evidence.type}
-                                        </ThemedText>
-                                        {evidence.fileName && (
-                                          <ThemedText style={styles.evidenceFile}>
-                                            الملف: {evidence.fileName}
-                                          </ThemedText>
-                                        )}
-                                        <ThemedText style={styles.evidenceDate}>
-                                          التاريخ: {evidence.date}
-                                        </ThemedText>
-                                        {evidence.notes && (
-                                          <ThemedText style={styles.evidenceNotes}>
-                                            ملاحظات: {evidence.notes}
-                                          </ThemedText>
-                                        )}
-                                      </ThemedView>
-                                    ))}
-                                  </ThemedView>
-                                )}
-
-                                {/* Remedial Plans Section */}
-                                {student.remedialPlans && student.remedialPlans.length > 0 && (
-                                  <ThemedView style={styles.detailSection}>
-                                    <ThemedView style={styles.sectionHeader}>
-                                      <IconSymbol size={16} name="heart.text.square" color="#F44336" />
-                                      <ThemedText style={styles.sectionTitle}>الخطط العلاجية ({student.remedialPlans.length})</ThemedText>
-                                    </ThemedView>
-                                    {student.remedialPlans.map((plan, index) => (
-                                      <ThemedView key={plan.id} style={styles.planItem}>
-                                        <ThemedText style={styles.planTitle}>
-                                          {index + 1}. {plan.title}
-                                        </ThemedText>
-                                        <ThemedText style={styles.planDescription}>
-                                          {plan.description}
-                                        </ThemedText>
-                                        <ThemedText style={styles.planTarget}>
-                                          المجال المستهدف: {plan.targetArea}
-                                        </ThemedText>
-                                        <ThemedView style={styles.planProgress}>
-                                          <ThemedText style={styles.planProgressText}>
-                                            التقدم: {plan.progress}%
-                                          </ThemedText>
-                                          <ThemedView style={styles.planProgressBar}>
-                                            <ThemedView 
-                                              style={[
-                                                styles.planProgressFill,
-                                                { 
-                                                  width: `${plan.progress}%`,
-                                                  backgroundColor: plan.progress >= 70 ? '#4CAF50' : plan.progress >= 40 ? '#FF9800' : '#F44336'
-                                                }
-                                              ]}
-                                            />
-                                          </ThemedView>
-                                        </ThemedView>
-                                        <ThemedView style={[styles.planStatusBadge, { backgroundColor: plan.status === 'نشط' ? '#4CAF50' : plan.status === 'مكتمل' ? '#2196F3' : '#FF9800' }]}>
-                                          <ThemedText style={styles.planStatusText}>{plan.status}</ThemedText>
-                                        </ThemedView>
-                                        <ThemedText style={styles.planDates}>
-                                          من {plan.startDate} إلى {plan.endDate}
-                                        </ThemedText>
-                                      </ThemedView>
-                                    ))}
-                                  </ThemedView>
-                                )}
-
-                                {/* Notes Section */}
-                                {student.notes && (
-                                  <ThemedView style={styles.detailSection}>
-                                    <ThemedView style={styles.sectionHeader}>
-                                      <IconSymbol size={16} name="note.text" color="#795548" />
-                                      <ThemedText style={styles.sectionTitle}>ملاحظات</ThemedText>
-                                    </ThemedView>
-                                    <ThemedText style={styles.notesText}>
-                                      {student.notes}
-                                    </ThemedText>
-                                  </ThemedView>
-                                )}
-
-                                {/* Action Buttons */}
-                                <ThemedView style={styles.actionButtonsContainer}>
-                                  <TouchableOpacity 
-                                    style={styles.editButton}
-                                    onPress={() => router.push(`/student-details?id=${student.id}`)}
-                                  >
-                                    <IconSymbol size={16} name="pencil" color="#2196F3" />
-                                    <ThemedText style={styles.editButtonText}>تحرير البيانات</ThemedText>
-                                  </TouchableOpacity>
-                                </ThemedView>
-                              </ThemedView>
-                            )}
-
-                            {/* Footer - Always Visible */}
-                            <ThemedView style={styles.studentFooter}>
-                              <ThemedText style={styles.lastUpdate}>
-                                آخر تحديث: {student.lastUpdate}
-                              </ThemedText>
-                            </ThemedView>
-                          </ThemedView>
-                        );
-                      })}
-                    </ThemedView>
-                  </ThemedView>
-                )}
+              <ThemedView style={styles.iconContainer}>
+                <IconSymbol size={60} name="chart.line.uptrend.xyaxis" color="#1c1f33" />
               </ThemedView>
-            </ScrollView>
-          </KeyboardAvoidingView>
-        </ExpoLinearGradient>
+              <ThemedText type="title" style={styles.title}>
+                تتبع حالة المتعلمين
+              </ThemedText>
+              <ThemedText style={styles.subtitle}>
+                متابعة وتقييم حالة الطلاب
+              </ThemedText>
+
+              <TouchableOpacity 
+                style={styles.addButton}
+                onPress={() => router.push('/add-student')}
+              >
+                <IconSymbol size={20} name="plus" color="#1c1f33" />
+                <ThemedText style={styles.addButtonText}>إضافة متعلم جديد</ThemedText>
+              </TouchableOpacity>
+
+            <TouchableOpacity 
+              style={[styles.addButton, { marginTop: 10 }]}
+              onPress={() => router.push('/remedial-plans')}
+            >
+              <IconSymbol size={20} name="doc.text.fill" color="#1c1f33" />
+              <ThemedText style={styles.addButtonText}>إدارة الخطط العلاجية</ThemedText>
+            </TouchableOpacity>
+          </ThemedView>
+
+          {/* Content */}
+          <ScrollView 
+            style={styles.scrollContainer}
+            contentContainerStyle={styles.scrollContent}
+            showsVerticalScrollIndicator={false}
+            refreshControl={
+              <RefreshControl
+                refreshing={refreshing}
+                onRefresh={onRefresh}
+                colors={['#add4ce']}
+                tintColor="#add4ce"
+              />
+            }
+            keyboardShouldPersistTaps="handled"
+          >
+            {/* Stats Card */}
+            {renderStatsCard()}
+
+            {/* Students List */}
+            {loading ? (
+              <ThemedView style={styles.loadingContainer}>
+                <ActivityIndicator size="large" color="#add4ce" />
+                <ThemedText style={styles.loadingText}>جاري تحميل البيانات...</ThemedText>
+              </ThemedView>
+            ) : students.length === 0 ? (
+              <ThemedView style={styles.emptyState}>
+                <ThemedView style={styles.emptyIconContainer}>
+                  <IconSymbol size={80} name="person.badge.plus" color="#ccc" />
+                </ThemedView>
+                <ThemedText style={styles.emptyTitle}>لا توجد بيانات متعلمين</ThemedText>
+                <ThemedText style={styles.emptySubtitle}>
+                  ابدأ بإضافة متعلم جديد لتتبع حالته
+                </ThemedText>
+              </ThemedView>
+            ) : (
+              <ThemedView style={styles.studentsList}>
+                {students.map(renderStudentCard)}
+              </ThemedView>
+            )}
+          </ScrollView>
+        </KeyboardAvoidingView>
       </ImageBackground>
+      
       <BottomNavigationBar />
     </ThemedView>
   );
@@ -481,21 +497,12 @@ const styles = StyleSheet.create({
     width: '100%',
     height: '100%',
   },
-  gradientOverlay: {
-    flex: 1,
-  },
-  scrollContainer: {
-    flex: 1,
-  },
-  content: {
-    flex: 1,
-    paddingHorizontal: 0,
-    paddingVertical: 10,
-    backgroundColor: 'transparent',
-  },
   header: {
-    padding: 20,
     alignItems: 'center',
+    paddingTop: Platform.OS === 'ios' ? 60 : 50,
+    paddingHorizontal: 30,
+    paddingBottom: 30,
+    backgroundColor: 'transparent',
     position: 'relative',
   },
   backButton: {
@@ -531,182 +538,123 @@ const styles = StyleSheet.create({
   title: {
     fontSize: 28,
     fontWeight: 'bold',
-    textAlign: 'center',
+    marginTop: 15,
     marginBottom: 10,
-    color: '#1c1f33',
+    textAlign: 'center',
     writingDirection: 'rtl',
+    color: '#000000',
   },
   subtitle: {
     fontSize: 16,
-    textAlign: 'center',
-    marginBottom: 30,
-    lineHeight: 24,
-    paddingHorizontal: 20,
     color: '#666666',
+    textAlign: 'center',
     writingDirection: 'rtl',
-  },
-  actionButtons: {
-    padding: 20,
-    backgroundColor: 'transparent',
-    gap: 10,
+    marginBottom: 20,
   },
   addButton: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: '#add4ce',
     paddingVertical: 15,
     paddingHorizontal: 25,
-    borderRadius: 25,
-    gap: 10,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 6 },
-    shadowOpacity: 0.4,
-    shadowRadius: 12,
-    elevation: 12,
-    borderWidth: 1,
-    borderColor: '#add4ce',
-  },
-  buttonText: {
-    color: '#1c1f33',
-    fontSize: 16,
-    fontWeight: '600',
-    textAlign: 'center',
-    writingDirection: 'rtl',
-  },
-  emptyState: {
-    alignItems: 'center',
-    justifyContent: 'center',
-    padding: 40,
-    backgroundColor: 'transparent',
-  },
-  emptyIconContainer: {
-    marginBottom: 20,
-    padding: 30,
-    backgroundColor: '#F8F9FA',
-    borderRadius: 50,
-    borderWidth: 1,
-    borderColor: '#E5E5EA',
-  },
-  emptyTitle: {
-    fontSize: 20,
-    fontWeight: 'bold',
-    color: '#333',
-    textAlign: 'center',
-    marginBottom: 10,
-    writingDirection: 'rtl',
-  },
-  emptySubtitle: {
-    fontSize: 16,
-    color: '#666',
-    textAlign: 'center',
-    lineHeight: 24,
-    writingDirection: 'rtl',
-  },
-  studentsSection: {
-    padding: 20,
-    backgroundColor: 'transparent',
-  },
-  sectionTitle: {
-    fontSize: 20,
-    fontWeight: 'bold',
-    marginBottom: 20,
-    color: '#1c1f33',
-    textAlign: 'center',
-    writingDirection: 'rtl',
-  },
-  statsContainer: {
-    flexDirection: 'row',
-    gap: 10,
-    marginBottom: 25,
-  },
-  statCard: {
-    flex: 1,
-    alignItems: 'center',
-    padding: 15,
+    backgroundColor: 'rgba(255, 255, 255, 0.2)',
     borderRadius: 12,
     borderWidth: 1,
-    borderColor: '#E5E5EA',
+    borderColor: 'rgba(229, 229, 234, 0.4)',
+    gap: 10,
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.1,
     shadowRadius: 4,
     elevation: 3,
   },
-  statNumber: {
-    fontSize: 20,
+  addButtonText: {
+    color: '#1c1f33',
+    fontSize: 16,
     fontWeight: 'bold',
-    marginTop: 8,
-    color: '#000000',
+    textAlign: 'center',
   },
-  statLabel: {
-    fontSize: 12,
-    color: '#666666',
-    marginTop: 4,
+  scrollContainer: {
+    flex: 1,
+  },
+  scrollContent: {
+    paddingBottom: 100,
+  },
+  statsCard: {
+    backgroundColor: '#fff',
+    borderRadius: 12,
+    padding: 20,
+    marginHorizontal: 16,
+    marginBottom: 20,
+    elevation: 2,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.1,
+    shadowRadius: 3,
+  },
+  statsTitle: {
+    fontSize: 18,
+    fontWeight: 'bold',
+    color: '#333',
     textAlign: 'center',
     writingDirection: 'rtl',
+    marginBottom: 15,
   },
-  studentsGrid: {
+  statsGrid: {
     flexDirection: 'row',
     flexWrap: 'wrap',
     justifyContent: 'space-between',
     gap: 10,
   },
-  studentCard: {
-    width: '100%',
-    backgroundColor: '#F8F9FA',
-    borderRadius: 15,
-    borderWidth: 1,
-    borderColor: '#E5E5EA',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.1,
-    shadowRadius: 8,
-    elevation: 5,
-    marginBottom: 15,
-    overflow: 'hidden',
-  },
-  cardHeader: {
+  statItem: {
+    width: '48%',
     padding: 15,
-  },
-  studentHeader: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
+    borderRadius: 12,
     alignItems: 'center',
-    marginBottom: 10,
+    backgroundColor: '#F8F9FA',
   },
-  studentIconWrapper: {
-    padding: 8,
+  statNumber: {
+    fontSize: 24,
+    fontWeight: 'bold',
+    color: '#333',
+    marginVertical: 5,
+  },
+  statLabel: {
+    fontSize: 12,
+    color: '#666',
+    textAlign: 'center',
+    writingDirection: 'rtl',
+  },
+  studentsList: {
+    paddingHorizontal: 16,
+    gap: 12,
+  },
+  studentCard: {
     backgroundColor: '#fff',
-    borderRadius: 20,
-  },
-  studentHeaderActions: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 8,
-  },
-  statusBadge: {
-    paddingHorizontal: 8,
-    paddingVertical: 4,
     borderRadius: 12,
-  },
-  deleteButton: {
-    padding: 6,
-    backgroundColor: '#FFEBEE',
-    borderRadius: 12,
-    borderWidth: 1,
-    borderColor: '#FFCDD2',
-    shadowColor: '#F44336',
+    overflow: 'hidden',
+    shadowColor: '#000',
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.1,
     shadowRadius: 4,
-    elevation: 2,
+    elevation: 3,
   },
-  statusText: {
-    fontSize: 10,
-    color: '#fff',
-    fontWeight: '600',
-    textAlign: 'center',
+  studentHeader: {
+    flexDirection: 'row-reverse',
+    alignItems: 'center',
+    padding: 16,
+    justifyContent: 'space-between',
+  },
+  studentMainInfo: {
+    flexDirection: 'row-reverse',
+    alignItems: 'center',
+    flex: 1,
+  },
+  studentIconContainer: {
+    marginLeft: 12,
+  },
+  studentDetails: {
+    marginBottom: 20,
   },
   studentName: {
     fontSize: 16,
@@ -714,383 +662,189 @@ const styles = StyleSheet.create({
     color: '#1c1f33',
     textAlign: 'right',
     writingDirection: 'rtl',
-    marginBottom: 5,
+    marginBottom: 4,
   },
   studentGrade: {
     fontSize: 14,
     color: '#666',
     textAlign: 'right',
     writingDirection: 'rtl',
-    marginBottom: 10,
+    marginBottom: 8,
   },
-  studentFooter: {
-    paddingTop: 10,
-    borderTopWidth: 1,
-    borderTopColor: '#E5E5EA',
-  },
-  lastUpdate: {
-    fontSize: 12,
-    color: '#999',
-    textAlign: 'right',
-    writingDirection: 'rtl',
-  },
-  remedialPlansIndicator: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: '#FFEBEE',
+  statusBadge: {
     paddingHorizontal: 8,
     paddingVertical: 4,
     borderRadius: 12,
-    marginBottom: 8,
-    gap: 4,
   },
-  remedialPlansText: {
-    fontSize: 10,
-    color: '#F44336',
-    fontWeight: '600',
-    textAlign: 'right',
-    writingDirection: 'rtl',
-  },
-  progressSummary: {
-    marginBottom: 8,
-  },
-  progressText: {
-    fontSize: 10,
-    color: '#666',
-    textAlign: 'right',
-    writingDirection: 'rtl',
-    marginBottom: 4,
-  },
-  miniProgressBar: {
-    height: 4,
-    backgroundColor: '#E5E5EA',
-    borderRadius: 2,
-    overflow: 'hidden',
-  },
-  miniProgressFill: {
-    height: '100%',
-    borderRadius: 2,
-  },
-  goalsSection: {
-    marginBottom: 12,
-    backgroundColor: '#F0F8FF',
-    padding: 10,
-    borderRadius: 10,
-    borderWidth: 1,
-    borderColor: '#E3F2FD',
-  },
-  needsSection: {
-    marginBottom: 12,
-    backgroundColor: '#FFF3E0',
-    padding: 10,
-    borderRadius: 10,
-    borderWidth: 1,
-    borderColor: '#FFE0B2',
-  },
-  sectionHeader: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginBottom: 6,
-    gap: 4,
-  },
-  sectionTitle: {
+  statusText: {
     fontSize: 12,
-    fontWeight: '600',
-    color: '#1c1f33',
-    textAlign: 'right',
-    writingDirection: 'rtl',
-  },
-  goalItem: {
-    marginBottom: 6,
-  },
-  goalTitle: {
-    fontSize: 11,
-    color: '#1c1f33',
-    textAlign: 'right',
-    writingDirection: 'rtl',
-    marginBottom: 3,
-    fontWeight: '500',
-  },
-  goalProgress: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 6,
-  },
-  goalProgressText: {
-    fontSize: 10,
-    color: '#666',
-    minWidth: 30,
-    textAlign: 'center',
-  },
-  goalProgressBar: {
-    flex: 1,
-    height: 4,
-    backgroundColor: '#E5E5EA',
-    borderRadius: 2,
-    overflow: 'hidden',
-  },
-  goalProgressFill: {
-    height: '100%',
-    borderRadius: 2,
-  },
-  needsList: {
-    gap: 2,
-  },
-  needItem: {
-    marginBottom: 2,
-  },
-  needText: {
-    fontSize: 11,
-    color: '#1c1f33',
-    textAlign: 'right',
-    writingDirection: 'rtl',
-    fontWeight: '500',
-  },
-  moreItemsText: {
-    fontSize: 10,
-    color: '#666',
-    textAlign: 'center',
-    fontStyle: 'italic',
-    marginTop: 4,
-    writingDirection: 'rtl',
-  },
-  expandIndicator: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginTop: 10,
-    paddingTop: 10,
-    borderTopWidth: 1,
-    borderTopColor: '#E5E5EA',
-    gap: 5,
-  },
-  expandText: {
-    fontSize: 12,
-    color: '#666',
-    textAlign: 'center',
-    writingDirection: 'rtl',
-  },
-  expandedContent: {
-    backgroundColor: '#FFFFFF',
-    paddingHorizontal: 15,
-    paddingBottom: 15,
-    borderTopWidth: 1,
-    borderTopColor: '#E5E5EA',
-  },
-  detailSection: {
-    marginBottom: 15,
-    padding: 12,
-    backgroundColor: '#F9F9F9',
-    borderRadius: 10,
-    borderWidth: 1,
-    borderColor: '#E5E5EA',
-  },
-  goalItemExpanded: {
-    marginBottom: 12,
-    padding: 10,
-    backgroundColor: '#F0F8FF',
-    borderRadius: 8,
-    borderWidth: 1,
-    borderColor: '#E3F2FD',
-  },
-  goalTitleExpanded: {
-    fontSize: 14,
-    fontWeight: '600',
-    color: '#1c1f33',
-    textAlign: 'right',
-    writingDirection: 'rtl',
-    marginBottom: 5,
-  },
-  goalDescription: {
-    fontSize: 12,
-    color: '#666',
-    textAlign: 'right',
-    writingDirection: 'rtl',
-    marginBottom: 8,
-    lineHeight: 16,
-  },
-  goalStatus: {
-    fontSize: 11,
-    color: '#2196F3',
-    textAlign: 'right',
-    writingDirection: 'rtl',
-    marginTop: 5,
-    fontWeight: '500',
-  },
-  goalTargetDate: {
-    fontSize: 11,
-    color: '#666',
-    textAlign: 'right',
-    writingDirection: 'rtl',
-    marginTop: 2,
-  },
-  needItemExpanded: {
-    marginBottom: 8,
-    padding: 8,
-    backgroundColor: '#FFF8E1',
-    borderRadius: 6,
-    borderWidth: 1,
-    borderColor: '#FFECB3',
-  },
-  needTextExpanded: {
-    fontSize: 13,
-    color: '#1c1f33',
-    textAlign: 'right',
-    writingDirection: 'rtl',
-    lineHeight: 18,
-  },
-  evidenceItem: {
-    marginBottom: 10,
-    padding: 10,
-    backgroundColor: '#F3E5F5',
-    borderRadius: 8,
-    borderWidth: 1,
-    borderColor: '#E1BEE7',
-  },
-  evidenceTitle: {
-    fontSize: 13,
-    fontWeight: '600',
-    color: '#1c1f33',
-    textAlign: 'right',
-    writingDirection: 'rtl',
-    marginBottom: 4,
-  },
-  evidenceType: {
-    fontSize: 11,
-    color: '#9C27B0',
-    textAlign: 'right',
-    writingDirection: 'rtl',
-    marginBottom: 2,
-  },
-  evidenceFile: {
-    fontSize: 11,
-    color: '#666',
-    textAlign: 'right',
-    writingDirection: 'rtl',
-    marginBottom: 2,
-  },
-  evidenceDate: {
-    fontSize: 11,
-    color: '#666',
-    textAlign: 'right',
-    writingDirection: 'rtl',
-    marginBottom: 2,
-  },
-  evidenceNotes: {
-    fontSize: 11,
-    color: '#666',
-    textAlign: 'right',
-    writingDirection: 'rtl',
-    fontStyle: 'italic',
-  },
-  planItem: {
-    marginBottom: 12,
-    padding: 10,
-    backgroundColor: '#FFEBEE',
-    borderRadius: 8,
-    borderWidth: 1,
-    borderColor: '#FFCDD2',
-  },
-  planTitle: {
-    fontSize: 13,
-    fontWeight: '600',
-    color: '#1c1f33',
-    textAlign: 'right',
-    writingDirection: 'rtl',
-    marginBottom: 5,
-  },
-  planDescription: {
-    fontSize: 12,
-    color: '#666',
-    textAlign: 'right',
-    writingDirection: 'rtl',
-    marginBottom: 5,
-    lineHeight: 16,
-  },
-  planTarget: {
-    fontSize: 11,
-    color: '#F44336',
-    textAlign: 'right',
-    writingDirection: 'rtl',
-    marginBottom: 8,
-    fontWeight: '500',
-  },
-  planProgress: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 8,
-    marginBottom: 8,
-  },
-  planProgressText: {
-    fontSize: 11,
-    color: '#666',
-    minWidth: 50,
-    textAlign: 'center',
-  },
-  planProgressBar: {
-    flex: 1,
-    height: 6,
-    backgroundColor: '#E5E5EA',
-    borderRadius: 3,
-    overflow: 'hidden',
-  },
-  planProgressFill: {
-    height: '100%',
-    borderRadius: 3,
-  },
-  planStatusBadge: {
-    alignSelf: 'flex-start',
-    paddingHorizontal: 8,
-    paddingVertical: 4,
-    borderRadius: 10,
-    marginBottom: 5,
-  },
-  planStatusText: {
-    fontSize: 10,
     color: '#fff',
     fontWeight: '600',
     textAlign: 'center',
   },
-  planDates: {
-    fontSize: 10,
-    color: '#999',
-    textAlign: 'right',
+  expandedContent: {
+    borderTopWidth: 1,
+    borderTopColor: '#f0f0f0',
+    padding: 16,
+  },
+  actionButtons: {
+    flexDirection: 'row-reverse',
+    justifyContent: 'space-around',
+    gap: 10,
+  },
+  actionButton: {
+    flexDirection: 'row-reverse',
+    alignItems: 'center',
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+    borderRadius: 8,
+    gap: 4,
+    flex: 1,
+    justifyContent: 'center',
+  },
+  editButton: {
+    backgroundColor: '#2196F3',
+  },
+  reportButton: {
+    backgroundColor: '#4CAF50',
+  },
+  deleteButton: {
+    backgroundColor: '#F44336',
+  },
+  actionButtonText: {
+    fontSize: 12,
+    color: '#fff',
+    fontWeight: '600',
+  },
+  loadingContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    paddingVertical: 40,
+  },
+  loadingText: {
+    fontSize: 16,
+    color: '#666',
+    textAlign: 'center',
+    marginTop: 12,
     writingDirection: 'rtl',
   },
-  notesText: {
+  emptyState: {
+    alignItems: 'center',
+    paddingVertical: 40,
+    paddingHorizontal: 20,
+  },
+  emptyIconContainer: {
+    marginBottom: 16,
+  },
+  emptyTitle: {
+    fontSize: 20,
+    fontWeight: '600',
+    color: '#1c1f33',
+    marginBottom: 8,
+    textAlign: 'center',
+    writingDirection: 'rtl',
+  },
+  emptySubtitle: {
+    fontSize: 16,
+    color: '#666',
+    textAlign: 'center',
+    writingDirection: 'rtl',
+  },
+  detailSection: {
+    marginBottom: 20,
+  },
+  sectionHeader: {
+    flexDirection: 'row-reverse',
+    alignItems: 'center',
+    marginBottom: 10,
+  },
+  sectionTitle: {
+    fontSize: 14,
+    fontWeight: 'bold',
+    color: '#333',
+    marginLeft: 8,
+    writingDirection: 'rtl',
+  },
+  itemsList: {
+    gap: 10,
+  },
+  itemCard: {
+    backgroundColor: '#F8F9FA',
+    borderRadius: 10,
+    padding: 12,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.05,
+    shadowRadius: 2,
+    elevation: 1,
+  },
+  itemHeader: {
+    flexDirection: 'row-reverse',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 4,
+  },
+  itemTitle: {
+    fontSize: 14,
+    fontWeight: 'bold',
+    color: '#1c1f33',
+    writingDirection: 'rtl',
+  },
+  itemDescription: {
+    fontSize: 12,
+    color: '#666',
+    marginBottom: 8,
+    writingDirection: 'rtl',
+  },
+  progressContainer: {
+    marginTop: 8,
+  },
+  progressText: {
+    fontSize: 12,
+    color: '#666',
+    writingDirection: 'rtl',
+  },
+  progressBar: {
+    height: 8,
+    backgroundColor: '#e0e0e0',
+    borderRadius: 4,
+    overflow: 'hidden',
+  },
+  progressFill: {
+    height: '100%',
+    borderRadius: 4,
+  },
+  itemType: {
+    fontSize: 12,
+    color: '#666',
+    marginBottom: 4,
+    writingDirection: 'rtl',
+  },
+  itemDate: {
     fontSize: 12,
     color: '#666',
     textAlign: 'right',
     writingDirection: 'rtl',
-    lineHeight: 18,
-    padding: 10,
-    backgroundColor: '#F5F5F5',
-    borderRadius: 8,
   },
-  actionButtonsContainer: {
-    flexDirection: 'row',
-    justifyContent: 'center',
-    marginTop: 15,
-    paddingTop: 15,
-    borderTopWidth: 1,
-    borderTopColor: '#E5E5EA',
+  notesCard: {
+    backgroundColor: '#F8F9FA',
+    borderRadius: 10,
+    padding: 12,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.05,
+    shadowRadius: 2,
+    elevation: 1,
   },
-  editButton: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: '#E3F2FD',
-    paddingHorizontal: 15,
-    paddingVertical: 8,
-    borderRadius: 15,
-    gap: 5,
-    borderWidth: 1,
-    borderColor: '#BBDEFB',
-  },
-  editButtonText: {
-    fontSize: 12,
-    color: '#2196F3',
-    fontWeight: '600',
-    textAlign: 'center',
+  notesText: {
+    fontSize: 14,
+    color: '#333',
     writingDirection: 'rtl',
   },
-});
+  itemText: {
+    fontSize: 14,
+    color: '#333',
+    writingDirection: 'rtl',
+  },
+}); 

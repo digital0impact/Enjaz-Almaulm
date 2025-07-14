@@ -1,5 +1,5 @@
-
 import { supabase } from '../config/supabase';
+import { logError } from '@/utils/logger';
 
 export interface UserProfile {
   id?: string;
@@ -67,13 +67,12 @@ class DatabaseService {
     try {
       const { data, error } = await supabase.from('user_profiles').select('*');
       if (error) {
-        console.error('Error:', error);
+        logError('Error fetching users', 'DatabaseService', error);
         throw error;
       }
-      console.log('Users:', data);
       return data;
     } catch (error) {
-      console.error('Error fetching users:', error);
+      logError('Error fetching users', 'DatabaseService', error);
       throw error;
     }
   }
@@ -94,14 +93,12 @@ class DatabaseService {
         .single();
       
       if (error) {
-        console.error('Insert error:', error);
+        logError('Insert error', 'DatabaseService', error);
         throw error;
       }
-      
-      console.log('User added:', data);
       return data;
     } catch (error) {
-      console.error('Error adding user:', error);
+      logError('Error adding user', 'DatabaseService', error);
       throw error;
     }
   }
@@ -118,7 +115,7 @@ class DatabaseService {
       if (error) throw error;
       return data.id;
     } catch (error) {
-      console.error('Error saving user profile:', error);
+      logError('Error saving user profile', 'DatabaseService', error);
       throw error;
     }
   }
@@ -134,7 +131,7 @@ class DatabaseService {
       if (error && error.code !== 'PGRST116') throw error;
       return data;
     } catch (error) {
-      console.error('Error getting user profile:', error);
+      logError('Error getting user profile', 'DatabaseService', error);
       throw error;
     }
   }
@@ -148,7 +145,7 @@ class DatabaseService {
       
       if (error) throw error;
     } catch (error) {
-      console.error('Error updating user profile:', error);
+      logError('Error updating user profile', 'DatabaseService', error);
       throw error;
     }
   }
@@ -165,7 +162,7 @@ class DatabaseService {
       if (error) throw error;
       return data.id;
     } catch (error) {
-      console.error('Error saving performance data:', error);
+      logError('Error saving performance data', 'DatabaseService', error);
       throw error;
     }
   }
@@ -181,7 +178,7 @@ class DatabaseService {
       if (error) throw error;
       return data || [];
     } catch (error) {
-      console.error('Error getting performance data:', error);
+      logError('Error getting performance data', 'DatabaseService', error);
       throw error;
     }
   }
@@ -195,7 +192,7 @@ class DatabaseService {
       
       if (error) throw error;
     } catch (error) {
-      console.error('Error updating performance data:', error);
+      logError('Error updating performance data', 'DatabaseService', error);
       throw error;
     }
   }
@@ -212,7 +209,7 @@ class DatabaseService {
       if (error) throw error;
       return data.id;
     } catch (error) {
-      console.error('Error saving alert:', error);
+      logError('Error saving alert', 'DatabaseService', error);
       throw error;
     }
   }
@@ -228,7 +225,7 @@ class DatabaseService {
       if (error) throw error;
       return data || [];
     } catch (error) {
-      console.error('Error getting alerts:', error);
+      logError('Error getting alerts', 'DatabaseService', error);
       throw error;
     }
   }
@@ -242,7 +239,7 @@ class DatabaseService {
       
       if (error) throw error;
     } catch (error) {
-      console.error('Error updating alert:', error);
+      logError('Error updating alert', 'DatabaseService', error);
       throw error;
     }
   }
@@ -256,76 +253,16 @@ class DatabaseService {
       
       if (error) throw error;
     } catch (error) {
-      console.error('Error deleting alert:', error);
+      logError('Error deleting alert', 'DatabaseService', error);
       throw error;
     }
   }
 
-  // Comments Operations
-  async saveComment(comment: Comment): Promise<string> {
-    try {
-      const { data, error } = await supabase
-        .from('comments')
-        .insert([{...comment, userid: comment.userId}])
-        .select()
-        .single();
-      
-      if (error) throw error;
-      return data.id;
-    } catch (error) {
-      console.error('Error saving comment:', error);
-      throw error;
-    }
-  }
 
-  async getComments(userId: string): Promise<Comment[]> {
-    try {
-      const { data, error } = await supabase
-        .from('comments')
-        .select('*')
-        .eq('userid', userId)
-        .order('created_at', { ascending: false });
-      
-      if (error) throw error;
-      return data || [];
-    } catch (error) {
-      console.error('Error getting comments:', error);
-      throw error;
-    }
-  }
-
-  async updateComment(commentId: string, updates: Partial<Comment>): Promise<void> {
-    try {
-      const { error } = await supabase
-        .from('comments')
-        .update(updates)
-        .eq('id', commentId);
-      
-      if (error) throw error;
-    } catch (error) {
-      console.error('Error updating comment:', error);
-      throw error;
-    }
-  }
-
-  async deleteComment(commentId: string): Promise<void> {
-    try {
-      const { error } = await supabase
-        .from('comments')
-        .delete()
-        .eq('id', commentId);
-      
-      if (error) throw error;
-    } catch (error) {
-      console.error('Error deleting comment:', error);
-      throw error;
-    }
-  }
 
   // Delete Account Operations
   async deleteUserAccount(userId: string): Promise<void> {
     try {
-      console.log('Deleting account for userId:', userId);
       
       if (!userId) {
         throw new Error('معرف المستخدم مطلوب');
@@ -340,7 +277,7 @@ class DatabaseService {
         .eq('userid', userId);
       
       if (commentsError) {
-        console.warn('Error deleting comments:', commentsError);
+        logError('Error deleting comments', 'DatabaseService', commentsError);
       }
       
       // حذف التنبيهات
@@ -350,7 +287,7 @@ class DatabaseService {
         .eq('userid', userId);
       
       if (alertsError) {
-        console.warn('Error deleting alerts:', alertsError);
+        logError('Error deleting alerts', 'DatabaseService', alertsError);
       }
       
       // حذف بيانات الأداء
@@ -360,7 +297,7 @@ class DatabaseService {
         .eq('userid', userId);
       
       if (performanceError) {
-        console.warn('Error deleting performance data:', performanceError);
+        logError('Error deleting performance data', 'DatabaseService', performanceError);
       }
       
       // حذف الملف الشخصي أخيراً
@@ -370,20 +307,17 @@ class DatabaseService {
         .eq('id', userId);
       
       if (profileError) {
-        console.error('Error deleting user profile:', profileError);
+        logError('Error deleting user profile', 'DatabaseService', profileError);
         throw new Error(`خطأ في حذف الملف الشخصي: ${profileError.message}`);
       }
-      
-      console.log('Account deleted successfully');
     } catch (error) {
-      console.error('Error deleting user account:', error);
+      logError('Error deleting user account', 'DatabaseService', error);
       throw error;
     }
   }
 
   async requestAccountDeletion(userId: string, reason?: string): Promise<void> {
     try {
-      console.log('Requesting account deletion for userId:', userId);
       
       if (!userId) {
         throw new Error('معرف المستخدم مطلوب');
@@ -401,7 +335,7 @@ class DatabaseService {
         .select();
       
       if (error) {
-        console.error('Supabase insert error:', error);
+        logError('Supabase insert error', 'DatabaseService', error);
         
         // التحقق من نوع الخطأ
         if (error.code === '42P01') {
@@ -421,9 +355,9 @@ class DatabaseService {
         throw new Error('فشل في إنشاء طلب الحذف - لم يتم إرجاع أي بيانات');
       }
       
-      console.log('Account deletion request created successfully:', data);
+
     } catch (error) {
-      console.error('Error requesting account deletion:', error);
+      logError('Error requesting account deletion', 'DatabaseService', error);
       
       // التأكد من أن الخطأ يحتوي على رسالة واضحة
       if (error instanceof Error) {

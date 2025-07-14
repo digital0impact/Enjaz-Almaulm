@@ -1,7 +1,6 @@
-
 import React from 'react';
 import { StyleSheet, ScrollView, TouchableOpacity, Platform, ImageBackground } from 'react-native';
-import { LinearGradient as ExpoLinearGradient } from 'expo-linear-gradient';
+
 import { ThemedText } from '@/components/ThemedText';
 import { ThemedView } from '@/components/ThemedView';
 import { IconSymbol } from '@/components/ui/IconSymbol';
@@ -39,10 +38,7 @@ export default function ReportScreen() {
         style={styles.backgroundImage}
         resizeMode="cover"
       >
-        <ExpoLinearGradient
-          colors={['rgba(255,255,255,0.9)', 'rgba(225,245,244,0.95)', 'rgba(173,212,206,0.8)']}
-          style={styles.gradientOverlay}
-        >
+        
           <ScrollView 
             style={styles.scrollContainer}
             contentContainerStyle={{ flexGrow: 1 }}
@@ -52,7 +48,7 @@ export default function ReportScreen() {
                 style={styles.backButton}
                 onPress={() => router.back()}
               >
-                <IconSymbol size={20} name="arrow.right" color="#1c1f33" />
+                <IconSymbol size={20} name="chevron.left" color="#1c1f33" />
               </TouchableOpacity>
 
               <IconSymbol size={60} name="doc.text.fill" color="#1c1f33" />
@@ -158,7 +154,7 @@ export default function ReportScreen() {
                       <ThemedView key={index} style={styles.recommendationItem}>
                         <IconSymbol size={14} name="arrow.up.circle.fill" color="#2196F3" />
                         <ThemedText style={styles.recommendationText}>
-                          تطوير مجال "{axis.title}" - النسبة الحالية: {axis.score}%
+                          تطوير مجال &quot;{axis.title}&quot; - النسبة الحالية: {axis.score}%
                         </ThemedText>
                       </ThemedView>
                     ))}
@@ -177,7 +173,7 @@ export default function ReportScreen() {
               </ThemedView>
             </ThemedView>
           </ScrollView>
-        </ExpoLinearGradient>
+        
       </ImageBackground>
       <BottomNavigationBar />
     </ThemedView>
@@ -479,4 +475,5 @@ const styles = StyleSheet.create({
     textAlign: 'center',
     writingDirection: 'rtl',
   },
+
 });

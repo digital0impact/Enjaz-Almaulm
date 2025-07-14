@@ -1,94 +1,83 @@
-
 import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { useColorScheme } from '@/hooks/useColorScheme';
-import { Themes } from '@/constants/Colors';
-
-type ThemeMode = 'light' | 'dark';
-type ThemeName = keyof typeof Themes;
+import { Theme, ThemeColors } from '@/types';
+import { logError } from '@/utils/logger';
 
 interface ThemeContextType {
-  themeName: ThemeName;
-  themeMode: ThemeMode;
-  colors: any;
-  setThemeName: (name: ThemeName) => void;
-  setThemeMode: (mode: ThemeMode) => void;
-  availableThemes: Array<{ key: ThemeName; name: string }>;
+  themeName: string;
+  colors: ThemeColors;
+  setThemeName: (name: string) => void;
 }
 
 const ThemeContext = createContext<ThemeContextType | undefined>(undefined);
 
-interface ThemeProviderProps {
-  children: ReactNode;
-}
+const defaultTheme: Theme = {
+  name: 'default',
+  colors: {
+    primary: '#add4ce',
+    secondary: '#1c1f33',
+    background: '#ffffff',
+    surface: '#f8f9fa',
+    text: '#1c1f33',
+    textSecondary: '#666666',
+    border: '#e5e5ea',
+    shadow: '#000000',
+    success: '#4CAF50',
+    warning: '#FF9800',
+    error: '#F44336',
+    info: '#2196F3',
+    inputBackground: '#F8F9FA',
+    inputText: '#1c1f33',
+    inputPlaceholder: '#999999',
+    card: '#FFFFFF',
+  }
+};
 
-export const ThemeProvider: React.FC<ThemeProviderProps> = ({ children }) => {
-  const systemColorScheme = useColorScheme() ?? 'light';
-  const [themeName, setThemeNameState] = useState<ThemeName>('default');
-  const [themeMode, setThemeModeState] = useState<ThemeMode>(systemColorScheme);
+export const ThemeProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
+  const [themeName, setThemeNameState] = useState<string>('default');
+  const [colors] = useState<ThemeColors>(defaultTheme.colors);
 
-  const availableThemes = Object.keys(Themes).map(key => ({
-    key: key as ThemeName,
-    name: Themes[key as ThemeName].name
-  }));
-
-  // تحميل الإعدادات المحفوظة
   useEffect(() => {
     loadThemeSettings();
   }, []);
 
   const loadThemeSettings = async () => {
     try {
-      const savedThemeName = await AsyncStorage.getItem('themeName');
-      const savedThemeMode = await AsyncStorage.getItem('themeMode');
-      
-      if (savedThemeName && savedThemeName in Themes) {
-        setThemeNameState(savedThemeName as ThemeName);
-      }
-      
-      if (savedThemeMode === 'light' || savedThemeMode === 'dark') {
-        setThemeModeState(savedThemeMode);
+      const storedThemeName = await AsyncStorage.getItem('themeName');
+
+      if (storedThemeName) {
+        setThemeNameState(storedThemeName);
       }
     } catch (error) {
-      console.log('Error loading theme settings:', error);
+      logError('Error loading theme settings', 'ThemeContext', error);
     }
   };
 
-  const setThemeName = async (name: ThemeName) => {
-    setThemeNameState(name);
+  const setThemeName = async (name: string) => {
     try {
       await AsyncStorage.setItem('themeName', name);
+      setThemeNameState(name);
     } catch (error) {
-      console.log('Error saving theme name:', error);
+      logError('Error saving theme name', 'ThemeContext', error);
     }
   };
 
-  const setThemeMode = async (mode: ThemeMode) => {
-    setThemeModeState(mode);
-    try {
-      await AsyncStorage.setItem('themeMode', mode);
-    } catch (error) {
-      console.log('Error saving theme mode:', error);
-    }
-  };
 
-  const colors = Themes[themeName][themeMode];
+
+  const value: ThemeContextType = {
+    themeName,
+    colors,
+    setThemeName,
+  };
 
   return (
-    <ThemeContext.Provider value={{
-      themeName,
-      themeMode,
-      colors,
-      setThemeName,
-      setThemeMode,
-      availableThemes
-    }}>
+    <ThemeContext.Provider value={value}>
       {children}
     </ThemeContext.Provider>
   );
 };
 
-export const useTheme = () => {
+export const useTheme = (): ThemeContextType => {
   const context = useContext(ThemeContext);
   if (context === undefined) {
     throw new Error('useTheme must be used within a ThemeProvider');

@@ -1,14 +1,13 @@
-
 import { GlobalStyles } from '@/constants/Colors';
 import { useTheme } from '@/contexts/ThemeContext';
 
 export function useGlobalTheme() {
-  const { colors, themeMode } = useTheme();
+  const { colors, themeName } = useTheme();
   
   return {
     colors,
     styles: GlobalStyles,
-    isDark: themeMode === 'dark',
+    isDark: false, // Currently only supporting light theme
   };
 }
 
@@ -21,50 +20,50 @@ export function useThemedStyles() {
     // تحديث الأنماط بالألوان الحالية
     header: {
       ...styles.header,
-      backgroundColor: colors.headerBackground,
+      backgroundColor: colors.primary,
       borderBottomColor: colors.border,
     },
     headerTitle: {
       ...styles.headerTitle,
-      color: colors.headerText,
+      color: colors.text,
     },
     primaryButton: {
       ...styles.primaryButton,
-      backgroundColor: colors.buttonPrimary,
+      backgroundColor: colors.primary,
     },
     secondaryButton: {
       ...styles.secondaryButton,
-      backgroundColor: colors.buttonSecondary,
+      backgroundColor: colors.surface,
       borderColor: colors.border,
     },
     primaryButtonText: {
       ...styles.primaryButtonText,
-      color: colors.buttonText,
+      color: colors.text,
     },
     secondaryButtonText: {
       ...styles.secondaryButtonText,
-      color: colors.buttonTextSecondary,
+      color: colors.textSecondary,
     },
     card: {
       ...styles.card,
-      backgroundColor: colors.card,
-      shadowColor: colors.cardShadow,
+      backgroundColor: colors.surface,
+      shadowColor: colors.shadow,
       borderColor: colors.border,
     },
     textInput: {
       ...styles.textInput,
-      backgroundColor: colors.inputBackground,
-      borderColor: colors.inputBorder,
-      color: colors.inputText,
+      backgroundColor: colors.surface,
+      borderColor: colors.border,
+      color: colors.text,
     },
     toolbar: {
       ...styles.toolbar,
-      backgroundColor: colors.toolbarBackground,
-      borderBottomColor: colors.toolbarBorder,
+      backgroundColor: colors.surface,
+      borderBottomColor: colors.border,
     },
     toolButton: {
       ...styles.toolButton,
-      backgroundColor: colors.alternateBackground,
+      backgroundColor: colors.surface,
       borderColor: colors.border,
     },
     toolButtonText: {
@@ -77,11 +76,11 @@ export function useThemedStyles() {
     },
     divider: {
       ...styles.divider,
-      backgroundColor: colors.divider,
+      backgroundColor: colors.border,
     },
     emptyStateText: {
       ...styles.emptyStateText,
-      color: colors.placeholderText,
+      color: colors.textSecondary,
     },
   };
 

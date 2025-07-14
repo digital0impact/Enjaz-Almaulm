@@ -11,7 +11,7 @@ import {
   Text,
   KeyboardAvoidingView,
 } from 'react-native';
-import { LinearGradient as ExpoLinearGradient } from 'expo-linear-gradient';
+
 import { ThemedText } from '@/components/ThemedText';
 import { ThemedView } from '@/components/ThemedView';
 import { IconSymbol } from '@/components/ui/IconSymbol';
@@ -421,12 +421,7 @@ export default function CalendarScreen() {
       <ImageBackground 
         source={require('@/assets/images/background.png')} 
         style={styles.backgroundImage}
-        imageStyle={{ opacity: 0.1 }}
       >
-        <ExpoLinearGradient
-          colors={['rgba(173, 216, 230, 0.3)', 'rgba(240, 248, 255, 0.5)', 'rgba(255, 255, 255, 0.8)']}
-          style={styles.gradientOverlay}
-        >
           {/* Header */}
           <ThemedView style={[styles.header, { backgroundColor: 'transparent' }]}>
             <TouchableOpacity onPress={handleBack} style={styles.backButton}>
@@ -779,7 +774,6 @@ export default function CalendarScreen() {
           </KeyboardAvoidingView>
 
           <BottomNavigationBar />
-        </ExpoLinearGradient>
       </ImageBackground>
     </ThemedView>
   );

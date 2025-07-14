@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { View, Text, StyleSheet } from 'react-native';
 import { useUser } from '../contexts/UserContext';
@@ -25,6 +24,7 @@ const styles = StyleSheet.create({
     fontSize: 24,
     fontWeight: 'bold',
     color: '#333',
-    textAlign: 'center',
+    textAlign: 'right',
+    writingDirection: 'rtl',
   },
 });

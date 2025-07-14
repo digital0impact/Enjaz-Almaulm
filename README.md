@@ -1,50 +1,167 @@
-# Welcome to your Expo app 👋
+# إنجاز المعلم - تطبيق متابعة أداء المعلمين
 
-This is an [Expo](https://expo.dev) project created with [`create-expo-app`](https://www.npmjs.com/package/create-expo-app).
+تطبيق React Native متكامل لإدارة ومتابعة أداء المعلمين في المدارس، مع واجهة مستخدم عربية وميزات متقدمة.
 
-## Get started
+## 🚀 الميزات الرئيسية
 
-1. Install dependencies
+### 📊 متابعة الأداء
+- تقييم شامل لأداء المعلمين
+- إدارة الخطط العلاجية
+- تتبع تقدم الطلاب
+- تقارير تفاعلية مفصلة
 
-   ```bash
-   npm install
-   ```
+### 👥 إدارة الطلاب
+- إضافة وتعديل بيانات الطلاب
+- تصنيف الطلاب حسب المستوى
+- إدارة الغياب والحضور
+- خطط علاجية مخصصة
 
-2. Start the app
+### 📅 إدارة الوقت
+- تقويم مدرسي متكامل
+- إدارة العطل الرسمية
+- جدول زمني للمعلمين
+- تذكيرات وإشعارات
 
-   ```bash
-   npx expo start
-   ```
+### 🔔 نظام التنبيهات
+- إشعارات مهمة وعاجلة
+- تصنيف حسب الأولوية
+- إدارة التنبيهات
 
-In the output, you'll find options to open the app in a
+### 📱 واجهة مستخدم
+- تصميم عصري ومتجاوب
+- دعم كامل للغة العربية
+- اتجاه من اليمين إلى اليسار (RTL)
+- تجربة مستخدم محسنة
 
-- [development build](https://docs.expo.dev/develop/development-builds/introduction/)
-- [Android emulator](https://docs.expo.dev/workflow/android-studio-emulator/)
-- [iOS simulator](https://docs.expo.dev/workflow/ios-simulator/)
-- [Expo Go](https://expo.dev/go), a limited sandbox for trying out app development with Expo
+## 🛠️ التقنيات المستخدمة
 
-You can start developing by editing the files inside the **app** directory. This project uses [file-based routing](https://docs.expo.dev/router/introduction).
+- **React Native** - إطار العمل الأساسي
+- **Expo** - منصة التطوير والنشر
+- **TypeScript** - لكتابة كود آمن ومنظم
+- **Supabase** - قاعدة البيانات والخدمات السحابية
+- **AsyncStorage** - التخزين المحلي
+- **React Navigation** - إدارة التنقل
 
-## Get a fresh project
+## 📦 التثبيت والتشغيل
 
-When you're ready, run:
+### المتطلبات الأساسية
+- Node.js (v16 أو أحدث)
+- npm أو yarn
+- Expo CLI
+- Android Studio (للتطوير على Android)
+- Xcode (للتطوير على iOS)
 
+### خطوات التثبيت
+
+1. **استنساخ المشروع**
 ```bash
-npm run reset-project
+git clone <repository-url>
+cd enjaz-almualm
 ```
 
-This command will move the starter code to the **app-example** directory and create a blank **app** directory where you can start developing.
+2. **تثبيت التبعيات**
+```bash
+npm install
+# أو
+yarn install
+```
 
-## Learn more
+3. **إعداد Supabase**
+- إنشاء مشروع جديد في [Supabase](https://supabase.com)
+- نسخ URL و API Key
+- تحديث `config/supabase.ts`
 
-To learn more about developing your project with Expo, look at the following resources:
+4. **تشغيل التطبيق**
+```bash
+npm start
+# أو
+expo start
+```
 
-- [Expo documentation](https://docs.expo.dev/): Learn fundamentals, or go into advanced topics with our [guides](https://docs.expo.dev/guides).
-- [Learn Expo tutorial](https://docs.expo.dev/tutorial/introduction/): Follow a step-by-step tutorial where you'll create a project that runs on Android, iOS, and the web.
+## 🔧 الإعدادات
 
-## Join the community
+### إعداد قاعدة البيانات
+راجع ملف `SUPABASE_SETUP.md` للحصول على تعليمات مفصلة لإعداد قاعدة البيانات.
 
-Join our community of developers creating universal apps.
+### إعداد التخزين
+راجع ملف `STORAGE_SETUP.md` للحصول على تعليمات إعداد التخزين السحابي.
 
-- [Expo on GitHub](https://github.com/expo/expo): View our open source platform and contribute.
-- [Discord community](https://chat.expo.dev): Chat with Expo users and ask questions.
+
+
+## 📱 البناء والنشر
+
+### بناء للإنتاج
+```bash
+# بناء لـ Android
+eas build --platform android
+
+# بناء لـ iOS
+eas build --platform ios
+```
+
+### نشر التحديثات
+```bash
+eas update
+```
+
+## 🧪 الاختبار
+
+### تشغيل الاختبارات
+```bash
+npm test
+```
+
+### دليل الاختبار السريع
+راجع ملف `QUICK_TEST_GUIDE.md` للحصول على دليل سريع للاختبار.
+
+## 📚 الوثائق
+
+### دليل المطور
+- `TESTING_GUIDE.md` - دليل شامل للاختبار
+- `QUICK_START_STORAGE.md` - دليل سريع للتخزين
+- `SUPABASE_SETUP.md` - إعداد Supabase
+
+### دليل المستخدم
+- واجهة التطبيق سهلة الاستخدام
+- دعم كامل للغة العربية
+- تعليمات واضحة لكل ميزة
+
+## 🔒 الأمان
+
+- تشفير البيانات الحساسة
+- مصادقة آمنة
+- حماية من الهجمات الشائعة
+- تحديثات أمنية منتظمة
+
+## 🤝 المساهمة
+
+نرحب بالمساهمات! يرجى اتباع الخطوات التالية:
+
+1. Fork المشروع
+2. إنشاء branch جديد للميزة
+3. Commit التغييرات
+4. Push إلى Branch
+5. إنشاء Pull Request
+
+## 📄 الترخيص
+
+هذا المشروع مرخص تحت رخصة MIT.
+
+## 📞 الدعم
+
+للحصول على الدعم أو الإبلاغ عن مشاكل:
+- إنشاء Issue في GitHub
+- التواصل عبر البريد الإلكتروني
+- مراجعة الوثائق المتوفرة
+
+## 🔄 التحديثات
+
+### الإصدار الحالي: 1.0.0
+- واجهة مستخدم محسنة
+- إصلاح الأخطاء
+- تحسينات الأداء
+- ميزات جديدة
+
+---
+
+**ملاحظة**: هذا التطبيق مصمم خصيصاً للبيئة التعليمية العربية ويحتوي على ميزات مخصصة لاحتياجات المعلمين في المنطقة.

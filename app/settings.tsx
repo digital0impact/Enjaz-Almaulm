@@ -1,251 +1,395 @@
 import React, { useState, useEffect } from 'react';
-import { StyleSheet, ScrollView, TouchableOpacity, Alert, Switch, I18nManager, ImageBackground, Platform } from 'react-native';
-import { LinearGradient as ExpoLinearGradient } from 'expo-linear-gradient';
+import { StyleSheet, ScrollView, TouchableOpacity, Alert, ImageBackground, Platform, StatusBar, KeyboardAvoidingView, Animated } from 'react-native';
+import { useFocusEffect } from '@react-navigation/native';
+
 import { ThemedText } from '@/components/ThemedText';
 import { ThemedView } from '@/components/ThemedView';
 import { IconSymbol } from '@/components/ui/IconSymbol';
 import { BottomNavigationBar } from '@/components/BottomNavigationBar';
-import { VersionTracker } from '@/components/VersionTracker';
-import { useUser } from '@/contexts/UserContext';
-import * as DocumentPicker from 'expo-document-picker';
-import * as Sharing from 'expo-sharing';
+import { BackupProgressModal } from '@/components/BackupProgressModal';
+import { BackupService, BackupProgress } from '@/services/BackupService';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { useTheme } from '@/contexts/ThemeContext';
-import { useDatabase } from '@/contexts/DatabaseContext';
-
+import { useRouter } from 'expo-router';
+import { VERSION_INFO } from '@/constants/Version';
 
 export default function SettingsScreen() {
   const router = useRouter();
-  const [userName, setUserName] = useState('المستخدم');
-  const [notifications, setNotifications] = useState(true);
-  const [autoBackup, setAutoBackup] = useState(true);
-  const [userInfo, setUserInfo] = useState<any>(null);
-  const { themeName, themeMode, colors, setThemeName, setThemeMode, availableThemes } = useTheme();
-  const [selectedColorScheme, setSelectedColorScheme] = useState('default');
-  const { deleteUserAccount, requestAccountDeletion, isLoading } = useDatabase();
-  const [currentUserId, setCurrentUserId] = useState<string | null>(null);
+  const [notificationsEnabled, setNotificationsEnabled] = useState(true);
+  const [fadeAnim] = useState(new Animated.Value(0));
+  const [slideAnim] = useState(new Animated.Value(50));
+  const [backupProgress, setBackupProgress] = useState<BackupProgress>({
+    current: 0,
+    total: 4,
+    message: '',
+    percentage: 0
+  });
+  const [showBackupProgress, setShowBackupProgress] = useState(false);
+  const [isBackupInProgress, setIsBackupInProgress] = useState(false);
+  const [lastBackupInfo, setLastBackupInfo] = useState<{date: string, size: string, type: string} | null>(null);
+  
+  // معلومات الإصدار
+  const [versionInfo, setVersionInfo] = useState({
+    version: VERSION_INFO.getVersion(),
+    releaseDate: VERSION_INFO.releaseDate
+  });
+
+
 
   useEffect(() => {
-    loadSettings();
-    loadUserInfo();
-    loadBasicData();
-    loadCurrentUserId();
+    loadNotificationSettings();
+    loadLastBackupInfo();
+    loadVersionInfo();
+    
+    // تحريك الصفحة عند التحميل
+    Animated.parallel([
+      Animated.timing(fadeAnim, {
+        toValue: 1,
+        duration: 800,
+        useNativeDriver: true,
+      }),
+      Animated.timing(slideAnim, {
+        toValue: 0,
+        duration: 800,
+        useNativeDriver: true,
+      }),
+    ]).start();
   }, []);
 
-  const loadCurrentUserId = async () => {
-    try {
-      // محاولة الحصول على معرف المستخدم من AsyncStorage
-      const userToken = await AsyncStorage.getItem('userToken');
-      const userData = await AsyncStorage.getItem('userInfo');
+  // إعادة تحميل معلومات الإصدار عند التركيز على الشاشة
+  useFocusEffect(
+    React.useCallback(() => {
+      loadVersionInfo();
+    }, [])
+  );
 
-      if (userData) {
-        const parsedUserData = JSON.parse(userData);
-        setCurrentUserId(parsedUserData.id || '550e8400-e29b-41d4-a716-446655440000');
-      } else if (userToken) {
-        setCurrentUserId(userToken);
-      } else {
-        // استخدام معرف افتراضي إذا لم يتم العثور على معرف المستخدم
-        setCurrentUserId('550e8400-e29b-41d4-a716-446655440000');
-      }
-    } catch (error) {
-      console.log('Error loading user ID:', error);
-      setCurrentUserId('550e8400-e29b-41d4-a716-446655440000');
-    }
-  };
-
-  const loadSettings = async () => {
+  const loadNotificationSettings = async () => {
     try {
-      const settings = await AsyncStorage.getItem('appSettings');
+      const settings = await AsyncStorage.getItem('notificationSettings');
       if (settings) {
         const parsedSettings = JSON.parse(settings);
-        setNotifications(parsedSettings.notifications !== false);
-        setAutoBackup(parsedSettings.autoBackup !== false);
-        setSelectedColorScheme(parsedSettings.colorScheme || 'default');
+        setNotificationsEnabled(parsedSettings.enabled);
       }
     } catch (error) {
-      console.log('Error loading settings:', error);
+      console.log('خطأ في تحميل إعدادات الإشعارات');
     }
   };
 
-  const loadUserInfo = async () => {
+
+
+  const loadLastBackupInfo = async () => {
     try {
-      const userData = await AsyncStorage.getItem('userInfo');
-      if (userData) {
-        setUserInfo(JSON.parse(userData));
+      const backupService = BackupService.getInstance();
+      const backups = await backupService.getUserBackups();
+      
+      if (backups.length > 0) {
+        const lastBackup = backups[0]; // أول عنصر هو الأحدث
+        const backupDate = new Date(lastBackup.createdAt);
+        const formattedDate = backupDate.toLocaleDateString('ar-SA', {
+          year: 'numeric',
+          month: 'short',
+          day: 'numeric',
+          hour: '2-digit',
+          minute: '2-digit'
+        });
+        
+        const backupSize = lastBackup.totalSize ? `${(lastBackup.totalSize / 1024).toFixed(1)} KB` : 'غير محدد';
+        const backupType = lastBackup.backupType === 'manual' ? 'يدوية' : 'تلقائية';
+        
+        setLastBackupInfo({
+          date: formattedDate,
+          size: backupSize,
+          type: backupType
+        });
       }
     } catch (error) {
-      console.log('Error loading user info:', error);
+      console.log('خطأ في تحميل معلومات آخر نسخة احتياطية:', error);
     }
   };
 
-  const loadBasicData = async () => {
+  const loadVersionInfo = async () => {
     try {
-      const basicData = await AsyncStorage.getItem('basicData');
-      if (basicData) {
-        const parsedData = JSON.parse(basicData);
-        setUserName(parsedData.fullName || 'المستخدم');
-        setUserInfo(prev => ({
-          ...prev,
-          email: parsedData.email || prev?.email || 'teacher@example.com'
-        }));
-      }
+      // تنسيق تاريخ الإصدار
+      const releaseDate = new Date(VERSION_INFO.releaseDate);
+      const formattedReleaseDate = releaseDate.toLocaleDateString('ar-SA', {
+        year: 'numeric',
+        month: 'short',
+        day: 'numeric'
+      });
+
+      const currentVersion = VERSION_INFO.getVersion();
+      console.log('تحميل معلومات الإصدار:', currentVersion, VERSION_INFO.releaseDate);
+
+      setVersionInfo({
+        version: currentVersion,
+        releaseDate: formattedReleaseDate
+      });
     } catch (error) {
-      console.log('Error loading basic data:', error);
+      console.log('خطأ في تحميل معلومات الإصدار:', error);
+      // استخدام القيم الافتراضية في حالة الخطأ
+      setVersionInfo({
+        version: VERSION_INFO.getVersion(),
+        releaseDate: VERSION_INFO.releaseDate
+      });
     }
   };
 
-  const saveSettings = async (newSettings: any) => {
+  const toggleNotifications = async () => {
+    const newState = !notificationsEnabled;
+    setNotificationsEnabled(newState);
+    
     try {
-      const currentSettings = await AsyncStorage.getItem('appSettings');
-      const settings = currentSettings ? JSON.parse(currentSettings) : {};
-      const updatedSettings = { ...settings, ...newSettings };
-      await AsyncStorage.setItem('appSettings', JSON.stringify(updatedSettings));
+      await AsyncStorage.setItem('notificationSettings', JSON.stringify({
+        enabled: newState
+      }));
+      
+      // إظهار رسالة تأكيد
+      Alert.alert(
+        'تم التحديث',
+        newState ? 'تم تفعيل الإشعارات بنجاح' : 'تم إيقاف الإشعارات بنجاح',
+        [{ text: 'حسناً', style: 'default' }]
+      );
     } catch (error) {
-      console.log('Error saving settings:', error);
+      console.log('خطأ في حفظ إعدادات الإشعارات');
+      Alert.alert('خطأ', 'حدث خطأ في حفظ الإعدادات');
     }
   };
 
-  const handleThemeChange = (value: boolean) => {
-    setThemeMode(value ? 'dark' : 'light');
-  };
 
-  const handleNotificationChange = (value: boolean) => {
-    setNotifications(value);
-    saveSettings({ notifications: value });
-  };
 
-  const handleAutoBackupChange = (value: boolean) => {
-    setAutoBackup(value);
-    saveSettings({ autoBackup: value });
-    if (value) {
-      Alert.alert('تم التفعيل', 'سيتم إنشاء نسخة احتياطية تلقائياً كل يوم');
+  const handleCreateBackup = async () => {
+    if (isBackupInProgress) {
+      Alert.alert('تنبيه', 'هناك عملية نسخ احتياطية قيد التنفيذ حالياً');
+      return;
     }
-  };
 
-  const handleChangePassword = () => {
     Alert.alert(
-      'تغيير كلمة المرور',
-      'هل تريد تغيير كلمة المرور؟',
+      'عمل نسخة احتياطية',
+      'هل تريد إنشاء نسخة احتياطية من جميع بياناتك؟\n\nملاحظة: هذه العملية قد تستغرق بضع دقائق.',
       [
-        { text: 'إلغاء', style: 'cancel' },
         {
-          text: 'تغيير',
-          onPress: () => {
-            Alert.alert(
-              'تم إرسال الطلب',
-              'تم إرسال رابط تغيير كلمة المرور إلى بريدك الإلكتروني'
-            );
+          text: 'إلغاء',
+          style: 'cancel'
+        },
+        {
+          text: 'إنشاء',
+          onPress: async () => {
+            await performBackup();
           }
         }
       ]
     );
   };
 
-  const handleBackup = () => {
-    Alert.alert(
-      'إنشاء نسخة احتياطية',
-      'سيتم إنشاء نسخة احتياطية من جميع بياناتك',
-      [
-        { text: 'إلغاء', style: 'cancel' },
-        {
-          text: 'إنشاء النسخة',
-          onPress: () => {
-            Alert.alert('تم بنجاح', 'تم إنشاء النسخة الاحتياطية وحفظها في التخزين السحابي');
-          }
-        }
-      ]
-    );
+  const performBackup = async () => {
+    setIsBackupInProgress(true);
+    setShowBackupProgress(true);
+    
+    try {
+      console.log('بدء عملية النسخ الاحتياطية...');
+      const backupService = BackupService.getInstance();
+      const result = await backupService.createBackup('manual', (progress) => {
+        console.log('تقدم النسخ الاحتياطية:', progress);
+        setBackupProgress(progress);
+      });
+
+      setShowBackupProgress(false);
+      setIsBackupInProgress(false);
+
+      if (result.success) {
+        console.log('تم إنشاء النسخة الاحتياطية بنجاح:', result.backupId);
+        // تحديث معلومات آخر نسخة احتياطية
+        await loadLastBackupInfo();
+        Alert.alert(
+          'نجح',
+          'تم إنشاء النسخة الاحتياطية بنجاح!\n\nيمكنك الوصول إليها من قائمة النسخ الاحتياطية.',
+          [{ text: 'حسناً', style: 'default' }]
+        );
+      } else {
+        console.error('فشل في إنشاء النسخة الاحتياطية:', result.error);
+        Alert.alert(
+          'خطأ',
+          result.error || 'حدث خطأ أثناء إنشاء النسخة الاحتياطية',
+          [{ text: 'حسناً', style: 'default' }]
+        );
+      }
+    } catch (error) {
+      console.error('خطأ غير متوقع في النسخ الاحتياطية:', error);
+      setShowBackupProgress(false);
+      setIsBackupInProgress(false);
+      Alert.alert(
+        'خطأ',
+        `حدث خطأ غير متوقع أثناء إنشاء النسخة الاحتياطية:\n${error instanceof Error ? error.message : 'خطأ غير معروف'}`,
+        [{ text: 'حسناً', style: 'default' }]
+      );
+    }
   };
 
-  const handleRestoreBackup = () => {
+  const handleRestoreBackup = async () => {
+    if (isBackupInProgress) {
+      Alert.alert('تنبيه', 'هناك عملية نسخ احتياطية قيد التنفيذ حالياً');
+      return;
+    }
+
+    try {
+      const backupService = BackupService.getInstance();
+      const backups = await backupService.getUserBackups();
+
+      if (backups.length === 0) {
+        Alert.alert(
+          'لا توجد نسخ احتياطية',
+          'لم يتم العثور على أي نسخ احتياطية. يرجى إنشاء نسخة احتياطية أولاً.',
+          [{ text: 'حسناً', style: 'default' }]
+        );
+        return;
+      }
+
+      // عرض قائمة النسخ الاحتياطية المتاحة مع تاريخ مفصل
+      const backupOptions = backups.map(backup => {
+        const backupDate = new Date(backup.createdAt);
+        const formattedDate = backupDate.toLocaleDateString('ar-SA', {
+          year: 'numeric',
+          month: 'long',
+          day: 'numeric',
+          hour: '2-digit',
+          minute: '2-digit'
+        });
+        
+        const backupSize = backup.totalSize ? `(${(backup.totalSize / 1024).toFixed(1)} KB)` : '';
+        const backupType = backup.backupType === 'manual' ? 'يدوية' : 'تلقائية';
+        
+        return {
+          text: `نسخة ${backupType} - ${formattedDate} ${backupSize}`,
+          onPress: () => confirmRestoreBackup(backup.id, backup)
+        };
+      });
+
+      Alert.alert(
+        'اختر النسخة الاحتياطية',
+        'اختر النسخة الاحتياطية التي تريد استعادتها:',
+        [
+          { text: 'إلغاء', style: 'cancel' },
+          ...backupOptions
+        ]
+      );
+    } catch (error) {
+      Alert.alert(
+        'خطأ',
+        'حدث خطأ في تحميل قائمة النسخ الاحتياطية',
+        [{ text: 'حسناً', style: 'default' }]
+      );
+    }
+  };
+
+  const confirmRestoreBackup = (backupId: string, backup?: any) => {
+    let alertMessage = 'تحذير: استعادة النسخة الاحتياطية ستحل محل جميع البيانات الحالية. هذا الإجراء لا يمكن التراجع عنه.';
+    
+    if (backup) {
+      const backupDate = new Date(backup.createdAt);
+      const formattedDate = backupDate.toLocaleDateString('ar-SA', {
+        year: 'numeric',
+        month: 'long',
+        day: 'numeric',
+        hour: '2-digit',
+        minute: '2-digit'
+      });
+      
+      const backupSize = backup.totalSize ? `${(backup.totalSize / 1024).toFixed(1)} KB` : 'غير محدد';
+      const backupType = backup.backupType === 'manual' ? 'يدوية' : 'تلقائية';
+      
+      alertMessage = `تفاصيل النسخة الاحتياطية:\n\n` +
+        `📅 التاريخ: ${formattedDate}\n` +
+        `📦 النوع: ${backupType}\n` +
+        `💾 الحجم: ${backupSize}\n\n` +
+        `تحذير: استعادة هذه النسخة ستحل محل جميع البيانات الحالية. هذا الإجراء لا يمكن التراجع عنه.\n\n` +
+        `هل أنت متأكد من المتابعة؟`;
+    }
+    
     Alert.alert(
-      'استعادة النسخة الاحتياطية',
-      'هذا سيؤدي إلى استبدال البيانات الحالية بالنسخة الاحتياطية',
+      'تأكيد الاستعادة',
+      alertMessage,
       [
-        { text: 'إلغاء', style: 'cancel' },
+        {
+          text: 'إلغاء',
+          style: 'cancel'
+        },
         {
           text: 'استعادة',
           style: 'destructive',
-          onPress: () => {
-            Alert.alert('تم بنجاح', 'تم استعادة البيانات من النسخة الاحتياطية');
-          }
+          onPress: () => performRestoreBackup(backupId)
         }
       ]
     );
   };
 
-  const handleColorSchemeChange = (scheme: string) => {
-    setThemeName(scheme as any);
-    setSelectedColorScheme(scheme);
+  const performRestoreBackup = async (backupId: string) => {
+    setIsBackupInProgress(true);
+    setShowBackupProgress(true);
+    
+    try {
+      const backupService = BackupService.getInstance();
+      const result = await backupService.restoreBackup(backupId, (progress) => {
+        setBackupProgress(progress);
+      });
+
+      setShowBackupProgress(false);
+      setIsBackupInProgress(false);
+
+      if (result.success) {
+        Alert.alert(
+          'نجح',
+          'تم استعادة النسخة الاحتياطية بنجاح!\n\nسيتم إعادة تشغيل التطبيق لتطبيق التغييرات.',
+          [
+            {
+              text: 'حسناً',
+              onPress: () => {
+                // إعادة تشغيل التطبيق أو إعادة تحميل البيانات
+                router.replace('/');
+              }
+            }
+          ]
+        );
+      } else {
+        Alert.alert(
+          'خطأ',
+          result.error || 'حدث خطأ أثناء استعادة النسخة الاحتياطية',
+          [{ text: 'حسناً', style: 'default' }]
+        );
+      }
+    } catch (error) {
+      setShowBackupProgress(false);
+      setIsBackupInProgress(false);
+      Alert.alert(
+        'خطأ',
+        'حدث خطأ غير متوقع أثناء استعادة النسخة الاحتياطية',
+        [{ text: 'حسناً', style: 'default' }]
+      );
+    }
   };
 
-  const getColorSchemeOptions = () => availableThemes.map(theme => ({
-    name: theme.name,
-    value: theme.key
-  }));
-
-  const handleLogout = () => {
+  const handleDeleteAccount = async () => {
     Alert.alert(
-      'تسجيل الخروج',
-      'هل أنت متأكد من تسجيل الخروج؟',
+      'حذف الحساب',
+      'هل أنت متأكد من حذف حسابك نهائياً؟ هذا الإجراء لا يمكن التراجع عنه.',
       [
-        { text: 'إلغاء', style: 'cancel' },
         {
-          text: 'تسجيل الخروج',
+          text: 'إلغاء',
+          style: 'cancel'
+        },
+        {
+          text: 'حذف الحساب',
           style: 'destructive',
           onPress: async () => {
             try {
+              // هنا يمكن إضافة منطق حذف الحساب من قاعدة البيانات
               await AsyncStorage.removeItem('userToken');
               await AsyncStorage.removeItem('userInfo');
-              router.replace('/(tabs)');
+              await AsyncStorage.removeItem('userId');
+              await AsyncStorage.removeItem('basicData');
+              await AsyncStorage.removeItem('userSettings');
+              router.replace('/login');
             } catch (error) {
-              console.log('Error logging out:', error);
+              Alert.alert('خطأ', 'حدث خطأ أثناء حذف الحساب');
             }
-          }
-        }
-      ]
-    );
-  };
-
-  const handleDeleteAccount = () => {
-    if (!currentUserId) {
-      Alert.alert('خطأ', 'لم يتم العثور على معرف المستخدم. يرجى تسجيل الدخول مرة أخرى.');
-      return;
-    }
-
-    if (isLoading) {
-      Alert.alert('انتظار', 'يرجى الانتظار حتى انتهاء العملية السابقة.');
-      return;
-    }
-
-    Alert.alert(
-      'طلب حذف الحساب',
-      'سيتم إرسال طلب حذف الحساب للمراجعة والمعالجة من قبل الإدارة.',
-      [
-        { text: 'إلغاء', style: 'cancel' },
-        {
-          text: 'متابعة',
-          onPress: () => {
-            Alert.prompt(
-              'سبب طلب الحذف',
-              'يرجى ذكر سبب طلب حذف الحساب (اختياري):',
-              async (reason) => {
-                try {
-                  console.log('Requesting account deletion for user:', currentUserId);
-                  await requestAccountDeletion(reason || '');
-                  Alert.alert(
-                    'تم إرسال الطلب',
-                    'تم إرسال طلب حذف الحساب بنجاح. سيتم معالجة طلبك في أقرب وقت ممكن.'
-                  );
-                } catch (error) {
-                  console.error('Error requesting account deletion:', error);
-                  Alert.alert(
-                    'خطأ', 
-                    `فشل في إرسال طلب الحذف: ${error instanceof Error ? error.message : 'خطأ غير معروف'}`
-                  );
-                }
-              }
-            );
           }
         }
       ]
@@ -254,194 +398,213 @@ export default function SettingsScreen() {
 
   return (
     <ThemedView style={styles.container}>
+      <StatusBar 
+        barStyle="dark-content" 
+        backgroundColor={Platform.OS === 'ios' ? 'transparent' : '#E8F5F4'} 
+        translucent={Platform.OS === 'ios'}
+      />
+      
       <ImageBackground
         source={require('@/assets/images/background.png')}
         style={styles.backgroundImage}
         resizeMode="cover"
       >
-        <ExpoLinearGradient
-          colors={themeMode === 'dark'
-            ? ['rgba(33,37,41,0.9)', 'rgba(52,58,64,0.95)', 'rgba(73,80,87,0.8)']
-            : ['rgba(255,255,255,0.9)', 'rgba(225,245,244,0.95)', 'rgba(173,212,206,0.8)']
-          }
-          style={styles.gradientOverlay}
-        >
-          <ScrollView 
-            style={styles.scrollContainer}
-            contentContainerStyle={{ flexGrow: 1 }}
+        
+          <KeyboardAvoidingView
+            style={{ flex: 1 }}
+            behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+            keyboardVerticalOffset={Platform.OS === 'ios' ? 0 : 20}
           >
-            <ThemedView style={styles.header}>
-              <TouchableOpacity 
-                style={styles.backButton}
-                onPress={() => router.back()}
-              >
-                <IconSymbol size={20} name="arrow.right" color="#1c1f33" />
-              </TouchableOpacity>
-              <ThemedView style={styles.iconContainer}>
-                <IconSymbol size={60} name="gear.fill" color="#1c1f33" />
-              </ThemedView>
-              <ThemedText type="title" style={styles.title}>الإعدادات</ThemedText>
-              <ThemedText style={styles.subtitle}>إعدادات التطبيق والحساب</ThemedText>
-            </ThemedView>
-
-            <ThemedView style={styles.content}>
-              {/* معلومات المستخدم */}
-              <ThemedView style={[styles.section, { backgroundColor: 'transparent' }]}>
-                <ThemedView style={[styles.userInfo, themeMode === 'dark' && styles.darkUserInfo]}>
-                  <ThemedView style={styles.userAvatar}>
-                    <IconSymbol size={40} name="person.circle.fill" color={themeMode === 'dark' ? "#fff" : "#1c1f33"} />
-                  </ThemedView>
-                  <ThemedView style={styles.userDetails}>
-                    <ThemedText style={[styles.userName, themeMode === 'dark' && styles.darkText]}>{userName}</ThemedText>
-                    <ThemedText style={[styles.userEmail, themeMode === 'dark' && styles.darkSubtext]}>{userInfo?.email || 'teacher@example.com'}</ThemedText>
-                  </ThemedView>
-                </ThemedView>
-              </ThemedView>
-
-              {/* المظهر والثيمات */}
-              <ThemedView style={[styles.section, { backgroundColor: 'transparent' }]}>
-                <ThemedText style={[styles.sectionTitle, themeMode === 'dark' && styles.darkSectionTitle]}>المظهر والثيمات</ThemedText>
-
-
-
-
-
-                <ThemedView style={[styles.settingItem, themeMode === 'dark' && styles.darkSettingItem]}>
-                  <ThemedView style={styles.settingInfo}>
-                    <IconSymbol size={24} name="moon.fill" color="#8A2BE2" />
-                    <ThemedView style={styles.settingText}>
-                      <ThemedText style={styles.settingTitle}>الوضع الليلي</ThemedText>
-                      <ThemedText style={styles.settingDescription}>تفعيل المظهر الداكن</ThemedText>
-                    </ThemedView>
-                  </ThemedView>
-                  <Switch
-                    value={themeMode === 'dark'}
-                    onValueChange={handleThemeChange}
-                    trackColor={{ false: '#E5E5EA', true: '#add4ce' }}
-                    thumbColor="#FFFFFF"
-                  />
-                </ThemedView>
-
+            <Animated.ScrollView 
+              style={[styles.scrollContainer, { opacity: fadeAnim }]}
+              contentContainerStyle={{ 
+                flexGrow: 1, 
+                paddingBottom: 50,
+                transform: [{ translateY: slideAnim }]
+              }}
+              showsVerticalScrollIndicator={false}
+              keyboardShouldPersistTaps="handled"
+              contentInsetAdjustmentBehavior="automatic"
+              maintainVisibleContentPosition={{
+                minIndexForVisible: 0,
+                autoscrollToTopThreshold: 10
+              }}
+            >
+              {/* Header */}
+              <Animated.View style={[styles.header, { opacity: fadeAnim }]}>
                 <TouchableOpacity 
-                  style={[styles.settingItem, themeMode === 'dark' && styles.darkSettingItem]}
-                  onPress={() => {
-                    const colorOptions = getColorSchemeOptions();
-                    Alert.alert(
-                      'ألوان التطبيق',
-                      `النظام الحالي: ${colorOptions.find(c => c.value === selectedColorScheme)?.name || 'الافتراضي'}\n\nاختر نظام الألوان المفضل لديك:`,
-                      [
-                        ...colorOptions.map(option => ({
-                          text: `${option.name} ${option.value === selectedColorScheme ? '✓' : ''}`,
-                          onPress: () => handleColorSchemeChange(option.value)
-                        })),
-                        { text: 'إلغاء', style: 'cancel' }
-                      ]
-                    );
-                  }}
+                  style={styles.backButton}
+                  onPress={() => router.back()}
+                  activeOpacity={0.7}
                 >
+                  <IconSymbol size={20} name="chevron.left" color="#1c1f33" />
+                </TouchableOpacity>
+
+                <Animated.View style={[styles.iconContainer, { transform: [{ scale: fadeAnim }] }]}>
+                  <IconSymbol size={60} name="gear" color="#1c1f33" />
+                </Animated.View>
+                
+                <ThemedText type="title" style={styles.title}>
+                  الإعدادات
+                </ThemedText>
+                
+                <ThemedText style={styles.subtitle}>
+                  إدارة إعدادات التطبيق والحساب
+                </ThemedText>
+              </Animated.View>
+
+              {/* Settings Sections */}
+
+
+              <Animated.View style={[styles.settingsSection, { opacity: fadeAnim, transform: [{ translateX: slideAnim }] }]}>
+                <ThemedText style={styles.sectionTitle}>الإشعارات</ThemedText>
+                
+                <ThemedView style={styles.settingItem}>
                   <ThemedView style={styles.settingInfo}>
-                    <IconSymbol size={24} name="paintbrush.fill" color="#FF6B6B" />
+                    <IconSymbol size={24} name="bell.fill" color="#FF9800" />
                     <ThemedView style={styles.settingText}>
-                      <ThemedText style={styles.settingTitle}>ألوان التطبيق</ThemedText>
+                      <ThemedText style={styles.settingTitle}>الإشعارات العامة</ThemedText>
                       <ThemedText style={styles.settingDescription}>
-                        النظام الحالي: {getColorSchemeOptions().find(c => c.value === selectedColorScheme)?.name || 'الافتراضي'}
+                        استلام إشعارات حول التحديثات والأنشطة
                       </ThemedText>
                     </ThemedView>
                   </ThemedView>
-                  <IconSymbol size={16} name="chevron.left" color="#666666" />
-                </TouchableOpacity>
-              </ThemedView>
-
-              {/* الحساب والأمان */}
-              <ThemedView style={[styles.section, { backgroundColor: 'transparent' }]}>
-                <ThemedText style={styles.sectionTitle}>الحساب والأمان</ThemedText>
-
-                <TouchableOpacity style={styles.settingItem} onPress={handleChangePassword}>
-                  <ThemedView style={styles.settingInfo}>
-                    <IconSymbol size={24} name="key.fill" color="#FF9500" />
-                    <ThemedView style={styles.settingText}>
-                      <ThemedText style={styles.settingTitle}>تغيير كلمة المرور</ThemedText>
-                      <ThemedText style={styles.settingDescription}>تحديث كلمة المرور الخاصة بك</ThemedText>
-                    </ThemedView>
-                  </ThemedView>
-                  <IconSymbol size={16} name="chevron.left" color="#666666" />
-                </TouchableOpacity>
-
-                <TouchableOpacity style={[styles.settingItem, themeMode === 'dark' && styles.darkSettingItem]} onPress={handleDeleteAccount}>
-                  <ThemedView style={styles.settingInfo}>
-                    <IconSymbol size={24} name="trash.fill" color="#FF3B30" />
-                    <ThemedView style={styles.settingText}>
-                      <ThemedText style={[styles.settingTitle, { color: '#FF3B30' }]}>حذف الحساب</ThemedText>
-                      <ThemedText style={styles.settingDescription}>حذف الحساب وجميع البيانات نهائياً</ThemedText>
-                    </ThemedView>
-                  </ThemedView>
-                  <IconSymbol size={16} name="chevron.left" color="#FF3B30" />
-                </TouchableOpacity>
-
-              </ThemedView>
-
-              {/* النسخ الاحتياطي */}
-              <ThemedView style={[styles.section, { backgroundColor: 'transparent' }]}>
-                <ThemedText style={styles.sectionTitle}>النسخ الاحتياطي</ThemedText>
-
-                <ThemedView style={styles.settingItem}>
-                  <ThemedView style={styles.settingInfo}>
-                    <IconSymbol size={24} name="icloud.fill" color="#007AFF" />
-                    <ThemedView style={styles.settingText}>
-                      <ThemedText style={styles.settingTitle}>النسخ التلقائي</ThemedText>
-                      <ThemedText style={styles.settingDescription}>نسخ احتياطي يومي للبيانات</ThemedText>
-                    </ThemedView>
-                  </ThemedView>
-                  <Switch
-                    value={autoBackup}
-                    onValueChange={handleAutoBackupChange}
-                    trackColor={{ false: '#E5E5EA', true: '#add4ce' }}
-                    thumbColor="#FFFFFF"
-                  />
+                  <TouchableOpacity 
+                    style={[styles.toggleSwitch, notificationsEnabled && styles.toggleActive]}
+                    onPress={toggleNotifications}
+                    activeOpacity={0.7}
+                  >
+                    <ThemedView style={[styles.toggleKnob, notificationsEnabled && styles.toggleKnobActive]} />
+                  </TouchableOpacity>
                 </ThemedView>
+              </Animated.View>
 
-                <TouchableOpacity style={styles.settingItem} onPress={handleBackup}>
+              <Animated.View style={[styles.settingsSection, { opacity: fadeAnim, transform: [{ translateX: slideAnim }] }]}>
+                <ThemedText style={styles.sectionTitle}>الاشتراك</ThemedText>
+                
+                <TouchableOpacity 
+                  style={styles.settingItem}
+                  onPress={() => router.push('/subscription')}
+                  activeOpacity={0.8}
+                >
                   <ThemedView style={styles.settingInfo}>
-                    <IconSymbol size={24} name="arrow.up.circle.fill" color="#32D74B" />
+                    <IconSymbol size={24} name="creditcard.fill" color="#2196F3" />
                     <ThemedView style={styles.settingText}>
-                      <ThemedText style={styles.settingTitle}>إنشاء نسخة احتياطية</ThemedText>
-                      <ThemedText style={styles.settingDescription}>حفظ نسخة من بياناتك الآن</ThemedText>
+                      <ThemedText style={styles.settingTitle}>إدارة الاشتراكات</ThemedText>
+                      <ThemedText style={styles.settingDescription}>
+                        ترقية أو إلغاء الاشتراك
+                      </ThemedText>
                     </ThemedView>
                   </ThemedView>
-                  <IconSymbol size={16} name="chevron.left" color="#666666" />
+                  <IconSymbol size={20} name="chevron.left" color="#666" />
                 </TouchableOpacity>
+              </Animated.View>
 
-                <TouchableOpacity style={styles.settingItem} onPress={handleRestoreBackup}>
+              <Animated.View style={[styles.settingsSection, { opacity: fadeAnim, transform: [{ translateX: slideAnim }] }]}>
+                <ThemedText style={styles.sectionTitle}>البيانات</ThemedText>
+                
+                <ThemedView style={styles.backupCard}>
+                  <ThemedView style={styles.backupHeader}>
+                    <IconSymbol size={24} name="arrow.clockwise" color="#4CAF50" />
+                    <ThemedText style={styles.backupTitle}>النسخ الاحتياطي</ThemedText>
+                  </ThemedView>
+                  
+                  {lastBackupInfo && (
+                    <ThemedView style={styles.lastBackupInfo}>
+                      <ThemedText style={styles.lastBackupText}>
+                        آخر نسخة: {lastBackupInfo.date} ({lastBackupInfo.type})
+                      </ThemedText>
+                      <ThemedText style={styles.lastBackupSize}>
+                        الحجم: {lastBackupInfo.size}
+                      </ThemedText>
+                    </ThemedView>
+                  )}
+                  
+                  <ThemedView style={styles.backupButtons}>
+                    <TouchableOpacity 
+                      style={[styles.backupButton, isBackupInProgress && styles.disabledButton]}
+                      onPress={handleCreateBackup}
+                      activeOpacity={0.8}
+                      disabled={isBackupInProgress}
+                    >
+                      <ThemedText style={styles.backupButtonText}>
+                        {isBackupInProgress ? 'جاري إنشاء النسخة...' : 'عمل نسخة احتياطية'}
+                      </ThemedText>
+                    </TouchableOpacity>
+                    
+                    <TouchableOpacity 
+                      style={[styles.restoreButton, isBackupInProgress && styles.disabledButton]}
+                      onPress={handleRestoreBackup}
+                      activeOpacity={0.8}
+                      disabled={isBackupInProgress}
+                    >
+                      <ThemedText style={styles.restoreButtonText}>
+                        {isBackupInProgress ? 'جاري الاستعادة...' : 'استعادة نسخة احتياطية'}
+                      </ThemedText>
+                    </TouchableOpacity>
+                  </ThemedView>
+                </ThemedView>
+              </Animated.View>
+
+              <Animated.View style={[styles.settingsSection, { opacity: fadeAnim, transform: [{ translateX: slideAnim }] }]}>
+                <ThemedText style={styles.sectionTitle}>الحساب</ThemedText>
+                
+                <TouchableOpacity 
+                  style={styles.settingItem}
+                  onPress={handleDeleteAccount}
+                  activeOpacity={0.8}
+                >
                   <ThemedView style={styles.settingInfo}>
-                    <IconSymbol size={24} name="arrow.down.circle.fill" color="#FF9500" />
+                    <IconSymbol size={24} name="trash.fill" color="#F44336" />
                     <ThemedView style={styles.settingText}>
-                      <ThemedText style={styles.settingTitle}>استعادة النسخة الاحتياطية</ThemedText>
-                      <ThemedText style={styles.settingDescription}>استرجاع البيانات المحفوظة</ThemedText>
+                      <ThemedText style={styles.settingTitle}>حذف الحساب</ThemedText>
+                      <ThemedText style={styles.settingDescription}>
+                        حذف الحساب نهائياً (لا يمكن التراجع)
+                      </ThemedText>
                     </ThemedView>
                   </ThemedView>
-                  <IconSymbol size={16} name="chevron.left" color="#666666" />
+                  <IconSymbol size={20} name="chevron.left" color="#666" />
                 </TouchableOpacity>
-              </ThemedView>
+              </Animated.View>
 
-              {/* تسجيل الخروج */}
-              <ThemedView style={[styles.section, { backgroundColor: 'transparent' }]}>
-                <TouchableOpacity style={[styles.settingItem, styles.logoutItem]} onPress={handleLogout}>
-                  <ThemedView style={styles.settingInfo}>
-                    <IconSymbol size={24} name="arrow.right.square" color="#FF3B30" />
-                    <ThemedText style={[styles.settingTitle, styles.logoutText]}>تسجيل الخروج</ThemedText>
+              {/* معلومات التطبيق */}
+              <Animated.View style={[styles.versionSection, { opacity: fadeAnim, transform: [{ translateY: slideAnim }] }]}>
+                <ThemedView style={styles.versionCard}>
+                  <ThemedView style={styles.versionHeader}>
+                    <IconSymbol size={40} name="info.circle.fill" color="#add4ce" />
+                    <ThemedText style={styles.versionTitle}>معلومات التطبيق</ThemedText>
                   </ThemedView>
-                </TouchableOpacity>
-              </ThemedView>
-
-              {/* معلومات الإصدار */}
-              <ThemedView style={[styles.section, { backgroundColor: 'transparent' }]}>
-                <ThemedText style={styles.sectionTitle}>معلومات التطبيق</ThemedText>
-                <VersionTracker showBuildInfo={true} />
-              </ThemedView>
-            </ThemedView>
-          </ScrollView>
-        </ExpoLinearGradient>
+                  
+                  <ThemedView style={styles.versionInfo}>
+                    <ThemedView style={styles.versionRow}>
+                      <ThemedText style={styles.versionLabel}>رقم الإصدار:</ThemedText>
+                      <ThemedText style={styles.versionValue}>{versionInfo.version}</ThemedText>
+                    </ThemedView>
+                    
+                    <ThemedView style={styles.versionRow}>
+                      <ThemedText style={styles.versionLabel}>التطوير:</ThemedText>
+                      <ThemedText style={styles.versionValue}>الأثر الرقمي</ThemedText>
+                    </ThemedView>
+                    
+                    <ThemedView style={styles.versionRow}>
+                      <ThemedText style={styles.versionLabel}>تاريخ الإصدار:</ThemedText>
+                      <ThemedText style={styles.versionValue}>{versionInfo.releaseDate}</ThemedText>
+                    </ThemedView>
+                  </ThemedView>
+                </ThemedView>
+              </Animated.View>
+            </Animated.ScrollView>
+          </KeyboardAvoidingView>
+        
       </ImageBackground>
+      
+      {/* Backup Progress Modal */}
+      <BackupProgressModal
+        visible={showBackupProgress}
+        progress={backupProgress}
+        onCancel={isBackupInProgress ? undefined : () => setShowBackupProgress(false)}
+      />
+      
       <BottomNavigationBar />
     </ThemedView>
   );
@@ -461,16 +624,19 @@ const styles = StyleSheet.create({
   },
   scrollContainer: {
     flex: 1,
+    backgroundColor: 'transparent',
   },
   header: {
     alignItems: 'center',
-    padding: 30,
+    paddingTop: Platform.OS === 'ios' ? 20 : 15,
+    paddingHorizontal: 30,
+    paddingBottom: 10,
     backgroundColor: 'transparent',
     position: 'relative',
   },
   backButton: {
     position: 'absolute',
-    top: Platform.OS === 'ios' ? 60 : 50,
+    top: Platform.OS === 'ios' ? 20 : 15,
     left: 20,
     backgroundColor: '#add4ce',
     width: 40,
@@ -486,170 +652,273 @@ const styles = StyleSheet.create({
     zIndex: 1,
   },
   iconContainer: {
-    marginBottom: 20,
+    marginBottom: 10,
     padding: 20,
-    backgroundColor: 'transparent',
+    backgroundColor: '#F8F9FA',
     borderRadius: 50,
-    borderWidth: 0,
-    borderColor: 'transparent',
-    shadowColor: 'transparent',
-    shadowOffset: { width: 0, height: 0 },
-    shadowOpacity: 0,
-    shadowRadius: 0,
-    elevation: 0,
+    borderWidth: 1,
+    borderColor: '#E5E5EA',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 6 },
+    shadowOpacity: 0.25,
+    shadowRadius: 12,
+    elevation: 10,
   },
   title: {
     fontSize: 28,
     fontWeight: 'bold',
-    marginTop: 15,
-    marginBottom: 10,
+    marginBottom: 6,
     textAlign: 'center',
     writingDirection: 'rtl',
-    color: '#1c1f33',
+    color: '#000000',
+    backgroundColor: 'transparent',
   },
   subtitle: {
     fontSize: 16,
     color: '#666666',
     textAlign: 'center',
     writingDirection: 'rtl',
-    marginBottom: 20,
-  },
-  content: {
-    padding: 20,
+    marginBottom: 10,
     backgroundColor: 'transparent',
   },
-  section: {
-    marginBottom: 30,
+
+  settingsSection: {
+    marginBottom: 20,
     backgroundColor: 'transparent',
   },
   sectionTitle: {
-    fontSize: 20,
+    fontSize: 19,
     fontWeight: 'bold',
-    marginBottom: 15,
     color: '#1c1f33',
-    textAlign: 'center',
+    textAlign: 'right',
+    marginRight: 12,
+    marginBottom: 10,
     writingDirection: 'rtl',
-  },
-  userInfo: {
-    flexDirection: I18nManager.isRTL ? 'row-reverse' : 'row',
-    alignItems: 'center',
-    padding: 15,
-    backgroundColor: '#e0f0f1',
-    borderRadius: 12,
-    borderWidth: 1,
-    borderColor: '#E5E5EA',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 6 },
-    shadowOpacity: 0.25,
-    shadowRadius: 12,
-    elevation: 10,
-  },
-  userAvatar: {
-    marginLeft: I18nManager.isRTL ? 0 : 12,
-    marginRight: I18nManager.isRTL ? 12 : 0,
-  },
-  userDetails: {
-    flex: 1,
     backgroundColor: 'transparent',
-  },
-  userName: {
-    fontSize: 18,
-    fontWeight: '600',
-    color: '#1c1f33',
-    textAlign: 'right',
-    writingDirection: 'rtl',
-  },
-  userEmail: {
-    fontSize: 14,
-    color: '#666666',
-    marginTop: 2,
-    textAlign: 'right',
-    writingDirection: 'rtl',
   },
   settingItem: {
-    flexDirection: I18nManager.isRTL ? 'row-reverse' : 'row',
-    alignItems: 'center',
+    flexDirection: 'row-reverse',
     justifyContent: 'space-between',
-    paddingHorizontal: 15,
-    paddingVertical: 15,
-    marginBottom: 20,
-    backgroundColor: '#e0f0f1',
-    borderRadius: 12,
+    alignItems: 'center',
+    paddingVertical: 18,
+    paddingHorizontal: 18,
+    backgroundColor: '#FFFFFF',
+    borderRadius: 16,
+    marginBottom: 10,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.15,
+    shadowRadius: 8,
+    elevation: 5,
     borderWidth: 1,
     borderColor: '#E5E5EA',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 6 },
-    shadowOpacity: 0.25,
-    shadowRadius: 12,
-    elevation: 10,
   },
   settingInfo: {
-    flexDirection: I18nManager.isRTL ? 'row-reverse' : 'row',
+    flexDirection: 'row-reverse',
     alignItems: 'center',
-    flex: 1,
     backgroundColor: 'transparent',
+    flex: 1,
   },
   settingText: {
-    marginLeft: I18nManager.isRTL ? 0 : 12,
-    marginRight: I18nManager.isRTL ? 12 : 0,
     flex: 1,
-    backgroundColor: 'transparent',
+    marginRight: 12,
   },
   settingTitle: {
     fontSize: 16,
-    fontWeight: '500',
     color: '#1c1f33',
     textAlign: 'right',
-    writingDirection: 'rtl',
+    backgroundColor: 'transparent',
+    fontWeight: '500',
+    marginBottom: 4,
   },
   settingDescription: {
-    fontSize: 13,
-    color: '#666666',
-    marginTop: 2,
-    textAlign: 'right',
-    writingDirection: 'rtl',
-  },
-  logoutItem: {
-    borderBottomWidth: 0,
-  },
-  logoutText: {
-    color: '#FF3B30',
-  },
-  footer: {
-    alignItems: 'center',
-    paddingVertical: 20,
-  },
-  versionText: {
     fontSize: 14,
     color: '#666666',
+    textAlign: 'right',
+    backgroundColor: 'transparent',
   },
-  // أنماط الوضع الداكن
-  darkUserInfo: {
-    backgroundColor: '#2c3e50',
-    borderColor: '#34495e',
+  versionSection: {
+    marginTop: 20,
+    paddingHorizontal: 20,
+    backgroundColor: 'transparent',
+  },
+  versionCard: {
+    backgroundColor: '#FFFFFF',
+    borderRadius: 20,
+    padding: 20,
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 6 },
-    shadowOpacity: 0.4,
+    shadowOpacity: 0.15,
     shadowRadius: 12,
-    elevation: 12,
+    elevation: 8,
+    borderWidth: 1,
+    borderColor: '#E5E5EA',
   },
-  darkText: {
-    color: '#ecf0f1',
+  versionHeader: {
+    flexDirection: 'row-reverse',
+    alignItems: 'center',
+    marginBottom: 15,
+    backgroundColor: 'transparent',
   },
-  darkSubtext: {
-    color: '#bdc3c7',
+  versionTitle: {
+    fontSize: 20,
+    fontWeight: 'bold',
+    color: '#1c1f33',
+    textAlign: 'right',
+    marginRight: 12,
+    writingDirection: 'rtl',
+    backgroundColor: 'transparent',
   },
-  darkSettingItem: {
-    backgroundColor: '#2c3e50',
-    borderColor: '#34495e',
+  versionInfo: {
+    backgroundColor: 'transparent',
+  },
+  versionRow: {
+    flexDirection: 'row-reverse',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    paddingVertical: 4,
+    borderBottomWidth: 1,
+    borderBottomColor: '#F0F0F0',
+    backgroundColor: 'transparent',
+  },
+  versionLabel: {
+    fontSize: 15,
+    color: '#666666',
+    textAlign: 'right',
+    backgroundColor: 'transparent',
+  },
+  versionValue: {
+    fontSize: 15,
+    color: '#1c1f33',
+    fontWeight: '500',
+    textAlign: 'right',
+    backgroundColor: 'transparent',
+  },
+
+  backupCard: {
+    backgroundColor: '#FFFFFF',
+    borderRadius: 16,
+    padding: 20,
     shadowColor: '#000',
-    shadowOffset: { width: 0, height: 6 },
-    shadowOpacity: 0.4,
-    shadowRadius: 12,
-    elevation: 12,
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.15,
+    shadowRadius: 8,
+    elevation: 5,
+    borderWidth: 1,
+    borderColor: '#E5E5EA',
   },
-  darkSectionTitle: {
-    color: '#ecf0f1',
+  backupHeader: {
+    flexDirection: 'row-reverse',
+    alignItems: 'center',
+    marginBottom: 15,
+    backgroundColor: 'transparent',
+  },
+  backupTitle: {
+    fontSize: 16,
+    color: '#1c1f33',
+    textAlign: 'right',
+    marginRight: 10,
+    fontWeight: '500',
+    backgroundColor: 'transparent',
+  },
+  lastBackupInfo: {
+    backgroundColor: '#F8F9FA',
+    borderRadius: 12,
+    padding: 12,
+    marginBottom: 15,
+    borderWidth: 1,
+    borderColor: '#E9ECEF',
+  },
+  lastBackupText: {
+    fontSize: 14,
+    color: '#495057',
+    textAlign: 'right',
+    marginBottom: 4,
+    backgroundColor: 'transparent',
+  },
+  lastBackupSize: {
+    fontSize: 13,
+    color: '#6C757D',
+    textAlign: 'right',
+    backgroundColor: 'transparent',
+  },
+  backupButtons: {
+    backgroundColor: 'transparent',
+  },
+  backupButton: {
+    backgroundColor: '#1c1f33',
+    borderRadius: 12,
+    paddingVertical: 12,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginBottom: 12,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.2,
+    shadowRadius: 8,
+    elevation: 5,
+  },
+  restoreButton: {
+    backgroundColor: '#FFFFFF',
+    borderRadius: 12,
+    paddingVertical: 12,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginBottom: 12,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    elevation: 3,
+  },
+  backupButtonText: {
+    color: '#FFFFFF',
+    fontSize: 18,
+    fontWeight: '600',
+    textAlign: 'center',
+    backgroundColor: 'transparent',
+  },
+  restoreButtonText: {
+    color: '#1c1f33',
+    fontSize: 16,
+    fontWeight: '500',
+    textAlign: 'center',
+    backgroundColor: 'transparent',
+  },
+  disabledButton: {
+    opacity: 0.6,
+  },
+  toggleSwitch: {
+    width: 54,
+    height: 30,
+    backgroundColor: '#E5E5EA',
+    borderRadius: 15,
+    padding: 3,
+    justifyContent: 'center',
+    alignItems: 'flex-start',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.15,
+    shadowRadius: 4,
+    elevation: 3,
+  },
+  toggleActive: {
+    backgroundColor: '#FF9800',
+    alignItems: 'flex-end',
+  },
+  toggleKnob: {
+    width: 24,
+    height: 24,
+    backgroundColor: '#FFFFFF',
+    borderRadius: 12,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.25,
+    shadowRadius: 4,
+    elevation: 4,
+  },
+  toggleKnobActive: {
+    backgroundColor: '#FFFFFF',
   },
 
 });

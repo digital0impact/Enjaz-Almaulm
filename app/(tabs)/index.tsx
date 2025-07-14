@@ -1,25 +1,59 @@
-import React, { useState, useEffect } from 'react';
-import { Image, StyleSheet, TouchableOpacity, I18nManager, ImageBackground, LinearGradient, Alert, KeyboardAvoidingView, ScrollView, Platform, StatusBar } from 'react-native';
-import { LinearGradient as ExpoLinearGradient } from 'expo-linear-gradient';
+import React, { useState, useEffect, useRef } from 'react';
+import { Image, StyleSheet, TouchableOpacity, I18nManager, ImageBackground, Alert, KeyboardAvoidingView, ScrollView, Platform, StatusBar, Animated } from 'react-native';
+
 import { ThemedText } from '@/components/ThemedText';
 import { ThemedView } from '@/components/ThemedView';
 import { IconSymbol } from '@/components/ui/IconSymbol';
 import { VersionTracker } from '@/components/VersionTracker';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useRouter, useNavigation } from 'expo-router';
+import AuthService, { User } from '@/services/AuthService';
 
 export default function HomeScreen() {
   const router = useRouter();
   const navigation = useNavigation();
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [currentScreen, setCurrentScreen] = useState('welcome');
-  const [userInfo, setUserInfo] = useState<any>(null);
+  const [userInfo, setUserInfo] = useState<User | null>(null);
   const [teacherName, setTeacherName] = useState('المعلم');
+  
+  // متغير للدوران
+  const rotateAnim = useRef(new Animated.Value(0)).current;
+  
+
 
   useEffect(() => {
     checkLoginStatus();
     loadTeacherName();
   }, []);
+
+  // وظيفة الدوران العمودي مع توقف
+  useEffect(() => {
+    const startRotation = () => {
+      const runRotationSequence = () => {
+        // إعادة تعيين القيمة إلى 0
+        rotateAnim.setValue(0);
+        
+        // الدوران السريع دورة واحدة (3 ثوان)
+        Animated.timing(rotateAnim, {
+          toValue: 1, // دورة واحدة كاملة
+          duration: 3000, // 3 ثوان للدورة الواحدة
+          useNativeDriver: true,
+        }).start(() => {
+          // بعد انتهاء الدوران، انتظار 10 ثوان ثم إعادة الكرة
+          setTimeout(() => {
+            runRotationSequence();
+          }, 10000);
+        });
+      };
+
+      runRotationSequence();
+    };
+
+    if (currentScreen === 'welcome') {
+      startRotation();
+    }
+  }, [currentScreen, rotateAnim]);
 
   useEffect(() => {
     // إخفاء شريط التنقل في شاشات الترحيب وتسجيل الدخول فقط
@@ -54,63 +88,35 @@ export default function HomeScreen() {
     }
   };
 
+
+
   const checkLoginStatus = async () => {
     try {
       const userToken = await AsyncStorage.getItem('userToken');
       if (userToken) {
         const userData = await AsyncStorage.getItem('userInfo');
         if (userData) {
-          setUserInfo(JSON.parse(userData));
+          const user = JSON.parse(userData);
+          setUserInfo(user);
+          setIsLoggedIn(true);
+          setCurrentScreen('dashboard');
+          // تحديث اسم المعلم عند تسجيل الدخول
+          if (user.name) {
+            const firstName = user.name.split(' ')[0];
+            setTeacherName(firstName);
+          }
         }
-        setIsLoggedIn(true);
-        setCurrentScreen('dashboard');
-        // تحديث اسم المعلم عند تسجيل الدخول
-        loadTeacherName();
       }
     } catch (error) {
       console.log('Error checking login status:', error);
     }
   };
 
-  const handleLogin = async (method: string) => {
-    const loginMethods = {
-      'email': 'البريد الإلكتروني',
-      'google': 'حساب Google',
-      'microsoft': 'حساب Microsoft'
-    };
 
-    try {
-      // محاكاة عملية تسجيل الدخول الناجحة
-      const userData = {
-        id: '123',
-        name: 'المعلم التجريبي',
-        email: 'teacher@example.com',
-        method: method
-      };
 
-      // حفظ بيانات المستخدم
-      await AsyncStorage.setItem('userToken', 'demo_token_123');
-      await AsyncStorage.setItem('userInfo', JSON.stringify(userData));
-      await AsyncStorage.setItem('basicData', JSON.stringify({ fullName: 'المعلم التجريبي' }));
-
-      // تحديث الحالة
-      setIsLoggedIn(true);
-      setUserInfo(userData);
-      setCurrentScreen('dashboard');
-      setTeacherName('المعلم');
-
-      Alert.alert(
-        'نجح تسجيل الدخول',
-        `تم تسجيل الدخول بنجاح باستخدام ${loginMethods[method as keyof typeof loginMethods]}`
-      );
-
-    } catch (error) {
-      console.log('Error during login:', error);
-      Alert.alert(
-        'خطأ',
-        'حدث خطأ أثناء تسجيل الدخول. يرجى المحاولة مرة أخرى.'
-      );
-    }
+  const handleGetStarted = () => {
+    // توجيه المستخدم إلى صفحة إنشاء الحساب مباشرة
+    router.push('/signup');
   };
 
   const handleLogout = async () => {
@@ -136,130 +142,71 @@ export default function HomeScreen() {
           backgroundColor={Platform.OS === 'android' ? '#4ECDC4' : undefined}
           translucent={false}
         />
-        <ScrollView contentContainerStyle={{ flexGrow: 1 }}>
-          <ThemedView style={styles.container}>
-            <ImageBackground
-              source={require('@/assets/images/background.png')}
-              style={styles.backgroundImage}
-              resizeMode="cover"
-            >
-              <ExpoLinearGradient
-                colors={['rgba(255,255,255,0.9)', 'rgba(225,245,244,0.95)', 'rgba(173,212,206,0.8)']}
-                style={styles.gradientOverlay}
-              >
-            <ThemedView style={styles.gradientBackground}>
-              <ThemedView style={styles.welcomeContent}>
-            <ThemedView style={styles.heroSection}>
-              <ThemedView style={styles.logoContainer}>
-                <Image 
-                  source={require('@/assets/images/Logo.png')} 
-                  style={styles.logoImage}
-                  resizeMode="contain"
-                />
+        <ImageBackground
+          source={require('@/assets/images/background.png')}
+          style={styles.backgroundImage}
+          resizeMode="cover"
+        >
+          <ThemedView style={[styles.welcomeContent, { backgroundColor: 'transparent' }]}>
+            <ThemedView style={[styles.heroSection, { backgroundColor: 'transparent' }]}>
+              <ThemedView style={[styles.logoContainer, { backgroundColor: 'transparent' }]}>
+                <Animated.View
+                  style={[
+                    styles.logoWithShadow,
+                    {
+                      transform: [{
+                        rotateY: rotateAnim.interpolate({
+                          inputRange: [0, 1],
+                          outputRange: ['0deg', '360deg'] // دورة واحدة كاملة
+                        })
+                      }]
+                    }
+                  ]}
+                >
+                  <Image 
+                    source={require('@/assets/images/Logo.png')} 
+                    style={styles.logoImage}
+                    resizeMode="contain"
+                  />
+                </Animated.View>
               </ThemedView>
-              <ThemedText type="title" style={styles.title}>
+              <ThemedText type="title" style={[styles.title, { backgroundColor: 'transparent' }]}>
 
               </ThemedText>
-              <ThemedText style={[styles.subtitle, { textAlign: 'center', fontSize: 20 }]}>
+              <ThemedText style={[styles.subtitle, { textAlign: 'center', fontSize: 20, color: '#1c1f33', backgroundColor: 'transparent' }]}>
                 منصتك المتكاملة لإدارة وعرض إنجازاتك المهنية
               </ThemedText>
             </ThemedView>
 
-            <ThemedView style={[styles.featuresSection, { marginBottom: 25 }]}>
-              <ThemedView style={styles.featureItem}>
-                <ThemedText style={styles.featureText}></ThemedText>
+            <ThemedView style={[styles.featuresSection, { marginBottom: 10, backgroundColor: 'transparent' }]}>
+              <ThemedView style={[styles.featureItem, { backgroundColor: 'transparent' }]}>
+                <ThemedText style={[styles.featureText, { backgroundColor: 'transparent' }]}></ThemedText>
               </ThemedView>
-              <ThemedView style={styles.featureItem}>
-                <ThemedText style={styles.featureText}></ThemedText>
+              <ThemedView style={[styles.featureItem, { backgroundColor: 'transparent' }]}>
+                <ThemedText style={[styles.featureText, { backgroundColor: 'transparent' }]}></ThemedText>
               </ThemedView>
             </ThemedView>
 
             <TouchableOpacity 
-              style={styles.getStartedButton}
-              onPress={() => setCurrentScreen('login')}
+              style={[styles.getStartedButton, { backgroundColor: 'rgba(173, 212, 206, 0.9)' }]}
+              onPress={handleGetStarted}
             >
-              <ThemedText style={styles.buttonText}>ابدأ الآن</ThemedText>
+              <ThemedText style={[styles.buttonText, { backgroundColor: 'transparent' }]}>
+                ابدأ الآن
+              </ThemedText>
             </TouchableOpacity>
 
             <VersionTracker 
               showBuildInfo={false}
-              style={styles.versionContainer}
+              style={[styles.versionContainer, { backgroundColor: 'transparent' }]}
             />
           </ThemedView>
-            </ThemedView>
-            </ExpoLinearGradient>
-            </ImageBackground>
-          </ThemedView>
-        </ScrollView>
+        </ImageBackground>
       </KeyboardAvoidingView>
     );
   }
 
-  if (currentScreen === 'login') {
-    return (
-      <KeyboardAvoidingView
-        style={{ flex: 1 }}
-        behavior={Platform.OS === 'ios' ? 'padding' : undefined}
-      >
-        <StatusBar 
-          barStyle={Platform.OS === 'ios' ? 'dark-content' : 'default'}
-          backgroundColor={Platform.OS === 'android' ? '#4ECDC4' : undefined}
-          translucent={false}
-        />
-        <ScrollView contentContainerStyle={{ flexGrow: 1 }}>
-          <ThemedView style={styles.container}>
-            <ImageBackground
-              source={require('@/assets/images/background.png')}
-              style={styles.backgroundImage}
-              resizeMode="cover"
-            >
-              <ExpoLinearGradient
-                colors={['rgba(255,255,255,0.9)', 'rgba(225,245,244,0.95)', 'rgba(173,212,206,0.8)']}
-                style={styles.gradientOverlay}
-              >
-                <ThemedView style={styles.gradientBackground}>
-                  <ThemedView style={styles.loginContent}>
-                <ThemedView style={styles.iconContainer}>
-                  <IconSymbol size={60} name="lock.shield.fill" color="#1c1f33" />
-                </ThemedView>
-                <ThemedText type="title" style={styles.title}>
-                  تسجيل الدخول
-                </ThemedText>
 
-                <ThemedView style={styles.loginButtons}>
-                  <TouchableOpacity 
-                    style={styles.loginButton}
-                    onPress={() => handleLogin('email')}
-                  >
-                    <IconSymbol size={24} name="envelope.fill" color="#1c1f33" />
-                    <ThemedText style={styles.loginButtonText}>البريد الإلكتروني</ThemedText>
-                  </TouchableOpacity>
-
-                  <TouchableOpacity 
-                    style={styles.loginButton}
-                    onPress={() => handleLogin('google')}
-                  >
-                    <IconSymbol size={24} name="globe" color="#1c1f33" />
-                    <ThemedText style={styles.loginButtonText}>حساب Google</ThemedText>
-                  </TouchableOpacity>
-
-                </ThemedView>
-
-                <TouchableOpacity 
-                  style={styles.backButton}
-                  onPress={() => setCurrentScreen('welcome')}
-                >
-                  <IconSymbol size={24} name="arrow.left" color="#1c1f33" />
-                </TouchableOpacity>
-              </ThemedView>
-                </ThemedView>
-              </ExpoLinearGradient>
-            </ImageBackground>
-          </ThemedView>
-        </ScrollView>
-      </KeyboardAvoidingView>
-    );
-  }
 
   // Dashboard screen
   return (
@@ -274,112 +221,108 @@ export default function HomeScreen() {
         style={styles.backgroundImage}
         resizeMode="cover"
       >
-        <ExpoLinearGradient
-          colors={['rgba(255,255,255,0.9)', 'rgba(225,245,244,0.95)', 'rgba(173,212,206,0.8)']}
-          style={styles.gradientOverlay}
-        >
           <KeyboardAvoidingView
             style={{ flex: 1 }}
             behavior={Platform.OS === 'ios' ? 'padding' : undefined}
           >
-            <ScrollView style={styles.scrollContainer}>
-              <ThemedView style={styles.dashboardContent}>
-                <ThemedView style={styles.header}>
-                  <ThemedView style={styles.iconContainer}>
-                    <IconSymbol size={60} name="person.circle.fill" color="#1c1f33" />
-                  </ThemedView>
-                  <ThemedText type="title" style={styles.title}>
-                    مرحباً {teacherName}
-                  </ThemedText>
-                  <ThemedText style={styles.subtitle}>
-                    لوحة التحكم الرئيسية
-                  </ThemedText>
+            <ScrollView 
+              style={styles.scrollContainer}
+              contentContainerStyle={{ paddingBottom: 40, paddingTop: 8 }}
+              showsVerticalScrollIndicator={false}
+              keyboardShouldPersistTaps="handled"
+            >
+              <ThemedView style={styles.header}>
+                <ThemedView style={styles.iconContainer}>
+                  <IconSymbol size={60} name="person.circle.fill" color="#1c1f33" />
                 </ThemedView>
+                <ThemedText type="title" style={styles.title}>
+                  مرحباً {teacherName}
+                </ThemedText>
+                <ThemedText style={styles.subtitle}>
+                  لوحة التحكم الرئيسية
+                </ThemedText>
+                
+                <ThemedView style={styles.headerButtons}>
+                  <TouchableOpacity 
+                    style={styles.headerButton}
+                    onPress={() => router.push('/settings')}
+                  >
+                    <IconSymbol size={20} name="wrench.fill" color="#1c1f33" />
+                    <ThemedText style={styles.headerButtonText}>الإعدادات</ThemedText>
+                  </TouchableOpacity>
+                  
+                  <TouchableOpacity 
+                    style={styles.headerButton}
+                    onPress={handleLogout}
+                  >
+                    <IconSymbol size={20} name="arrow.right.square" color="#1c1f33" />
+                    <ThemedText style={styles.headerButtonText}>تسجيل الخروج</ThemedText>
+                  </TouchableOpacity>
+                </ThemedView>
+              </ThemedView>
 
-                <ThemedView style={styles.content}>
-                  <ThemedView style={[styles.actionButtons, { backgroundColor: 'transparent' }]}>
-                    <TouchableOpacity onPress={() => router.push('/settings')} style={styles.editButton}>
-                      <IconSymbol size={20} name="wrench.fill" color="#1c1f33" />
-                      <ThemedText style={styles.buttonText}>الإعدادات</ThemedText>
-                    </TouchableOpacity>
-                    <TouchableOpacity onPress={handleLogout} style={styles.editButton}>
-                      <IconSymbol size={20} name="arrow.right.square" color="#1c1f33" />
-                      <ThemedText style={styles.buttonText}>تسجيل الخروج</ThemedText>
-                    </TouchableOpacity>
-                  </ThemedView>
-
-                  <ThemedView style={[styles.dataSection, { backgroundColor: 'transparent' }]}>
-                    <ThemedText type="subtitle" style={styles.sectionTitle}>
-                      الخدمات السريعة
-                    </ThemedText>
-
-                    <ThemedView style={styles.actionsGrid}>
-                      <TouchableOpacity 
-                        style={[styles.dataItem, { backgroundColor: 'transparent' }]}
-                        onPress={() => router.push('/interactive-report')}
-                      >
-                        <ThemedView style={styles.iconWrapper}>
-                          <IconSymbol size={28} name="chart.line.uptrend.xyaxis" color="#1c1f33" />
-                        </ThemedView>
-                        <ThemedText style={styles.actionText}>التقرير التفاعلي للأداء المهني</ThemedText>
-                      </TouchableOpacity>
-
-                      <TouchableOpacity 
-                        style={[styles.dataItem, { backgroundColor: 'transparent' }]}
-                        onPress={() => router.push('/azkar')}
-                      >
-                        <ThemedView style={styles.iconWrapper}>
-                          <IconSymbol size={28} name="doc.text.fill" color="#1c1f33" />
-                        </ThemedView>
-                        <ThemedText style={styles.actionText}>أذكاري</ThemedText>
-                      </TouchableOpacity>
-
-                      <TouchableOpacity 
-                        style={[styles.dataItem, { backgroundColor: 'transparent' }]}
-                        onPress={() => router.push('/student-tracking')}
-                      >
-                        <ThemedView style={styles.iconWrapper}>
-                          <IconSymbol size={28} name="person.crop.circle.badge.plus" color="#1c1f33" />
-                        </ThemedView>
-                        <ThemedText style={styles.actionText}>تتبع حالة متعلم</ThemedText>
-                      </TouchableOpacity>
-
-                      <TouchableOpacity 
-                        style={[styles.dataItem, { backgroundColor: 'transparent' }]}
-                        onPress={() => router.push('/password-tracker')}
-                      >
-                        <ThemedView style={styles.iconWrapper}>
-                          <IconSymbol size={28} name="lock.shield.fill" color="#1c1f33" />
-                        </ThemedView>
-                        <ThemedText style={styles.actionText}>متتبع المواقع وكلمات المرور</ThemedText>
-                      </TouchableOpacity>
-
-                      <TouchableOpacity 
-                        style={[styles.dataItem, { backgroundColor: 'transparent' }]}
-                        onPress={() => router.push('/schedule')}
-                      >
-                        <ThemedView style={styles.iconWrapper}>
-                          <IconSymbol size={28} name="calendar" color="#1c1f33" />
-                        </ThemedView>
-                        <ThemedText style={styles.actionText}>الجدول</ThemedText>
-                      </TouchableOpacity>
-
-                      <TouchableOpacity 
-                        style={[styles.dataItem, { backgroundColor: 'transparent' }]}
-                        onPress={() => router.push('/comments')}
-                      >
-                        <ThemedView style={styles.iconWrapper}>
-                          <IconSymbol size={28} name="envelope.fill" color="#1c1f33" />
-                        </ThemedView>
-                        <ThemedText style={styles.actionText}>التعليقات</ThemedText>
-                      </TouchableOpacity>
+              <ThemedView style={styles.content}>
+                <ThemedView style={styles.toolsGrid}>
+                  <TouchableOpacity 
+                    style={styles.toolCard}
+                    onPress={() => router.push('/azkar')}
+                  >
+                    <ThemedView style={styles.toolIconWrapper}>
+                      <IconSymbol size={28} name="doc.text.fill" color="#1c1f33" />
                     </ThemedView>
-                  </ThemedView>
+                    <ThemedText style={styles.toolTitle}>أذكاري</ThemedText>
+                    <ThemedText style={styles.toolDescription}>مجموعة من الأذكار اليومية المفيدة</ThemedText>
+                  </TouchableOpacity>
+
+                  <TouchableOpacity 
+                    style={styles.toolCard}
+                    onPress={() => router.push('/interactive-report')}
+                  >
+                    <ThemedView style={styles.toolIconWrapper}>
+                      <IconSymbol size={28} name="chart.line.uptrend.xyaxis" color="#1c1f33" />
+                    </ThemedView>
+                    <ThemedText style={styles.toolTitle}>التقرير التفاعلي للأداء المهني</ThemedText>
+                    <ThemedText style={styles.toolDescription}>تقييم وتحليل أدائك المهني كمعلم</ThemedText>
+                  </TouchableOpacity>
+
+                  <TouchableOpacity 
+                    style={styles.toolCard}
+                    onPress={() => router.push('/student-tracking')}
+                  >
+                    <ThemedView style={styles.toolIconWrapper}>
+                      <IconSymbol size={28} name="person.crop.circle.badge.plus" color="#1c1f33" />
+                    </ThemedView>
+                    <ThemedText style={styles.toolTitle}>تتبع حالة المتعلمين</ThemedText>
+                    <ThemedText style={styles.toolDescription}>متابعة وتقييم حالة الطلاب</ThemedText>
+                  </TouchableOpacity>
+
+                  <TouchableOpacity 
+                    style={styles.toolCard}
+                    onPress={() => router.push('/password-tracker')}
+                  >
+                    <ThemedView style={styles.toolIconWrapper}>
+                      <IconSymbol size={28} name="lock.shield.fill" color="#1c1f33" />
+                    </ThemedView>
+                    <ThemedText style={styles.toolTitle}>متتبع المواقع وكلمات المرور</ThemedText>
+                    <ThemedText style={styles.toolDescription}>إدارة كلمات المرور والمواقع المهمة</ThemedText>
+                  </TouchableOpacity>
+
+                  <TouchableOpacity 
+                    style={styles.toolCard}
+                    onPress={() => router.push('/schedule')}
+                  >
+                    <ThemedView style={styles.toolIconWrapper}>
+                      <IconSymbol size={28} name="calendar" color="#1c1f33" />
+                    </ThemedView>
+                    <ThemedText style={styles.toolTitle}>الجدول</ThemedText>
+                    <ThemedText style={styles.toolDescription}>إدارة الجدول الدراسي والحصص</ThemedText>
+                  </TouchableOpacity>
+
+
                 </ThemedView>
               </ThemedView>
             </ScrollView>
           </KeyboardAvoidingView>
-        </ExpoLinearGradient>
       </ImageBackground>
     </ThemedView>
   );
@@ -393,10 +336,7 @@ const styles = StyleSheet.create({
   dashboardContainer: {
     flex: 1,
   },
-  gradientBackground: {
-    backgroundColor: '#a8e6cf',
-    flex: 1,
-  },
+
     backgroundImage: {
     flex: 1,
     width: '100%',
@@ -408,7 +348,7 @@ const styles = StyleSheet.create({
   logoContainer: {
     width: 320,
     height: 320,
-    marginBottom: 30,
+    marginBottom: 10,
     justifyContent: 'center',
     alignItems: 'center',
     backgroundColor: 'transparent',
@@ -419,18 +359,25 @@ const styles = StyleSheet.create({
     shadowRadius: 15,
     elevation: 10,
   },
+  logoWithShadow: {
+    shadowColor: '#000',
+    shadowOffset: { width: 8, height: 8 },
+    shadowOpacity: 0.3,
+    shadowRadius: 15,
+    elevation: 15,
+  },
   logoImage: {
     width: 380,
     height: 380,
   },
   heroSection: {
     alignItems: 'center',
-    marginBottom: 40,
+    marginBottom: 10,
   },
   featuresSection: {
     flexDirection: 'row',
     justifyContent: 'space-around',
-    marginBottom: 40,
+    marginBottom: 10,
     paddingHorizontal: 20,
   },
   featureItem: {
@@ -474,8 +421,6 @@ const styles = StyleSheet.create({
   },
   dashboardContent: {
     flex: 1,
-    paddingHorizontal: 0,
-    paddingVertical: 10,
     backgroundColor: 'transparent',
   },
   iconContainer: {
@@ -494,19 +439,18 @@ const styles = StyleSheet.create({
   title: {
     fontSize: 28,
     fontWeight: 'bold',
-    textAlign: 'right',
     marginBottom: 10,
-    color: '#000000',
+    textAlign: 'center',
     writingDirection: 'rtl',
+    color: '#000000',
+    backgroundColor: 'transparent',
   },
   subtitle: {
     fontSize: 16,
-    textAlign: 'right',
-    marginBottom: 30,
-    lineHeight: 24,
-    paddingHorizontal: 20,
     color: '#666666',
+    textAlign: 'center',
     writingDirection: 'rtl',
+    marginBottom: 20,
   },
   getStartedButton: {
     backgroundColor: '#add4ce',
@@ -529,6 +473,7 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
     textAlign: 'center',
   },
+
   backButton: {
     position: 'absolute',
     top: Platform.OS === 'ios' ? 60 : 50,
@@ -590,6 +535,7 @@ const styles = StyleSheet.create({
     color: '#000000',
     textAlign: 'right',
     writingDirection: 'rtl',
+    backgroundColor: 'transparent',
   },
   welcomeSubtitle: {
     fontSize: 14,
@@ -597,10 +543,12 @@ const styles = StyleSheet.create({
     color: '#666666',
     textAlign: 'right',
     writingDirection: 'rtl',
+    backgroundColor: 'transparent',
   },
   headerButtons: {
     flexDirection: 'row',
     gap: 10,
+    backgroundColor: 'transparent',
   },
   settingsButton: {
     padding: 15,
@@ -645,6 +593,9 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
     marginTop: 8,
     color: '#000000',
+    textAlign: 'center',
+    writingDirection: 'rtl',
+    backgroundColor: 'transparent',
   },
   statLabel: {
     fontSize: 12,
@@ -652,6 +603,7 @@ const styles = StyleSheet.create({
     marginTop: 4,
     textAlign: 'right',
     writingDirection: 'rtl',
+    backgroundColor: 'transparent',
   },
   quickActions: {
     marginBottom: 25,
@@ -663,6 +615,7 @@ const styles = StyleSheet.create({
     color: '#1c1f33',
     textAlign: 'center',
     writingDirection: 'rtl',
+    backgroundColor: 'transparent',
   },
   actionsGrid: {
     flexDirection: 'row',
@@ -691,6 +644,7 @@ const styles = StyleSheet.create({
     color: '#000000',
     textAlign: 'center',
     writingDirection: 'rtl',
+    backgroundColor: 'transparent',
   },
   titleContainer: {
     alignItems: 'center',
@@ -705,13 +659,85 @@ const styles = StyleSheet.create({
   },
   scrollContainer: {
     flex: 1,
+    paddingHorizontal: 20,
+    paddingBottom: 30,
+    backgroundColor: 'transparent',
   },
   header: {
-    padding: 20,
     alignItems: 'center',
+    paddingTop: Platform.OS === 'ios' ? 60 : 40,
+    paddingBottom: 30,
+    backgroundColor: 'transparent',
+    position: 'relative',
   },
   content: {
+    backgroundColor: 'transparent',
+    gap: 15,
+  },
+  toolsGrid: {
+    flexDirection: 'column',
+    gap: 15,
+    backgroundColor: 'transparent',
+  },
+  toolCard: {
+    width: '100%',
+    alignItems: 'center',
     padding: 20,
+    backgroundColor: '#F8F9FA',
+    borderRadius: 15,
+    borderWidth: 1,
+    borderColor: '#E5E5EA',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 6 },
+    shadowOpacity: 0.25,
+    shadowRadius: 12,
+    elevation: 10,
+    marginBottom: 15,
+  },
+  toolIconWrapper: {
+    marginBottom: 15,
+    padding: 15,
+    backgroundColor: '#F8F9FA',
+    borderRadius: 30,
+    borderWidth: 1,
+    borderColor: '#E5E5EA',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 6 },
+    shadowOpacity: 0.25,
+    shadowRadius: 12,
+    elevation: 10,
+  },
+  toolTitle: {
+    fontSize: 16,
+    fontWeight: 'bold',
+    color: '#1C1C1E',
+    textAlign: 'center',
+    writingDirection: 'rtl',
+    marginBottom: 8,
+  },
+  toolDescription: {
+    fontSize: 12,
+    color: '#8E8E93',
+    textAlign: 'center',
+    writingDirection: 'rtl',
+    lineHeight: 18,
+  },
+  headerButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: 'transparent',
+    paddingVertical: 12,
+    paddingHorizontal: 20,
+    borderRadius: 25,
+    gap: 8,
+  },
+  headerButtonText: {
+    color: '#1c1f33',
+    fontSize: 18,
+    fontWeight: '600',
+    textAlign: 'center',
+    writingDirection: 'rtl',
     backgroundColor: 'transparent',
   },
   actionButtons: {
@@ -781,5 +807,6 @@ const styles = StyleSheet.create({
     shadowRadius: 12,
     elevation: 10,
   },
+
 
 });
