@@ -2,9 +2,9 @@
 export const VERSION_INFO = {
   major: 1,
   minor: 0,
-  patch: 8,
-  build: 40,
-  releaseDate: '2025-07-13',
+  patch: 12,
+  build: 44,
+  releaseDate: '2025-07-15',
   
   // تنسيق رقم الإصدار
   getVersion(): string {

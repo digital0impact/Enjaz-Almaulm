@@ -3,12 +3,16 @@
     "name": "enjaz-almualm",
     "slug": "teacher-performance-app",
     "owner": "amalshaman",
-    "version": "1.0.8",
+    "version": "1.0.12",
     "orientation": "portrait",
     "icon": "./assets/images/Logo.png",
     "scheme": "enjazalmualm",
     "userInterfaceStyle": "automatic",
     "newArchEnabled": true,
+    "cli": {
+      "version": ">= 5.9.1",
+      "appVersionSource": "local"
+    },
     "locales": {
       "ar": "./assets/locales/ar.json"
     },
@@ -23,8 +27,8 @@
     },
     "ios": {
       "supportsTablet": true,
-      "bundleIdentifier": "com.enjazalmualm.app",
-      "buildNumber": "40",
+      "bundleIdentifier": "com.teacherperformance.tdp",
+      "buildNumber": "44",
       "infoPlist": {
         "ITSAppUsesNonExemptEncryption": false,
         "NSCameraUsageDescription": "يحتاج التطبيق للوصول للكاميرا لالتقاط الصور",
@@ -50,7 +54,7 @@
     },
     "android": {
       "package": "com.enjazalmualm.teacherperformance",
-      "versionCode": 40,
+      "versionCode": 44,
       "adaptiveIcon": {
         "foregroundImage": "./assets/images/Logo.png",
         "backgroundColor": "#ffffff"
