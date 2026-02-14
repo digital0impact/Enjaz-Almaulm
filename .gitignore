@@ -39,4 +39,7 @@ yarn-error.*
 # typescript
 *.tsbuildinfo
 
+# Semgrep / security rules (contain patterns that trigger GitHub secret scan)
+.config/
+
 app-example
