@@ -20,6 +20,7 @@ import { useThemeColor } from '@/hooks/useThemeColor';
 import { BottomNavigationBar } from '@/components/BottomNavigationBar';
 import { commonStyles } from '@/styles/common-styles';
 import axios from 'axios';
+import { getTextDirection, formatRTLText } from '@/utils/rtl-utils';
 
 const { width } = Dimensions.get('window');
 
@@ -425,35 +426,31 @@ export default function CalendarScreen() {
           {/* Header */}
           <ThemedView style={[styles.header, { backgroundColor: 'transparent' }]}>
             <TouchableOpacity onPress={handleBack} style={styles.backButton}>
-              <IconSymbol size={20} name="arrow.right" color="#1c1f33" />
+              <IconSymbol size={20} name="chevron.left" color="#1c1f33" />
             </TouchableOpacity>
 
             <ThemedView style={styles.iconContainer}>
               <IconSymbol size={60} name="calendar" color="#1c1f33" />
             </ThemedView>
 
-            <ThemedText type="title" style={styles.title}>
-              📅 التقويم الهجري والميلادي
+            <ThemedText type="title" style={[styles.title, getTextDirection()]}> 
+              {formatRTLText('📅 التقويم الهجري والميلادي')}
             </ThemedText>
-            <ThemedText style={styles.subtitle}>
-              تصفح التاريخ الهجري والميلادي
+            <ThemedText style={[styles.subtitle, getTextDirection()]}> 
+              {formatRTLText('تصفح التاريخ الهجري والميلادي')}
             </ThemedText>
           </ThemedView>
 
-          <KeyboardAvoidingView
-            behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-            style={{ flex: 1 }}
+          <ScrollView 
+            style={[styles.scrollView, commonStyles.scrollViewWithBottomNav]}
+            contentContainerStyle={{ flexGrow: 1 }}
           >
-            <ScrollView 
-              style={styles.scrollView}
-              contentContainerStyle={{ flexGrow: 1, ...commonStyles.scrollViewWithBottomNav }}
-            >
             {/* الساعة الرقمية الحية */}
             <ThemedView style={[styles.liveClockSection, { backgroundColor: colors.card }]}>
               <ThemedView style={styles.clockHeader}>
                 <IconSymbol size={20} name="clock.fill" color="#4ECDC4" />
-                <ThemedText style={[styles.clockTitle, { color: colors.text }]}>
-                  الوقت الحالي
+                <ThemedText style={[styles.clockTitle, getTextDirection(), { color: colors.text }]}> 
+                  {formatRTLText('الوقت الحالي')}
                 </ThemedText>
                 <TouchableOpacity 
                   onPress={() => setIsLiveUpdate(!isLiveUpdate)}
@@ -511,8 +508,8 @@ export default function CalendarScreen() {
             {/* تاريخ اليوم - القسم الرئيسي */}
             <ThemedView style={[styles.todaySection, { backgroundColor: colors.card }]}>
               <ThemedView style={styles.sectionHeader}>
-                <ThemedText style={[styles.sectionTitle, { color: colors.text, textAlign: 'center' }]}>
-                  تاريخ اليوم
+                <ThemedText style={[styles.sectionTitle, getTextDirection(), { color: colors.text, textAlign: 'right' }]}> 
+                  {formatRTLText('تاريخ اليوم')}
                 </ThemedText>
               </ThemedView>
 
@@ -522,8 +519,8 @@ export default function CalendarScreen() {
                 <ThemedView style={[styles.todayCardSmall, { backgroundColor: 'rgba(78, 205, 196, 0.1)', borderColor: '#4ECDC4' }]}>
                   <ThemedView style={styles.todayHeaderSmall}>
                     <IconSymbol size={24} name="calendar.circle" color="#4ECDC4" />
-                    <ThemedText style={[styles.todayTypeSmall, { color: '#4ECDC4' }]}>
-                      التاريخ الميلادي
+                    <ThemedText style={[styles.todayTypeSmall, getTextDirection(), { color: '#4ECDC4' }]}> 
+                      {formatRTLText('التاريخ الميلادي')}
                     </ThemedText>
                   </ThemedView>
 
@@ -549,8 +546,8 @@ export default function CalendarScreen() {
                 <ThemedView style={[styles.todayCardSmall, { backgroundColor: 'rgba(230, 126, 34, 0.1)', borderColor: '#E67E22' }]}>
                   <ThemedView style={styles.todayHeaderSmall}>
                     <IconSymbol size={24} name="moon.circle.fill" color="#E67E22" />
-                    <ThemedText style={[styles.todayTypeSmall, { color: '#E67E22' }]}>
-                      التاريخ الهجري
+                    <ThemedText style={[styles.todayTypeSmall, getTextDirection(), { color: '#E67E22' }]}> 
+                      {formatRTLText('التاريخ الهجري')}
                     </ThemedText>
                     {isLoadingHijri ? (
                       <ThemedView style={styles.loadingIndicator}>
@@ -610,8 +607,8 @@ export default function CalendarScreen() {
             <ThemedView style={[styles.section, { backgroundColor: colors.card }]}>
               <ThemedView style={styles.yearNavigationHeader}>
                 <IconSymbol size={24} name="calendar.badge.clock" color="#E67E22" />
-                <ThemedText style={[styles.sectionTitle, { color: colors.text }]}>
-                  التقويم السنوي الهجري
+                <ThemedText style={[styles.sectionTitle, getTextDirection(), { color: colors.text }]}> 
+                  {formatRTLText('التقويم السنوي الهجري')}
                 </ThemedText>
               </ThemedView>
 
@@ -630,16 +627,16 @@ export default function CalendarScreen() {
                     );
                   }}
                 >
-                  <ThemedText style={styles.yearNavText}>السنة القادمة</ThemedText>
+                  <ThemedText style={[styles.yearNavText, getTextDirection()]}>السنة القادمة</ThemedText>
                   <IconSymbol size={16} name="chevron.left" color="#fff" />
                 </TouchableOpacity>
 
                 <ThemedView style={styles.currentYearContainer}>
-                  <ThemedText style={[styles.currentYear, { color: colors.text }]}>
+                  <ThemedText style={[styles.currentYear, getTextDirection(), { color: colors.text }]}> 
                     {selectedHijriYear || todayInfo.hijri.year} هـ
                   </ThemedText>
-                  <ThemedText style={[styles.currentYearLabel, { color: colors.text }]}>
-                    {selectedHijriYear ? 'السنة المختارة' : 'السنة الهجرية الحالية'}
+                  <ThemedText style={[styles.currentYearLabel, getTextDirection(), { color: colors.text }]}> 
+                    {selectedHijriYear ? formatRTLText('السنة المختارة') : formatRTLText('السنة الهجرية الحالية')}
                   </ThemedText>
                   {selectedHijriYear && (
                     <TouchableOpacity 
@@ -649,8 +646,8 @@ export default function CalendarScreen() {
                       }}
                       style={styles.resetYearButton}
                     >
-                      <ThemedText style={[styles.resetYearText, { color: '#E67E22' }]}>
-                        العودة للسنة الحالية
+                      <ThemedText style={[styles.resetYearText, getTextDirection(), { color: '#E67E22' }]}> 
+                        {formatRTLText('العودة للسنة الحالية')}
                       </ThemedText>
                     </TouchableOpacity>
                   )}
@@ -670,7 +667,7 @@ export default function CalendarScreen() {
                   }}
                 >
                   <IconSymbol size={16} name="chevron.right" color="#fff" />
-                  <ThemedText style={styles.yearNavText}>السنة السابقة</ThemedText>
+                  <ThemedText style={[styles.yearNavText, getTextDirection()]}>السنة السابقة</ThemedText>
                 </TouchableOpacity>
               </ThemedView>
 
@@ -704,11 +701,11 @@ export default function CalendarScreen() {
                     >
                       {/* رأس الشهر */}
                       <ThemedView style={[styles.monthGridHeader, { backgroundColor: isCurrentMonth ? '#E67E22' : '#999' }]}>
-                        <ThemedText style={styles.monthGridTitle}>
-                          {month} {selectedHijriYear || todayInfo.hijri.year} هـ
+                        <ThemedText style={[styles.monthGridTitle, getTextDirection()]}> 
+                          {formatRTLText(`${month} ${selectedHijriYear || todayInfo.hijri.year} هـ`)}
                         </ThemedText>
-                        <ThemedText style={styles.monthGridInfo}>
-                          {daysInMonth} يوم ({daysInMonth === 30 ? 'كامل' : 'ناقص'})
+                        <ThemedText style={[styles.monthGridInfo, getTextDirection()]}> 
+                          {formatRTLText(`${daysInMonth} يوم (${daysInMonth === 30 ? 'كامل' : 'ناقص'})`)}
                         </ThemedText>
                         {isCurrentMonth && (
                           <ThemedView style={styles.currentMonthIndicator}>
@@ -771,7 +768,6 @@ export default function CalendarScreen() {
 
               </ThemedView>
           </ScrollView>
-          </KeyboardAvoidingView>
 
           <BottomNavigationBar />
       </ImageBackground>
@@ -1076,7 +1072,7 @@ const styles = StyleSheet.create({
   sectionTitle: {
     fontSize: 16,
     fontWeight: 'bold',
-    textAlign: 'center',
+    textAlign: 'right',
     marginBottom: 12,
     writingDirection: 'rtl',
   },
@@ -1203,36 +1199,36 @@ const styles = StyleSheet.create({
     paddingHorizontal: 4,
   },
   monthGridContainer: {
-    marginBottom: 8,
-    borderRadius: 8,
+    marginBottom: 12,
+    borderRadius: 12,
     overflow: 'hidden',
-    elevation: 1,
+    elevation: 3,
     shadowColor: '#000',
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.08,
-    shadowRadius: 2,
-    width: (width - 64) / 3, // ثلاثة في كل صف
-    marginHorizontal: 2,
-    marginVertical: 2,
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.15,
+    shadowRadius: 4,
+    width: (width - 48) / 2, // اثنان في كل صف بدلاً من ثلاثة
+    marginHorizontal: 4,
+    marginVertical: 4,
   },
   monthGridHeader: {
-    padding: 6,
+    padding: 10,
     alignItems: 'center',
     position: 'relative',
   },
   monthGridTitle: {
-    fontSize: 11,
+    fontSize: 14,
     fontWeight: 'bold',
     color: '#fff',
     textAlign: 'center',
     writingDirection: 'rtl',
   },
   monthGridInfo: {
-    fontSize: 8,
+    fontSize: 10,
     color: '#fff',
     opacity: 0.9,
     textAlign: 'center',
-    marginTop: 1,
+    marginTop: 2,
   },
   currentMonthIndicator: {
     position: 'absolute',
@@ -1246,26 +1242,26 @@ const styles = StyleSheet.create({
   },
   weekdayCell: {
     flex: 1,
-    paddingVertical: 2,
+    paddingVertical: 4,
     alignItems: 'center',
   },
   weekdayText: {
-    fontSize: 8,
+    fontSize: 10,
     fontWeight: '600',
     textAlign: 'center',
   },
   monthDaysGrid: {
     flexDirection: 'row',
     flexWrap: 'wrap',
-    padding: 1,
+    padding: 2,
   },
   dayCell: {
     width: `${100/7}%`,
-    height: 18,
+    height: 24,
     justifyContent: 'center',
     alignItems: 'center',
-    borderRadius: 2,
-    margin: 0.3,
+    borderRadius: 3,
+    margin: 0.5,
   },
   todayCell: {
     elevation: 1,
@@ -1275,7 +1271,7 @@ const styles = StyleSheet.create({
     shadowRadius: 1,
   },
   dayCellText: {
-    fontSize: 9,
+    fontSize: 11,
     fontWeight: '500',
     textAlign: 'center',
   },

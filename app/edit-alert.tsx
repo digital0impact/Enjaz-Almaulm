@@ -5,8 +5,10 @@ import { StyleSheet, ScrollView, TouchableOpacity, Alert, TextInput, ImageBackgr
 import { ThemedText } from '@/components/ThemedText';
 import { ThemedView } from '@/components/ThemedView';
 import { IconSymbol } from '@/components/ui/IconSymbol';
+import { BottomNavigationBar } from '@/components/BottomNavigationBar';
 import { useRouter, useLocalSearchParams } from 'expo-router';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { getTextDirection, formatRTLText } from '@/utils/rtl-utils';
 
 interface AlertItem {
   id: string;
@@ -213,36 +215,35 @@ export default function EditAlertScreen() {
                 <IconSymbol size={60} name="gear.fill" color="#1c1f33" />
               </ThemedView>
               
-              <ThemedText type="title" style={styles.title}>
-                {alert?.title === `تنبيه ${alert?.type} جديد` ? 'إضافة تنبيه جديد' : 'تعديل التنبيه'}
+              <ThemedText type="title" style={[styles.title, getTextDirection()]}> 
+                {formatRTLText(alert?.title === `تنبيه ${alert?.type} جديد` ? 'إضافة تنبيه جديد' : 'تعديل التنبيه')}
               </ThemedText>
-              
-              <ThemedText style={styles.subtitle}>
-                {alert?.title === `تنبيه ${alert?.type} جديد` ? 'أدخل تفاصيل التنبيه الجديد' : 'قم بتحديث معلومات التنبيه'}
+              <ThemedText style={[styles.subtitle, getTextDirection()]}> 
+                {formatRTLText(alert?.title === `تنبيه ${alert?.type} جديد` ? 'أدخل تفاصيل التنبيه الجديد' : 'قم بتحديث معلومات التنبيه')}
               </ThemedText>
             </ThemedView>
 
             <ThemedView style={styles.content}>
               {/* عنوان التنبيه */}
               <ThemedView style={styles.section}>
-                <ThemedText style={styles.sectionTitle}>عنوان التنبيه</ThemedText>
+                <ThemedText style={[styles.sectionTitle, getTextDirection()]}>عنوان التنبيه</ThemedText>
                 <TextInput
-                  style={styles.textInput}
+                  style={[styles.textInput, getTextDirection()]}
                   value={title}
                   onChangeText={setTitle}
-                  placeholder="أدخل عنوان التنبيه"
+                  placeholder={formatRTLText('أدخل عنوان التنبيه')}
                   textAlign="right"
                 />
               </ThemedView>
 
               {/* وصف التنبيه */}
               <ThemedView style={styles.section}>
-                <ThemedText style={styles.sectionTitle}>الوصف (اختياري)</ThemedText>
+                <ThemedText style={[styles.sectionTitle, getTextDirection()]}>الوصف (اختياري)</ThemedText>
                 <TextInput
-                  style={[styles.textInput, styles.textArea]}
+                  style={[styles.textInput, styles.textArea, getTextDirection()]}
                   value={description}
                   onChangeText={setDescription}
-                  placeholder="أدخل وصف التنبيه"
+                  placeholder={formatRTLText('أدخل وصف التنبيه')}
                   textAlign="right"
                   multiline
                   numberOfLines={3}
@@ -251,7 +252,7 @@ export default function EditAlertScreen() {
 
               {/* نوع التنبيه */}
               <ThemedView style={styles.section}>
-                <ThemedText style={styles.sectionTitle}>نوع التنبيه</ThemedText>
+                <ThemedText style={[styles.sectionTitle, getTextDirection()]}>نوع التنبيه</ThemedText>
                 <ScrollView horizontal showsHorizontalScrollIndicator={false}>
                   <ThemedView style={styles.optionsRow}>
                     {alertTypes.map((item) => (
@@ -268,11 +269,8 @@ export default function EditAlertScreen() {
                           name={item.icon as any} 
                           color={type === item.value ? item.color : '#666'} 
                         />
-                        <ThemedText style={[
-                          styles.optionText,
-                          type === item.value && { color: item.color, fontWeight: 'bold' }
-                        ]}>
-                          {item.label}
+                        <ThemedText style={[styles.optionText, getTextDirection(), type === item.value && { color: item.color, fontWeight: 'bold' }]}> 
+                          {formatRTLText(item.label)}
                         </ThemedText>
                       </TouchableOpacity>
                     ))}
@@ -283,23 +281,23 @@ export default function EditAlertScreen() {
               {/* التاريخ والوقت */}
               <ThemedView style={styles.row}>
                 <ThemedView style={[styles.section, { flex: 1, marginRight: 10 }]}>
-                  <ThemedText style={styles.sectionTitle}>التاريخ</ThemedText>
+                  <ThemedText style={[styles.sectionTitle, getTextDirection()]}>التاريخ</ThemedText>
                   <TextInput
-                    style={styles.textInput}
+                    style={[styles.textInput, getTextDirection()]}
                     value={date}
                     onChangeText={setDate}
-                    placeholder="YYYY-MM-DD"
+                    placeholder={formatRTLText('YYYY-MM-DD')}
                     textAlign="right"
                   />
                 </ThemedView>
                 
                 <ThemedView style={[styles.section, { flex: 1, marginLeft: 10 }]}>
-                  <ThemedText style={styles.sectionTitle}>الوقت</ThemedText>
+                  <ThemedText style={[styles.sectionTitle, getTextDirection()]}>الوقت</ThemedText>
                   <TextInput
-                    style={styles.textInput}
+                    style={[styles.textInput, getTextDirection()]}
                     value={time}
                     onChangeText={setTime}
-                    placeholder="HH:MM"
+                    placeholder={formatRTLText('HH:MM')}
                     textAlign="right"
                   />
                 </ThemedView>
@@ -307,7 +305,7 @@ export default function EditAlertScreen() {
 
               {/* الأولوية */}
               <ThemedView style={styles.section}>
-                <ThemedText style={styles.sectionTitle}>الأولوية</ThemedText>
+                <ThemedText style={[styles.sectionTitle, getTextDirection()]}>الأولوية</ThemedText>
                 <ThemedView style={styles.optionsRow}>
                   {priorities.map((item) => (
                     <TouchableOpacity
@@ -322,11 +320,8 @@ export default function EditAlertScreen() {
                         styles.priorityDot,
                         { backgroundColor: item.color }
                       ]} />
-                      <ThemedText style={[
-                        styles.optionText,
-                        priority === item.value && { color: item.color, fontWeight: 'bold' }
-                      ]}>
-                        {item.label}
+                      <ThemedText style={[styles.optionText, getTextDirection(), priority === item.value && { color: item.color, fontWeight: 'bold' }]}> 
+                        {formatRTLText(item.label)}
                       </ThemedText>
                     </TouchableOpacity>
                   ))}
@@ -335,7 +330,7 @@ export default function EditAlertScreen() {
 
               {/* التكرار */}
               <ThemedView style={styles.section}>
-                <ThemedText style={styles.sectionTitle}>التكرار</ThemedText>
+                <ThemedText style={[styles.sectionTitle, getTextDirection()]}>التكرار</ThemedText>
                 <ScrollView horizontal showsHorizontalScrollIndicator={false}>
                   <ThemedView style={styles.optionsRow}>
                     {repeatOptions.map((item) => (
@@ -347,11 +342,8 @@ export default function EditAlertScreen() {
                         ]}
                         onPress={() => setRepeat(item.value as AlertItem['repeat'])}
                       >
-                        <ThemedText style={[
-                          styles.optionText,
-                          repeat === item.value && { color: '#007AFF', fontWeight: 'bold' }
-                        ]}>
-                          {item.label}
+                        <ThemedText style={[styles.optionText, getTextDirection(), repeat === item.value && { color: '#007AFF', fontWeight: 'bold' }]}> 
+                          {formatRTLText(item.label)}
                         </ThemedText>
                       </TouchableOpacity>
                     ))}
@@ -361,7 +353,7 @@ export default function EditAlertScreen() {
 
               {/* التذكير المسبق */}
               <ThemedView style={styles.section}>
-                <ThemedText style={styles.sectionTitle}>التذكير المسبق</ThemedText>
+                <ThemedText style={[styles.sectionTitle, getTextDirection()]}>التذكير المسبق</ThemedText>
                 <ScrollView horizontal showsHorizontalScrollIndicator={false}>
                   <ThemedView style={styles.optionsRow}>
                     {reminderOptions.map((item) => (
@@ -373,11 +365,8 @@ export default function EditAlertScreen() {
                         ]}
                         onPress={() => setReminderBefore(item.value)}
                       >
-                        <ThemedText style={[
-                          styles.optionText,
-                          reminderBefore === item.value && { color: '#007AFF', fontWeight: 'bold' }
-                        ]}>
-                          {item.label}
+                        <ThemedText style={[styles.optionText, getTextDirection(), reminderBefore === item.value && { color: '#007AFF', fontWeight: 'bold' }]}> 
+                          {formatRTLText(item.label)}
                         </ThemedText>
                       </TouchableOpacity>
                     ))}
@@ -396,11 +385,8 @@ export default function EditAlertScreen() {
                     name={active ? 'bell.fill' : 'bell.slash.fill'} 
                     color={active ? '#4CAF50' : '#999'} 
                   />
-                  <ThemedText style={[
-                    styles.toggleText,
-                    active && styles.toggleTextActive
-                  ]}>
-                    {active ? 'التنبيه نشط' : 'التنبيه معطل'}
+                  <ThemedText style={[styles.toggleText, getTextDirection(), active && styles.toggleTextActive]}> 
+                    {formatRTLText(active ? 'التنبيه نشط' : 'التنبيه معطل')}
                   </ThemedText>
                   <IconSymbol 
                     size={20} 
@@ -417,8 +403,8 @@ export default function EditAlertScreen() {
                   onPress={saveAlert}
                 >
                   <IconSymbol size={20} name="checkmark.circle.fill" color="#fff" />
-                  <ThemedText style={styles.actionButtonText}>
-                    {alert?.title === `تنبيه ${alert?.type} جديد` ? 'إضافة التنبيه' : 'حفظ التغييرات'}
+                  <ThemedText style={[styles.actionButtonText, getTextDirection()]}> 
+                    {formatRTLText(alert?.title === `تنبيه ${alert?.type} جديد` ? 'إضافة التنبيه' : 'حفظ التغييرات')}
                   </ThemedText>
                 </TouchableOpacity>
 
@@ -427,12 +413,16 @@ export default function EditAlertScreen() {
                   onPress={deleteAlert}
                 >
                   <IconSymbol size={20} name="trash.fill" color="#fff" />
-                  <ThemedText style={styles.actionButtonText}>حذف التنبيه</ThemedText>
+                  <ThemedText style={[styles.actionButtonText, getTextDirection()]}> 
+                    {formatRTLText('حذف التنبيه')}
+                  </ThemedText>
                 </TouchableOpacity>
               </ThemedView>
             </ThemedView>
           </ScrollView>
-      </ImageBackground>
+          
+          <BottomNavigationBar />
+        </ImageBackground>
     </ThemedView>
   );
 }

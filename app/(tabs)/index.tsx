@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { Image, StyleSheet, TouchableOpacity, I18nManager, ImageBackground, Alert, KeyboardAvoidingView, ScrollView, Platform, StatusBar, Animated } from 'react-native';
+import { Image, StyleSheet, TouchableOpacity, ImageBackground, KeyboardAvoidingView, ScrollView, Platform, StatusBar, Animated } from 'react-native';
 
 import { ThemedText } from '@/components/ThemedText';
 import { ThemedView } from '@/components/ThemedView';
@@ -7,15 +7,17 @@ import { IconSymbol } from '@/components/ui/IconSymbol';
 import { VersionTracker } from '@/components/VersionTracker';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useRouter, useNavigation } from 'expo-router';
-import AuthService, { User } from '@/services/AuthService';
+
+import { getTextDirection, formatRTLText } from '@/utils/rtl-utils';
+import AuthService from '@/services/AuthService';
 
 export default function HomeScreen() {
   const router = useRouter();
   const navigation = useNavigation();
-  const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [currentScreen, setCurrentScreen] = useState('welcome');
-  const [userInfo, setUserInfo] = useState<User | null>(null);
   const [teacherName, setTeacherName] = useState('المعلم');
+  const [userInfo, setUserInfo] = useState(null);
+  const [isLoggedIn, setIsLoggedIn] = useState(false);
   
   // متغير للدوران
   const rotateAnim = useRef(new Animated.Value(0)).current;
@@ -92,20 +94,42 @@ export default function HomeScreen() {
 
   const checkLoginStatus = async () => {
     try {
-      const userToken = await AsyncStorage.getItem('userToken');
-      if (userToken) {
-        const userData = await AsyncStorage.getItem('userInfo');
-        if (userData) {
-          const user = JSON.parse(userData);
-          setUserInfo(user);
-          setIsLoggedIn(true);
-          setCurrentScreen('dashboard');
-          // تحديث اسم المعلم عند تسجيل الدخول
-          if (user.name) {
-            const firstName = user.name.split(' ')[0];
-            setTeacherName(firstName);
+      // المحاولة الأولى: جلسة Supabase الفعلية
+      let user = await AuthService.checkAuthStatus();
+
+      // في الويب أحياناً لا تُحمَّل الجلسة بشكل صحيح، فنستخدم نسخة محلية محفوظة
+      if (!user) {
+        const storedUser = await AsyncStorage.getItem('userInfo');
+        if (storedUser) {
+          try {
+            user = JSON.parse(storedUser);
+          } catch {
+            user = null;
           }
         }
+      }
+
+      if (user) {
+        const userData = await AsyncStorage.getItem('userInfo');
+        
+        if (userData) {
+          const parsedUser = JSON.parse(userData);
+          
+          setUserInfo(parsedUser);
+          setIsLoggedIn(true);
+          setCurrentScreen('dashboard');
+          
+          if (parsedUser.name) {
+            const firstName = parsedUser.name.split(' ')[0];
+            setTeacherName(firstName);
+          }
+        } else {
+          setUserInfo(user as any);
+          setIsLoggedIn(true);
+          setCurrentScreen('dashboard');
+        }
+      } else {
+        // لا توجد جلسة ولا مستخدم محلي -> نبقي على شاشة الترحيب
       }
     } catch (error) {
       console.log('Error checking login status:', error);
@@ -131,6 +155,8 @@ export default function HomeScreen() {
     }
   };
 
+  console.log('Current screen:', currentScreen, 'isLoggedIn:', isLoggedIn, 'userInfo:', userInfo);
+  
   if (currentScreen === 'welcome') {
     return (
       <KeyboardAvoidingView
@@ -170,11 +196,12 @@ export default function HomeScreen() {
                   />
                 </Animated.View>
               </ThemedView>
-              <ThemedText type="title" style={[styles.title, { backgroundColor: 'transparent' }]}>
-
+              <ThemedText type="title" style={[styles.title, getTextDirection(), { backgroundColor: 'transparent' }]}> 
+            
               </ThemedText>
-              <ThemedText style={[styles.subtitle, { textAlign: 'center', fontSize: 20, color: '#1c1f33', backgroundColor: 'transparent' }]}>
-                منصتك المتكاملة لإدارة وعرض إنجازاتك المهنية
+              {/* استعادة العبارة كـ subtitle */}
+              <ThemedText style={[styles.subtitle, getTextDirection(), { textAlign: 'center', fontSize: 20, color: '#1c1f33', backgroundColor: 'transparent' }]}> 
+                {formatRTLText('منصتك المتكاملة لإدارة وعرض إنجازاتك المهنية')}
               </ThemedText>
             </ThemedView>
 
@@ -187,14 +214,24 @@ export default function HomeScreen() {
               </ThemedView>
             </ThemedView>
 
-            <TouchableOpacity 
-              style={[styles.getStartedButton, { backgroundColor: 'rgba(173, 212, 206, 0.9)' }]}
-              onPress={handleGetStarted}
-            >
-              <ThemedText style={[styles.buttonText, { backgroundColor: 'transparent' }]}>
-                ابدأ الآن
-              </ThemedText>
-            </TouchableOpacity>
+            <ThemedView style={[styles.welcomeButtons, { backgroundColor: 'transparent' }]}>
+              <TouchableOpacity 
+                style={[styles.getStartedButton, { backgroundColor: 'rgba(173, 212, 206, 0.9)' }]}
+                onPress={handleGetStarted}
+              >
+                <ThemedText style={[styles.buttonText, getTextDirection(), { backgroundColor: 'transparent' }]}> 
+                  {formatRTLText('ابدأ الآن')}
+                </ThemedText>
+              </TouchableOpacity>
+              <TouchableOpacity 
+                style={[styles.loginLinkButton, { backgroundColor: 'transparent' }]}
+                onPress={() => router.push('/login')}
+              >
+                <ThemedText style={[styles.loginLinkText, getTextDirection(), { backgroundColor: 'transparent' }]}> 
+                  {formatRTLText('لديك حساب؟ تسجيل الدخول')}
+                </ThemedText>
+              </TouchableOpacity>
+            </ThemedView>
 
             <VersionTracker 
               showBuildInfo={false}
@@ -235,11 +272,11 @@ export default function HomeScreen() {
                 <ThemedView style={styles.iconContainer}>
                   <IconSymbol size={60} name="person.circle.fill" color="#1c1f33" />
                 </ThemedView>
-                <ThemedText type="title" style={styles.title}>
-                  مرحباً {teacherName}
+                <ThemedText type="title" style={[styles.title, getTextDirection()]}> 
+                  {formatRTLText(`مرحباً ${teacherName}`)}
                 </ThemedText>
-                <ThemedText style={styles.subtitle}>
-                  لوحة التحكم الرئيسية
+                <ThemedText style={[styles.subtitle, getTextDirection()]}> 
+                  {formatRTLText('لوحة التحكم الرئيسية')}
                 </ThemedText>
                 
                 <ThemedView style={styles.headerButtons}>
@@ -248,7 +285,7 @@ export default function HomeScreen() {
                     onPress={() => router.push('/settings')}
                   >
                     <IconSymbol size={20} name="wrench.fill" color="#1c1f33" />
-                    <ThemedText style={styles.headerButtonText}>الإعدادات</ThemedText>
+                    <ThemedText style={[styles.headerButtonText, getTextDirection()]}>الإعدادات</ThemedText>
                   </TouchableOpacity>
                   
                   <TouchableOpacity 
@@ -256,7 +293,7 @@ export default function HomeScreen() {
                     onPress={handleLogout}
                   >
                     <IconSymbol size={20} name="arrow.right.square" color="#1c1f33" />
-                    <ThemedText style={styles.headerButtonText}>تسجيل الخروج</ThemedText>
+                    <ThemedText style={[styles.headerButtonText, getTextDirection()]}>تسجيل الخروج</ThemedText>
                   </TouchableOpacity>
                 </ThemedView>
               </ThemedView>
@@ -270,41 +307,8 @@ export default function HomeScreen() {
                     <ThemedView style={styles.toolIconWrapper}>
                       <IconSymbol size={28} name="doc.text.fill" color="#1c1f33" />
                     </ThemedView>
-                    <ThemedText style={styles.toolTitle}>أذكاري</ThemedText>
-                    <ThemedText style={styles.toolDescription}>مجموعة من الأذكار اليومية المفيدة</ThemedText>
-                  </TouchableOpacity>
-
-                  <TouchableOpacity 
-                    style={styles.toolCard}
-                    onPress={() => router.push('/interactive-report')}
-                  >
-                    <ThemedView style={styles.toolIconWrapper}>
-                      <IconSymbol size={28} name="chart.line.uptrend.xyaxis" color="#1c1f33" />
-                    </ThemedView>
-                    <ThemedText style={styles.toolTitle}>التقرير التفاعلي للأداء المهني</ThemedText>
-                    <ThemedText style={styles.toolDescription}>تقييم وتحليل أدائك المهني كمعلم</ThemedText>
-                  </TouchableOpacity>
-
-                  <TouchableOpacity 
-                    style={styles.toolCard}
-                    onPress={() => router.push('/student-tracking')}
-                  >
-                    <ThemedView style={styles.toolIconWrapper}>
-                      <IconSymbol size={28} name="person.crop.circle.badge.plus" color="#1c1f33" />
-                    </ThemedView>
-                    <ThemedText style={styles.toolTitle}>تتبع حالة المتعلمين</ThemedText>
-                    <ThemedText style={styles.toolDescription}>متابعة وتقييم حالة الطلاب</ThemedText>
-                  </TouchableOpacity>
-
-                  <TouchableOpacity 
-                    style={styles.toolCard}
-                    onPress={() => router.push('/password-tracker')}
-                  >
-                    <ThemedView style={styles.toolIconWrapper}>
-                      <IconSymbol size={28} name="lock.shield.fill" color="#1c1f33" />
-                    </ThemedView>
-                    <ThemedText style={styles.toolTitle}>متتبع المواقع وكلمات المرور</ThemedText>
-                    <ThemedText style={styles.toolDescription}>إدارة كلمات المرور والمواقع المهمة</ThemedText>
+                    <ThemedText style={[styles.toolTitle, getTextDirection()]}>أذكاري</ThemedText>
+                    <ThemedText style={[styles.toolDescription, getTextDirection()]}>مجموعة من الأذكار اليومية المفيدة</ThemedText>
                   </TouchableOpacity>
 
                   <TouchableOpacity 
@@ -314,10 +318,42 @@ export default function HomeScreen() {
                     <ThemedView style={styles.toolIconWrapper}>
                       <IconSymbol size={28} name="calendar" color="#1c1f33" />
                     </ThemedView>
-                    <ThemedText style={styles.toolTitle}>الجدول</ThemedText>
-                    <ThemedText style={styles.toolDescription}>إدارة الجدول الدراسي والحصص</ThemedText>
+                    <ThemedText style={[styles.toolTitle, getTextDirection()]}>الجدول</ThemedText>
+                    <ThemedText style={[styles.toolDescription, getTextDirection()]}>إدارة الجدول الدراسي والحصص</ThemedText>
                   </TouchableOpacity>
 
+                  <TouchableOpacity 
+                    style={styles.toolCard}
+                    onPress={() => router.push('/interactive-report')}
+                  >
+                    <ThemedView style={styles.toolIconWrapper}>
+                      <IconSymbol size={28} name="chart.line.uptrend.xyaxis" color="#1c1f33" />
+                    </ThemedView>
+                    <ThemedText style={[styles.toolTitle, getTextDirection()]}>التقرير التفاعلي للأداء المهني</ThemedText>
+                    <ThemedText style={[styles.toolDescription, getTextDirection()]}>تقييم وتحليل أدائك المهني كمعلم</ThemedText>
+                  </TouchableOpacity>
+
+                  <TouchableOpacity 
+                    style={styles.toolCard}
+                    onPress={() => router.push('/student-tracking')}
+                  >
+                    <ThemedView style={styles.toolIconWrapper}>
+                      <IconSymbol size={28} name="person.crop.circle.badge.plus" color="#1c1f33" />
+                    </ThemedView>
+                    <ThemedText style={[styles.toolTitle, getTextDirection()]}>تتبع حالة المتعلمين</ThemedText>
+                    <ThemedText style={[styles.toolDescription, getTextDirection()]}>متابعة وتقييم حالة الطلاب</ThemedText>
+                  </TouchableOpacity>
+
+                  <TouchableOpacity 
+                    style={styles.toolCard}
+                    onPress={() => router.push('/password-tracker')}
+                  >
+                    <ThemedView style={styles.toolIconWrapper}>
+                      <IconSymbol size={28} name="lock.shield.fill" color="#1c1f33" />
+                    </ThemedView>
+                    <ThemedText style={[styles.toolTitle, getTextDirection()]}>متتبع المواقع وكلمات المرور</ThemedText>
+                    <ThemedText style={[styles.toolDescription, getTextDirection()]}>إدارة كلمات المرور والمواقع المهمة</ThemedText>
+                  </TouchableOpacity>
 
                 </ThemedView>
               </ThemedView>
@@ -473,6 +509,20 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
     textAlign: 'center',
   },
+  welcomeButtons: {
+    alignItems: 'center',
+    gap: 12,
+    marginTop: 4,
+  },
+  loginLinkButton: {
+    paddingVertical: 10,
+    paddingHorizontal: 20,
+  },
+  loginLinkText: {
+    color: '#1c1f33',
+    fontSize: 15,
+    textDecorationLine: 'underline',
+  },
 
   backButton: {
     position: 'absolute',
@@ -496,7 +546,7 @@ const styles = StyleSheet.create({
     gap: 15,
   },
   loginButton: {
-    flexDirection: I18nManager.isRTL ? 'row-reverse' : 'row',
+    flexDirection: 'row-reverse', // RTL for Arabic app
     alignItems: 'center',
     justifyContent: 'center',
     backgroundColor: '#add4ce',

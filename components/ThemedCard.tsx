@@ -1,5 +1,5 @@
 import React from 'react';
-import { StyleSheet, ViewStyle } from 'react-native';
+import { StyleSheet } from 'react-native';
 import { ThemedView } from '@/components/ThemedView';
 import { StyleProps } from '@/types';
 

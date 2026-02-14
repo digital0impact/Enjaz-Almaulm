@@ -43,12 +43,11 @@ export class BackupService {
         console.error('خطأ في الحصول على المستخدم:', error);
         throw new Error('خطأ في المصادقة: ' + error.message);
       }
-      
+
       if (!user) {
         throw new Error('المستخدم غير مسجل الدخول');
       }
 
-      console.log('تم الحصول على معرف المستخدم:', user.id);
       this.currentUserId = user.id;
       return user.id;
     } catch (error) {
@@ -296,7 +295,7 @@ export class BackupService {
         }
       }
       
-      console.log('تم جمع البيانات المحلية:', Object.keys(localData));
+      console.log('تم جمع البيانات المحلية:', localData ? Object.keys(localData) : []);
     } catch (error) {
       console.error('خطأ في جمع البيانات المحلية:', error);
       logError('خطأ في جمع البيانات المحلية', 'BackupService', error);
@@ -348,10 +347,10 @@ export class BackupService {
         localData,
         databaseData,
         summary: {
-          localDataKeys: Object.keys(localData),
-          databaseTables: Object.keys(databaseData),
-          totalLocalItems: Object.keys(localData).length,
-          totalDatabaseRecords: Object.values(databaseData).reduce((sum: number, table: any) => sum + (Array.isArray(table) ? table.length : 0), 0)
+          localDataKeys: localData ? Object.keys(localData) : [],
+          databaseTables: databaseData ? Object.keys(databaseData) : [],
+          totalLocalItems: localData ? Object.keys(localData).length : 0,
+          totalDatabaseRecords: databaseData ? Object.values(databaseData).reduce((sum: number, table: any) => sum + (Array.isArray(table) ? table.length : 0), 0) : 0
         }
       };
 
@@ -377,7 +376,7 @@ export class BackupService {
     try {
       const timestamp = new Date().toISOString().replace(/[:.]/g, '-');
       const fileName = `backup-${userId}-${timestamp}.json`;
-      const filePath = `${userId}/${fileName}`;
+      let filePath = `${userId}/${fileName}`;
 
       console.log('رفع الملف إلى Storage:', filePath);
 
@@ -513,9 +512,9 @@ export class BackupService {
       await AsyncStorage.multiRemove(keys);
 
       // استعادة البيانات من النسخة الاحتياطية
-      const restorePromises = Object.entries(localData).map(([key, value]) =>
+      const restorePromises = localData ? Object.entries(localData).map(([key, value]) =>
         AsyncStorage.setItem(key, value as string)
-      );
+      ) : [];
 
       await Promise.all(restorePromises);
     } catch (error) {

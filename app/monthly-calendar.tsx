@@ -7,6 +7,7 @@ import { useRouter } from 'expo-router';
 import { useGlobalTheme } from '@/hooks/useGlobalTheme';
 import { BottomNavigationBar } from '@/components/BottomNavigationBar';
 import { commonStyles } from '@/styles/common-styles';
+import { getTextDirection, formatRTLText } from '@/utils/rtl-utils';
 
 export default function MonthlyCalendarScreen() {
   const router = useRouter();
@@ -146,11 +147,11 @@ export default function MonthlyCalendarScreen() {
           <ThemedView style={styles.iconContainer}>
             <IconSymbol size={60} name="calendar" color="#1c1f33" />
           </ThemedView>
-          <ThemedText type="title" style={styles.title}>
-            التقويم الشهري
+          <ThemedText type="title" style={[styles.title, getTextDirection()]}> 
+            {formatRTLText('التقويم الشهري')}
           </ThemedText>
-          <ThemedText style={styles.subtitle}>
-            تصفح الأيام والشهور وإدارة الأحداث
+          <ThemedText style={[styles.subtitle, getTextDirection()]}> 
+            {formatRTLText('تصفح الأيام والشهور وإدارة الأحداث')}
           </ThemedText>
         </ThemedView>
 
@@ -196,25 +197,25 @@ export default function MonthlyCalendarScreen() {
 
           {/* Legend */}
           <ThemedView style={[styles.legend, { backgroundColor: colors.surface }]}>
-            <ThemedText style={[styles.legendTitle, { color: colors.text }]}>
-              📋 مفتاح الألوان:
+            <ThemedText style={[styles.legendTitle, getTextDirection(), { color: colors.text }]}> 
+              {formatRTLText('📋 مفتاح الألوان:')}
             </ThemedText>
             <ThemedView style={styles.legendItems}>
               <ThemedView style={styles.legendItem}>
                 <View style={[styles.legendColor, { backgroundColor: colors.primary }]} />
-                <ThemedText style={[styles.legendText, { color: colors.text }]}>اليوم الحالي</ThemedText>
+                <ThemedText style={[styles.legendText, getTextDirection(), { color: colors.text }]}>اليوم الحالي</ThemedText>
               </ThemedView>
               <ThemedView style={styles.legendItem}>
                 <View style={[styles.legendColor, { backgroundColor: colors.primary }]} />
-                <ThemedText style={[styles.legendText, { color: colors.text }]}>اليوم المحدد</ThemedText>
+                <ThemedText style={[styles.legendText, getTextDirection(), { color: colors.text }]}>اليوم المحدد</ThemedText>
               </ThemedView>
             </ThemedView>
           </ThemedView>
 
           {/* Quick Actions */}
           <ThemedView style={[styles.quickActions, { backgroundColor: colors.surface }]}>
-            <ThemedText style={[styles.sectionTitle, { color: colors.text }]}>
-              ⚡ إجراءات سريعة
+            <ThemedText style={[styles.sectionTitle, getTextDirection(), { color: colors.text }]}> 
+              {formatRTLText('⚡ إجراءات سريعة')}
             </ThemedText>
             
             <TouchableOpacity
@@ -222,8 +223,8 @@ export default function MonthlyCalendarScreen() {
               onPress={() => Alert.alert('اليوم', 'الانتقال إلى تاريخ اليوم')}
             >
               <IconSymbol size={20} name="calendar.badge.clock" color="#fff" />
-              <ThemedText style={[styles.actionButtonText, commonStyles.primaryButtonText]}>
-                الانتقال لليوم
+              <ThemedText style={[styles.actionButtonText, getTextDirection(), commonStyles.primaryButtonText]}> 
+                {formatRTLText('الانتقال لليوم')}
               </ThemedText>
             </TouchableOpacity>
 
@@ -232,8 +233,8 @@ export default function MonthlyCalendarScreen() {
               onPress={() => Alert.alert('إضافة حدث', 'إضافة حدث جديد للتقويم')}
             >
               <IconSymbol size={20} name="plus.circle" color={colors.primary} />
-              <ThemedText style={[styles.actionButtonText, commonStyles.secondaryButtonText]}>
-                إضافة حدث جديد
+              <ThemedText style={[styles.actionButtonText, getTextDirection(), commonStyles.secondaryButtonText]}> 
+                {formatRTLText('إضافة حدث جديد')}
               </ThemedText>
             </TouchableOpacity>
 
@@ -242,8 +243,8 @@ export default function MonthlyCalendarScreen() {
               onPress={() => Alert.alert('عرض الأحداث', 'عرض جميع أحداث الشهر')}
             >
               <IconSymbol size={20} name="list.bullet" color={colors.primary} />
-              <ThemedText style={[styles.actionButtonText, commonStyles.secondaryButtonText]}>
-                عرض أحداث الشهر
+              <ThemedText style={[styles.actionButtonText, getTextDirection(), commonStyles.secondaryButtonText]}> 
+                {formatRTLText('عرض أحداث الشهر')}
               </ThemedText>
             </TouchableOpacity>
           </ThemedView>

@@ -3,6 +3,7 @@ import { StyleSheet, ImageBackground } from 'react-native';
 
 import { ThemedText } from '@/components/ThemedText';
 import { ThemedView } from '@/components/ThemedView';
+import { getTextDirection, formatRTLText } from '@/utils/rtl-utils';
 
 export default function NotFoundScreen() {
   return (
@@ -14,9 +15,13 @@ export default function NotFoundScreen() {
         resizeMode="cover"
       >
         <ThemedView style={styles.container}>
-          <ThemedText type="title">This screen does not exist.</ThemedText>
+          <ThemedText type="title" style={getTextDirection()}>
+            {formatRTLText('هذه الصفحة غير موجودة.')}
+          </ThemedText>
           <Link href="/" style={styles.link}>
-            <ThemedText type="link">Go to home screen!</ThemedText>
+            <ThemedText type="link" style={getTextDirection()}>
+              {formatRTLText('العودة للصفحة الرئيسية!')}
+            </ThemedText>
           </Link>
         </ThemedView>
       </ImageBackground>

@@ -8,6 +8,7 @@ import { useRouter } from 'expo-router';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { BottomNavigationBar } from '@/components/BottomNavigationBar';
 import { commonStyles } from '@/styles/common-styles';
+import { getTextDirection, formatRTLText } from '@/utils/rtl-utils';
 
 interface AbsenceRecord {
   id: string;
@@ -173,11 +174,11 @@ export default function AbsenceManagementScreen() {
                 <IconSymbol size={60} name="person.crop.circle.badge.xmark" color="#1c1f33" />
               </ThemedView>
 
-              <ThemedText type="title" style={styles.title}>
-                إدارة الغياب
+              <ThemedText type="title" style={[styles.title, getTextDirection()]}> 
+                {formatRTLText('إدارة الغياب')}
               </ThemedText>
-              <ThemedText style={styles.subtitle}>
-                متتبع شامل لسجلات الغياب والإحصائيات
+              <ThemedText style={[styles.subtitle, getTextDirection()]}> 
+                {formatRTLText('متتبع شامل لسجلات الغياب والإحصائيات')}
               </ThemedText>
             </ThemedView>
 
@@ -190,14 +191,14 @@ export default function AbsenceManagementScreen() {
                 <ThemedView style={styles.addAbsenceIconWrapper}>
                   <IconSymbol size={32} name="plus.circle.fill" color="#1c1f33" />
                 </ThemedView>
-                <ThemedText style={styles.addAbsenceTitle}>إضافة غياب جديد</ThemedText>
-                <ThemedText style={styles.addAbsenceDescription}>تسجيل يوم غياب جديد مع تحديد السبب والفترة</ThemedText>
+                <ThemedText style={[styles.addAbsenceTitle, getTextDirection()]}>إضافة غياب جديد</ThemedText>
+                <ThemedText style={[styles.addAbsenceDescription, getTextDirection()]}>تسجيل يوم غياب جديد مع تحديد السبب والفترة</ThemedText>
               </TouchableOpacity>
 
               {/* إحصائيات سريعة */}
               <ThemedView style={styles.statsContainer}>
-                <ThemedText type="subtitle" style={styles.sectionTitle}>
-                  الإحصائيات السريعة
+                <ThemedText type="subtitle" style={[styles.sectionTitle, getTextDirection()]}> 
+                  {formatRTLText('الإحصائيات السريعة')}
                 </ThemedText>
 
                 <ThemedView style={styles.statsGrid}>
@@ -206,7 +207,7 @@ export default function AbsenceManagementScreen() {
                       <IconSymbol size={28} name="chart.bar.fill" color="#1c1f33" />
                     </ThemedView>
                     <ThemedView style={styles.statContent}>
-                      <ThemedText style={styles.statLabel}>إجمالي الغياب</ThemedText>
+                      <ThemedText style={[styles.statLabel, getTextDirection()]}>إجمالي الغياب</ThemedText>
                       <ThemedText style={styles.statNumber}>{stats.totalAbsences}</ThemedText>
                     </ThemedView>
                   </ThemedView>
@@ -216,7 +217,7 @@ export default function AbsenceManagementScreen() {
                       <IconSymbol size={28} name="checkmark.circle.fill" color="#1c1f33" />
                     </ThemedView>
                     <ThemedView style={styles.statContent}>
-                      <ThemedText style={styles.statLabel}>بعذر</ThemedText>
+                      <ThemedText style={[styles.statLabel, getTextDirection()]}>بعذر</ThemedText>
                       <ThemedText style={styles.statNumber}>{stats.withExcuse}</ThemedText>
                     </ThemedView>
                   </ThemedView>
@@ -226,7 +227,7 @@ export default function AbsenceManagementScreen() {
                       <IconSymbol size={28} name="xmark.circle.fill" color="#1c1f33" />
                     </ThemedView>
                     <ThemedView style={styles.statContent}>
-                      <ThemedText style={styles.statLabel}>بدون عذر</ThemedText>
+                      <ThemedText style={[styles.statLabel, getTextDirection()]}>بدون عذر</ThemedText>
                       <ThemedText style={styles.statNumber}>{stats.withoutExcuse}</ThemedText>
                     </ThemedView>
                   </ThemedView>
@@ -236,7 +237,7 @@ export default function AbsenceManagementScreen() {
                       <IconSymbol size={28} name="calendar.circle.fill" color="#1c1f33" />
                     </ThemedView>
                     <ThemedView style={styles.statContent}>
-                      <ThemedText style={styles.statLabel}>هذا الشهر</ThemedText>
+                      <ThemedText style={[styles.statLabel, getTextDirection()]}>هذا الشهر</ThemedText>
                       <ThemedText style={styles.statNumber}>{stats.thisMonth}</ThemedText>
                     </ThemedView>
                   </ThemedView>
@@ -245,18 +246,18 @@ export default function AbsenceManagementScreen() {
 
               {/* قائمة سجلات الغياب */}
               <ThemedView style={styles.recordsContainer}>
-                <ThemedText type="subtitle" style={styles.sectionTitle}>
-                  سجلات الغياب ({absenceRecords.length})
+                <ThemedText type="subtitle" style={[styles.sectionTitle, getTextDirection()]}> 
+                  {formatRTLText(`سجلات الغياب (${absenceRecords.length})`)}
                 </ThemedText>
 
                 {absenceRecords.length === 0 ? (
                   <ThemedView style={styles.emptyState}>
                     <IconSymbol size={60} name="doc.text" color="#CCCCCC" />
-                    <ThemedText style={styles.emptyStateText}>
-                      لا توجد سجلات غياب
+                    <ThemedText style={[styles.emptyStateText, getTextDirection()]}> 
+                      {formatRTLText('لا توجد سجلات غياب')}
                     </ThemedText>
-                    <ThemedText style={styles.emptyStateSubtext}>
-                      اضغط على «إضافة غياب جديد» لبدء التسجيل
+                    <ThemedText style={[styles.emptyStateSubtext, getTextDirection()]}> 
+                      {formatRTLText('اضغط على «إضافة غياب جديد» لبدء التسجيل')}
                     </ThemedText>
                   </ThemedView>
                 ) : (
@@ -268,7 +269,7 @@ export default function AbsenceManagementScreen() {
                           <ThemedView style={styles.recordHeader}>
                             <ThemedView style={styles.recordTypeContainer}>
                               <IconSymbol size={24} name={typeIcon.name as any} color={typeIcon.color} />
-                              <ThemedText style={styles.recordType}>{record.type}</ThemedText>
+                              <ThemedText style={[styles.recordType, getTextDirection()]}>{record.type}</ThemedText>
                             </ThemedView>
                             <TouchableOpacity
                               style={styles.deleteButton}
@@ -281,7 +282,7 @@ export default function AbsenceManagementScreen() {
                           <ThemedView style={styles.recordDetails}>
                             <ThemedView style={styles.recordDetail}>
                               <IconSymbol size={16} name="calendar" color="#666" />
-                              <ThemedText style={styles.recordDetailText}>
+                              <ThemedText style={[styles.recordDetailText, getTextDirection()]}> 
                                 {formatDate(record.date)}
                               </ThemedText>
                             </ThemedView>
@@ -292,16 +293,16 @@ export default function AbsenceManagementScreen() {
                                 name={record.withExcuse ? "checkmark.circle.fill" : "xmark.circle.fill"} 
                                 color={record.withExcuse ? "#4ECDC4" : "#FF6B6B"} 
                               />
-                              <ThemedText style={styles.recordDetailText}>
-                                {record.withExcuse ? 'بعذر' : 'بدون عذر'}
+                              <ThemedText style={[styles.recordDetailText, getTextDirection()]}> 
+                                {record.withExcuse ? formatRTLText('بعذر') : formatRTLText('بدون عذر')}
                               </ThemedText>
                             </ThemedView>
 
                             {record.reason && (
                               <ThemedView style={styles.recordDetail}>
                                 <IconSymbol size={16} name="text.bubble" color="#666" />
-                                <ThemedText style={styles.recordDetailText}>
-                                  {record.reason}
+                                <ThemedText style={[styles.recordDetailText, getTextDirection()]}> 
+                                  {formatRTLText(record.reason)}
                                 </ThemedText>
                               </ThemedView>
                             )}

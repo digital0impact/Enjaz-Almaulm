@@ -5,7 +5,9 @@ import { FileManager } from '../components/FileManager';
 import { ThemedView } from '../components/ThemedView';
 import { ThemedText } from '../components/ThemedText';
 import { ThemedButton } from '../components/ThemedButton';
+import { BottomNavigationBar } from '@/components/BottomNavigationBar';
 import { FileAttachment } from '../services/StorageService';
+import { getTextDirection, formatRTLText } from '@/utils/rtl-utils';
 
 export default function FileManagementScreen() {
   const [selectedCategory, setSelectedCategory] = useState<string>('general');
@@ -66,14 +68,16 @@ export default function FileManagementScreen() {
         />
 
         <View style={styles.header}>
-          <ThemedText style={styles.title}>نظام إدارة الملفات</ThemedText>
-          <ThemedText style={styles.subtitle}>
-            اختر فئة الملفات وابدأ في رفع وإدارة ملفاتك
+          <ThemedText style={[styles.title, getTextDirection()]}>
+            {formatRTLText('نظام إدارة الملفات')}
+          </ThemedText>
+          <ThemedText style={[styles.subtitle, getTextDirection()]}>
+            {formatRTLText('اختر فئة الملفات وابدأ في رفع وإدارة ملفاتك')}
           </ThemedText>
         </View>
 
         <View style={styles.categorySelector}>
-          <ThemedText style={styles.sectionTitle}>فئة الملفات:</ThemedText>
+          <ThemedText style={[styles.sectionTitle, getTextDirection()]}>فئة الملفات:</ThemedText>
           <View style={styles.categoryButtons}>
             <ThemedButton
               title="عامة"
@@ -111,19 +115,11 @@ export default function FileManagementScreen() {
         </View>
 
         <View style={styles.infoPanel}>
-          <ThemedText style={styles.infoTitle}>معلومات الفئة المختارة:</ThemedText>
-          <ThemedText style={styles.infoText}>
-            • الجدول المرتبط: {config.relatedTable}
-          </ThemedText>
-          <ThemedText style={styles.infoText}>
-            • الأنواع المسموحة: {config.allowedTypes.join(', ')}
-          </ThemedText>
-          <ThemedText style={styles.infoText}>
-            • الحد الأقصى: {config.maxFiles} ملفات
-          </ThemedText>
-          <ThemedText style={styles.infoText}>
-            • معرف السجل المرتبط: {relatedId}
-          </ThemedText>
+          <ThemedText style={[styles.infoTitle, getTextDirection()]}>معلومات الفئة المختارة:</ThemedText>
+          <ThemedText style={[styles.infoText, getTextDirection()]}>• الجدول المرتبط: {formatRTLText(config.relatedTable)}</ThemedText>
+          <ThemedText style={[styles.infoText, getTextDirection()]}>• الأنواع المسموحة: {formatRTLText(config.allowedTypes.join(', '))}</ThemedText>
+          <ThemedText style={[styles.infoText, getTextDirection()]}>• الحد الأقصى: {config.maxFiles} ملفات</ThemedText>
+          <ThemedText style={[styles.infoText, getTextDirection()]}>• معرف السجل المرتبط: {formatRTLText(relatedId)}</ThemedText>
         </View>
 
         <View style={styles.fileManagerContainer}>
@@ -159,6 +155,8 @@ export default function FileManagementScreen() {
             style={styles.actionButton}
           />
         </View>
+        
+        <BottomNavigationBar />
       </ThemedView>
     </ImageBackground>
   );

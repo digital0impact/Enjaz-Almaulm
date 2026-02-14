@@ -5,6 +5,7 @@ import { ThemedText } from './ThemedText';
 import { IconSymbol } from './ui/IconSymbol';
 import { useThemedStyles, useGlobalTheme } from '@/hooks/useGlobalTheme';
 import { useRouter } from 'expo-router';
+import { getTextDirection, formatRTLText } from '@/utils/rtl-utils';
 
 export type ThemedHeaderProps = {
   title: string;
@@ -42,7 +43,9 @@ export function ThemedHeader({
         </TouchableOpacity>
       )}
       
-      <ThemedText style={styles.headerTitle}>{title}</ThemedText>
+      <ThemedText style={[styles.headerTitle, getTextDirection()]}> 
+        {formatRTLText(title)}
+      </ThemedText>
       
       {rightButton ? (
         <TouchableOpacity style={styles.headerButton} onPress={rightButton.onPress}>

@@ -16,8 +16,8 @@ CREATE TABLE IF NOT EXISTS subscription_prices (
 -- إدراج الأسعار الافتراضية (فقط إذا لم تكن موجودة)
 INSERT INTO subscription_prices (plan_type, price, localized_price) 
 VALUES 
-    ('yearly', 50.00, '50 ريال / سنوياً'),
-    ('half_yearly', 30.00, '30 ريال / 6 أشهر')
+    ('yearly', 49.99, '49.99 ريال / سنوياً'),
+    ('half_yearly', 29.99, '29.99 ريال / 6 أشهر')
 ON CONFLICT (plan_type) DO NOTHING;
 
 -- إنشاء trigger لتحديث updated_at

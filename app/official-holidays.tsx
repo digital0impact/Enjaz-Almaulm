@@ -7,6 +7,7 @@ import { IconSymbol } from '@/components/ui/IconSymbol';
 import { useRouter } from 'expo-router';
 import { BottomNavigationBar } from '@/components/BottomNavigationBar';
 import { commonStyles } from '@/styles/common-styles';
+import { getTextDirection, formatRTLText } from '@/utils/rtl-utils';
 
 interface Holiday {
   id: string;
@@ -224,11 +225,11 @@ export default function OfficialHolidaysScreen() {
               <ThemedView style={styles.iconContainer}>
                 <IconSymbol size={48} name="calendar.badge.clock" color="#1c1f33" />
               </ThemedView>
-              <ThemedText type="title" style={styles.title}>
-                الإجازات الرسمية
+              <ThemedText type="title" style={[styles.title, getTextDirection()]}> 
+                {formatRTLText('الإجازات الرسمية')}
               </ThemedText>
-              <ThemedText style={styles.subtitle}>
-                تقويم شامل للإجازات والمناسبات الرسمية
+              <ThemedText style={[styles.subtitle, getTextDirection()]}> 
+                {formatRTLText('تقويم شامل للإجازات والمناسبات الرسمية')}
               </ThemedText>
             </ThemedView>
 
@@ -241,9 +242,9 @@ export default function OfficialHolidaysScreen() {
                   <IconSymbol size={32} name={getHolidayIcon(nextHoliday.category, nextHoliday.type)} color="#1c1f33" />
                 </ThemedView>
                 <ThemedView style={styles.nextHolidayInfo}>
-                  <ThemedText style={styles.nextHolidayLabel}>الإجازة القادمة</ThemedText>
-                  <ThemedText style={styles.nextHolidayName}>{nextHoliday.nameAr}</ThemedText>
-                  <ThemedText style={styles.nextHolidayDate}>
+                  <ThemedText style={[styles.nextHolidayLabel, getTextDirection()]}>الإجازة القادمة</ThemedText>
+                  <ThemedText style={[styles.nextHolidayName, getTextDirection()]}>{nextHoliday.nameAr}</ThemedText>
+                  <ThemedText style={[styles.nextHolidayDate, getTextDirection()]}>
                     {new Date(nextHoliday.date).toLocaleDateString('ar-SA')}
                     {nextHoliday.hijriDate && ` - ${nextHoliday.hijriDate}`}
                   </ThemedText>
@@ -253,7 +254,7 @@ export default function OfficialHolidaysScreen() {
                   <ThemedText style={styles.countdownLabel}>يوم</ThemedText>
                 </ThemedView>
               </ThemedView>
-              <ThemedText style={styles.nextHolidayDescription}>
+              <ThemedText style={[styles.nextHolidayDescription, getTextDirection()]}>
                 {nextHoliday.description}
               </ThemedText>
             </ThemedView>
@@ -261,8 +262,8 @@ export default function OfficialHolidaysScreen() {
 
           {/* فلترة الفئات */}
           <ThemedView style={styles.filterSection}>
-            <ThemedText type="subtitle" style={styles.sectionTitle}>
-              تصفية الإجازات
+            <ThemedText type="subtitle" style={[styles.sectionTitle, getTextDirection()]}> 
+              {formatRTLText('تصفية الإجازات')}
             </ThemedText>
             <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.filterContainer}>
               {[
@@ -286,9 +287,10 @@ export default function OfficialHolidaysScreen() {
                   />
                   <ThemedText style={[
                     styles.filterButtonText,
+                    getTextDirection(),
                     selectedCategory === filter.key && styles.filterButtonTextActive
                   ]}>
-                    {filter.label}
+                    {formatRTLText(filter.label)}
                   </ThemedText>
                 </TouchableOpacity>
               ))}
@@ -305,8 +307,8 @@ export default function OfficialHolidaysScreen() {
                 <IconSymbol size={18} name="plus" color="#fff" />
                 <ThemedText style={styles.addButtonText}>إضافة إجازة</ThemedText>
               </TouchableOpacity>
-              <ThemedText type="subtitle" style={styles.sectionTitle}>
-                إجازات العام 2025 ({filteredHolidays.length})
+              <ThemedText type="subtitle" style={[styles.sectionTitle, getTextDirection()]}> 
+                {formatRTLText(`إجازات العام 2025 (${filteredHolidays.length})`)}
               </ThemedText>
             </ThemedView>
 
@@ -339,14 +341,14 @@ export default function OfficialHolidaysScreen() {
                       </ThemedView>
 
                       <ThemedView style={styles.holidayInfo}>
-                        <ThemedText style={[styles.holidayName, isPast && styles.pastText]}>
+                        <ThemedText style={[styles.holidayName, getTextDirection(), isPast && styles.pastText]}>
                           {holiday.nameAr}
                         </ThemedText>
-                        <ThemedText style={[styles.holidayDate, isPast && styles.pastText]}>
+                        <ThemedText style={[styles.holidayDate, getTextDirection(), isPast && styles.pastText]}>
                           {new Date(holiday.date).toLocaleDateString('ar-SA')}
                           {holiday.hijriDate && ` • ${holiday.hijriDate}`}
                         </ThemedText>
-                        <ThemedText style={[styles.holidayDescription, isPast && styles.pastText]}>
+                        <ThemedText style={[styles.holidayDescription, getTextDirection(), isPast && styles.pastText]}>
                           {holiday.description}
                         </ThemedText>
                       </ThemedView>
@@ -354,20 +356,20 @@ export default function OfficialHolidaysScreen() {
                       <ThemedView style={styles.holidayMeta}>
                         {isToday ? (
                           <ThemedView style={styles.todayBadge}>
-                            <ThemedText style={styles.todayText}>اليوم</ThemedText>
+                            <ThemedText style={[styles.todayText, getTextDirection()]}>اليوم</ThemedText>
                           </ThemedView>
                         ) : isPast ? (
-                          <ThemedText style={styles.pastLabel}>انتهت</ThemedText>
+                          <ThemedText style={[styles.pastLabel, getTextDirection()]}>انتهت</ThemedText>
                         ) : (
                           <ThemedView style={styles.countdownSmall}>
                             <ThemedText style={styles.countdownSmallNumber}>{daysUntil}</ThemedText>
-                            <ThemedText style={styles.countdownSmallLabel}>يوم</ThemedText>
+                            <ThemedText style={[styles.countdownSmallLabel, getTextDirection()]}>يوم</ThemedText>
                           </ThemedView>
                         )}
 
                         {holiday.duration > 1 && (
                           <ThemedView style={styles.durationBadge}>
-                            <ThemedText style={styles.durationText}>
+                            <ThemedText style={[styles.durationText, getTextDirection()]}>
                               {holiday.duration} أيام
                             </ThemedText>
                           </ThemedView>
@@ -394,22 +396,22 @@ export default function OfficialHolidaysScreen() {
                   style={styles.cancelButton}
                   onPress={() => setShowAddModal(false)}
                 >
-                  <ThemedText style={styles.cancelButtonText}>إلغاء</ThemedText>
+                  <ThemedText style={[styles.cancelButtonText, getTextDirection()]}>إلغاء</ThemedText>
                 </TouchableOpacity>
-                <ThemedText type="title" style={styles.modalTitle}>
-                  إضافة إجازة جديدة
+                <ThemedText type="title" style={[styles.modalTitle, getTextDirection()]}> 
+                  {formatRTLText('إضافة إجازة جديدة')}
                 </ThemedText>
                 <TouchableOpacity 
                   style={styles.saveButton}
                   onPress={addNewHoliday}
                 >
-                  <ThemedText style={styles.saveButtonText}>حفظ</ThemedText>
+                  <ThemedText style={[styles.saveButtonText, getTextDirection()]}>حفظ</ThemedText>
                 </TouchableOpacity>
               </ThemedView>
 
               <ScrollView style={styles.modalContent}>
                 <ThemedView style={styles.inputGroup}>
-                  <ThemedText style={styles.inputLabel}>اسم الإجازة (بالعربية) *</ThemedText>
+                  <ThemedText style={[styles.inputLabel, getTextDirection()]}>اسم الإجازة (بالعربية) *</ThemedText>
                   <TextInput
                     style={styles.textInput}
                     value={newHoliday.nameAr}
@@ -420,7 +422,7 @@ export default function OfficialHolidaysScreen() {
                 </ThemedView>
 
                 <ThemedView style={styles.inputGroup}>
-                  <ThemedText style={styles.inputLabel}>اسم الإجازة (بالإنجليزية)</ThemedText>
+                  <ThemedText style={[styles.inputLabel, getTextDirection()]}>اسم الإجازة (بالإنجليزية)</ThemedText>
                   <TextInput
                     style={styles.textInput}
                     value={newHoliday.nameEn}
@@ -431,7 +433,7 @@ export default function OfficialHolidaysScreen() {
                 </ThemedView>
 
                 <ThemedView style={styles.inputGroup}>
-                  <ThemedText style={styles.inputLabel}>التاريخ *</ThemedText>
+                  <ThemedText style={[styles.inputLabel, getTextDirection()]}>التاريخ *</ThemedText>
                   <TextInput
                     style={styles.textInput}
                     value={newHoliday.date}
@@ -442,7 +444,7 @@ export default function OfficialHolidaysScreen() {
                 </ThemedView>
 
                 <ThemedView style={styles.inputGroup}>
-                  <ThemedText style={styles.inputLabel}>التاريخ الهجري</ThemedText>
+                  <ThemedText style={[styles.inputLabel, getTextDirection()]}>التاريخ الهجري</ThemedText>
                   <TextInput
                     style={styles.textInput}
                     value={newHoliday.hijriDate}
@@ -453,7 +455,7 @@ export default function OfficialHolidaysScreen() {
                 </ThemedView>
 
                 <ThemedView style={styles.inputGroup}>
-                  <ThemedText style={styles.inputLabel}>عدد الأيام</ThemedText>
+                  <ThemedText style={[styles.inputLabel, getTextDirection()]}>عدد الأيام</ThemedText>
                   <TextInput
                     style={styles.textInput}
                     value={newHoliday.duration.toString()}
@@ -465,7 +467,7 @@ export default function OfficialHolidaysScreen() {
                 </ThemedView>
 
                 <ThemedView style={styles.inputGroup}>
-                  <ThemedText style={styles.inputLabel}>الفئة</ThemedText>
+                  <ThemedText style={[styles.inputLabel, getTextDirection()]}>الفئة</ThemedText>
                   <ThemedView style={styles.categoryButtons}>
                     {(['national', 'religious', 'international'] as const).map((cat) => (
                       <TouchableOpacity
@@ -478,9 +480,10 @@ export default function OfficialHolidaysScreen() {
                       >
                         <ThemedText style={[
                           styles.categoryButtonText,
+                          getTextDirection(),
                           newHoliday.category === cat && styles.categoryButtonTextActive
                         ]}>
-                          {cat === 'national' ? 'وطنية' : cat === 'religious' ? 'دينية' : 'دولية'}
+                          {cat === 'national' ? formatRTLText('وطنية') : cat === 'religious' ? formatRTLText('دينية') : formatRTLText('دولية')}
                         </ThemedText>
                       </TouchableOpacity>
                     ))}
@@ -488,7 +491,7 @@ export default function OfficialHolidaysScreen() {
                 </ThemedView>
 
                 <ThemedView style={styles.inputGroup}>
-                  <ThemedText style={styles.inputLabel}>النوع</ThemedText>
+                  <ThemedText style={[styles.inputLabel, getTextDirection()]}>النوع</ThemedText>
                   <ThemedView style={styles.categoryButtons}>
                     {(['fixed', 'variable'] as const).map((type) => (
                       <TouchableOpacity
@@ -501,9 +504,10 @@ export default function OfficialHolidaysScreen() {
                       >
                         <ThemedText style={[
                           styles.categoryButtonText,
+                          getTextDirection(),
                           newHoliday.type === type && styles.categoryButtonTextActive
                         ]}>
-                          {type === 'fixed' ? 'ثابت' : 'متغير'}
+                          {type === 'fixed' ? formatRTLText('ثابت') : formatRTLText('متغير')}
                         </ThemedText>
                       </TouchableOpacity>
                     ))}
@@ -511,7 +515,7 @@ export default function OfficialHolidaysScreen() {
                 </ThemedView>
 
                 <ThemedView style={styles.inputGroup}>
-                  <ThemedText style={styles.inputLabel}>الوصف *</ThemedText>
+                  <ThemedText style={[styles.inputLabel, getTextDirection()]}>الوصف *</ThemedText>
                   <TextInput
                     style={[styles.textInput, styles.textArea]}
                     value={newHoliday.description}

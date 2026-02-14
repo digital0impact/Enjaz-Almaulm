@@ -7,6 +7,7 @@ import { IconSymbol } from '@/components/ui/IconSymbol';
 import { useRouter, useLocalSearchParams } from 'expo-router';
 import { BottomNavigationBar } from '@/components/BottomNavigationBar';
 import { commonStyles } from '@/styles/common-styles';
+import { getTextDirection, formatRTLText } from '@/utils/rtl-utils';
 
 export default function ReportScreen() {
   const router = useRouter();
@@ -52,31 +53,31 @@ export default function ReportScreen() {
               </TouchableOpacity>
 
               <IconSymbol size={60} name="doc.text.fill" color="#1c1f33" />
-              <ThemedText type="title" style={styles.title}>
-                📄 التقرير التفصيلي للأداء المهني
+              <ThemedText type="title" style={[styles.title, getTextDirection()]}> 
+                {formatRTLText('📄 التقرير التفصيلي للأداء المهني')}
               </ThemedText>
-              <ThemedText style={styles.subtitle}>
-                تقرير شامل لتقييم الأداء المهني وتحليل النتائج
+              <ThemedText style={[styles.subtitle, getTextDirection()]}> 
+                {formatRTLText('تقرير شامل لتقييم الأداء المهني وتحليل النتائج')}
               </ThemedText>
             </ThemedView>
 
             <ThemedView style={styles.summaryCard}>
-              <ThemedText style={styles.summaryTitle}>
-                ملخص النتائج العامة
+              <ThemedText style={[styles.summaryTitle, getTextDirection()]}> 
+                {formatRTLText('ملخص النتائج العامة')}
               </ThemedText>
               <ThemedView style={styles.summaryContent}>
-                <ThemedText style={[styles.overallScore, { color: getScoreColor(overallAverage) }]}>
-                  المتوسط العام: {overallAverage}%
+                <ThemedText style={[styles.overallScore, getTextDirection(), { color: getScoreColor(overallAverage) }]}> 
+                  {formatRTLText(`المتوسط العام: ${overallAverage}%`)}
                 </ThemedText>
-                <ThemedText style={[styles.overallGrade, { color: getScoreColor(overallAverage) }]}>
-                  التقدير: {getScoreLevel(overallAverage)}
+                <ThemedText style={[styles.overallGrade, getTextDirection(), { color: getScoreColor(overallAverage) }]}> 
+                  {formatRTLText(`التقدير: ${getScoreLevel(overallAverage)}`)}
                 </ThemedText>
               </ThemedView>
             </ThemedView>
 
             <ThemedView style={styles.content}>
-              <ThemedText type="subtitle" style={styles.sectionTitle}>
-                تفاصيل محاور الأداء
+              <ThemedText type="subtitle" style={[styles.sectionTitle, getTextDirection()]}> 
+                {formatRTLText('تفاصيل محاور الأداء')}
               </ThemedText>
 
               {axisResults.map((axis: any, index: number) => (
@@ -88,11 +89,11 @@ export default function ReportScreen() {
                       </ThemedText>
                     </ThemedView>
                     <ThemedView style={styles.axisTitleContainer}>
-                      <ThemedText style={styles.axisTitle}>
-                        {axis.title}
+                      <ThemedText style={[styles.axisTitle, getTextDirection()]}> 
+                        {formatRTLText(axis.title)}
                       </ThemedText>
-                      <ThemedText style={[styles.axisScore, { color: getScoreColor(axis.score) }]}>
-                        الدرجة: {axis.score}% - {getScoreLevel(axis.score)}
+                      <ThemedText style={[styles.axisScore, getTextDirection(), { color: getScoreColor(axis.score) }]}> 
+                        {formatRTLText(`الدرجة: ${axis.score}% - ${getScoreLevel(axis.score)}`)}
                       </ThemedText>
                     </ThemedView>
                   </ThemedView>
@@ -110,28 +111,28 @@ export default function ReportScreen() {
                   </ThemedView>
 
                   <ThemedView style={styles.evidenceSection}>
-                    <ThemedText style={styles.evidenceHeader}>
-                      الشواهد المحققة:
+                    <ThemedText style={[styles.evidenceHeader, getTextDirection()]}> 
+                      {formatRTLText('الشواهد المحققة:')}
                     </ThemedText>
                     {axis.evidences.filter((e: any) => e.achieved).map((evidence: any) => (
                       <ThemedView key={evidence.id} style={styles.evidenceItem}>
                         <IconSymbol size={12} name="checkmark.circle.fill" color="#4CAF50" />
-                        <ThemedText style={styles.evidenceText}>
-                          {evidence.label}
+                        <ThemedText style={[styles.evidenceText, getTextDirection()]}> 
+                          {formatRTLText(evidence.label)}
                         </ThemedText>
                       </ThemedView>
                     ))}
                     
                     {axis.evidences.filter((e: any) => !e.achieved).length > 0 && (
                       <ThemedView style={styles.missingEvidenceSection}>
-                        <ThemedText style={styles.missingEvidenceHeader}>
-                          الشواهد غير المحققة:
+                        <ThemedText style={[styles.missingEvidenceHeader, getTextDirection()]}> 
+                          {formatRTLText('الشواهد غير المحققة:')}
                         </ThemedText>
                         {axis.evidences.filter((e: any) => !e.achieved).map((evidence: any) => (
                           <ThemedView key={evidence.id} style={styles.missingEvidenceItem}>
                             <IconSymbol size={12} name="xmark.circle.fill" color="#F44336" />
-                            <ThemedText style={styles.missingEvidenceText}>
-                              {evidence.label}
+                            <ThemedText style={[styles.missingEvidenceText, getTextDirection()]}> 
+                              {formatRTLText(evidence.label)}
                             </ThemedText>
                           </ThemedView>
                         ))}
@@ -142,8 +143,8 @@ export default function ReportScreen() {
               ))}
 
               <ThemedView style={styles.recommendationsCard}>
-                <ThemedText style={styles.recommendationsTitle}>
-                  <IconSymbol size={20} name="lightbulb.fill" color="#FF9800" /> توصيات للتحسين
+                <ThemedText style={[styles.recommendationsTitle, getTextDirection()]}> 
+                  <IconSymbol size={20} name="lightbulb.fill" color="#FF9800" /> {formatRTLText('توصيات للتحسين')}
                 </ThemedText>
                 <ThemedView style={styles.recommendationsList}>
                   {axisResults
@@ -153,8 +154,8 @@ export default function ReportScreen() {
                     .map((axis: any, index: number) => (
                       <ThemedView key={index} style={styles.recommendationItem}>
                         <IconSymbol size={14} name="arrow.up.circle.fill" color="#2196F3" />
-                        <ThemedText style={styles.recommendationText}>
-                          تطوير مجال &quot;{axis.title}&quot; - النسبة الحالية: {axis.score}%
+                        <ThemedText style={[styles.recommendationText, getTextDirection()]}> 
+                          {formatRTLText(`تطوير مجال "${axis.title}" - النسبة الحالية: ${axis.score}%`)}
                         </ThemedText>
                       </ThemedView>
                     ))}
@@ -164,11 +165,11 @@ export default function ReportScreen() {
               <ThemedView style={styles.actionButtons}>
                 <TouchableOpacity style={styles.printButton}>
                   <IconSymbol size={16} name="printer.fill" color="#1c1f33" />
-                  <ThemedText style={styles.buttonText}>طباعة التقرير</ThemedText>
+                  <ThemedText style={[styles.buttonText, getTextDirection()]}>طباعة التقرير</ThemedText>
                 </TouchableOpacity>
                 <TouchableOpacity style={styles.shareButton}>
                   <IconSymbol size={16} name="square.and.arrow.up.fill" color="#1c1f33" />
-                  <ThemedText style={styles.buttonText}>مشاركة التقرير</ThemedText>
+                  <ThemedText style={[styles.buttonText, getTextDirection()]}>مشاركة التقرير</ThemedText>
                 </TouchableOpacity>
               </ThemedView>
             </ThemedView>

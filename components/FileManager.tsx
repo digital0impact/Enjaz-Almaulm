@@ -18,6 +18,7 @@ import { ThemedText } from './ThemedText';
 import { ThemedButton } from './ThemedButton';
 import { useThemeColor } from '../hooks/useThemeColor';
 import { logError } from '@/utils/logger';
+import { getTextDirection, formatRTLText } from '@/utils/rtl-utils';
 
 interface FileManagerProps {
   relatedTable?: string;
@@ -239,7 +240,9 @@ export const FileManager: React.FC<FileManagerProps> = ({
     return (
       <ThemedView style={styles.container}>
         <ActivityIndicator size="large" color={textColor} />
-        <ThemedText style={styles.loadingText}>جاري تحميل الملفات...</ThemedText>
+        <ThemedText style={[styles.loadingText, getTextDirection()]}> 
+          {formatRTLText('جاري تحميل الملفات...')}
+        </ThemedText>
       </ThemedView>
     );
   }
@@ -248,16 +251,18 @@ export const FileManager: React.FC<FileManagerProps> = ({
     <ThemedView style={styles.container}>
       {showUploadButton && (
         <View style={styles.uploadSection}>
-          <ThemedText style={styles.sectionTitle}>رفع ملفات جديدة</ThemedText>
+          <ThemedText style={[styles.sectionTitle, getTextDirection()]}> 
+            {formatRTLText('رفع ملفات جديدة')}
+          </ThemedText>
           <View style={styles.uploadButtons}>
             <ThemedButton
-              title="اختيار ملف"
+              title={formatRTLText('اختيار ملف')}
               onPress={pickDocument}
               disabled={uploading}
               style={styles.uploadButton}
             />
             <ThemedButton
-              title="اختيار صورة"
+              title={formatRTLText('اختيار صورة')}
               onPress={pickImage}
               disabled={uploading}
               style={styles.uploadButton}
@@ -266,21 +271,25 @@ export const FileManager: React.FC<FileManagerProps> = ({
           {uploading && (
             <View style={styles.uploadingContainer}>
               <ActivityIndicator size="small" color={textColor} />
-              <ThemedText style={styles.uploadingText}>جاري رفع الملف...</ThemedText>
+              <ThemedText style={[styles.uploadingText, getTextDirection()]}> 
+                {formatRTLText('جاري رفع الملف...')}
+              </ThemedText>
             </View>
           )}
         </View>
       )}
 
       <View style={styles.filesSection}>
-        <ThemedText style={styles.sectionTitle}>
-          الملفات ({files.length}/{maxFiles})
+        <ThemedText style={[styles.sectionTitle, getTextDirection()]}> 
+          {formatRTLText(`الملفات (${files.length}/${maxFiles})`)}
         </ThemedText>
         
         {files.length === 0 ? (
           <ThemedView style={styles.emptyState}>
             <Text style={[styles.emptyIcon, { color: textColor }]}>📁</Text>
-            <ThemedText style={styles.emptyText}>لا توجد ملفات مرفقة</ThemedText>
+            <ThemedText style={[styles.emptyText, getTextDirection()]}> 
+              {formatRTLText('لا توجد ملفات مرفقة')}
+            </ThemedText>
           </ThemedView>
         ) : (
           <ScrollView style={styles.filesList}>

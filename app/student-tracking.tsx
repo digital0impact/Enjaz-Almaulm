@@ -20,6 +20,7 @@ import { useRouter } from 'expo-router';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { BottomNavigationBar } from '@/components/BottomNavigationBar';
 import { Student } from '@/types';
+import { getTextDirection, formatRTLText } from '@/utils/rtl-utils';
 
 interface RemedialPlan {
   id: string;
@@ -196,151 +197,94 @@ export default function StudentTrackingScreen() {
 
   const renderStudentCard = (student: Student) => {
     const isExpanded = expandedCards[student.id] || false;
-    
     return (
-      <ThemedView key={student.id} style={styles.studentCard} id={`student-card-${student.id}`}>
+      <ThemedView style={styles.studentCard} id={`student-card-${student.id}`}>
         <TouchableOpacity
-          style={styles.studentHeader}
+          style={[styles.studentHeader, { flexDirection: 'row-reverse', justifyContent: 'space-between', alignItems: 'center' }]}
           onPress={() => toggleCardExpansion(student.id)}
+          activeOpacity={0.8}
         >
-          <ThemedView style={styles.studentMainInfo}>
-            <ThemedView style={styles.studentIconContainer}>
-              <IconSymbol 
-                size={40} 
-                name={getStatusIcon(student.status)} 
-                color={getStatusColor(student.status)} 
-              />
-            </ThemedView>
-            
-            <ThemedView style={styles.studentDetails}>
-              <ThemedText style={styles.studentName}>{student.name}</ThemedText>
-              <ThemedText style={styles.studentGrade}>الصف: {student.grade}</ThemedText>
-              <ThemedView style={[styles.statusBadge, { backgroundColor: getStatusColor(student.status) }]}>
-                <ThemedText style={styles.statusText}>{student.status}</ThemedText>
-              </ThemedView>
+          <ThemedView style={[styles.studentDetails, { flexDirection: 'row-reverse', alignItems: 'center', gap: 12 }]}> 
+            <ThemedText style={styles.studentName}>{student.name}</ThemedText>
+            <ThemedText style={styles.studentGrade}>الصف: {student.grade}</ThemedText>
+            <ThemedView style={[styles.statusBadge, { backgroundColor: getStatusColor(student.status) }]}> 
+              <ThemedText style={styles.statusText}>{student.status}</ThemedText>
             </ThemedView>
           </ThemedView>
-          
           <IconSymbol 
             size={20} 
-            name={isExpanded ? "chevron.up" : "chevron.down"} 
+            name={isExpanded ? 'chevron.up' : 'chevron.down'} 
             color="#666" 
           />
         </TouchableOpacity>
-
         {isExpanded && (
           <ThemedView style={styles.expandedContent}>
-            {/* عرض الأهداف والاحتياجات والشواهد */}
-            <ThemedView style={styles.studentDetails}>
-              {/* الأهداف */}
-              {student.goals && student.goals.length > 0 && (
-                <ThemedView style={styles.detailSection}>
-                  <ThemedView style={styles.sectionHeader}>
-                    <IconSymbol size={16} name="target" color="#4CAF50" />
-                    <ThemedText style={styles.sectionTitle}>الأهداف</ThemedText>
-                  </ThemedView>
-                  <ThemedView style={styles.itemsList}>
-                    {student.goals.map((goal, index) => (
-                      <ThemedView key={goal.id || index} style={styles.itemCard}>
-                        <ThemedView style={styles.itemHeader}>
-                          <ThemedText style={styles.itemTitle}>{goal.title}</ThemedText>
-                          <ThemedView style={[styles.statusBadge, { backgroundColor: getGoalStatusColor(goal.status) }]}>
-                            <ThemedText style={styles.statusText}>{goal.status}</ThemedText>
-                          </ThemedView>
-                        </ThemedView>
-                        {goal.description && (
-                          <ThemedText style={styles.itemDescription}>{goal.description}</ThemedText>
-                        )}
-                        <ThemedView style={styles.progressContainer}>
-                          <ThemedText style={styles.progressText}>التقدم: {goal.progress}%</ThemedText>
-                          <ThemedView style={styles.progressBar}>
-                            <ThemedView 
-                              style={[
-                                styles.progressFill, 
-                                { width: `${goal.progress}%`, backgroundColor: getGoalStatusColor(goal.status) }
-                              ]} 
-                            />
-                          </ThemedView>
-                        </ThemedView>
-                      </ThemedView>
-                    ))}
-                  </ThemedView>
-                </ThemedView>
-              )}
+            {student.notes ? (
+              <ThemedView style={styles.notesCard}>
+                <ThemedText style={styles.notesText}>{student.notes}</ThemedText>
+              </ThemedView>
+            ) : null}
 
-              {/* الاحتياجات */}
-              {student.needs && student.needs.length > 0 && (
-                <ThemedView style={styles.detailSection}>
-                  <ThemedView style={styles.sectionHeader}>
-                    <IconSymbol size={16} name="heart.fill" color="#FF5722" />
-                    <ThemedText style={styles.sectionTitle}>الاحتياجات</ThemedText>
-                  </ThemedView>
-                  <ThemedView style={styles.itemsList}>
-                    {student.needs.map((need, index) => (
-                      <ThemedView key={index} style={styles.itemCard}>
-                        <ThemedText style={styles.itemText}>• {need}</ThemedText>
-                      </ThemedView>
-                    ))}
-                  </ThemedView>
+            {/* الأهداف */}
+            {student.goals && student.goals.length > 0 && (
+              <ThemedView style={styles.detailSection}>
+                <ThemedText style={styles.sectionTitle}>الأهداف</ThemedText>
+                <ThemedView style={styles.itemsList}>
+                  {student.goals.map((goal, index) => (
+                    <ThemedView key={goal.id || index} style={styles.itemCard}>
+                      <ThemedText style={styles.itemTitle}>{goal.title}</ThemedText>
+                      <ThemedText style={styles.progressText}>نسبة التحقق: {goal.progress}%</ThemedText>
+                    </ThemedView>
+                  ))}
                 </ThemedView>
-              )}
+              </ThemedView>
+            )}
 
-              {/* الشواهد */}
-              {student.performanceEvidence && student.performanceEvidence.length > 0 && (
-                <ThemedView style={styles.detailSection}>
-                  <ThemedView style={styles.sectionHeader}>
-                    <IconSymbol size={16} name="doc.text.fill" color="#2196F3" />
-                    <ThemedText style={styles.sectionTitle}>الشواهد</ThemedText>
-                  </ThemedView>
-                  <ThemedView style={styles.itemsList}>
-                    {student.performanceEvidence.map((evidence, index) => (
-                      <ThemedView key={evidence.id || index} style={styles.itemCard}>
-                        <ThemedView style={styles.itemHeader}>
-                          <ThemedText style={styles.itemTitle}>{evidence.title}</ThemedText>
-                          <ThemedView style={[styles.statusBadge, { backgroundColor: evidence.achieved ? '#4CAF50' : '#FF9800' }]}>
-                            <ThemedText style={styles.statusText}>{evidence.achieved ? 'محقق' : 'قيد التحقيق'}</ThemedText>
-                          </ThemedView>
-                        </ThemedView>
-                        <ThemedText style={styles.itemType}>النوع: {evidence.type}</ThemedText>
-                        {evidence.notes && (
-                          <ThemedText style={styles.itemDescription}>{evidence.notes}</ThemedText>
-                        )}
-                        <ThemedText style={styles.itemDate}>التاريخ: {evidence.date}</ThemedText>
-                      </ThemedView>
-                    ))}
-                  </ThemedView>
+            {/* الاحتياجات */}
+            {student.needs && student.needs.length > 0 && (
+              <ThemedView style={styles.detailSection}>
+                <ThemedText style={styles.sectionTitle}>الاحتياجات</ThemedText>
+                <ThemedView style={styles.itemsList}>
+                  {student.needs.map((need, index) => (
+                    <ThemedView key={index} style={styles.itemCard}>
+                      <ThemedText style={styles.itemText}>• {need}</ThemedText>
+                    </ThemedView>
+                  ))}
                 </ThemedView>
-              )}
+              </ThemedView>
+            )}
 
-              {/* الملاحظات */}
-              {student.notes && (
-                <ThemedView style={styles.detailSection}>
-                  <ThemedView style={styles.sectionHeader}>
-                    <IconSymbol size={16} name="note.text" color="#9C27B0" />
-                    <ThemedText style={styles.sectionTitle}>الملاحظات</ThemedText>
-                  </ThemedView>
-                  <ThemedView style={styles.notesCard}>
-                    <ThemedText style={styles.notesText}>{student.notes}</ThemedText>
-                  </ThemedView>
+            {/* الشواهد */}
+            {student.performanceEvidence && student.performanceEvidence.length > 0 && (
+              <ThemedView style={styles.detailSection}>
+                <ThemedText style={styles.sectionTitle}>الشواهد</ThemedText>
+                <ThemedView style={styles.itemsList}>
+                  {student.performanceEvidence.map((evidence, index) => (
+                    <ThemedView key={evidence.id || index} style={styles.itemCard}>
+                      <ThemedText style={styles.itemTitle}>{evidence.title}</ThemedText>
+                      <ThemedText style={styles.itemType}>النوع: {evidence.type}</ThemedText>
+                      <ThemedText style={styles.itemDate}>التاريخ: {evidence.date}</ThemedText>
+                    </ThemedView>
+                  ))}
                 </ThemedView>
-              )}
-            </ThemedView>
+              </ThemedView>
+            )}
 
-            <ThemedView style={styles.actionButtons}>
+            {/* أزرار التعديل والحذف */}
+            <ThemedView style={{ flexDirection: 'row', gap: 10, marginTop: 16, justifyContent: 'center' }}>
               <TouchableOpacity
-                style={[styles.actionButton, styles.editButton]}
+                style={[styles.addButton, { backgroundColor: '#add4ce' }]}
                 onPress={() => router.push(`/add-student?id=${student.id}&edit=true`)}
               >
-                <IconSymbol size={16} name="pencil" color="#fff" />
-                <ThemedText style={styles.actionButtonText}>تعديل</ThemedText>
+                <IconSymbol size={16} name="pencil" color="#1c1f33" />
+                <ThemedText style={styles.addButtonText}>تعديل</ThemedText>
               </TouchableOpacity>
-              
               <TouchableOpacity
-                style={[styles.actionButton, styles.deleteButton]}
+                style={[styles.addButton, { backgroundColor: '#F44336' }]}
                 onPress={() => confirmDeleteStudent(student.id, student.name)}
               >
                 <IconSymbol size={16} name="trash" color="#fff" />
-                <ThemedText style={styles.actionButtonText}>حذف</ThemedText>
+                <ThemedText style={[styles.addButtonText, { color: '#fff' }]}>حذف</ThemedText>
               </TouchableOpacity>
             </ThemedView>
           </ThemedView>
@@ -357,30 +301,30 @@ export default function StudentTrackingScreen() {
 
     return (
       <ThemedView style={styles.statsCard}>
-        <ThemedText style={styles.statsTitle}>إحصائيات المتعلمين</ThemedText>
+                        <ThemedText style={styles.statsTitle}>إحصائيات المتعلمين</ThemedText>
         <ThemedView style={styles.statsGrid}>
           <ThemedView style={styles.statItem}>
             <IconSymbol size={30} name="person.3.fill" color="#4CAF50" />
-            <ThemedText style={styles.statNumber}>{totalStudents}</ThemedText>
-            <ThemedText style={styles.statLabel}>إجمالي المتعلمين</ThemedText>
+                          <ThemedText style={styles.statNumber}>{totalStudents}</ThemedText>
+              <ThemedText style={styles.statLabel}>إجمالي المتعلمين</ThemedText>
           </ThemedView>
           
           <ThemedView style={styles.statItem}>
             <IconSymbol size={30} name="star.fill" color="#4CAF50" />
-            <ThemedText style={styles.statNumber}>{excellentStudents}</ThemedText>
-            <ThemedText style={styles.statLabel}>متفوقون</ThemedText>
+                          <ThemedText style={styles.statNumber}>{excellentStudents}</ThemedText>
+              <ThemedText style={styles.statLabel}>متفوقون</ThemedText>
           </ThemedView>
           
           <ThemedView style={styles.statItem}>
             <IconSymbol size={30} name="star" color="#FF5722" />
-            <ThemedText style={styles.statNumber}>{needsDevelopment}</ThemedText>
-            <ThemedText style={styles.statLabel}>يحتاجون تطوير</ThemedText>
+                          <ThemedText style={styles.statNumber}>{needsDevelopment}</ThemedText>
+              <ThemedText style={styles.statLabel}>يحتاجون تطوير</ThemedText>
           </ThemedView>
           
           <ThemedView style={styles.statItem}>
             <IconSymbol size={30} name="exclamationmark.triangle.fill" color="#F44336" />
-            <ThemedText style={styles.statNumber}>{learningDifficulties}</ThemedText>
-            <ThemedText style={styles.statLabel}>صعوبات التعلم</ThemedText>
+                          <ThemedText style={styles.statNumber}>{learningDifficulties}</ThemedText>
+              <ThemedText style={styles.statLabel}>صعوبات التعلم</ThemedText>
           </ThemedView>
         </ThemedView>
       </ThemedView>
@@ -388,13 +332,7 @@ export default function StudentTrackingScreen() {
   };
 
   return (
-    <ThemedView style={styles.container}>
-      <StatusBar 
-        barStyle="dark-content" 
-        backgroundColor={Platform.OS === 'ios' ? 'transparent' : '#E8F5F4'} 
-        translucent={Platform.OS === 'ios'}
-      />
-      
+    <ThemedView style={styles.container}> 
       <ImageBackground
         source={require('@/assets/images/background.png')}
         style={styles.backgroundImage}
@@ -404,15 +342,20 @@ export default function StudentTrackingScreen() {
           style={{ flex: 1 }}
           behavior={Platform.OS === 'ios' ? 'padding' : undefined}
         >
-          {/* Header */}
-          <ThemedView style={[styles.header, { paddingTop: insets.top + 20 }]}>
-            <TouchableOpacity 
-              style={styles.backButton}
-              onPress={() => router.push('/(tabs)')}
-            >
-              <IconSymbol size={20} name="chevron.left" color="#1c1f33" />
-            </TouchableOpacity>
-
+          <ScrollView
+            style={styles.scrollContainer}
+            contentContainerStyle={{ flexGrow: 1, paddingBottom: 100 }}
+            showsVerticalScrollIndicator={false}
+            keyboardShouldPersistTaps="handled"
+          >
+            {/* Header */}
+            <ThemedView style={[styles.header, { paddingTop: insets.top + 20 }]}> 
+              <TouchableOpacity 
+                style={styles.backButton}
+                onPress={() => router.push('/(tabs)')}
+              >
+                <IconSymbol size={20} name="chevron.left" color="#1c1f33" />
+              </TouchableOpacity>
               <ThemedView style={styles.iconContainer}>
                 <IconSymbol size={60} name="chart.line.uptrend.xyaxis" color="#1c1f33" />
               </ThemedView>
@@ -422,7 +365,6 @@ export default function StudentTrackingScreen() {
               <ThemedText style={styles.subtitle}>
                 متابعة وتقييم حالة الطلاب
               </ThemedText>
-
               <TouchableOpacity 
                 style={styles.addButton}
                 onPress={() => router.push('/add-student')}
@@ -430,59 +372,27 @@ export default function StudentTrackingScreen() {
                 <IconSymbol size={20} name="plus" color="#1c1f33" />
                 <ThemedText style={styles.addButtonText}>إضافة متعلم جديد</ThemedText>
               </TouchableOpacity>
+              <TouchableOpacity 
+                style={[styles.addButton, { marginTop: 10 }]}
+                onPress={() => router.push('/remedial-plans')}
+              >
+                <IconSymbol size={20} name="doc.text.fill" color="#1c1f33" />
+                <ThemedText style={styles.addButtonText}>إدارة الخطط العلاجية</ThemedText>
+              </TouchableOpacity>
+            </ThemedView>
 
-            <TouchableOpacity 
-              style={[styles.addButton, { marginTop: 10 }]}
-              onPress={() => router.push('/remedial-plans')}
-            >
-              <IconSymbol size={20} name="doc.text.fill" color="#1c1f33" />
-              <ThemedText style={styles.addButtonText}>إدارة الخطط العلاجية</ThemedText>
-            </TouchableOpacity>
-          </ThemedView>
-
-          {/* Content */}
-          <ScrollView 
-            style={styles.scrollContainer}
-            contentContainerStyle={styles.scrollContent}
-            showsVerticalScrollIndicator={false}
-            refreshControl={
-              <RefreshControl
-                refreshing={refreshing}
-                onRefresh={onRefresh}
-                colors={['#add4ce']}
-                tintColor="#add4ce"
-              />
-            }
-            keyboardShouldPersistTaps="handled"
-          >
-            {/* Stats Card */}
+            {/* باقي الصفحة ... */}
             {renderStatsCard()}
-
-            {/* Students List */}
-            {loading ? (
-              <ThemedView style={styles.loadingContainer}>
-                <ActivityIndicator size="large" color="#add4ce" />
-                <ThemedText style={styles.loadingText}>جاري تحميل البيانات...</ThemedText>
-              </ThemedView>
-            ) : students.length === 0 ? (
-              <ThemedView style={styles.emptyState}>
-                <ThemedView style={styles.emptyIconContainer}>
-                  <IconSymbol size={80} name="person.badge.plus" color="#ccc" />
-                </ThemedView>
-                <ThemedText style={styles.emptyTitle}>لا توجد بيانات متعلمين</ThemedText>
-                <ThemedText style={styles.emptySubtitle}>
-                  ابدأ بإضافة متعلم جديد لتتبع حالته
-                </ThemedText>
-              </ThemedView>
-            ) : (
-              <ThemedView style={styles.studentsList}>
-                {students.map(renderStudentCard)}
-              </ThemedView>
-            )}
+            <ThemedView style={styles.studentsList}>
+              {students.map((student) => (
+                <React.Fragment key={student.id}>
+                  {renderStudentCard(student)}
+                </React.Fragment>
+              ))}
+            </ThemedView>
           </ScrollView>
         </KeyboardAvoidingView>
       </ImageBackground>
-      
       <BottomNavigationBar />
     </ThemedView>
   );
@@ -541,14 +451,14 @@ const styles = StyleSheet.create({
     marginTop: 15,
     marginBottom: 10,
     textAlign: 'center',
-    writingDirection: 'rtl',
+    writingDirection: 'ltr',
     color: '#000000',
   },
   subtitle: {
     fontSize: 16,
     color: '#666666',
     textAlign: 'center',
-    writingDirection: 'rtl',
+    writingDirection: 'ltr',
     marginBottom: 20,
   },
   addButton: {
@@ -597,7 +507,7 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
     color: '#333',
     textAlign: 'center',
-    writingDirection: 'rtl',
+    writingDirection: 'ltr',
     marginBottom: 15,
   },
   statsGrid: {
@@ -623,7 +533,7 @@ const styles = StyleSheet.create({
     fontSize: 12,
     color: '#666',
     textAlign: 'center',
-    writingDirection: 'rtl',
+    writingDirection: 'ltr',
   },
   studentsList: {
     paddingHorizontal: 16,
@@ -640,7 +550,7 @@ const styles = StyleSheet.create({
     elevation: 3,
   },
   studentHeader: {
-    flexDirection: 'row-reverse',
+    flexDirection: 'row',
     alignItems: 'center',
     padding: 16,
     justifyContent: 'space-between',
@@ -657,19 +567,18 @@ const styles = StyleSheet.create({
     marginBottom: 20,
   },
   studentName: {
-    fontSize: 16,
+    fontSize: 18,
     fontWeight: 'bold',
     color: '#1c1f33',
-    textAlign: 'right',
     writingDirection: 'rtl',
-    marginBottom: 4,
+    textAlign: 'right',
   },
   studentGrade: {
     fontSize: 14,
     color: '#666',
-    textAlign: 'right',
+    marginTop: 2,
     writingDirection: 'rtl',
-    marginBottom: 8,
+    textAlign: 'right',
   },
   statusBadge: {
     paddingHorizontal: 8,
@@ -677,10 +586,11 @@ const styles = StyleSheet.create({
     borderRadius: 12,
   },
   statusText: {
-    fontSize: 12,
+    fontSize: 13,
     color: '#fff',
-    fontWeight: '600',
-    textAlign: 'center',
+    fontWeight: 'bold',
+    writingDirection: 'rtl',
+    textAlign: 'right',
   },
   expandedContent: {
     borderTopWidth: 1,
@@ -727,7 +637,7 @@ const styles = StyleSheet.create({
     color: '#666',
     textAlign: 'center',
     marginTop: 12,
-    writingDirection: 'rtl',
+    writingDirection: 'ltr',
   },
   emptyState: {
     alignItems: 'center',
@@ -743,13 +653,13 @@ const styles = StyleSheet.create({
     color: '#1c1f33',
     marginBottom: 8,
     textAlign: 'center',
-    writingDirection: 'rtl',
+    writingDirection: 'ltr',
   },
   emptySubtitle: {
     fontSize: 16,
     color: '#666',
     textAlign: 'center',
-    writingDirection: 'rtl',
+    writingDirection: 'ltr',
   },
   detailSection: {
     marginBottom: 20,
@@ -765,6 +675,7 @@ const styles = StyleSheet.create({
     color: '#333',
     marginLeft: 8,
     writingDirection: 'rtl',
+    textAlign: 'right',
   },
   itemsList: {
     gap: 10,
@@ -790,12 +701,13 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
     color: '#1c1f33',
     writingDirection: 'rtl',
+    textAlign: 'right',
   },
   itemDescription: {
     fontSize: 12,
     color: '#666',
     marginBottom: 8,
-    writingDirection: 'rtl',
+    writingDirection: 'ltr',
   },
   progressContainer: {
     marginTop: 8,
@@ -804,6 +716,7 @@ const styles = StyleSheet.create({
     fontSize: 12,
     color: '#666',
     writingDirection: 'rtl',
+    textAlign: 'right',
   },
   progressBar: {
     height: 8,
@@ -820,6 +733,7 @@ const styles = StyleSheet.create({
     color: '#666',
     marginBottom: 4,
     writingDirection: 'rtl',
+    textAlign: 'right',
   },
   itemDate: {
     fontSize: 12,
@@ -841,10 +755,12 @@ const styles = StyleSheet.create({
     fontSize: 14,
     color: '#333',
     writingDirection: 'rtl',
+    textAlign: 'right',
   },
   itemText: {
     fontSize: 14,
     color: '#333',
     writingDirection: 'rtl',
+    textAlign: 'right',
   },
 }); 

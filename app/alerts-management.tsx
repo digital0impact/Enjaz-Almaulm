@@ -1,5 +1,7 @@
 import React, { useState, useEffect } from 'react';
-import { StyleSheet, ScrollView, TouchableOpacity, Alert, I18nManager, ImageBackground, Dimensions, Platform, Modal, TextInput } from 'react-native';
+import { StyleSheet, ScrollView, TouchableOpacity, Alert, I18nManager, ImageBackground, Dimensions, Platform, Modal, TextInput , Vibration } from 'react-native';
+import { Audio } from 'expo-av';
+// import * as Notifications from 'expo-notifications';
 
 import { ThemedText } from '@/components/ThemedText';
 import { ThemedView } from '@/components/ThemedView';
@@ -8,6 +10,7 @@ import { useRouter } from 'expo-router';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { BottomNavigationBar } from '@/components/BottomNavigationBar';
 import { commonStyles } from '@/styles/common-styles';
+import { getTextDirection, formatRTLText } from '@/utils/rtl-utils';
 
 const { width } = Dimensions.get('window');
 
@@ -41,9 +44,14 @@ export default function AlertsManagementScreen() {
   const [editReminderBefore, setEditReminderBefore] = useState(15);
   const [editActive, setEditActive] = useState(true);
   const [editRepeat, setEditRepeat] = useState<AlertItem['repeat']>('none');
+  const [notificationMode, setNotificationMode] = useState<'sound' | 'vibration' | 'both' | 'silent'>('sound');
 
   useEffect(() => {
     loadAlerts();
+    (async () => {
+      const stored = await AsyncStorage.getItem('notificationMode');
+      if (stored) setNotificationMode(stored as any);
+    })();
   }, []);
 
   const loadAlerts = async () => {
@@ -348,6 +356,26 @@ export default function AlertsManagementScreen() {
 
   const alertTypes = [...new Set(alerts.map(alert => alert.type))];
 
+  const updateNotificationMode = async (mode: 'sound' | 'vibration' | 'both' | 'silent') => {
+    setNotificationMode(mode);
+    await AsyncStorage.setItem('notificationMode', mode);
+  };
+
+  const triggerSystemNotification = async () => {
+    // تم إزالة expo-notifications لتجنب التحذيرات في Expo Go
+    // يمكن إعادة تفعيلها في development build
+    console.log('تم تفعيل تنبيه جديد!');
+  };
+
+  const triggerNotificationFeedback = async () => {
+    if (notificationMode === 'sound' || notificationMode === 'both') {
+      await triggerSystemNotification();
+    }
+    if (notificationMode === 'vibration' || notificationMode === 'both') {
+      Vibration.vibrate(500);
+    }
+  };
+
   return (
     <ThemedView style={styles.container}>
       <ImageBackground
@@ -370,11 +398,11 @@ export default function AlertsManagementScreen() {
               <ThemedView style={styles.iconContainer}>
                 <IconSymbol size={60} name="bell.fill" color="#1c1f33" />
               </ThemedView>
-              <ThemedText type="title" style={styles.title}>
-                إدارة التنبيهات
+              <ThemedText type="title" style={[styles.title, getTextDirection()]}> 
+                {formatRTLText('إدارة التنبيهات')}
               </ThemedText>
-              <ThemedText style={styles.subtitle}>
-                منظم شامل للتنبيهات والمذكرات المهمة
+              <ThemedText style={[styles.subtitle, getTextDirection()]}> 
+                {formatRTLText('منظم شامل للتنبيهات والمذكرات المهمة')}
               </ThemedText>
             </ThemedView>
 
@@ -387,7 +415,7 @@ export default function AlertsManagementScreen() {
                       <IconSymbol size={28} name="bell.badge.fill" color="#1c1f33" />
                     </ThemedView>
                     <ThemedText style={styles.statNumber}>{alerts.length}</ThemedText>
-                    <ThemedText style={styles.statLabel}>إجمالي التنبيهات</ThemedText>
+                    <ThemedText style={[styles.statLabel, getTextDirection()]}>إجمالي التنبيهات</ThemedText>
                   </ThemedView>
 
                   <ThemedView style={[styles.statCard, { backgroundColor: '#4CAF5015' }]}>
@@ -395,7 +423,7 @@ export default function AlertsManagementScreen() {
                       <IconSymbol size={28} name="bell.fill" color="#1c1f33" />
                     </ThemedView>
                     <ThemedText style={styles.statNumber}>{activeAlerts}</ThemedText>
-                    <ThemedText style={styles.statLabel}>نشطة</ThemedText>
+                    <ThemedText style={[styles.statLabel, getTextDirection()]}>نشطة</ThemedText>
                   </ThemedView>
 
                   <ThemedView style={[styles.statCard, { backgroundColor: '#FF980015' }]}>
@@ -403,15 +431,15 @@ export default function AlertsManagementScreen() {
                       <IconSymbol size={28} name="clock.fill" color="#1c1f33" />
                     </ThemedView>
                     <ThemedText style={styles.statNumber}>{upcomingAlerts}</ThemedText>
-                    <ThemedText style={styles.statLabel}>قادمة</ThemedText>
+                    <ThemedText style={[styles.statLabel, getTextDirection()]}>قادمة</ThemedText>
                   </ThemedView>
                 </ThemedView>
               </ThemedView>
 
               {/* إضافة تنبيه جديد */}
               <ThemedView style={styles.addSection}>
-                <ThemedText type="subtitle" style={styles.sectionTitle}>
-                  إضافة تنبيه جديد
+                <ThemedText type="subtitle" style={[styles.sectionTitle, getTextDirection()]}> 
+                  {formatRTLText('إضافة تنبيه جديد')}
                 </ThemedText>
 
                 <ScrollView 
@@ -433,7 +461,7 @@ export default function AlertsManagementScreen() {
                       onPress={() => addNewAlert(item.type)}
                     >
                       <IconSymbol size={24} name={item.icon as any} color="#fff" />
-                      <ThemedText style={styles.addButtonText}>{item.type}</ThemedText>
+                      <ThemedText style={[styles.addButtonText, getTextDirection()]}>{item.type}</ThemedText>
                     </TouchableOpacity>
                   ))}
                 </ScrollView>
@@ -441,8 +469,8 @@ export default function AlertsManagementScreen() {
 
               {/* تصفية التنبيهات */}
               <ThemedView style={styles.filterSection}>
-                <ThemedText type="subtitle" style={styles.sectionTitle}>
-                  تصفية التنبيهات
+                <ThemedText type="subtitle" style={[styles.sectionTitle, getTextDirection()]}> 
+                  {formatRTLText('تصفية التنبيهات')}
                 </ThemedText>
 
                 <ThemedView style={styles.filterRow}>
@@ -467,9 +495,10 @@ export default function AlertsManagementScreen() {
                       >
                         <ThemedText style={[
                           styles.filterButtonText,
+                          getTextDirection(),
                           filter === item.key && styles.filterButtonTextActive
-                        ]}>
-                          {item.label}
+                        ]}> 
+                          {formatRTLText(item.label)}
                         </ThemedText>
                       </TouchableOpacity>
                     ))}
@@ -501,9 +530,10 @@ export default function AlertsManagementScreen() {
                         )}
                         <ThemedText style={[
                           styles.typeFilterButtonText,
+                          getTextDirection(),
                           typeFilter === type && styles.typeFilterButtonTextActive
-                        ]}>
-                          {type === 'all' ? 'جميع الأنواع' : type}
+                        ]}> 
+                          {formatRTLText(type === 'all' ? 'جميع الأنواع' : type)}
                         </ThemedText>
                       </TouchableOpacity>
                     ))}
@@ -514,8 +544,8 @@ export default function AlertsManagementScreen() {
               {/* قائمة التنبيهات */}
               <ThemedView style={styles.alertsSection}>
                 <ThemedView style={styles.alertsHeader}>
-                  <ThemedText type="subtitle" style={styles.sectionTitle}>
-                    التنبيهات ({filteredAlerts.length})
+                  <ThemedText type="subtitle" style={[styles.sectionTitle, getTextDirection()]}> 
+                    {formatRTLText(`التنبيهات (${filteredAlerts.length})`)}
                   </ThemedText>
                   <TouchableOpacity onPress={() => Alert.alert('تصدير', 'سيتم تصدير قائمة التنبيهات')}>
                     <IconSymbol size={20} name="square.and.arrow.up.fill" color="#007AFF" />
@@ -525,8 +555,8 @@ export default function AlertsManagementScreen() {
                 {filteredAlerts.length === 0 ? (
                   <ThemedView style={styles.emptyState}>
                     <IconSymbol size={48} name="bell.slash.fill" color="#ccc" />
-                    <ThemedText style={styles.emptyText}>لا توجد تنبيهات</ThemedText>
-                    <ThemedText style={styles.emptySubtext}>ابدأ بإضافة تنبيه جديد</ThemedText>
+                    <ThemedText style={[styles.emptyText, getTextDirection()]}>لا توجد تنبيهات</ThemedText>
+                    <ThemedText style={[styles.emptySubtext, getTextDirection()]}>ابدأ بإضافة تنبيه جديد</ThemedText>
                   </ThemedView>
                 ) : (
                   <ThemedView style={styles.alertsList}>
@@ -551,17 +581,17 @@ export default function AlertsManagementScreen() {
                             </ThemedView>
 
                             <ThemedView style={styles.alertInfo}>
-                              <ThemedText style={styles.alertTitle}>{alert.title}</ThemedText>
+                              <ThemedText style={[styles.alertTitle, getTextDirection()]}>{formatRTLText(alert.title)}</ThemedText>
                               {alert.description && (
-                                <ThemedText style={styles.alertDescription}>{alert.description}</ThemedText>
+                                <ThemedText style={[styles.alertDescription, getTextDirection()]}>{formatRTLText(alert.description)}</ThemedText>
                               )}
                               <ThemedView style={styles.alertMeta}>
-                                <ThemedText style={styles.alertDateTime}>
-                                  {new Date(alert.date).toLocaleDateString('ar-SA')} • {alert.time}
+                                <ThemedText style={[styles.alertDateTime, getTextDirection()]}>
+                                  {formatRTLText(`${new Date(alert.date).toLocaleDateString('ar-SA')} • ${alert.time}`)}
                                 </ThemedText>
                                 <ThemedView style={[styles.priorityBadge, { backgroundColor: getPriorityColor(alert.priority) + '20' }]}>
-                                  <ThemedText style={[styles.priorityText, { color: getPriorityColor(alert.priority) }]}>
-                                    {alert.priority}
+                                  <ThemedText style={[styles.priorityText, getTextDirection(), { color: getPriorityColor(alert.priority) }]}> 
+                                    {formatRTLText(alert.priority)}
                                   </ThemedText>
                                 </ThemedView>
                               </ThemedView>
@@ -570,13 +600,13 @@ export default function AlertsManagementScreen() {
                             <ThemedView style={styles.alertActions}>
                               {isToday ? (
                                 <ThemedView style={styles.todayBadge}>
-                                  <ThemedText style={styles.todayText}>اليوم</ThemedText>
+                                  <ThemedText style={[styles.todayText, getTextDirection()]}>اليوم</ThemedText>
                                 </ThemedView>
                               ) : isPast ? (
-                                <ThemedText style={styles.pastText}>انتهى</ThemedText>
+                                <ThemedText style={[styles.pastText, getTextDirection()]}>انتهى</ThemedText>
                               ) : (
-                                <ThemedText style={styles.daysUntilText}>
-                                  {daysUntil} {daysUntil === 1 ? 'يوم' : 'أيام'}
+                                <ThemedText style={[styles.daysUntilText, getTextDirection()]}> 
+                                  {formatRTLText(`${daysUntil} ${daysUntil === 1 ? 'يوم' : 'أيام'}`)}
                                 </ThemedText>
                               )}
 
@@ -615,8 +645,8 @@ export default function AlertsManagementScreen() {
 
               {/* إعدادات التنبيهات */}
               <ThemedView style={styles.settingsSection}>
-                <ThemedText type="subtitle" style={styles.sectionTitle}>
-                  إعدادات التنبيهات
+                <ThemedText type="subtitle" style={[styles.sectionTitle, getTextDirection()]}> 
+                  {formatRTLText('إعدادات التنبيهات')}
                 </ThemedText>
 
                 <TouchableOpacity 
@@ -626,38 +656,17 @@ export default function AlertsManagementScreen() {
                       'إعدادات الصوت والاهتزاز',
                       'اختر نمط التنبيه المفضل لديك',
                       [
-                        { text: 'صوت فقط', onPress: () => Alert.alert('تم التحديث', 'تم تعيين نمط الصوت فقط') },
-                        { text: 'اهتزاز فقط', onPress: () => Alert.alert('تم التحديث', 'تم تعيين نمط الاهتزاز فقط') },
-                        { text: 'صوت واهتزاز', onPress: () => Alert.alert('تم التحديث', 'تم تعيين نمط الصوت والاهتزاز') },
-                        { text: 'صامت', onPress: () => Alert.alert('تم التحديث', 'تم تعيين النمط الصامت') },
+                        { text: 'صوت فقط', onPress: () => updateNotificationMode('sound') },
+                        { text: 'اهتزاز فقط', onPress: () => updateNotificationMode('vibration') },
+                        { text: 'صوت واهتزاز', onPress: () => updateNotificationMode('both') },
+                        { text: 'صامت', onPress: () => updateNotificationMode('silent') },
                         { text: 'إلغاء', style: 'cancel' }
                       ]
                     );
                   }}
                 >
                   <IconSymbol size={24} name="speaker.wave.2.fill" color="#007AFF" />
-                  <ThemedText style={styles.settingButtonText}>إعدادات الصوت والاهتزاز</ThemedText>
-                  <IconSymbol size={16} name="chevron.left" color="#666" />
-                </TouchableOpacity>
-
-                <TouchableOpacity 
-                  style={styles.settingButton}
-                  onPress={() => {
-                    Alert.alert(
-                      'أوقات عدم الإزعاج',
-                      'حدد الأوقات التي لا تريد استقبال التنبيهات فيها',
-                      [
-                        { text: '22:00 - 07:00 (ليلاً)', onPress: () => Alert.alert('تم التحديث', 'تم تفعيل عدم الإزعاج من 22:00 إلى 07:00') },
-                        { text: '12:00 - 14:00 (قيلولة)', onPress: () => Alert.alert('تم التحديث', 'تم تفعيل عدم الإزعاج من 12:00 إلى 14:00') },
-                        { text: 'أيام العطل فقط', onPress: () => Alert.alert('تم التحديث', 'تم تفعيل عدم الإزعاج في أيام العطل') },
-                        { text: 'إعداد مخصص', onPress: () => Alert.alert('قريباً', 'سيتم إضافة الإعداد المخصص قريباً') },
-                        { text: 'إلغاء', style: 'cancel' }
-                      ]
-                    );
-                  }}
-                >
-                  <IconSymbol size={24} name="moon.fill" color="#9C27B0" />
-                  <ThemedText style={styles.settingButtonText}>أوقات عدم الإزعاج</ThemedText>
+                  <ThemedText style={[styles.settingButtonText, getTextDirection()]}>إعدادات الصوت والاهتزاز</ThemedText>
                   <IconSymbol size={16} name="chevron.left" color="#666" />
                 </TouchableOpacity>
 
@@ -754,7 +763,7 @@ ${Object.entries(stats.byType).map(([type, count]) => `${type}: ${count}`).join(
                   }}
                 >
                   <IconSymbol size={24} name="gear.circle.fill" color="#FF9800" />
-                  <ThemedText style={styles.settingButtonText}>إدارة متقدمة</ThemedText>
+                  <ThemedText style={[styles.settingButtonText, getTextDirection()]}>إدارة متقدمة</ThemedText>
                   <IconSymbol size={16} name="chevron.left" color="#666" />
                 </TouchableOpacity>
               </ThemedView>
@@ -782,31 +791,31 @@ ${Object.entries(stats.byType).map(([type, count]) => `${type}: ${count}`).join(
                   <IconSymbol size={24} name="xmark.circle.fill" color="#666" />
                 </TouchableOpacity>
                 
-                <ThemedText style={styles.modalTitle}>
-                  {alerts.findIndex(a => a.id === editingAlert?.id) !== -1 ? 'تعديل التنبيه' : 'إضافة تنبيه جديد'}
+                <ThemedText style={[styles.modalTitle, getTextDirection()]}> 
+                  {formatRTLText(alerts.findIndex(a => a.id === editingAlert?.id) !== -1 ? 'تعديل التنبيه' : 'إضافة تنبيه جديد')}
                 </ThemedText>
               </ThemedView>
 
               {/* عنوان التنبيه */}
               <ThemedView style={styles.modalSection}>
-                <ThemedText style={styles.modalSectionTitle}>عنوان التنبيه</ThemedText>
+                <ThemedText style={[styles.modalSectionTitle, getTextDirection()]}>عنوان التنبيه</ThemedText>
                 <TextInput
-                  style={styles.modalTextInput}
+                  style={[styles.modalTextInput, getTextDirection()]}
                   value={editTitle}
                   onChangeText={setEditTitle}
-                  placeholder="أدخل عنوان التنبيه"
+                  placeholder={formatRTLText('أدخل عنوان التنبيه')}
                   textAlign="right"
                 />
               </ThemedView>
 
               {/* وصف التنبيه */}
               <ThemedView style={styles.modalSection}>
-                <ThemedText style={styles.modalSectionTitle}>الوصف (اختياري)</ThemedText>
+                <ThemedText style={[styles.modalSectionTitle, getTextDirection()]}>الوصف (اختياري)</ThemedText>
                 <TextInput
-                  style={[styles.modalTextInput, styles.modalTextArea]}
+                  style={[styles.modalTextInput, styles.modalTextArea, getTextDirection()]}
                   value={editDescription}
                   onChangeText={setEditDescription}
-                  placeholder="أدخل وصف التنبيه"
+                  placeholder={formatRTLText('أدخل وصف التنبيه')}
                   textAlign="right"
                   multiline
                   numberOfLines={3}
@@ -815,7 +824,7 @@ ${Object.entries(stats.byType).map(([type, count]) => `${type}: ${count}`).join(
 
               {/* نوع التنبيه */}
               <ThemedView style={styles.modalSection}>
-                <ThemedText style={styles.modalSectionTitle}>نوع التنبيه</ThemedText>
+                <ThemedText style={[styles.modalSectionTitle, getTextDirection()]}>نوع التنبيه</ThemedText>
                 <ScrollView horizontal showsHorizontalScrollIndicator={false}>
                   <ThemedView style={styles.modalOptionsRow}>
                     {[
@@ -842,8 +851,8 @@ ${Object.entries(stats.byType).map(([type, count]) => `${type}: ${count}`).join(
                         <ThemedText style={[
                           styles.modalOptionText,
                           editType === item.value && { color: item.color, fontWeight: 'bold' }
-                        ]}>
-                          {item.label}
+                        ]}> 
+                          {formatRTLText(item.label)}
                         </ThemedText>
                       </TouchableOpacity>
                     ))}
@@ -854,23 +863,23 @@ ${Object.entries(stats.byType).map(([type, count]) => `${type}: ${count}`).join(
               {/* التاريخ والوقت */}
               <ThemedView style={styles.modalRow}>
                 <ThemedView style={[styles.modalSection, { flex: 1, marginRight: 10 }]}>
-                  <ThemedText style={styles.modalSectionTitle}>التاريخ</ThemedText>
+                  <ThemedText style={[styles.modalSectionTitle, getTextDirection()]}>التاريخ</ThemedText>
                   <TextInput
-                    style={styles.modalTextInput}
+                    style={[styles.modalTextInput, getTextDirection()]}
                     value={editDate}
                     onChangeText={setEditDate}
-                    placeholder="YYYY-MM-DD"
+                    placeholder={formatRTLText('YYYY-MM-DD')}
                     textAlign="right"
                   />
                 </ThemedView>
                 
                 <ThemedView style={[styles.modalSection, { flex: 1, marginLeft: 10 }]}>
-                  <ThemedText style={styles.modalSectionTitle}>الوقت</ThemedText>
+                  <ThemedText style={[styles.modalSectionTitle, getTextDirection()]}>الوقت</ThemedText>
                   <TextInput
-                    style={styles.modalTextInput}
+                    style={[styles.modalTextInput, getTextDirection()]}
                     value={editTime}
                     onChangeText={setEditTime}
-                    placeholder="HH:MM"
+                    placeholder={formatRTLText('HH:MM')}
                     textAlign="right"
                   />
                 </ThemedView>
@@ -878,7 +887,7 @@ ${Object.entries(stats.byType).map(([type, count]) => `${type}: ${count}`).join(
 
               {/* الأولوية */}
               <ThemedView style={styles.modalSection}>
-                <ThemedText style={styles.modalSectionTitle}>الأولوية</ThemedText>
+                <ThemedText style={[styles.modalSectionTitle, getTextDirection()]}>الأولوية</ThemedText>
                 <ThemedView style={styles.modalOptionsRow}>
                   {[
                     { value: 'عالي', label: 'عالي', color: '#F44336' },
@@ -900,8 +909,8 @@ ${Object.entries(stats.byType).map(([type, count]) => `${type}: ${count}`).join(
                       <ThemedText style={[
                         styles.modalOptionText,
                         editPriority === item.value && { color: item.color, fontWeight: 'bold' }
-                      ]}>
-                        {item.label}
+                      ]}> 
+                        {formatRTLText(item.label)}
                       </ThemedText>
                     </TouchableOpacity>
                   ))}
@@ -922,8 +931,8 @@ ${Object.entries(stats.byType).map(([type, count]) => `${type}: ${count}`).join(
                   <ThemedText style={[
                     styles.modalToggleText,
                     editActive && styles.modalToggleTextActive
-                  ]}>
-                    {editActive ? 'التنبيه نشط' : 'التنبيه معطل'}
+                  ]}> 
+                    {formatRTLText(editActive ? 'التنبيه نشط' : 'التنبيه معطل')}
                   </ThemedText>
                   <IconSymbol 
                     size={16} 
@@ -940,8 +949,8 @@ ${Object.entries(stats.byType).map(([type, count]) => `${type}: ${count}`).join(
                   onPress={saveAlertFromModal}
                 >
                   <IconSymbol size={18} name="checkmark.circle.fill" color="#fff" />
-                  <ThemedText style={styles.modalActionButtonText}>
-                    {alerts.findIndex(a => a.id === editingAlert?.id) !== -1 ? 'حفظ التغييرات' : 'إضافة التنبيه'}
+                  <ThemedText style={[styles.modalActionButtonText, getTextDirection()]}> 
+                    {formatRTLText(alerts.findIndex(a => a.id === editingAlert?.id) !== -1 ? 'حفظ التغييرات' : 'إضافة التنبيه')}
                   </ThemedText>
                 </TouchableOpacity>
 
@@ -951,7 +960,9 @@ ${Object.entries(stats.byType).map(([type, count]) => `${type}: ${count}`).join(
                     onPress={deleteAlertFromModal}
                   >
                     <IconSymbol size={18} name="trash.fill" color="#fff" />
-                    <ThemedText style={styles.modalActionButtonText}>حذف التنبيه</ThemedText>
+                    <ThemedText style={[styles.modalActionButtonText, getTextDirection()]}> 
+                      {formatRTLText('حذف التنبيه')}
+                    </ThemedText>
                   </TouchableOpacity>
                 )}
               </ThemedView>
@@ -1189,7 +1200,7 @@ const styles = StyleSheet.create({
     backgroundColor: 'transparent',
   },
   alertsHeader: {
-    flexDirection: 'row-reverse',
+    flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
     marginBottom: 15,

@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { StyleSheet, ScrollView, TouchableOpacity, I18nManager, ImageBackground, KeyboardAvoidingView, Platform, StatusBar } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
@@ -7,6 +7,7 @@ import { ThemedView } from '@/components/ThemedView';
 import { IconSymbol } from '@/components/ui/IconSymbol';
 import { useRouter } from 'expo-router';
 import { BottomNavigationBar } from '@/components/BottomNavigationBar';
+import { getTextDirection, formatRTLText, getRTLTextStyle } from '@/utils/rtl-utils';
 
 const azkarData = [
   {
@@ -201,6 +202,10 @@ export default function AzkarScreen() {
   const [expandedCategories, setExpandedCategories] = useState<number[]>([]);
   const [currentCounts, setCurrentCounts] = useState<{[key: string]: number}>({});
 
+  useEffect(() => {
+    // RTL is handled by the safe wrapper in utils/rtl-utils.ts
+  }, []);
+
   const toggleCategory = (categoryId: number) => {
     setExpandedCategories(prev => 
       prev.includes(categoryId) 
@@ -260,18 +265,18 @@ export default function AzkarScreen() {
                 <ThemedView style={styles.iconContainer}>
                   <IconSymbol size={60} name="book.fill" color="#1c1f33" />
                 </ThemedView>
-                <ThemedText type="title" style={styles.title}>
-                  أذكاري
+                <ThemedText type="title" style={[styles.title, getTextDirection()]}> 
+                  {formatRTLText('أذكاري')}
                 </ThemedText>
-                <ThemedText style={styles.subtitle}>
-                  اختر فئة الأذكار للبدء في التسبيح والذكر
+                <ThemedText style={[styles.subtitle, getTextDirection()]}> 
+                  {formatRTLText('اختر فئة الأذكار للبدء في التسبيح والذكر')}
                 </ThemedText>
               </ThemedView>
 
               <ThemedView style={styles.content}>
 
                 <ThemedView style={[styles.dataSection, { backgroundColor: 'transparent' }]}>
-                  <ThemedText type="subtitle" style={styles.sectionTitle}>
+                  <ThemedText type="subtitle" style={styles.sectionTitle}> 
                     فئات الأذكار
                   </ThemedText>
 
@@ -287,11 +292,11 @@ export default function AzkarScreen() {
                           </ThemedView>
 
                           <ThemedView style={styles.categoryInfo}>
-                            <ThemedText style={styles.categoryTitle}>
-                              {category.category}
+                            <ThemedText style={styles.categoryTitle}> 
+                              {formatRTLText(category.category)}
                             </ThemedText>
-                            <ThemedText style={styles.categoryCount}>
-                              {category.azkar.length} {category.azkar.length === 1 ? 'ذكر' : 'أذكار'}
+                            <ThemedText style={styles.categoryCount}> 
+                              {formatRTLText(`${category.azkar.length} ${category.azkar.length === 1 ? 'ذكر' : 'أذكار'}`)}
                             </ThemedText>
                           </ThemedView>
 
@@ -314,13 +319,13 @@ export default function AzkarScreen() {
                                   isCompleted && styles.completedCard
                                 ]}
                               >
-                                <ThemedText style={styles.azkarText}>
-                                  {zikr.text}
+                                <ThemedText style={[styles.azkarText, getTextDirection()]}> 
+                                  {formatRTLText(zikr.text)}
                                 </ThemedText>
 
                                 <ThemedView style={styles.counterContainer}>
-                                  <ThemedText style={styles.counterText}>
-                                    {currentCount} / {zikr.count}
+                                  <ThemedText style={[styles.counterText, getTextDirection()]}> 
+                                    {formatRTLText(`${currentCount} / ${zikr.count}`)}
                                   </ThemedText>
 
                                   <ThemedView style={styles.counterButtons}>
@@ -369,7 +374,6 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
   },
-
   backgroundImage: {
     flex: 1,
     width: '100%',
@@ -385,7 +389,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     paddingTop: Platform.OS === 'ios' ? 60 : 50,
     paddingHorizontal: 30,
-    paddingBottom: 30,
+    paddingBottom: 15,
     backgroundColor: 'transparent',
     position: 'relative',
   },
@@ -425,37 +429,43 @@ const styles = StyleSheet.create({
     marginTop: 15,
     marginBottom: 10,
     textAlign: 'center',
-    writingDirection: 'rtl',
-    textDirection: 'rtl',
+    ...getRTLTextStyle(),
     color: '#000000',
   },
   subtitle: {
     fontSize: 16,
     color: '#666666',
     textAlign: 'center',
-    writingDirection: 'rtl',
-    textDirection: 'rtl',
+    ...getRTLTextStyle(),
     marginBottom: 20,
   },
   content: {
     padding: 20,
+    paddingTop: 0,
     backgroundColor: 'transparent',
+    direction: 'rtl',
   },
 
   dataSection: {
     marginBottom: 30,
+    marginTop: 0,
+    direction: 'rtl',
   },
   sectionTitle: {
     fontSize: 20,
     fontWeight: 'bold',
     marginBottom: 15,
+    marginTop: 0,
     color: '#1c1f33',
     textAlign: 'center',
     writingDirection: 'rtl',
     textDirection: 'rtl',
+    alignSelf: 'center',
+    width: '100%',
   },
   categoryContainer: {
     marginBottom: 10,
+    direction: 'rtl',
   },
   dataItem: {
     marginBottom: 20,
@@ -469,10 +479,12 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.1,
     shadowRadius: 4,
     elevation: 3,
+    direction: 'rtl',
   },
   categoryContent: {
-    flexDirection: I18nManager.isRTL ? 'row-reverse' : 'row',
+    flexDirection: 'row-reverse',
     alignItems: 'center',
+    direction: 'rtl',
   },
   categoryIconContainer: {
     width: 50,
@@ -480,34 +492,41 @@ const styles = StyleSheet.create({
     borderRadius: 25,
     justifyContent: 'center',
     alignItems: 'center',
-    marginRight: I18nManager.isRTL ? 0 : 15,
-    marginLeft: I18nManager.isRTL ? 15 : 0,
+    marginRight: 0,
+    marginLeft: 15,
     backgroundColor: 'transparent',
+    direction: 'rtl',
   },
   categoryInfo: {
     flex: 1,
     backgroundColor: 'transparent',
+    direction: 'rtl',
   },
   categoryTitle: {
     fontSize: 16,
     fontWeight: 'bold',
     color: '#000000',
-    textAlign: 'right',
+    textAlign: 'center',
     writingDirection: 'rtl',
     textDirection: 'rtl',
     marginBottom: 4,
+    alignSelf: 'center',
+    width: '100%',
   },
   categoryCount: {
     fontSize: 14,
     color: '#8E8E93',
-    textAlign: 'right',
+    textAlign: 'center',
     writingDirection: 'rtl',
     textDirection: 'rtl',
+    alignSelf: 'center',
+    width: '100%',
   },
   azkarDropdown: {
     marginTop: 10,
     backgroundColor: 'transparent',
     paddingHorizontal: 10,
+    direction: 'rtl',
   },
   azkarItem: {
     marginBottom: 15,
@@ -521,11 +540,13 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.1,
     shadowRadius: 4,
     elevation: 3,
+    direction: 'rtl',
   },
   completedCard: {
     backgroundColor: 'rgba(52, 199, 89, 0.1)',
     borderWidth: 2,
     borderColor: '#34C759',
+    direction: 'rtl',
   },
   azkarText: {
     fontSize: 16,
@@ -535,11 +556,13 @@ const styles = StyleSheet.create({
     textDirection: 'rtl',
     color: '#000000',
     marginBottom: 15,
+    textAlignVertical: 'top',
   },
   counterContainer: {
-    flexDirection: I18nManager.isRTL ? 'row-reverse' : 'row',
+    flexDirection: 'row-reverse',
     alignItems: 'center',
     justifyContent: 'space-between',
+    direction: 'rtl',
   },
   counterText: {
     fontSize: 16,
@@ -548,10 +571,12 @@ const styles = StyleSheet.create({
     textAlign: 'right',
     writingDirection: 'rtl',
     textDirection: 'rtl',
+    textAlignVertical: 'center',
   },
   counterButtons: {
     flexDirection: 'row',
     gap: 10,
+    direction: 'rtl',
   },
   counterButton: {
     backgroundColor: '#add4ce',
@@ -565,9 +590,11 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.2,
     shadowRadius: 8,
     elevation: 8,
+    direction: 'rtl',
   },
   completedButton: {
     backgroundColor: '#34C759',
+    direction: 'rtl',
   },
   resetButton: {
     backgroundColor: '#F2F2F7',
@@ -578,5 +605,6 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     borderWidth: 1,
     borderColor: '#E5E5EA',
+    direction: 'rtl',
   },
 });

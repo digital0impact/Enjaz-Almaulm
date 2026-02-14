@@ -3,6 +3,7 @@ import { Modal, View, StyleSheet, ActivityIndicator, Platform } from 'react-nati
 import { ThemedText } from './ThemedText';
 import { ThemedView } from './ThemedView';
 import { IconSymbol } from './ui/IconSymbol';
+import { getTextDirection, formatRTLText } from '@/utils/rtl-utils';
 
 interface BackupProgressModalProps {
   visible: boolean;
@@ -33,9 +34,13 @@ export const BackupProgressModal: React.FC<BackupProgressModalProps> = ({
             <IconSymbol size={50} name="arrow.clockwise" color="#4CAF50" />
           </ThemedView>
           
-          <ThemedText style={styles.title}>جاري إنشاء النسخة الاحتياطية</ThemedText>
+          <ThemedText style={[styles.title, getTextDirection()]}> 
+            {formatRTLText('جاري إنشاء النسخة الاحتياطية')}
+          </ThemedText>
           
-          <ThemedText style={styles.message}>{progress.message}</ThemedText>
+          <ThemedText style={[styles.message, getTextDirection()]}> 
+            {formatRTLText(progress.message)}
+          </ThemedText>
           
           <ThemedView style={styles.progressContainer}>
             <ThemedView style={styles.progressBar}>
@@ -47,15 +52,15 @@ export const BackupProgressModal: React.FC<BackupProgressModalProps> = ({
               />
             </ThemedView>
             
-            <ThemedText style={styles.progressText}>
-              {progress.current} من {progress.total} ({Math.min(progress.percentage, 100)}%)
+            <ThemedText style={[styles.progressText, getTextDirection()]}> 
+              {formatRTLText(`${progress.current} من ${progress.total} (${Math.min(progress.percentage, 100)}%)`)}
             </ThemedText>
           </ThemedView>
 
           {/* معلومات إضافية للتشخيص في وضع التطوير */}
           {__DEV__ && (
             <ThemedView style={styles.debugContainer}>
-              <ThemedText style={styles.debugText}>
+              <ThemedText style={[styles.debugText, getTextDirection()]}> 
                 Debug: {progress.current}/{progress.total} - {progress.percentage}%
               </ThemedText>
             </ThemedView>
@@ -64,8 +69,8 @@ export const BackupProgressModal: React.FC<BackupProgressModalProps> = ({
           <ActivityIndicator size="large" color="#4CAF50" style={styles.spinner} />
           
           {onCancel && (
-            <ThemedText style={styles.cancelText} onPress={onCancel}>
-              إلغاء العملية
+            <ThemedText style={[styles.cancelText, getTextDirection()]} onPress={onCancel}> 
+              {formatRTLText('إلغاء العملية')}
             </ThemedText>
           )}
         </ThemedView>

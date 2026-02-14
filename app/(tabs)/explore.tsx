@@ -5,6 +5,7 @@ import { ThemedText } from '@/components/ThemedText';
 import { ThemedView } from '@/components/ThemedView';
 import { IconSymbol } from '@/components/ui/IconSymbol';
 import { useRouter } from 'expo-router';
+import { getTextDirection, formatRTLText } from '@/utils/rtl-utils';
 
 export default function ExploreScreen() {
   const router = useRouter();
@@ -31,11 +32,11 @@ export default function ExploreScreen() {
               <ThemedView style={styles.iconContainer}>
                 <IconSymbol size={60} name="gear" color="#1c1f33" />
               </ThemedView>
-              <ThemedText type="title" style={styles.title}>
-                الأدوات المساعدة
+              <ThemedText type="title" style={[styles.title, getTextDirection()]}> 
+                {formatRTLText('الأدوات المساعدة')}
               </ThemedText>
-              <ThemedText style={styles.subtitle}>
-                مجموعة من الأدوات المفيدة لتسهيل عملك اليومي
+              <ThemedText style={[styles.subtitle, getTextDirection()]}> 
+                {formatRTLText('مجموعة من الأدوات المفيدة لتسهيل عملك اليومي')}
               </ThemedText>
             </ThemedView>
 
@@ -48,8 +49,8 @@ export default function ExploreScreen() {
                   <ThemedView style={styles.toolIconWrapper}>
                     <IconSymbol size={28} name="calendar.badge.plus" color="#1c1f33" />
                   </ThemedView>
-                  <ThemedText style={styles.toolTitle}>الإجازات الرسمية</ThemedText>
-                  <ThemedText style={styles.toolDescription}>جدول الإجازات والعطل الرسمية</ThemedText>
+                  <ThemedText style={[styles.toolTitle, getTextDirection()]}>الإجازات الرسمية</ThemedText>
+                  <ThemedText style={[styles.toolDescription, getTextDirection()]}>جدول الإجازات والعطل الرسمية</ThemedText>
                 </TouchableOpacity>
 
                 <TouchableOpacity 
@@ -59,8 +60,8 @@ export default function ExploreScreen() {
                   <ThemedView style={styles.toolIconWrapper}>
                     <IconSymbol size={28} name="calendar" color="#1c1f33" />
                   </ThemedView>
-                  <ThemedText style={styles.toolTitle}>التقويم الهجري والميلادي</ThemedText>
-                  <ThemedText style={styles.toolDescription}>عرض التقويم بالتاريخين الهجري والميلادي</ThemedText>
+                  <ThemedText style={[styles.toolTitle, getTextDirection()]}>التقويم الهجري والميلادي</ThemedText>
+                  <ThemedText style={[styles.toolDescription, getTextDirection()]}>عرض التقويم بالتاريخين الهجري والميلادي</ThemedText>
                 </TouchableOpacity>
 
                 <TouchableOpacity 
@@ -70,8 +71,8 @@ export default function ExploreScreen() {
                   <ThemedView style={styles.toolIconWrapper}>
                     <IconSymbol size={28} name="calendar.badge.exclamationmark" color="#1c1f33" />
                   </ThemedView>
-                  <ThemedText style={styles.toolTitle}>إدارة غيابي</ThemedText>
-                  <ThemedText style={styles.toolDescription}>تسجيل ومتابعة أيام الغياب الشخصية</ThemedText>
+                  <ThemedText style={[styles.toolTitle, getTextDirection()]}>إدارة غيابي</ThemedText>
+                  <ThemedText style={[styles.toolDescription, getTextDirection()]}>تسجيل ومتابعة أيام الغياب الشخصية</ThemedText>
                 </TouchableOpacity>
 
                 <TouchableOpacity 
@@ -81,8 +82,8 @@ export default function ExploreScreen() {
                   <ThemedView style={styles.toolIconWrapper}>
                     <IconSymbol size={28} name="bell.fill" color="#1c1f33" />
                   </ThemedView>
-                  <ThemedText style={styles.toolTitle}>التنبيهات المهمة</ThemedText>
-                  <ThemedText style={styles.toolDescription}>إنشاء وإدارة التنبيهات والتذكيرات</ThemedText>
+                  <ThemedText style={[styles.toolTitle, getTextDirection()]}>التنبيهات المهمة</ThemedText>
+                  <ThemedText style={[styles.toolDescription, getTextDirection()]}>إنشاء وإدارة التنبيهات والتذكيرات</ThemedText>
                 </TouchableOpacity>
               </ThemedView>
             </ThemedView>

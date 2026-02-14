@@ -1,232 +1,177 @@
-import React, { useState, useEffect } from 'react';
-import { StyleSheet, ScrollView, TouchableOpacity, Alert, View, Platform, StatusBar, ActivityIndicator, I18nManager, ImageBackground, KeyboardAvoidingView } from 'react-native';
-
-import { ThemedText } from '@/components/ThemedText';
-import { ThemedView } from '@/components/ThemedView';
-import { useTheme } from '@/contexts/ThemeContext';
+import React, { useEffect, useState } from 'react';
+import { View, StyleSheet, ScrollView, TouchableOpacity, Platform, StatusBar, Animated, ImageBackground, Linking } from 'react-native';
 import { useRouter } from 'expo-router';
-import AsyncStorage from '@react-native-async-storage/async-storage';
-import { BackButton } from '@/components/BackButton';
-import { IconSymbol } from '@/components/ui/IconSymbol';
 import { InAppPurchaseService, SubscriptionProduct } from '@/services/InAppPurchaseService';
-import { PermissionService } from '@/services/PermissionService';
+import { SubscriptionService } from '@/services/SubscriptionService';
+import { ThemedView } from '@/components/ThemedView';
+import { ThemedText } from '@/components/ThemedText';
+import { IconSymbol } from '@/components/ui/IconSymbol';
+import { BottomNavigationBar } from '@/components/BottomNavigationBar';
+import AuthService from '@/services/AuthService';
+import { 
+  getTextDirection, 
+  getFlexDirection, 
+  getRTLMargins,
+  getRTLPadding,
+  getRTLTextStyle,
+  formatRTLText,
+  formatRTLNumber,
+  formatRTLDate 
+} from '@/utils/rtl-utils';
 
 const SubscriptionScreen = () => {
   const router = useRouter();
-  const { colors } = useTheme();
-  const [subscriptionType, setSubscriptionType] = useState('مجاني');
-  const [expiryDate, setExpiryDate] = useState('');
-  const [products, setProducts] = useState<SubscriptionProduct[]>([]);
   const [loading, setLoading] = useState(true);
-  const [userId, setUserId] = useState<string | null>(null);
-  const [permissions, setPermissions] = useState({
-    canDownload: false,
-    canExport: false,
-    canBackup: false,
-    maxBackups: 0,
-    maxStudents: 0,
-    maxReports: 0,
-    storageLimit: 0
-  });
+  const [products, setProducts] = useState<SubscriptionProduct[]>([]);
+  const [error, setError] = useState<string | null>(null);
+  const [currentSubscription, setCurrentSubscription] = useState<any>(null);
+  const [fadeAnim] = useState(new Animated.Value(0));
+  const [slideAnim] = useState(new Animated.Value(50));
 
   useEffect(() => {
-    // نستخدم loadInitialData دائماً لأننا عدلنا InAppPurchaseService ليعمل في Expo Go
-    loadInitialData();
+    loadProducts();
+    loadCurrentSubscription();
+    
+    // تحريك الصفحة عند التحميل
+    Animated.parallel([
+      Animated.timing(fadeAnim, {
+        toValue: 1,
+        duration: 800,
+        useNativeDriver: true,
+      }),
+      Animated.timing(slideAnim, {
+        toValue: 0,
+        duration: 800,
+        useNativeDriver: true,
+      }),
+    ]).start();
   }, []);
-
-  const loadInitialData = async () => {
-    try {
-      const userInfo = await AsyncStorage.getItem('userInfo');
-      if (userInfo) {
-        const parsedInfo = JSON.parse(userInfo);
-        setUserId(parsedInfo.id);
-        await loadSubscriptionInfo(parsedInfo.id);
-        await loadPermissions(parsedInfo.id);
-        await loadProducts();
-      } else {
-        setLoading(false);
-        Alert.alert('تنبيه', 'يجب تسجيل الدخول أولاً');
-        router.replace('/login');
-      }
-    } catch (error) {
-      console.error('خطأ في تحميل البيانات:', error);
-      setLoading(false);
-    }
-  };
-
-  const loadSubscriptionInfo = async (userId: string) => {
-    try {
-      const purchaseService = InAppPurchaseService.getInstance();
-      const subscription = await purchaseService.getCurrentSubscription(userId);
-      setSubscriptionType(subscription.type);
-      setExpiryDate(subscription.expiryDate || '');
-    } catch (error) {
-      console.error('خطأ في تحميل معلومات الاشتراك:', error);
-    }
-  };
-
-  const loadPermissions = async (userId: string) => {
-    try {
-      const permissionService = PermissionService.getInstance();
-      await permissionService.initialize(userId);
-      
-      setPermissions({
-        canDownload: await permissionService.canDownload(),
-        canExport: await permissionService.canExport(),
-        canBackup: await permissionService.canBackup(),
-        maxBackups: await permissionService.getMaxBackups(),
-        maxStudents: await permissionService.getMaxStudents(),
-        maxReports: await permissionService.getMaxReports(),
-        storageLimit: await permissionService.getStorageLimit()
-      });
-    } catch (error) {
-      console.error('خطأ في تحميل الصلاحيات:', error);
-    }
-  };
 
   const loadProducts = async () => {
     try {
+      setLoading(true);
+      setError(null);
       const purchaseService = InAppPurchaseService.getInstance();
-      const availableProducts = await purchaseService.loadProducts();
+      const availableProducts = await purchaseService.getProducts();
+      console.log('Loaded products:', availableProducts);
+      console.log('Products with features:', availableProducts.map(p => ({
+        productId: p.productId,
+        title: p.title,
+        featuresCount: p.features.length,
+        features: p.features
+      })));
       setProducts(availableProducts);
-    } catch (error) {
-      console.error('خطأ في تحميل المنتجات:', error);
-      Alert.alert('خطأ', 'حدث خطأ في تحميل خطط الاشتراك');
+    } catch (err) {
+      setError('حدث خطأ في تحميل خطط الاشتراك');
+      console.error('Error loading products:', err);
     } finally {
       setLoading(false);
     }
   };
 
-  const handleUpgradeSubscription = async (productId: string) => {
-    if (!userId) {
-      Alert.alert('تنبيه', 'يجب تسجيل الدخول أولاً');
-      return;
-    }
+  const loadCurrentSubscription = async () => {
+    try {
+      const user = await AuthService.getCurrentUser();
+      if (!user) return;
 
+      const subscription = await SubscriptionService.getCurrentSubscription(user.id);
+      
+      // التأكد من أن البيانات صحيحة
+      if (subscription && typeof subscription === 'object') {
+        console.log('Current subscription loaded:', subscription);
+        setCurrentSubscription(subscription);
+      } else {
+        console.log('No valid subscription found, using default');
+        setCurrentSubscription({
+          plan_type: 'free',
+          status: 'active',
+          end_date: null
+        });
+      }
+    } catch (err) {
+      console.error('Error loading current subscription:', err);
+      // في حالة الخطأ، نضع اشتراك مجاني افتراضي
+      setCurrentSubscription({
+        plan_type: 'free',
+        status: 'active',
+        end_date: null
+      });
+    }
+  };
+
+  const handlePurchase = async (productId: string) => {
     try {
       setLoading(true);
-      const purchaseService = InAppPurchaseService.getInstance();
-      const success = await purchaseService.purchaseSubscription(productId, userId);
+      setError(null);
       
-      if (success) {
-        Alert.alert('نجاح', 'تم الاشتراك بنجاح');
-        await loadSubscriptionInfo(userId);
-        await loadPermissions(userId);
-      } else {
-        Alert.alert('خطأ', 'فشلت عملية الشراء');
+      const user = await AuthService.getCurrentUser();
+      if (!user) {
+        setError('يجب تسجيل الدخول أولاً');
+        return;
       }
-    } catch (error) {
-      console.error('خطأ في عملية الشراء:', error);
-      Alert.alert('خطأ', 'حدث خطأ أثناء عملية الشراء');
+      
+      const purchaseService = InAppPurchaseService.getInstance();
+      const success = await purchaseService.purchaseSubscription(productId, user.id);
+      if (success) {
+        // تحديث حالة الاشتراك
+        await loadProducts();
+        await loadCurrentSubscription();
+      } else {
+        setError('فشلت عملية الشراء');
+      }
+    } catch (err) {
+      setError('حدث خطأ أثناء عملية الشراء');
+      console.error('Error during purchase:', err);
     } finally {
       setLoading(false);
     }
   };
 
-  const handleRestorePurchases = async () => {
-    if (!userId) {
-      Alert.alert('تنبيه', 'يجب تسجيل الدخول أولاً');
-      return;
-    }
+  const getPlanIcon = (productId: string) => {
+    if (productId.includes('free')) return 'card-giftcard';
+    if (productId.includes('yearly')) return 'workspace-premium';
+    return 'stars';
+  };
 
+  const getPlanColor = (productId: string) => {
+    if (productId.includes('free')) return '#4CAF50';
+    if (productId.includes('yearly')) return '#FF9800';
+    return '#2196F3';
+  };
+
+  const formatExpiryDate = (date: Date | string | undefined) => {
+    if (!date) return 'غير محدد';
+    
     try {
-      setLoading(true);
-      const purchaseService = InAppPurchaseService.getInstance();
-      const success = await purchaseService.restorePurchases(userId);
+      const dateObj = new Date(date);
+      if (isNaN(dateObj.getTime())) return 'غير محدد';
       
-      if (success) {
-        Alert.alert('نجاح', 'تم استعادة مشترياتك بنجاح');
-        await loadSubscriptionInfo(userId);
-        await loadPermissions(userId);
-      } else {
-        Alert.alert('تنبيه', 'لم يتم العثور على مشتريات سابقة');
-      }
+      return dateObj.toLocaleDateString('ar-SA', {
+        year: 'numeric',
+        month: 'long',
+        day: 'numeric'
+      });
     } catch (error) {
-      console.error('خطأ في استعادة المشتريات:', error);
-      Alert.alert('خطأ', 'حدث خطأ أثناء استعادة المشتريات');
-    } finally {
-      setLoading(false);
+      console.error('Error formatting date:', error);
+      return 'غير محدد';
     }
   };
 
-  const formatStorageSize = (bytes: number): string => {
-    if (bytes === -1) return 'غير محدود';
-    const gb = bytes / (1024 * 1024 * 1024);
-    if (gb >= 1) return `${gb} GB`;
-    const mb = bytes / (1024 * 1024);
-    return `${mb} MB`;
-  };
-
-  const getMaxText = (value: number): string => {
-    if (value === -1) return 'غير محدود';
-    return value.toString();
-  };
-
-  const getRemainingTimeText = (expiryDate: string): string => {
-    const now = new Date();
-    const expiry = new Date(expiryDate);
-    const diffTime = expiry.getTime() - now.getTime();
-    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+  const getDaysRemaining = (endDate: Date | string | undefined) => {
+    if (!endDate) return 0;
     
-    if (diffDays < 0) {
-      return 'منتهي الصلاحية';
-    } else if (diffDays === 0) {
-      return 'ينتهي اليوم';
-    } else if (diffDays === 1) {
-      return 'ينتهي غداً';
-    } else if (diffDays < 7) {
-      return `${diffDays} أيام متبقية`;
-    } else if (diffDays < 30) {
-      const weeks = Math.floor(diffDays / 7);
-      return `${weeks} أسابيع متبقية`;
-    } else {
-      const months = Math.floor(diffDays / 30);
-      return `${months} أشهر متبقية`;
-    }
-  };
-
-  const getRemainingTimeColor = (expiryDate: string): string => {
-    const now = new Date();
-    const expiry = new Date(expiryDate);
-    const diffTime = expiry.getTime() - now.getTime();
-    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
-    
-    if (diffDays < 0) {
-      return '#FF6B6B'; // أحمر للمنتهي
-    } else if (diffDays <= 7) {
-      return '#FFA500'; // برتقالي للاقتراب من الانتهاء
-    } else {
-      return '#4ECDC4'; // أخضر للوقت الكافي
-    }
-  };
-
-  const getSubscriptionStatusText = (expiryDate: string): string => {
-    const now = new Date();
-    const expiry = new Date(expiryDate);
-    const diffTime = expiry.getTime() - now.getTime();
-    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
-    
-    if (diffDays < 0) {
-      return 'منتهي الصلاحية';
-    } else if (diffDays <= 7) {
-      return 'قريب من الانتهاء';
-    } else {
-      return 'نشط';
-    }
-  };
-
-  const getSubscriptionStatusColor = (expiryDate: string): string => {
-    const now = new Date();
-    const expiry = new Date(expiryDate);
-    const diffTime = expiry.getTime() - now.getTime();
-    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
-    
-    if (diffDays < 0) {
-      return '#FF6B6B'; // أحمر
-    } else if (diffDays <= 7) {
-      return '#FFA500'; // برتقالي
-    } else {
-      return '#4ECDC4'; // أخضر
+    try {
+      const now = new Date();
+      const end = new Date(endDate);
+      
+      if (isNaN(end.getTime())) return 0;
+      
+      const diffTime = end.getTime() - now.getTime();
+      const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+      return Math.max(0, diffDays); // لا نريد أيام سالبة
+    } catch (error) {
+      console.error('Error calculating days remaining:', error);
+      return 0;
     }
   };
 
@@ -243,174 +188,180 @@ const SubscriptionScreen = () => {
         style={styles.backgroundImage}
         resizeMode="cover"
       >
-        
-          <KeyboardAvoidingView
-            style={{ flex: 1 }}
-            behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-            keyboardVerticalOffset={Platform.OS === 'ios' ? 0 : 20}
-          >
-            <ScrollView 
-              style={styles.scrollContainer}
-              contentContainerStyle={{ flexGrow: 1, paddingBottom: 50 }}
-              showsVerticalScrollIndicator={false}
-              keyboardShouldPersistTaps="handled"
-              contentInsetAdjustmentBehavior="automatic"
-              maintainVisibleContentPosition={{
-                minIndexForVisible: 0,
-                autoscrollToTopThreshold: 10
-              }}
+        <Animated.ScrollView 
+          style={[styles.scrollContainer, { opacity: fadeAnim }]}
+          contentContainerStyle={{ 
+            flexGrow: 1, 
+            paddingBottom: 50,
+            transform: [{ translateY: slideAnim }]
+          }}
+          showsVerticalScrollIndicator={false}
+          contentInsetAdjustmentBehavior="automatic"
+        >
+          {/* Header */}
+          <Animated.View style={[styles.header, { opacity: fadeAnim }]}>
+            <TouchableOpacity 
+              style={styles.backButton}
+              onPress={() => router.back()}
+              activeOpacity={0.7}
             >
-              {/* Header */}
-              <ThemedView style={styles.header}>
-                <TouchableOpacity 
-                  style={styles.backButton}
-                  onPress={() => router.back()}
-                >
-                  <IconSymbol size={20} name="chevron.left" color="#1c1f33" />
-                </TouchableOpacity>
+              <IconSymbol size={20} name="chevron.left" color="#1c1f33" />
+            </TouchableOpacity>
 
-                <ThemedView style={styles.iconContainer}>
-                  <IconSymbol size={60} name="star.fill" color="#1c1f33" />
+            <Animated.View style={[styles.iconContainer, { transform: [{ scale: fadeAnim }] }]}>
+              <IconSymbol size={60} name="creditcard.fill" color="#1c1f33" />
+            </Animated.View>
+            
+            <ThemedText type="title" style={[styles.title, getTextDirection()]}>
+              {formatRTLText('خطط الاشتراك')}
+            </ThemedText>
+            
+            <ThemedText style={[styles.subtitle, getTextDirection()]}>
+              {formatRTLText('اختر الخطة المناسبة لك')}
+            </ThemedText>
+          </Animated.View>
+
+          {/* Current Subscription */}
+          {currentSubscription && (
+            <Animated.View style={[styles.currentSubscriptionSection, { opacity: fadeAnim, transform: [{ translateY: slideAnim }] }]}>
+              <ThemedText style={[styles.sectionTitle, getTextDirection()]}>
+                {formatRTLText('الاشتراك الحالي')}
+              </ThemedText>
+              
+              <ThemedView style={styles.currentSubscriptionCard}>
+                <ThemedView style={styles.currentSubscriptionHeader}>
+                  <ThemedView style={styles.currentSubscriptionIcon}>
+                    <IconSymbol 
+                      size={32} 
+                      name={currentSubscription.plan_type === 'free' ? 'card-giftcard' : 'workspace-premium'} 
+                      color={currentSubscription.plan_type === 'free' ? '#4CAF50' : '#FF9800'} 
+                    />
+                  </ThemedView>
+                  <ThemedView style={styles.currentSubscriptionInfo}>
+                    <ThemedText style={[styles.currentSubscriptionTitle, getTextDirection()]}>
+                      {formatRTLText(currentSubscription.plan_type === 'free' ? 'الاشتراك الأساسي' : 
+                       currentSubscription.plan_type === 'yearly' ? 'الاشتراك السنوي' : 'الاشتراك النصف سنوي')}
+                    </ThemedText>
+                    <ThemedText style={[styles.currentSubscriptionStatus, getTextDirection()]}>
+                      {formatRTLText(currentSubscription.status === 'active' ? 'نشط' : 'منتهي')}
+                    </ThemedText>
+                  </ThemedView>
                 </ThemedView>
-                
-                <ThemedText type="title" style={styles.title}>
-                  إدارة الاشتراك
-                </ThemedText>
-                
-                <ThemedText style={styles.subtitle}>
-                  إدارة اشتراكك ومميزاتك
-                </ThemedText>
-              </ThemedView>
 
-              {/* Content */}
-              <ThemedView style={styles.formContainer}>
-                {/* معلومات الاشتراك الحالي */}
-                <ThemedView style={styles.sectionContainer}>
-                  <ThemedText style={styles.sectionTitle}>معلومات الاشتراك الحالي</ThemedText>
-                  <ThemedView style={styles.infoCard}>
-                    <View style={styles.infoRow}>
-                      <ThemedText style={styles.infoLabel}>نوع الاشتراك:</ThemedText>
-                      <ThemedText style={[styles.infoValue, { color: subscriptionType === 'مجاني' ? colors.text : colors.primary }]}>
-                        {subscriptionType}
+                {currentSubscription.plan_type !== 'free' && currentSubscription.end_date && (
+                  <ThemedView style={styles.expiryInfo}>
+                    <ThemedView style={styles.expiryRow}>
+                      <IconSymbol size={16} name="calendar" color="#666" />
+                      <ThemedText style={[styles.expiryText, getTextDirection()]}>
+                        {formatRTLText('تاريخ الانتهاء:')} {formatRTLDate(new Date(currentSubscription.end_date || ''))}
                       </ThemedText>
-                    </View>
-                    {expiryDate && (
-                      <>
-                        <View style={styles.infoRow}>
-                          <ThemedText style={styles.infoLabel}>تاريخ انتهاء الاشتراك:</ThemedText>
-                          <ThemedText style={styles.infoValue}>{new Date(expiryDate).toLocaleDateString('ar-SA')}</ThemedText>
-                        </View>
-                        <View style={styles.infoRow}>
-                          <ThemedText style={styles.infoLabel}>الوقت المتبقي:</ThemedText>
-                          <ThemedText style={[styles.infoValue, { color: getRemainingTimeColor(expiryDate) }]}>
-                            {getRemainingTimeText(expiryDate)}
-                          </ThemedText>
-                        </View>
-                        <View style={styles.infoRow}>
-                          <ThemedText style={styles.infoLabel}>حالة الاشتراك:</ThemedText>
-                          <ThemedText style={[styles.infoValue, { color: getSubscriptionStatusColor(expiryDate) }]}>
-                            {getSubscriptionStatusText(expiryDate)}
-                          </ThemedText>
-                        </View>
-                      </>
-                    )}
-                    {!expiryDate && subscriptionType === 'مجاني' && (
-                      <View style={styles.infoRow}>
-                        <ThemedText style={styles.infoLabel}>حالة الاشتراك:</ThemedText>
-                        <ThemedText style={[styles.infoValue, { color: '#666666' }]}>
-                          اشتراك مجاني دائم
-                        </ThemedText>
-                      </View>
-                    )}
-                  </ThemedView>
-                </ThemedView>
-
-                {/* المميزات المتاحة */}
-                <ThemedView style={styles.sectionContainer}>
-                  <ThemedText style={styles.sectionTitle}>المميزات المتاحة</ThemedText>
-                  <ThemedView style={styles.featuresCard}>
-                    <View style={styles.featureRow}>
-                      <ThemedText style={styles.featureLabel}>التحميل والتصدير</ThemedText>
-                      <View style={[styles.featureStatus, { backgroundColor: permissions.canDownload ? '#4ECDC4' : '#FF6B6B' }]}>
-                        <IconSymbol name={permissions.canDownload ? 'check' : 'close'} size={16} color="#fff" />
-                      </View>
-                    </View>
-
-                    <View style={styles.featureRow}>
-                      <ThemedText style={styles.featureLabel}>النسخ الاحتياطي</ThemedText>
-                      <View style={[styles.featureStatus, { backgroundColor: permissions.canBackup ? '#4ECDC4' : '#FF6B6B' }]}>
-                        <IconSymbol name={permissions.canBackup ? 'check' : 'close'} size={16} color="#fff" />
-                      </View>
-                    </View>
-
-                    <View style={styles.featureRow}>
-                      <ThemedText style={styles.featureLabel}>عدد النسخ المتاحة</ThemedText>
-                      <ThemedText style={styles.featureValue}>{getMaxText(permissions.maxBackups)}</ThemedText>
-                    </View>
-
-                    <View style={styles.featureRow}>
-                      <ThemedText style={styles.featureLabel}>عدد الطلاب المسموح</ThemedText>
-                      <ThemedText style={styles.featureValue}>{getMaxText(permissions.maxStudents)}</ThemedText>
-                    </View>
-
-                    <View style={styles.featureRow}>
-                      <ThemedText style={styles.featureLabel}>عدد التقارير المسموح</ThemedText>
-                      <ThemedText style={styles.featureValue}>{getMaxText(permissions.maxReports)}</ThemedText>
-                    </View>
-
-                    <View style={styles.featureRow}>
-                      <ThemedText style={styles.featureLabel}>مساحة التخزين</ThemedText>
-                      <ThemedText style={styles.featureValue}>{formatStorageSize(permissions.storageLimit)}</ThemedText>
-                    </View>
-                  </ThemedView>
-                </ThemedView>
-
-                {/* خطط الاشتراك */}
-                {loading ? (
-                  <ThemedView style={styles.loadingContainer}>
-                    <ActivityIndicator size="large" color="#add4ce" />
-                    <ThemedText style={styles.loadingText}>جاري تحميل خطط الاشتراك...</ThemedText>
-                  </ThemedView>
-                ) : (
-                  <ThemedView style={styles.sectionContainer}>
-                    <ThemedText style={styles.sectionTitle}>خطط الاشتراك المتاحة</ThemedText>
+                    </ThemedView>
                     
-                    {products.map((product) => (
-                      <TouchableOpacity 
-                        key={product.productId}
-                        style={styles.planCard}
-                        onPress={() => handleUpgradeSubscription(product.productId)}
-                      >
-                        <ThemedText style={styles.planTitle}>{product.title}</ThemedText>
-                        <ThemedText style={styles.planPrice}>{product.price}</ThemedText>
-                        <ThemedText style={styles.planFeatures}>
-                          {product.features.map((feature, index) => (
-                            `• ${feature}${index < product.features.length - 1 ? '\n' : ''}`
-                          ))}
-                        </ThemedText>
-                      </TouchableOpacity>
-                    ))}
-
-                    <TouchableOpacity 
-                      style={styles.restoreButton}
-                      onPress={handleRestorePurchases}
-                    >
-                      <ThemedText style={styles.restoreButtonText}>
-                        استعادة المشتريات السابقة
+                    <ThemedView style={styles.expiryRow}>
+                      <IconSymbol size={16} name="clock" color="#666" />
+                      <ThemedText style={[styles.expiryText, getTextDirection()]}>
+                        {formatRTLText('متبقي:')} {formatRTLNumber(getDaysRemaining(currentSubscription.end_date))} {formatRTLText('يوم')}
                       </ThemedText>
-                    </TouchableOpacity>
+                    </ThemedView>
                   </ThemedView>
                 )}
               </ThemedView>
-            </ScrollView>
-          </KeyboardAvoidingView>
+            </Animated.View>
+          )}
+
+          {/* Error Message */}
+        {error && (
+            <Animated.View style={[styles.errorContainer, { opacity: fadeAnim }]}>
+          <ThemedText style={styles.errorText}>{error}</ThemedText>
+            </Animated.View>
+        )}
+
+          {/* Loading State */}
+        {loading ? (
+            <Animated.View style={[styles.loadingContainer, { opacity: fadeAnim }]}>
+          <ThemedText style={styles.loadingText}>جاري تحميل خطط الاشتراك...</ThemedText>
+            </Animated.View>
+          ) : (
+            /* Subscription Plans */
+            <Animated.View style={[styles.plansSection, { opacity: fadeAnim, transform: [{ translateX: slideAnim }] }]}>
+              <ThemedText style={[styles.sectionTitle, getTextDirection()]}>
+              {formatRTLText('الخطط المتاحة')}
+            </ThemedText>
+              
+            {products.map((product, index) => (
+                <Animated.View 
+                  key={index} 
+                  style={[
+                    styles.planCard, 
+                    { 
+                      opacity: fadeAnim,
+                      transform: [{ translateY: slideAnim }]
+                    }
+                  ]}
+                >
+                  <ThemedView style={styles.planHeader}>
+                    <ThemedView style={styles.planIconContainer}>
+                      <IconSymbol 
+                        size={32} 
+                        name={getPlanIcon(product.productId)} 
+                        color={getPlanColor(product.productId)} 
+                      />
+                    </ThemedView>
+                    <ThemedView style={styles.planInfo}>
+                      <ThemedText style={[styles.planTitle, getTextDirection()]}>{formatRTLText(product.title)}</ThemedText>
+                      <ThemedText style={[styles.planPrice, getTextDirection()]}>{formatRTLText(product.price)}</ThemedText>
+                      <ThemedText style={[styles.planDescription, getTextDirection()]}>{formatRTLText(product.description)}</ThemedText>
+                    </ThemedView>
+                  </ThemedView>
+
+                  <ThemedView style={styles.featuresContainer}>
+                    <ThemedText style={[styles.featuresTitle, getTextDirection()]}>
+                      {formatRTLText('الميزات المضمنة:')}
+                    </ThemedText>
+                    {product.features && product.features.length > 0 ? (
+                      product.features.map((feature, idx) => (
+                        <ThemedView key={idx} style={[styles.featureRow, getFlexDirection()]}>
+                          <ThemedText style={[styles.featureText, getTextDirection()]}>{feature}</ThemedText>
+                          <IconSymbol size={16} name="checkmark.circle.fill" color="#4CAF50" />
+                        </ThemedView>
+                      ))
+                    ) : (
+                      <ThemedView style={[styles.featureRow, getFlexDirection()]}>
+                        <ThemedText style={[styles.featureText, getTextDirection()]}>
+                          {formatRTLText('جميع الميزات الأساسية')}
+                        </ThemedText>
+                        <IconSymbol size={16} name="checkmark.circle.fill" color="#4CAF50" />
+                      </ThemedView>
+                    )}
+                  </ThemedView>
+
+                <TouchableOpacity
+                    style={[
+                      styles.subscribeButton,
+                      { backgroundColor: getPlanColor(product.productId) }
+                    ]}
+                  onPress={() => handlePurchase(product.productId)}
+                    activeOpacity={0.8}
+                >
+                    <ThemedText style={[styles.buttonText, getTextDirection()]}>
+                      {formatRTLText(product.productId.includes('free') ? 'تفعيل مجاناً' : 'اشترك الآن')}
+                    </ThemedText>
+                </TouchableOpacity>
+                </Animated.View>
+              ))}
+            </Animated.View>
+          )}
+
+
+
+          {/* Terms and Privacy Section - تم نقله إلى صفحة تسجيل الدخول */}
+        </Animated.ScrollView>
         
+        <BottomNavigationBar />
       </ImageBackground>
     </ThemedView>
   );
-}
-
-export default SubscriptionScreen;
+};
 
 const styles = StyleSheet.create({
   container: {
@@ -420,9 +371,6 @@ const styles = StyleSheet.create({
     flex: 1,
     width: '100%',
     height: '100%',
-  },
-  gradientOverlay: {
-    flex: 1,
   },
   scrollContainer: {
     flex: 1,
@@ -440,6 +388,7 @@ const styles = StyleSheet.create({
     position: 'absolute',
     top: Platform.OS === 'ios' ? 20 : 15,
     left: 20,
+    right: undefined,
     backgroundColor: '#add4ce',
     width: 40,
     height: 40,
@@ -471,7 +420,7 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
     marginBottom: 6,
     textAlign: 'center',
-    writingDirection: 'rtl',
+    ...getRTLTextStyle(),
     color: '#000000',
     backgroundColor: 'transparent',
   },
@@ -479,162 +428,267 @@ const styles = StyleSheet.create({
     fontSize: 16,
     color: '#666666',
     textAlign: 'center',
-    writingDirection: 'rtl',
+    ...getRTLTextStyle(),
     marginBottom: 10,
     backgroundColor: 'transparent',
   },
-  formContainer: {
-    padding: 30,
-    backgroundColor: 'transparent',
-    marginTop: -30,
+  errorContainer: {
+    backgroundColor: '#FFEBEE',
+    borderRadius: 12,
+    padding: 16,
+    marginHorizontal: 20,
+    marginBottom: 20,
+    borderWidth: 1,
+    borderColor: '#FFCDD2',
   },
-  sectionContainer: {
-    marginBottom: 25,
+  errorText: {
+    color: '#D32F2F',
+    textAlign: 'center',
+    fontSize: 14,
+    backgroundColor: 'transparent',
+  },
+  loadingContainer: {
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingVertical: 40,
+  },
+  loadingText: {
+    fontSize: 16,
+    color: '#666666',
+    textAlign: 'center',
+    backgroundColor: 'transparent',
+  },
+  plansSection: {
+    marginBottom: 20,
     backgroundColor: 'transparent',
   },
   sectionTitle: {
-    fontSize: 18,
+    fontSize: 19,
     fontWeight: 'bold',
     color: '#1c1f33',
     textAlign: 'right',
+    marginRight: 12,
     marginBottom: 15,
-    writingDirection: 'rtl',
-    backgroundColor: 'transparent',
-  },
-  infoCard: {
-    backgroundColor: '#FFFFFF',
-    borderRadius: 15,
-    padding: 20,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
-    elevation: 3,
-  },
-  infoRow: {
-    flexDirection: 'row-reverse',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    marginBottom: 12,
-    paddingVertical: 4,
-  },
-  infoLabel: {
-    fontSize: 16,
-    color: '#666666',
-    textAlign: 'right',
-    writingDirection: 'rtl',
-    backgroundColor: 'transparent',
-  },
-  infoValue: {
-    fontSize: 16,
-    fontWeight: '600',
-    textAlign: 'right',
-    writingDirection: 'rtl',
-    backgroundColor: 'transparent',
-  },
-  featuresCard: {
-    backgroundColor: '#FFFFFF',
-    borderRadius: 15,
-    padding: 20,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
-    elevation: 3,
-  },
-  featureRow: {
-    flexDirection: 'row-reverse',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    marginBottom: 12,
-    paddingVertical: 4,
-  },
-  featureLabel: {
-    fontSize: 16,
-    color: '#666666',
-    textAlign: 'right',
-    writingDirection: 'rtl',
-    backgroundColor: 'transparent',
-  },
-  featureValue: {
-    fontSize: 16,
-    fontWeight: '600',
-    textAlign: 'right',
-    writingDirection: 'rtl',
-    backgroundColor: 'transparent',
-  },
-  featureStatus: {
-    width: 24,
-    height: 24,
-    borderRadius: 12,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  loadingContainer: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-    padding: 20,
-  },
-  loadingText: {
-    marginTop: 10,
-    fontSize: 16,
-    textAlign: 'center',
     writingDirection: 'rtl',
     backgroundColor: 'transparent',
   },
   planCard: {
     backgroundColor: '#FFFFFF',
-    borderRadius: 15,
+    borderRadius: 20,
     padding: 20,
-    marginBottom: 15,
+    marginHorizontal: 20,
+    marginBottom: 16,
     shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
-    elevation: 3,
+    shadowOffset: { width: 0, height: 6 },
+    shadowOpacity: 0.15,
+    shadowRadius: 12,
+    elevation: 8,
+    borderWidth: 1,
+    borderColor: '#E5E5EA',
+  },
+  planHeader: {
+    flexDirection: 'row-reverse',
+    alignItems: 'center',
+    marginBottom: 20,
+    backgroundColor: 'transparent',
+  },
+  planIconContainer: {
+    width: 60,
+    height: 60,
+    borderRadius: 30,
+    backgroundColor: '#F8F9FA',
+    justifyContent: 'center',
+    alignItems: 'center',
+    ...getRTLMargins({ left: 15, right: 0 }),
+    borderWidth: 1,
+    borderColor: '#E5E5EA',
+  },
+  planInfo: {
+    flex: 1,
+    backgroundColor: 'transparent',
   },
   planTitle: {
     fontSize: 20,
     fontWeight: 'bold',
-    marginBottom: 8,
-    textAlign: 'right',
-    writingDirection: 'rtl',
     color: '#1c1f33',
+    ...getRTLTextStyle(),
+    marginBottom: 4,
     backgroundColor: 'transparent',
   },
   planPrice: {
     fontSize: 24,
     fontWeight: 'bold',
-    color: '#add4ce',
-    marginBottom: 16,
-    textAlign: 'right',
-    writingDirection: 'rtl',
+    color: '#FF9800',
+    ...getRTLTextStyle(),
+    marginBottom: 4,
     backgroundColor: 'transparent',
   },
-  planFeatures: {
+  planDescription: {
     fontSize: 14,
-    lineHeight: 24,
-    textAlign: 'right',
     color: '#666666',
-    writingDirection: 'rtl',
+    ...getRTLTextStyle(),
     backgroundColor: 'transparent',
   },
-  restoreButton: {
-    backgroundColor: '#F8F9FA',
-    borderRadius: 12,
-    padding: 15,
-    alignItems: 'center',
-    marginTop: 10,
-    borderWidth: 1,
-    borderColor: '#E5E5EA',
+  featuresContainer: {
+    backgroundColor: 'transparent',
+    marginBottom: 20,
   },
-  restoreButtonText: {
-    color: '#007AFF',
+  featuresTitle: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: '#1c1f33',
+    ...getRTLTextStyle(),
+    marginBottom: 12,
+    backgroundColor: 'transparent',
+  },
+  featureRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'flex-end',
+    marginBottom: 8,
+    backgroundColor: 'transparent',
+  },
+  featureText: {
+    fontSize: 14,
+    color: '#666666',
+    ...getRTLTextStyle(),
+    marginRight: 8,
+    backgroundColor: 'transparent',
+  },
+  subscribeButton: {
+    borderRadius: 12,
+    paddingVertical: 14,
+    alignItems: 'center',
+    justifyContent: 'center',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.2,
+    shadowRadius: 8,
+    elevation: 5,
+  },
+  buttonText: {
+    color: '#FFFFFF',
     fontSize: 16,
     fontWeight: '600',
     textAlign: 'center',
-    writingDirection: 'rtl',
     backgroundColor: 'transparent',
   },
-}); 
+
+  currentSubscriptionSection: {
+    marginBottom: 20,
+    backgroundColor: 'transparent',
+  },
+  currentSubscriptionCard: {
+    backgroundColor: '#FFFFFF',
+    borderRadius: 20,
+    padding: 20,
+    marginHorizontal: 20,
+    marginBottom: 16,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 6 },
+    shadowOpacity: 0.15,
+    shadowRadius: 12,
+    elevation: 8,
+    borderWidth: 1,
+    borderColor: '#E5E5EA',
+  },
+  currentSubscriptionHeader: {
+    flexDirection: 'row-reverse',
+    alignItems: 'center',
+    marginBottom: 15,
+    backgroundColor: 'transparent',
+  },
+  currentSubscriptionIcon: {
+    width: 50,
+    height: 50,
+    borderRadius: 25,
+    backgroundColor: '#F8F9FA',
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginLeft: 15,
+    borderWidth: 1,
+    borderColor: '#E5E5EA',
+  },
+  currentSubscriptionInfo: {
+    flex: 1,
+    backgroundColor: 'transparent',
+  },
+  currentSubscriptionTitle: {
+    fontSize: 18,
+    fontWeight: 'bold',
+    color: '#1c1f33',
+    ...getRTLTextStyle(),
+    marginBottom: 4,
+    backgroundColor: 'transparent',
+  },
+  currentSubscriptionStatus: {
+    fontSize: 14,
+    color: '#4CAF50',
+    ...getRTLTextStyle(),
+    fontWeight: '500',
+    backgroundColor: 'transparent',
+  },
+  expiryInfo: {
+    backgroundColor: '#F8F9FA',
+    borderRadius: 12,
+    padding: 12,
+    borderWidth: 1,
+    borderColor: '#E9ECEF',
+  },
+  expiryRow: {
+    flexDirection: 'row-reverse',
+    alignItems: 'center',
+    marginBottom: 6,
+    backgroundColor: 'transparent',
+  },
+  expiryText: {
+    fontSize: 14,
+    color: '#495057',
+    ...getRTLTextStyle(),
+    marginRight: 8,
+    backgroundColor: 'transparent',
+  },
+  termsSection: {
+    marginBottom: 20,
+    backgroundColor: 'transparent',
+  },
+  termsCard: {
+    backgroundColor: '#FFFFFF',
+    borderRadius: 16,
+    padding: 20,
+    marginHorizontal: 20,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.1,
+    shadowRadius: 8,
+    elevation: 4,
+    borderWidth: 1,
+    borderColor: '#E5E5EA',
+  },
+  termsText: {
+    fontSize: 16,
+    color: '#666666',
+    textAlign: 'center',
+    writingDirection: 'rtl',
+    lineHeight: 24,
+    marginBottom: 10,
+    backgroundColor: 'transparent',
+  },
+  termsSubText: {
+    fontSize: 14,
+    color: '#999999',
+    textAlign: 'center',
+    writingDirection: 'rtl',
+    lineHeight: 20,
+    backgroundColor: 'transparent',
+  },
+  linkText: {
+    color: '#add4ce',
+    textDecorationLine: 'underline',
+    fontWeight: '600',
+    fontSize: 16,
+    ...getRTLTextStyle(),
+  },
+});
+
+export default SubscriptionScreen; 

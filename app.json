@@ -1,126 +1,61 @@
 {
   "expo": {
-    "name": "enjaz-almualm",
+    "name": "إنجاز المعلم",
     "slug": "teacher-performance-app",
-    "owner": "amalshaman",
-    "version": "1.0.12",
+    "version": "1.4.0",
     "orientation": "portrait",
-    "icon": "./assets/images/Logo.png",
-    "scheme": "enjazalmualm",
-    "userInterfaceStyle": "automatic",
-    "newArchEnabled": true,
-    "cli": {
-      "version": ">= 5.9.1",
-      "appVersionSource": "local"
+    "icon": "./assets/icon.png",
+    "userInterfaceStyle": "light",
+    "splash": {
+      "image": "./assets/splash.png",
+      "resizeMode": "contain",
+      "backgroundColor": "#ffffff"
     },
-    "locales": {
-      "ar": "./assets/locales/ar.json"
-    },
-    "primaryLanguage": "ar",
-    "extra": {
-      "router": {},
-      "supabaseUrl": "YOUR_SUPABASE_URL",
-      "supabaseAnonKey": "YOUR_SUPABASE_ANON_KEY",
-      "eas": {
-        "projectId": "e1a21878-53e7-4976-9884-6206e56653c3"
-      }
-    },
+    "assetBundlePatterns": [
+      "**/*"
+    ],
     "ios": {
       "supportsTablet": true,
       "bundleIdentifier": "com.teacherperformance.tdp",
-      "buildNumber": "44",
+      "icon": "./assets/ios/icon.png",
       "infoPlist": {
-        "ITSAppUsesNonExemptEncryption": false,
-        "NSCameraUsageDescription": "يحتاج التطبيق للوصول للكاميرا لالتقاط الصور",
-        "NSPhotoLibraryUsageDescription": "يحتاج التطبيق للوصول لمكتبة الصور لرفع الملفات",
-        "NSPhotoLibraryAddUsageDescription": "يحتاج التطبيق لحفظ الصور في مكتبة الصور",
-        "UILaunchStoryboardName": "SplashScreen",
-        "CFBundleURLTypes": [
-          {
-            "CFBundleURLName": "auth",
-            "CFBundleURLSchemes": [
-              "enjazalmualm"
-            ]
-          }
-        ]
+        "ITSAppUsesNonExemptEncryption": false
       },
-      "config": {
-        "usesNonExemptEncryption": false
-      },
-      "inAppPurchases": [
-        "com.enjazalmualm.subscription.yearly",
-        "com.enjazalmualm.subscription.halfyearly"
-      ]
+      "appStoreUrl": "https://apps.apple.com/app/com.teacherperformance.tdp"
     },
     "android": {
-      "package": "com.enjazalmualm.teacherperformance",
-      "versionCode": 44,
       "adaptiveIcon": {
-        "foregroundImage": "./assets/images/Logo.png",
+        "foregroundImage": "./assets/adaptive-icon.png",
         "backgroundColor": "#ffffff"
       },
+      "package": "com.teacherperformance.tdp",
+      "versionCode": 10,
       "permissions": [
         "android.permission.INTERNET",
-        "android.permission.SYSTEM_ALERT_WINDOW",
-        "android.permission.CAMERA",
         "android.permission.READ_EXTERNAL_STORAGE",
         "android.permission.WRITE_EXTERNAL_STORAGE",
-        "com.android.vending.BILLING",
-        "android.permission.RECORD_AUDIO"
-      ],
-      "intentFilters": [
-        {
-          "action": "VIEW",
-          "autoVerify": true,
-          "data": [
-            {
-              "scheme": "enjazalmualm"
-            }
-          ],
-          "category": [
-            "BROWSABLE",
-            "DEFAULT"
-          ]
-        }
-      ],
-      "allowBackup": true,
-      "enableProguardInReleaseBuilds": true,
-      "enableShrinkResourcesInReleaseBuilds": true,
-      "supportsRtl": true,
-      "softwareKeyboardLayoutMode": "pan"
+        "android.permission.CAMERA",
+        "android.permission.RECORD_AUDIO",
+        "android.permission.ACCESS_NETWORK_STATE",
+        "android.permission.VIBRATE",
+        "android.permission.SYSTEM_ALERT_WINDOW"
+      ]
     },
     "web": {
-      "bundler": "metro",
-      "output": "static",
-      "favicon": "./assets/images/Logo.png"
+      "favicon": "./assets/favicon.png"
     },
     "plugins": [
-      "expo-router",
-      [
-        "expo-splash-screen",
-        {
-          "image": "./assets/images/Logo.png",
-          "imageWidth": 200,
-          "resizeMode": "contain",
-          "backgroundColor": "#ffffff"
-        }
-      ],
-      [
-        "expo-image-picker",
-        {
-          "photosPermission": "يحتاج التطبيق للوصول لمكتبة الصور لرفع الملفات",
-          "cameraPermission": "يحتاج التطبيق للوصول للكاميرا لالتقاط الصور"
-        }
-      ]
+      "expo-router"
     ],
+    "scheme": "enjazalmualm",
     "experiments": {
       "typedRoutes": true
     },
-    "runtimeVersion": {
-      "policy": "appVersion"
-    },
-    "updates": {
-      "url": "https://u.expo.dev/409190b4-990f-426b-939f-2d3922e5f30a"
+    "extra": {
+      "router": {},
+      "eas": {
+        "projectId": "e1a21878-53e7-4976-9884-6206e56653c3"
+      }
     }
   }
 }

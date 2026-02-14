@@ -3,6 +3,7 @@ import React from 'react';
 import { TouchableOpacity, TouchableOpacityProps } from 'react-native';
 import { ThemedText } from './ThemedText';
 import { useThemedStyles } from '@/hooks/useGlobalTheme';
+import { getTextDirection, formatRTLText } from '@/utils/rtl-utils';
 
 export type ThemedButtonProps = TouchableOpacityProps & {
   title: string;
@@ -33,7 +34,7 @@ export function ThemedButton({
       style={[buttonStyle, sizeStyles[size], style]} 
       {...props}
     >
-      <ThemedText style={textStyle}>{title}</ThemedText>
+      <ThemedText style={[textStyle, getTextDirection()]}>{formatRTLText(title)}</ThemedText>
     </TouchableOpacity>
   );
 }

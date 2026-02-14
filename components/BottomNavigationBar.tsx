@@ -1,23 +1,18 @@
 import React from 'react';
-import { StyleSheet, TouchableOpacity, View, Platform, I18nManager } from 'react-native';
+import { StyleSheet, TouchableOpacity, View, Platform } from 'react-native';
 import { useRouter, usePathname } from 'expo-router';
 import { ThemedView } from '@/components/ThemedView';
 import { ThemedText } from '@/components/ThemedText';
 import { IconSymbol } from '@/components/ui/IconSymbol';
 import { TabRoute } from '@/types';
+import { getRTLTextStyle } from '@/utils/rtl-utils';
 
 const tabs: TabRoute[] = [
   {
-    key: 'index',
-    title: 'الرئيسية',
-    icon: 'house.fill',
-    route: '/(tabs)'
-  },
-  {
-    key: 'basicData',
-    title: 'البيانات الأساسية',
-    icon: 'person.circle.fill',
-    route: '/(tabs)/basicData'
+    key: 'explore',
+    title: 'الأدوات المساعدة',
+    icon: 'gear',
+    route: '/(tabs)/explore'
   },
   {
     key: 'performance',
@@ -26,10 +21,16 @@ const tabs: TabRoute[] = [
     route: '/(tabs)/performance'
   },
   {
-    key: 'explore',
-    title: 'الأدوات المساعدة',
-    icon: 'gear',
-    route: '/(tabs)/explore'
+    key: 'basicData',
+    title: 'البيانات الأساسية',
+    icon: 'person.circle.fill',
+    route: '/(tabs)/basicData'
+  },
+  {
+    key: 'index',
+    title: 'الرئيسية',
+    icon: 'house.fill',
+    route: '/(tabs)'
   }
 ];
 
@@ -38,15 +39,14 @@ export const BottomNavigationBar: React.FC = () => {
   const pathname = usePathname();
 
   const isActive = (route: string): boolean => {
-    if (route === '/(tabs)' && pathname === '/(tabs)') {
+    if (route === '/(tabs)' && pathname === '/') {
       return true;
     }
-    return pathname === route;
+    return pathname.includes(route);
   };
 
   const handleTabPress = (tab: TabRoute) => {
     if (!isActive(tab.route)) {
-      // إضافة تأثير هزاز خفيف (مثل HapticTab)
       if (Platform.OS === 'ios') {
         // يمكن إضافة Haptics هنا إذا كان مطلوباً
       }
@@ -67,13 +67,10 @@ export const BottomNavigationBar: React.FC = () => {
               activeOpacity={0.7}
             >
               <IconSymbol
-                size={28}
+                size={24}
                 name={tab.icon as any}
-                color={active ? '#595b59' : '#595b59'}
-                style={[
-                  { marginBottom: 2 },
-                  { transform: [{ scaleX: I18nManager.isRTL ? -1 : 1 }] }
-                ]}
+                color={active ? '#1c1f33' : '#666666'}
+                style={styles.tabIcon}
               />
               <ThemedText style={[styles.tabText, active && styles.activeTabText]}>
                 {tab.title}
@@ -91,7 +88,7 @@ const styles = StyleSheet.create({
     backgroundColor: 'transparent',
   },
   tabBar: {
-    flexDirection: 'row-reverse',
+    flexDirection: 'row',
     backgroundColor: '#E8F5F4',
     borderTopWidth: 1,
     borderTopColor: '#E5E5EA',
@@ -132,19 +129,22 @@ const styles = StyleSheet.create({
     paddingHorizontal: 4,
   },
   activeTab: {
-    backgroundColor: 'transparent',
+    backgroundColor: 'rgba(28, 31, 51, 0.05)',
+  },
+  tabIcon: {
+    marginBottom: 4,
   },
   tabText: {
     fontSize: 12,
-    color: '#595b59',
-    marginTop: 4,
+    color: '#666666',
+    marginTop: 2,
     textAlign: 'center',
-    writingDirection: 'rtl',
+    ...getRTLTextStyle(),
     fontWeight: '400',
-    lineHeight: 16,
   },
   activeTabText: {
-    color: '#595b59',
+    color: '#1c1f33',
     fontWeight: '600',
+    ...getRTLTextStyle(),
   },
 });

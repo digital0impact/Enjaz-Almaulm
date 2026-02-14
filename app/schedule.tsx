@@ -8,6 +8,7 @@ import { IconSymbol } from '@/components/ui/IconSymbol';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useRouter } from 'expo-router';
 import { BottomNavigationBar } from '@/components/BottomNavigationBar';
+import { getTextDirection, formatRTLText } from '@/utils/rtl-utils';
 
 const { width } = Dimensions.get('window');
 
@@ -38,8 +39,22 @@ export default function ScheduleScreen() {
     type: 'حصة' as 'حصة' | 'مناوبة' | 'انتظار' | 'حصص انتظار' | 'فراغ'
   });
 
-  const days = ['الأحد', 'الاثنين', 'الثلاثاء', 'الأربعاء', 'الخميس'];
+  const days = ['الخميس', 'الأربعاء', 'الثلاثاء', 'الاثنين', 'الأحد'];
   const timeSlots = [
+    'الحصة الثامنة',
+    'الحصة السابعة',
+    'الحصة السادسة',
+    'الحصة الخامسة',
+    'استراحة',
+    'الحصة الرابعة',
+    'الحصة الثالثة',
+    'الحصة الثانية',
+    'الحصة الأولى'
+  ];
+
+  // مصفوفات منفصلة للجدول الأسبوعي الشامل
+  const tableDays = ['الأحد', 'الاثنين', 'الثلاثاء', 'الأربعاء', 'الخميس'];
+  const tableTimeSlots = [
     'الحصة الأولى',
     'الحصة الثانية',
     'الحصة الثالثة',
@@ -62,6 +77,7 @@ export default function ScheduleScreen() {
   useEffect(() => {
     loadScheduleData();
     setCurrentWeek(getCurrentWeek());
+    // RTL is handled by the safe wrapper in utils/rtl-utils.ts
   }, []);
 
   const loadScheduleData = async () => {
@@ -273,7 +289,17 @@ export default function ScheduleScreen() {
           style={styles.backgroundImage}
           resizeMode="cover"
         >
-            <ScrollView style={styles.scrollContainer}>
+            <ScrollView 
+              style={styles.scrollContainer}
+              contentContainerStyle={{ 
+                paddingBottom: 150,
+                flexGrow: 1 
+              }}
+              showsVerticalScrollIndicator={false}
+              keyboardShouldPersistTaps="handled"
+              keyboardDismissMode="interactive"
+              automaticallyAdjustContentInsets={false}
+            >
               <ThemedView style={styles.header}>
                 <TouchableOpacity 
                   style={styles.backButton}
@@ -285,10 +311,10 @@ export default function ScheduleScreen() {
                 <ThemedView style={styles.iconContainer}>
                   <IconSymbol size={60} name="plus.circle.fill" color="#1c1f33" />
                 </ThemedView>
-                <ThemedText type="title" style={styles.title}>
+                <ThemedText type="title" style={styles.title}> 
                   {editingEntry ? 'تعديل الحصة' : 'إضافة حصة جديدة'}
                 </ThemedText>
-                <ThemedText style={styles.subtitle}>
+                <ThemedText style={styles.subtitle}> 
                   إدخال تفاصيل الحصة الجديدة
                 </ThemedText>
 
@@ -297,7 +323,7 @@ export default function ScheduleScreen() {
                   onPress={addOrUpdateEntry}
                 >
                   <IconSymbol size={24} name="checkmark" color="#1c1f33" />
-                  <ThemedText style={styles.addButtonText}>
+                  <ThemedText style={styles.addButtonText}> 
                     {editingEntry ? 'تحديث الحصة' : 'إضافة الحصة'}
                   </ThemedText>
                 </TouchableOpacity>
@@ -306,7 +332,7 @@ export default function ScheduleScreen() {
               <ThemedView style={styles.content}>
           <ThemedView style={styles.formCard}>
             <ThemedView style={styles.formGroup}>
-              <ThemedText style={styles.label}>الأيام</ThemedText>
+              <ThemedText style={styles.label}>{`\u202Aالأيام\u202C`}</ThemedText>
               <ScrollView 
                 horizontal 
                 showsHorizontalScrollIndicator={false}
@@ -320,7 +346,7 @@ export default function ScheduleScreen() {
                     onPress={() => setFormData(prev => ({ ...prev, day }))}
                   >
                     <ThemedText style={[styles.dayButtonText, formData.day === day && styles.dayButtonTextSelected]}>
-                      {day}
+                      {`\u202A${day}\u202C`}
                     </ThemedText>
                   </TouchableOpacity>
                 ))}
@@ -328,7 +354,7 @@ export default function ScheduleScreen() {
             </ThemedView>
 
             <ThemedView style={styles.formGroup}>
-              <ThemedText style={styles.label}>الحصة</ThemedText>
+              <ThemedText style={styles.label}>{`\u202Aالحصة\u202C`}</ThemedText>
               <ScrollView 
                 horizontal 
                 showsHorizontalScrollIndicator={false}
@@ -388,7 +414,7 @@ export default function ScheduleScreen() {
             <ThemedView style={styles.formActions}>
               <TouchableOpacity style={styles.saveButton} onPress={addOrUpdateEntry}>
                 <IconSymbol size={20} name="checkmark.circle.fill" color="#1c1f33" />
-                <ThemedText style={styles.saveButtonText}>
+                <ThemedText style={styles.saveButtonText}> 
                   {editingEntry ? 'تحديث' : 'إضافة'}
                 </ThemedText>
               </TouchableOpacity>
@@ -438,11 +464,11 @@ export default function ScheduleScreen() {
               <ThemedView style={styles.iconContainer}>
                 <IconSymbol size={60} name="calendar.badge.clock" color="#1c1f33" />
               </ThemedView>
-              <ThemedText type="title" style={styles.title}>
-                الجدول الدراسي
+              <ThemedText type="title" style={[styles.title, getTextDirection()]}> 
+                {formatRTLText('الجدول الدراسي')}
               </ThemedText>
-              <ThemedText style={styles.subtitle}>
-                إدارة وتنظيم جدولك الأسبوعي
+              <ThemedText style={[styles.subtitle, getTextDirection()]}> 
+                {formatRTLText('إدارة وتنظيم جدولك الأسبوعي')}
               </ThemedText>
 
               <TouchableOpacity
@@ -450,7 +476,7 @@ export default function ScheduleScreen() {
                 onPress={() => setShowAddForm(true)}
               >
                 <IconSymbol size={24} name="plus" color="#1c1f33" />
-                <ThemedText style={styles.addButtonText}>إضافة حصة جديدة</ThemedText>
+                <ThemedText style={[styles.addButtonText, getTextDirection()]}>إضافة حصة جديدة</ThemedText>
               </TouchableOpacity>
             </ThemedView>
 
@@ -462,25 +488,25 @@ export default function ScheduleScreen() {
               <ThemedView style={[styles.statItem, { backgroundColor: '#4CAF5015' }]}>
                 <IconSymbol size={24} name="book.fill" color="#4CAF50" />
                 <ThemedText style={styles.statNumber}>{stats.totalClasses}</ThemedText>
-                <ThemedText style={styles.statLabel}>حصص دراسية</ThemedText>
+                <ThemedText style={[styles.statLabel, getTextDirection()]}>حصص دراسية</ThemedText>
               </ThemedView>
 
               <ThemedView style={[styles.statItem, { backgroundColor: '#FF980015' }]}>
                 <IconSymbol size={24} name="plus.circle.fill" color="#FF9800" />
                 <ThemedText style={styles.statNumber}>{stats.totalAdditional}</ThemedText>
-                <ThemedText style={styles.statLabel}>حصص إضافية</ThemedText>
+                <ThemedText style={[styles.statLabel, getTextDirection()]}>حصص إضافية</ThemedText>
               </ThemedView>
 
               <ThemedView style={[styles.statItem, { backgroundColor: '#9C27B015' }]}>
                 <IconSymbol size={24} name="hourglass.fill" color="#9C27B0" />
                 <ThemedText style={styles.statNumber}>{stats.totalWaitingClasses}</ThemedText>
-                <ThemedText style={styles.statLabel}>حصص انتظار</ThemedText>
+                <ThemedText style={[styles.statLabel, getTextDirection()]}>حصص انتظار</ThemedText>
               </ThemedView>
 
               <ThemedView style={[styles.statItem, { backgroundColor: '#9E9E9E15' }]}>
                 <IconSymbol size={24} name="pause.circle.fill" color="#9E9E9E" />
                 <ThemedText style={styles.statNumber}>{stats.freeSlots}</ThemedText>
-                <ThemedText style={styles.statLabel}>فراغات</ThemedText>
+                <ThemedText style={[styles.statLabel, getTextDirection()]}>فراغات</ThemedText>
               </ThemedView>
             </ThemedView>
           </ThemedView>
@@ -496,23 +522,23 @@ export default function ScheduleScreen() {
                 {/* رأس الجدول - الحصص */}
                 <ThemedView style={styles.tableHeader}>
                   <ThemedView style={styles.dayColumnHeader}>
-                    <ThemedText style={styles.headerText}>اليوم</ThemedText>
+                    <ThemedText style={[styles.headerText, getTextDirection()]}>اليوم</ThemedText>
                   </ThemedView>
-                  {timeSlots.map(timeSlot => (
+                  {tableTimeSlots.map(timeSlot => (
                     <ThemedView key={timeSlot} style={styles.timeColumnHeader}>
-                      <ThemedText style={styles.headerText}>{timeSlot}</ThemedText>
+                      <ThemedText style={[styles.headerText, getTextDirection()]}>{formatRTLText(timeSlot)}</ThemedText>
                     </ThemedView>
                   ))}
                 </ThemedView>
 
                 {/* صفوف الأيام */}
-                {days.map((day, dayIndex) => (
+                {tableDays.map((day, dayIndex) => (
                   <ThemedView key={day} style={styles.tableRow}>
                     <ThemedView style={styles.dayCell}>
-                      <ThemedText style={styles.dayCellText}>{day}</ThemedText>
+                      <ThemedText style={[styles.dayCellText, getTextDirection()]}>{formatRTLText(day)}</ThemedText>
                     </ThemedView>
 
-                    {timeSlots.map(timeSlot => {
+                    {tableTimeSlots.map(timeSlot => {
                       const entry = schedule.find(e => e.day === day && e.time === timeSlot);
                       const isBreakTime = timeSlot === 'استراحة';
 
@@ -545,25 +571,25 @@ export default function ScheduleScreen() {
                           }}
                         >
                           {isBreakTime ? (
-                            <ThemedText style={styles.breakText}>استراحة</ThemedText>
+                            <ThemedText style={[styles.breakText, getTextDirection()]}>استراحة</ThemedText>
                           ) : entry?.subject ? (
                             <ThemedView style={styles.cellContent}>
-                              <ThemedText style={styles.cellSubject} numberOfLines={2}>
-                                {entry.subject}
+                              <ThemedText style={[styles.cellSubject, getTextDirection()]} numberOfLines={2}>
+                                {formatRTLText(entry.subject)}
                               </ThemedText>
                               {entry.class && (
-                                <ThemedText style={styles.cellClass} numberOfLines={1}>
-                                  {entry.class}
+                                <ThemedText style={[styles.cellClass, getTextDirection()]} numberOfLines={1}>
+                                  {formatRTLText(entry.class)}
                                 </ThemedText>
                               )}
                               <ThemedView style={styles.cellTypeBadge}>
-                                <ThemedText style={styles.cellTypeText}>{entry.type}</ThemedText>
+                                <ThemedText style={[styles.cellTypeText, getTextDirection()]}>{formatRTLText(entry.type)}</ThemedText>
                               </ThemedView>
                             </ThemedView>
                           ) : (
                             <ThemedView style={styles.emptyCellContent}>
                               <IconSymbol size={16} name="plus.circle" color="#CCC" />
-                              <ThemedText style={styles.emptyCellText}>فراغ</ThemedText>
+                              <ThemedText style={[styles.emptyCellText, getTextDirection()]}>فراغ</ThemedText>
                             </ThemedView>
                           )}
                         </TouchableOpacity>
@@ -579,7 +605,7 @@ export default function ScheduleScreen() {
           <ThemedView style={styles.actionButtons}>
             <TouchableOpacity style={styles.exportButton} onPress={exportSchedule}>
               <IconSymbol size={20} name="square.and.arrow.up" color="#1c1f33" />
-              <ThemedText style={styles.buttonText}>تصدير الجدول</ThemedText>
+              <ThemedText style={[styles.buttonText, getTextDirection()]}>تصدير الجدول</ThemedText>
             </TouchableOpacity>
           </ThemedView>
             </ThemedView>
@@ -606,6 +632,7 @@ const styles = StyleSheet.create({
   },
   scrollContainer: {
     flex: 1,
+    paddingBottom: 20,
   },
   header: {
     alignItems: 'center',
@@ -669,19 +696,21 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
     marginTop: 15,
     marginBottom: 10,
-    textAlign: 'center',
+    textAlign: 'right',
     writingDirection: 'rtl',
+    textDirection: 'rtl',
     color: '#000000',
   },
   subtitle: {
     fontSize: 16,
     color: '#666666',
-    textAlign: 'center',
+    textAlign: 'right',
     writingDirection: 'rtl',
+    textDirection: 'rtl',
     marginBottom: 20,
   },
   addButton: {
-    flexDirection: 'row',
+    flexDirection: 'row-reverse',
     alignItems: 'center',
     justifyContent: 'center',
     paddingVertical: 15,
@@ -696,17 +725,21 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.1,
     shadowRadius: 4,
     elevation: 3,
+    direction: 'rtl',
   },
   addButtonText: {
     color: '#1c1f33',
     fontSize: 16,
     fontWeight: 'bold',
-    textAlign: 'center',
+    textAlign: 'right',
+    writingDirection: 'rtl',
+    textDirection: 'rtl',
   },
   content: {
     flex: 1,
     padding: 15,
     backgroundColor: 'transparent',
+    direction: 'rtl',
   },
   statsCard: {
     backgroundColor: '#fff',
@@ -725,7 +758,10 @@ const styles = StyleSheet.create({
     color: '#333',
     textAlign: 'center',
     writingDirection: 'rtl',
+    textDirection: 'rtl',
     marginBottom: 15,
+    alignSelf: 'center',
+    width: '100%',
   },
   statsGrid: {
     flexDirection: 'row',
@@ -748,8 +784,9 @@ const styles = StyleSheet.create({
   statLabel: {
     fontSize: 12,
     color: '#666',
-    textAlign: 'center',
+    textAlign: 'right',
     writingDirection: 'rtl',
+    textDirection: 'rtl',
   },
   weeklyScheduleCard: {
     backgroundColor: '#fff',
@@ -795,7 +832,9 @@ const styles = StyleSheet.create({
     color: '#fff',
     fontSize: 14,
     fontWeight: 'bold',
-    textAlign: 'center',
+    textAlign: 'left',
+    writingDirection: 'ltr',
+    textDirection: 'ltr',
   },
   tableRow: {
     flexDirection: 'row',
@@ -815,7 +854,9 @@ const styles = StyleSheet.create({
     fontSize: 14,
     color: '#333',
     fontWeight: 'bold',
-    textAlign: 'center',
+    textAlign: 'left',
+    writingDirection: 'ltr',
+    textDirection: 'ltr',
   },
   scheduleCell: {
     width: 85,
@@ -833,7 +874,9 @@ const styles = StyleSheet.create({
     fontSize: 12,
     color: '#666',
     fontWeight: '600',
-    textAlign: 'center',
+    textAlign: 'left',
+    writingDirection: 'ltr',
+    textDirection: 'ltr',
   },
   cellContent: {
     alignItems: 'center',
@@ -844,13 +887,17 @@ const styles = StyleSheet.create({
     fontSize: 18,
     fontWeight: 'bold',
     color: '#000',
-    textAlign: 'center',
+    textAlign: 'left',
+    writingDirection: 'ltr',
+    textDirection: 'ltr',
     marginBottom: 3,
   },
   cellClass: {
     fontSize: 16,
     color: '#D32F2F',
-    textAlign: 'center',
+    textAlign: 'left',
+    writingDirection: 'ltr',
+    textDirection: 'ltr',
     opacity: 1,
     marginBottom: 2,
     fontWeight: 'bold',
@@ -865,6 +912,8 @@ const styles = StyleSheet.create({
     fontSize: 8,
     color: '#fff',
     fontWeight: '600',
+    writingDirection: 'ltr',
+    textDirection: 'ltr',
   },
   emptyCellContent: {
     alignItems: 'center',
@@ -874,7 +923,9 @@ const styles = StyleSheet.create({
   emptyCellText: {
     fontSize: 12,
     color: '#999',
-    textAlign: 'center',
+    textAlign: 'left',
+    writingDirection: 'ltr',
+    textDirection: 'ltr',
     marginTop: 4,
   },
   scheduleHeader: {
@@ -887,8 +938,11 @@ const styles = StyleSheet.create({
     fontSize: 18,
     fontWeight: 'bold',
     color: '#333',
-    textAlign: 'right',
+    textAlign: 'center',
     writingDirection: 'rtl',
+    textDirection: 'rtl',
+    alignSelf: 'center',
+    width: '100%',
   },
 
   scheduleList: {
@@ -909,9 +963,12 @@ const styles = StyleSheet.create({
     width: 100,
   },
   timeText: {
-    fontSize: 12,
+    fontSize: 13,
     color: '#666',
     fontWeight: '600',
+    textAlign: 'center',
+    writingDirection: 'rtl',
+    textDirection: 'rtl',
   },
   entryDetails: {
     flex: 1,
@@ -964,12 +1021,13 @@ const styles = StyleSheet.create({
     padding: 5,
   },
   actionButtons: {
-    flexDirection: 'row',
+    flexDirection: 'row-reverse',
     gap: 10,
     marginBottom: 20,
+    direction: 'rtl',
   },
   exportButton: {
-    flexDirection: 'row',
+    flexDirection: 'row-reverse',
     alignItems: 'center',
     justifyContent: 'center',
     backgroundColor: '#add4ce',
@@ -982,12 +1040,15 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.4,
     shadowRadius: 12,
     elevation: 12,
+    direction: 'rtl',
   },
   buttonText: {
     color: '#1c1f33',
     fontSize: 16,
     fontWeight: '600',
-    textAlign: 'center',
+    textAlign: 'right',
+    writingDirection: 'rtl',
+    textDirection: 'rtl',
   },
 
   ////  نموذج الإضافة
@@ -1000,17 +1061,20 @@ const styles = StyleSheet.create({
     shadowOffset: { width: 0, height: 1 },
     shadowOpacity: 0.1,
     shadowRadius: 3,
+    direction: 'rtl',
   },
   formGroup: {
     marginBottom: 20,
+    direction: 'rtl',
   },
   label: {
     fontSize: 16,
     fontWeight: 'bold',
     color: '#333',
     marginBottom: 8,
-    textAlign: 'right',
-    writingDirection: 'rtl',
+    textAlign: 'left',
+    writingDirection: 'ltr',
+    textDirection: 'ltr',
   },
   radioGroup: {
     flexDirection: 'row',
@@ -1032,6 +1096,9 @@ const styles = StyleSheet.create({
   radioText: {
     fontSize: 14,
     color: '#666',
+    textAlign: 'right',
+    writingDirection: 'rtl',
+    textDirection: 'rtl',
   },
   radioTextSelected: {
     color: '#fff',
@@ -1046,10 +1113,11 @@ const styles = StyleSheet.create({
     maxHeight: 60,
   },
   daysScrollContainer: {
-    flexDirection: 'row-reverse',
+    flexDirection: 'row',
     alignItems: 'center',
     gap: 8,
     paddingHorizontal: 8,
+    direction: 'ltr',
   },
   dayButton: {
     paddingVertical: 12,
@@ -1061,49 +1129,80 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     minWidth: 80,
+    direction: 'rtl',
   },
   dayButtonSelected: {
     backgroundColor: '#2E8B57',
     borderColor: '#2E8B57',
+    direction: 'rtl',
   },
   dayButtonText: {
     fontSize: 12,
     color: '#666',
     fontWeight: '600',
-    textAlign: 'center',
+    textAlign: 'left',
+    writingDirection: 'ltr',
+    textDirection: 'ltr',
   },
   dayButtonTextSelected: {
     color: '#fff',
+    textAlign: 'left',
+    writingDirection: 'ltr',
+    textDirection: 'ltr',
   },
   timeGrid: {
     flexDirection: 'row',
     flexWrap: 'wrap',
     gap: 8,
+    justifyContent: 'flex-start',
+    alignItems: 'center',
   },
   timeScrollView: {
-    maxHeight: 60,
+    height: 70,
+    showsHorizontalScrollIndicator: false,
   },
   timeScrollContainer: {
     flexDirection: 'row-reverse',
     alignItems: 'center',
     gap: 8,
-    paddingHorizontal: 8,
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+    direction: 'rtl',
   },
   timeSlot: {
-    paddingHorizontal: 8,
-    paddingVertical: 6,
-    borderRadius: 12,
-    borderWidth: 1,
+    paddingHorizontal: 10,
+    paddingVertical: 8,
+    borderRadius: 16,
+    borderWidth: 1.5,
     borderColor: '#e0e0e0',
     backgroundColor: '#f8f9fa',
-    minWidth: 80,
+    minWidth: 85,
+    height: 50,
+    alignItems: 'center',
+    justifyContent: 'center',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    elevation: 2,
+    direction: 'rtl',
   },
   timeSlotSelected: {
     backgroundColor: '#2E8B57',
     borderColor: '#2E8B57',
+    shadowColor: '#2E8B57',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.3,
+    shadowRadius: 6,
+    elevation: 4,
+    direction: 'ltr',
   },
   timeTextSelected: {
     color: '#fff',
+    textAlign: 'center',
+    writingDirection: 'rtl',
+    textDirection: 'rtl',
+    fontWeight: '700',
   },
   typeGrid: {
     flexDirection: 'row',
@@ -1123,9 +1222,12 @@ const styles = StyleSheet.create({
   typeText: {
     fontSize: 14,
     fontWeight: '600',
+    textAlign: 'right',
+    writingDirection: 'rtl',
+    textDirection: 'rtl',
   },
   inputContainer: {
-    flexDirection: 'row',
+    flexDirection: 'row-reverse',
     alignItems: 'center',
     backgroundColor: '#f8f9fa',
     borderRadius: 8,
@@ -1133,6 +1235,7 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: '#e0e0e0',
     gap: 10,
+    direction: 'rtl',
   },
   textInput: {
     flex: 1,
@@ -1140,15 +1243,18 @@ const styles = StyleSheet.create({
     color: '#333',
     textAlign: 'right',
     writingDirection: 'rtl',
+    textDirection: 'rtl',
   },
   formActions: {
-    flexDirection: 'row',
+    flexDirection: 'row-reverse',
     gap: 10,
     marginTop: 20,
+    marginBottom: 30,
+    direction: 'rtl',
   },
   saveButton: {
     flex: 1,
-    flexDirection: 'row',
+    flexDirection: 'row-reverse',
     alignItems: 'center',
     justifyContent: 'center',
     backgroundColor: '#add4ce',
@@ -1161,16 +1267,19 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.4,
     shadowRadius: 12,
     elevation: 12,
+    direction: 'rtl',
   },
   saveButtonText: {
     color: '#1c1f33',
     fontSize: 16,
     fontWeight: '600',
-    textAlign: 'center',
+    textAlign: 'right',
+    writingDirection: 'rtl',
+    textDirection: 'rtl',
   },
   cancelButton: {
     flex: 1,
-    flexDirection: 'row',
+    flexDirection: 'row-reverse',
     alignItems: 'center',
     justifyContent: 'center',
     backgroundColor: '#f8f9fa',
@@ -1185,11 +1294,14 @@ const styles = StyleSheet.create({
     elevation: 12,
     borderWidth: 1,
     borderColor: '#E5E5EA',
+    direction: 'rtl',
   },
   cancelButtonText: {
     color: '#1c1f33',
     fontSize: 16,
     fontWeight: '600',
-    textAlign: 'center',
+    textAlign: 'right',
+    writingDirection: 'rtl',
+    textDirection: 'rtl',
   },
 });

@@ -5,16 +5,27 @@ const { createClient } = require('@supabase/supabase-js');
 const fs = require('fs');
 const path = require('path');
 
-// إعدادات Supabase
-const supabaseUrl = 'https://feidqejihjnvayikhbli.supabase.co';
-const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZlaWRxZWppaGpudmF5aWtoYmxpIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTE0MjI0NDIsImV4cCI6MjA2Njk5ODQ0Mn0.w-NSSW2xCjkOOnEcr78x9e0o0mB9PDa5oEIIYy-yzkA';
+// قراءة متغيرات البيئة
+require('dotenv').config();
+
+const supabaseUrl = process.env.EXPO_PUBLIC_SUPABASE_URL;
+// هذا السكربت يقوم بعمليات إدارية (Storage policies/buckets) لذا يتطلب service role key
+const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
+
+if (!supabaseUrl || !supabaseServiceKey) {
+  console.error('❌ خطأ: متغيرات البيئة غير موجودة');
+  console.log('تأكد من وجود:');
+  console.log('- EXPO_PUBLIC_SUPABASE_URL');
+  console.log('- SUPABASE_SERVICE_ROLE_KEY');
+  process.exit(1);
+}
 
 console.log('🔧 بدء إعداد نظام النسخ الاحتياطية بالكامل...\n');
 
 async function setupCompleteBackupSystem() {
   try {
     console.log('📡 إنشاء اتصال بـ Supabase...');
-    const supabase = createClient(supabaseUrl, supabaseKey);
+    const supabase = createClient(supabaseUrl, supabaseServiceKey);
     console.log('✅ تم إنشاء الاتصال بنجاح');
 
     // 1. إنشاء bucket backups

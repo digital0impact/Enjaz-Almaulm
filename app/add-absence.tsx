@@ -4,8 +4,10 @@ import { StyleSheet, ScrollView, TouchableOpacity, Alert, ImageBackground, Platf
 import { ThemedText } from '@/components/ThemedText';
 import { ThemedView } from '@/components/ThemedView';
 import { IconSymbol } from '@/components/ui/IconSymbol';
+import { BottomNavigationBar } from '@/components/BottomNavigationBar';
 import { useRouter } from 'expo-router';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { getTextDirection, formatRTLText } from '@/utils/rtl-utils';
 
 interface AbsenceRecord {
   id: string;
@@ -135,27 +137,27 @@ export default function AddAbsenceScreen() {
                 <IconSymbol size={60} name="plus.circle.fill" color="#1c1f33" />
               </ThemedView>
 
-              <ThemedText type="title" style={styles.title}>
-                إضافة غياب جديد
+              <ThemedText type="title" style={[styles.title, getTextDirection()]}> 
+                {formatRTLText('إضافة غياب جديد')}
               </ThemedText>
-              <ThemedText style={styles.subtitle}>
-                تسجيل يوم غياب جديد مع تحديد السبب والفترة
+              <ThemedText style={[styles.subtitle, getTextDirection()]}> 
+                {formatRTLText('تسجيل يوم غياب جديد مع تحديد السبب والفترة')}
               </ThemedText>
             </ThemedView>
 
             <ThemedView style={styles.content}>
               {/* تاريخ الغياب */}
               <ThemedView style={styles.formSection}>
-                <ThemedText style={styles.sectionTitle}>تاريخ الغياب</ThemedText>
+                <ThemedText style={[styles.sectionTitle, getTextDirection()]}>تاريخ الغياب</ThemedText>
                 <ThemedView style={styles.inputContainer}>
-                  <ThemedText style={styles.dateInput}>{formData.date}</ThemedText>
+                  <ThemedText style={[styles.dateInput, getTextDirection()]}>{formData.date}</ThemedText>
                   <IconSymbol size={20} name="calendar" color="#666" />
                 </ThemedView>
               </ThemedView>
 
               {/* نوع الغياب */}
               <ThemedView style={styles.formSection}>
-                <ThemedText style={styles.sectionTitle}>نوع الغياب</ThemedText>
+                <ThemedText style={[styles.sectionTitle, getTextDirection()]}>نوع الغياب</ThemedText>
                 <ThemedView style={styles.optionsGrid}>
                   {absenceTypes.map((type) => (
                     <TouchableOpacity
@@ -167,7 +169,7 @@ export default function AddAbsenceScreen() {
                       onPress={() => setFormData(prev => ({ ...prev, type: type.value as AbsenceRecord['type'] }))}
                     >
                       <IconSymbol size={24} name={type.icon as any} color={type.color} />
-                      <ThemedText style={styles.optionText}>{type.label}</ThemedText>
+                      <ThemedText style={[styles.optionText, getTextDirection()]}>{type.label}</ThemedText>
                     </TouchableOpacity>
                   ))}
                 </ThemedView>
@@ -175,7 +177,7 @@ export default function AddAbsenceScreen() {
 
               {/* هل يوجد عذر */}
               <ThemedView style={styles.formSection}>
-                <ThemedText style={styles.sectionTitle}>هل يوجد عذر؟</ThemedText>
+                <ThemedText style={[styles.sectionTitle, getTextDirection()]}>هل يوجد عذر؟</ThemedText>
                 <ThemedView style={styles.excuseContainer}>
                   <TouchableOpacity
                     style={[
@@ -185,7 +187,7 @@ export default function AddAbsenceScreen() {
                     onPress={() => setFormData(prev => ({ ...prev, withExcuse: true }))}
                   >
                     <IconSymbol size={20} name="checkmark.circle.fill" color="#4ECDC4" />
-                    <ThemedText style={styles.excuseText}>نعم</ThemedText>
+                    <ThemedText style={[styles.excuseText, getTextDirection()]}>نعم</ThemedText>
                   </TouchableOpacity>
 
                   <TouchableOpacity
@@ -196,17 +198,17 @@ export default function AddAbsenceScreen() {
                     onPress={() => setFormData(prev => ({ ...prev, withExcuse: false }))}
                   >
                     <IconSymbol size={20} name="xmark.circle.fill" color="#FF6B6B" />
-                    <ThemedText style={styles.excuseText}>لا</ThemedText>
+                    <ThemedText style={[styles.excuseText, getTextDirection()]}>لا</ThemedText>
                   </TouchableOpacity>
                 </ThemedView>
               </ThemedView>
 
               {/* سبب الغياب */}
               <ThemedView style={styles.formSection}>
-                <ThemedText style={styles.sectionTitle}>سبب الغياب (اختياري)</ThemedText>
+                <ThemedText style={[styles.sectionTitle, getTextDirection()]}>سبب الغياب (اختياري)</ThemedText>
                 <ThemedView style={styles.textInputContainer}>
                   <ThemedText 
-                    style={styles.textInput}
+                    style={[styles.textInput, getTextDirection()]}
                     onPress={() => {
                       Alert.prompt(
                         'سبب الغياب',
@@ -217,7 +219,7 @@ export default function AddAbsenceScreen() {
                       );
                     }}
                   >
-                    {formData.reason || 'اضغط لإدخال السبب...'}
+                    {formData.reason || formatRTLText('اضغط لإدخال السبب...')}
                   </ThemedText>
                 </ThemedView>
               </ThemedView>
@@ -225,11 +227,13 @@ export default function AddAbsenceScreen() {
               {/* زر الحفظ */}
               <TouchableOpacity style={styles.saveButton} onPress={saveAbsence}>
                 <IconSymbol size={24} name="checkmark.circle.fill" color="#fff" />
-                <ThemedText style={styles.saveButtonText}>حفظ سجل الغياب</ThemedText>
+                <ThemedText style={[styles.saveButtonText, getTextDirection()]}>حفظ سجل الغياب</ThemedText>
               </TouchableOpacity>
             </ThemedView>
           </ScrollView>
-      </ImageBackground>
+          
+          <BottomNavigationBar />
+        </ImageBackground>
     </ThemedView>
   );
 }

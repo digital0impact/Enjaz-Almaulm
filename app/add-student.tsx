@@ -1,5 +1,5 @@
-import React, { useState } from 'react';
-import { StyleSheet, ScrollView, TouchableOpacity, TextInput, Alert, ImageBackground, KeyboardAvoidingView, Platform } from 'react-native';
+import React, { useState, useRef } from 'react';
+import { StyleSheet, ScrollView, TouchableOpacity, TextInput, Alert, ImageBackground, KeyboardAvoidingView, Platform, Modal, View } from 'react-native';
 
 import { ThemedText } from '@/components/ThemedText';
 import { ThemedView } from '@/components/ThemedView';
@@ -9,6 +9,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import * as DocumentPicker from 'expo-document-picker';
 import * as ImagePicker from 'expo-image-picker';
 import { BottomNavigationBar } from '@/components/BottomNavigationBar';
+import { getTextDirection, formatRTLText } from '@/utils/rtl-utils';
 
 interface Student {
   id: string;
@@ -73,6 +74,12 @@ export default function AddStudentScreen() {
   const [showGoalForm, setShowGoalForm] = useState(false);
   const [showEvidenceForm, setShowEvidenceForm] = useState(false);
   const [showNeedForm, setShowNeedForm] = useState(false);
+  const [duplicateModalVisible, setDuplicateModalVisible] = useState(false);
+  const [successModalVisible, setSuccessModalVisible] = useState(false);
+  const [successModalMessage, setSuccessModalMessage] = useState('');
+  const [errorModalVisible, setErrorModalVisible] = useState(false);
+  const [errorModalMessage, setErrorModalMessage] = useState('');
+  const proceedWithSaveRef = useRef<(() => Promise<void>) | null>(null);
 
   const statusOptions = [
     { value: 'صعوبات التعلم', label: 'صعوبات التعلم', color: '#F44336', icon: 'exclamationmark.triangle.fill' },
@@ -330,30 +337,23 @@ export default function AddStudentScreen() {
 
     try {
       console.log('بدء عملية حفظ بيانات المتعلم...');
-      
-      // إظهار رسالة تحميل
-      const loadingAlert = Alert.alert('جاري الحفظ', 'يتم حفظ بيانات المتعلم، يرجى الانتظار...');
 
       const existingStudents = await AsyncStorage.getItem('students');
       let students = existingStudents ? JSON.parse(existingStudents) : [];
 
-      // التحقق من عدم تكرار الاسم
-      const duplicateName = students.find((student: Student) => 
+      const duplicateName = students.find((student: Student) =>
         student.name.toLowerCase().trim() === studentData.name.toLowerCase().trim()
       );
 
       if (duplicateName) {
-        Alert.alert('تنبيه', 'يوجد متعلم بنفس الاسم، هل تريد المتابعة؟', [
-          { text: 'إلغاء', style: 'cancel' },
-          { text: 'متابعة', onPress: () => proceedWithSave() }
-        ]);
+        proceedWithSaveRef.current = proceedWithSave;
+        setDuplicateModalVisible(true);
         return;
       }
 
       await proceedWithSave();
 
       async function proceedWithSave() {
-        // تحديث التصنيفات القديمة في البيانات الموجودة
         students = students.map((student: Student) => {
           let updatedStatus = student.status;
           if (student.status === 'ممتاز' as any) {
@@ -363,11 +363,7 @@ export default function AddStudentScreen() {
           } else if (student.status === 'ضعيف' as any) {
             updatedStatus = 'صعوبات التعلم';
           }
-
-          return {
-            ...student,
-            status: updatedStatus as Student['status']
-          };
+          return { ...student, status: updatedStatus as Student['status'] };
         });
 
         const newStudent: Student = {
@@ -387,64 +383,57 @@ export default function AddStudentScreen() {
 
         console.log('✅ تم حفظ المتعلم بنجاح:', newStudent);
 
-        // التحقق من الحفظ
         const savedStudents = await AsyncStorage.getItem('students');
         const parsedStudents = savedStudents ? JSON.parse(savedStudents) : [];
         const isStudentSaved = parsedStudents.find((s: Student) => s.id === newStudent.id);
 
         if (isStudentSaved) {
-          Alert.alert(
-            '✅ تم الحفظ بنجاح!', 
-            `تم إضافة المتعلم "${newStudent.name}" بنجاح\n\nالتفاصيل:\n• الصف: ${newStudent.grade}\n• الحالة: ${newStudent.status}\n• عدد الأهداف: ${newStudent.goals.length}\n• عدد الاحتياجات: ${newStudent.needs.length}\n• عدد الشواهد: ${newStudent.performanceEvidence.length}`,
-            [
-              { 
-                text: 'عرض المتعلمين', 
-                onPress: () => {
-                  console.log('الانتقال إلى صفحة المتعلمين...');
-                  router.replace('/student-tracking');
-                }
-              },
-              { 
-                text: 'إضافة متعلم آخر', 
-                onPress: () => {
-                  console.log('إعادة تعيين النموذج...');
-                  // إعادة تعيين البيانات لإضافة متعلم جديد
-                  setStudentData({
-                    name: '',
-                    grade: '',
-                    status: 'يحتاج إلى تطوير',
-                    notes: '',
-                    goals: [],
-                    needs: [],
-                    performanceEvidence: []
-                  });
-                }
-              }
-            ]
+          setSuccessModalMessage(
+            `تم إضافة المتعلم "${newStudent.name}" بنجاح\n\nالتفاصيل:\n• الصف: ${newStudent.grade}\n• الحالة: ${newStudent.status}\n• عدد الأهداف: ${newStudent.goals.length}\n• عدد الاحتياجات: ${newStudent.needs.length}\n• عدد الشواهد: ${newStudent.performanceEvidence.length}`
           );
+          setSuccessModalVisible(true);
         } else {
           throw new Error('فشل في التحقق من حفظ البيانات');
         }
       }
-
     } catch (error) {
       console.error('❌ خطأ في حفظ المتعلم:', error);
-      Alert.alert(
-        '❌ خطأ في الحفظ', 
-        `حدث خطأ أثناء حفظ بيانات المتعلم.\n\nتفاصيل الخطأ: ${error instanceof Error ? error.message : 'خطأ غير معروف'}\n\nيرجى المحاولة مرة أخرى أو التحقق من البيانات المدخلة.`,
-        [
-          { 
-            text: 'إعادة المحاولة', 
-            onPress: () => saveStudent(),
-            style: 'default'
-          },
-          { 
-            text: 'إلغاء', 
-            style: 'cancel' 
-          }
-        ]
+      setErrorModalMessage(
+        `حدث خطأ أثناء حفظ بيانات المتعلم.\n\n${error instanceof Error ? error.message : 'خطأ غير معروف'}\n\nيرجى المحاولة مرة أخرى أو التحقق من البيانات المدخلة.`
       );
+      setErrorModalVisible(true);
     }
+  };
+
+  const handleDuplicateContinue = async () => {
+    setDuplicateModalVisible(false);
+    if (proceedWithSaveRef.current) {
+      await proceedWithSaveRef.current();
+      proceedWithSaveRef.current = null;
+    }
+  };
+
+  const handleSuccessViewStudents = () => {
+    setSuccessModalVisible(false);
+    router.replace('/student-tracking');
+  };
+
+  const handleSuccessAddAnother = () => {
+    setSuccessModalVisible(false);
+    setStudentData({
+      name: '',
+      grade: '',
+      status: 'يحتاج إلى تطوير',
+      notes: '',
+      goals: [],
+      needs: [],
+      performanceEvidence: []
+    });
+  };
+
+  const handleErrorRetry = () => {
+    setErrorModalVisible(false);
+    saveStudent();
   };
 
   return (
@@ -491,11 +480,11 @@ export default function AddStudentScreen() {
                     <IconSymbol size={60} name="person.crop.circle.badge.plus" color="#1c1f33" />
                   </ThemedView>
 
-                  <ThemedText type="title" style={styles.title}>
-                    إضافة متعلم جديد
+                  <ThemedText type="title" style={[styles.title, getTextDirection()]}> 
+                    {formatRTLText('إضافة متعلم جديد')}
                   </ThemedText>
-                  <ThemedText style={styles.subtitle}>
-                    إدخال بيانات المتعلم الشاملة
+                  <ThemedText style={[styles.subtitle, getTextDirection()]}> 
+                    {formatRTLText('إدخال بيانات المتعلم الشاملة')}
                   </ThemedText>
                 </ThemedView>
 
@@ -513,6 +502,7 @@ export default function AddStudentScreen() {
                         onChangeText={(text) => setStudentData({...studentData, name: text})}
                         placeholder="أدخل اسم المتعلم"
                         textAlign="right"
+                        writingDirection="rtl"
                       />
                     </ThemedView>
 
@@ -524,6 +514,7 @@ export default function AddStudentScreen() {
                         onChangeText={(text) => setStudentData({...studentData, grade: text})}
                         placeholder="أدخل الصف الدراسي"
                         textAlign="right"
+                        writingDirection="rtl"
                       />
                     </ThemedView>
 
@@ -558,7 +549,7 @@ export default function AddStudentScreen() {
                         <IconSymbol size={16} name="plus.circle.fill" color="#1c1f33" />
                         <ThemedText style={styles.addButtonText}>إضافة هدف</ThemedText>
                       </TouchableOpacity>
-                      <ThemedText style={styles.sectionTitle}>الأهداف التعليمية</ThemedText>
+                      <ThemedText style={[styles.sectionTitle, getTextDirection()]}>الأهداف التعليمية</ThemedText>
                     </ThemedView>
 
                     {showGoalForm && (
@@ -586,14 +577,14 @@ export default function AddStudentScreen() {
                         <ThemedView style={styles.buttonRow}>
                           <TouchableOpacity style={styles.addButton} onPress={addGoal}>
                             <IconSymbol size={16} name="checkmark.circle.fill" color="#1c1f33" />
-                            <ThemedText style={styles.addButtonText}>حفظ</ThemedText>
+                            <ThemedText style={[styles.addButtonText, getTextDirection()]}>حفظ</ThemedText>
                           </TouchableOpacity>
                           <TouchableOpacity 
                             style={styles.addButton} 
                             onPress={() => setShowGoalForm(false)}
                           >
                             <IconSymbol size={16} name="xmark.circle.fill" color="#1c1f33" />
-                            <ThemedText style={styles.addButtonText}>إلغاء</ThemedText>
+                            <ThemedText style={[styles.addButtonText, getTextDirection()]}>إلغاء</ThemedText>
                           </TouchableOpacity>
                         </ThemedView>
                       </ThemedView>
@@ -605,7 +596,7 @@ export default function AddStudentScreen() {
                           <TouchableOpacity onPress={() => removeGoal(goal.id)}>
                             <IconSymbol size={20} name="xmark.circle.fill" color="#F44336" />
                           </TouchableOpacity>
-                          <ThemedText style={styles.itemTitle}>{goal.title}</ThemedText>
+                          <ThemedText style={[styles.itemTitle, getTextDirection()]}>{goal.title}</ThemedText>
                         </ThemedView>
                         
                         <ThemedView style={styles.progressContainer}>
@@ -628,21 +619,22 @@ export default function AddStudentScreen() {
                         onPress={() => setShowNeedForm(true)}
                       >
                         <IconSymbol size={16} name="plus.circle.fill" color="#1c1f33" />
-                        <ThemedText style={styles.addButtonText}>إضافة احتياج</ThemedText>
+                        <ThemedText style={[styles.addButtonText, getTextDirection()]}>إضافة احتياج</ThemedText>
                       </TouchableOpacity>
-                      <ThemedText style={styles.sectionTitle}>احتياجات المتعلم</ThemedText>
+                      <ThemedText style={[styles.sectionTitle, getTextDirection()]}>احتياجات المتعلم</ThemedText>
                     </ThemedView>
 
                     {showNeedForm && (
                       <ThemedView style={styles.formCard}>
                         <ThemedView style={styles.inputGroup}>
-                          <ThemedText style={styles.label}>الاحتياج</ThemedText>
+                          <ThemedText style={[styles.label, getTextDirection()]}>الاحتياج</ThemedText>
                           <TextInput
                             style={styles.textInput}
                             value={newNeed}
                             onChangeText={setNewNeed}
                             placeholder="مثال: يحتاج إلى دعم إضافي في الرياضيات"
                             textAlign="right"
+                            writingDirection="rtl"
                             multiline
                           />
                         </ThemedView>
@@ -650,14 +642,14 @@ export default function AddStudentScreen() {
                         <ThemedView style={styles.buttonRow}>
                           <TouchableOpacity style={styles.addButton} onPress={addNeed}>
                             <IconSymbol size={16} name="checkmark.circle.fill" color="#1c1f33" />
-                            <ThemedText style={styles.addButtonText}>حفظ</ThemedText>
+                            <ThemedText style={[styles.addButtonText, getTextDirection()]}>حفظ</ThemedText>
                           </TouchableOpacity>
                           <TouchableOpacity 
                             style={styles.addButton} 
                             onPress={() => setShowNeedForm(false)}
                           >
                             <IconSymbol size={16} name="xmark.circle.fill" color="#1c1f33" />
-                            <ThemedText style={styles.addButtonText}>إلغاء</ThemedText>
+                            <ThemedText style={[styles.addButtonText, getTextDirection()]}>إلغاء</ThemedText>
                           </TouchableOpacity>
                         </ThemedView>
                       </ThemedView>
@@ -669,7 +661,7 @@ export default function AddStudentScreen() {
                           <TouchableOpacity onPress={() => removeNeed(index)}>
                             <IconSymbol size={20} name="xmark.circle.fill" color="#F44336" />
                           </TouchableOpacity>
-                          <ThemedText style={styles.itemTitle}>{need}</ThemedText>
+                          <ThemedText style={[styles.itemTitle, getTextDirection()]}>{need}</ThemedText>
                         </ThemedView>
                       </ThemedView>
                     ))}
@@ -683,15 +675,15 @@ export default function AddStudentScreen() {
                         onPress={() => setShowEvidenceForm(true)}
                       >
                         <IconSymbol size={16} name="plus.circle.fill" color="#1c1f33" />
-                        <ThemedText style={styles.addButtonText}>إضافة شاهد</ThemedText>
+                        <ThemedText style={[styles.addButtonText, getTextDirection()]}>إضافة شاهد</ThemedText>
                       </TouchableOpacity>
-                      <ThemedText style={styles.sectionTitle}>شواهد الأداء</ThemedText>
+                      <ThemedText style={[styles.sectionTitle, getTextDirection()]}>شواهد الأداء</ThemedText>
                     </ThemedView>
 
                     {showEvidenceForm && (
                       <ThemedView style={styles.formCard}>
                         <ThemedView style={styles.inputGroup}>
-                          <ThemedText style={styles.label}>نوع الشاهد</ThemedText>
+                          <ThemedText style={[styles.label, getTextDirection()]}>نوع الشاهد</ThemedText>
                           <ThemedView style={styles.typeGrid}>
                             {evidenceTypes.map((type) => (
                               <TouchableOpacity
@@ -703,25 +695,26 @@ export default function AddStudentScreen() {
                                 onPress={() => setNewEvidence({...newEvidence, type: type.value as PerformanceEvidence['type']})}
                               >
                                 <IconSymbol size={16} name={type.icon as any} color="#1c1f33" />
-                                <ThemedText style={styles.typeText}>{type.label}</ThemedText>
+                                <ThemedText style={[styles.typeText, getTextDirection()]}>{type.label}</ThemedText>
                               </TouchableOpacity>
                             ))}
                           </ThemedView>
                         </ThemedView>
 
                         <ThemedView style={styles.inputGroup}>
-                          <ThemedText style={styles.label}>عنوان الشاهد</ThemedText>
+                          <ThemedText style={[styles.label, getTextDirection()]}>عنوان الشاهد</ThemedText>
                           <TextInput
                             style={styles.textInput}
                             value={newEvidence.title}
                             onChangeText={(text) => setNewEvidence({...newEvidence, title: text})}
                             placeholder="أدخل عنوان الشاهد"
                             textAlign="right"
+                            writingDirection="rtl"
                           />
                         </ThemedView>
 
                         <ThemedView style={styles.inputGroup}>
-                          <ThemedText style={styles.label}>تحميل الشاهد</ThemedText>
+                          <ThemedText style={[styles.label, getTextDirection()]}>تحميل الشاهد</ThemedText>
                           
                           {/* أزرار التحميل */}
                           <ThemedView style={styles.uploadButtonsContainer}>
@@ -730,7 +723,7 @@ export default function AddStudentScreen() {
                               onPress={pickImage}
                             >
                               <IconSymbol size={18} name="photo.fill" color="#2196F3" />
-                              <ThemedText style={[styles.uploadOptionText, { color: '#2196F3' }]}>صورة</ThemedText>
+                              <ThemedText style={[styles.uploadOptionText, getTextDirection(), { color: '#2196F3' }]}>صورة</ThemedText>
                             </TouchableOpacity>
 
                             <TouchableOpacity 
@@ -738,7 +731,7 @@ export default function AddStudentScreen() {
                               onPress={pickVideo}
                             >
                               <IconSymbol size={18} name="video.fill" color="#9C27B0" />
-                              <ThemedText style={[styles.uploadOptionText, { color: '#9C27B0' }]}>فيديو</ThemedText>
+                              <ThemedText style={[styles.uploadOptionText, getTextDirection(), { color: '#9C27B0' }]}>فيديو</ThemedText>
                             </TouchableOpacity>
 
                             <TouchableOpacity 
@@ -746,7 +739,7 @@ export default function AddStudentScreen() {
                               onPress={pickDocument}
                             >
                               <IconSymbol size={18} name="doc.fill" color="#4CAF50" />
-                              <ThemedText style={[styles.uploadOptionText, { color: '#4CAF50' }]}>ملف</ThemedText>
+                              <ThemedText style={[styles.uploadOptionText, getTextDirection(), { color: '#4CAF50' }]}>ملف</ThemedText>
                             </TouchableOpacity>
                           </ThemedView>
 
@@ -764,10 +757,10 @@ export default function AddStudentScreen() {
                                   color="#4CAF50" 
                                 />
                                 <ThemedView style={styles.fileDetails}>
-                                  <ThemedText style={styles.fileInfoText}>
+                                  <ThemedText style={[styles.fileInfoText, getTextDirection()]}>
                                     {newEvidence.fileName}
                                   </ThemedText>
-                                  <ThemedText style={styles.fileTypeText}>
+                                  <ThemedText style={[styles.fileTypeText, getTextDirection()]}>
                                     {newEvidence.fileType}
                                   </ThemedText>
                                 </ThemedView>
@@ -786,7 +779,7 @@ export default function AddStudentScreen() {
                           ) : (
                             <ThemedView style={styles.noFileSelected}>
                               <IconSymbol size={24} name="doc.badge.plus" color="#999" />
-                              <ThemedText style={styles.noFileText}>لم يتم اختيار ملف بعد</ThemedText>
+                              <ThemedText style={[styles.noFileText, getTextDirection()]}>لم يتم اختيار ملف بعد</ThemedText>
                             </ThemedView>
                           )}
                         </ThemedView>
@@ -794,14 +787,14 @@ export default function AddStudentScreen() {
                         <ThemedView style={styles.buttonRow}>
                           <TouchableOpacity style={styles.addButton} onPress={addEvidence}>
                             <IconSymbol size={16} name="checkmark.circle.fill" color="#1c1f33" />
-                            <ThemedText style={styles.addButtonText}>حفظ</ThemedText>
+                            <ThemedText style={[styles.addButtonText, getTextDirection()]}>حفظ</ThemedText>
                           </TouchableOpacity>
                           <TouchableOpacity 
                             style={styles.addButton} 
                             onPress={() => setShowEvidenceForm(false)}
                           >
                             <IconSymbol size={16} name="xmark.circle.fill" color="#1c1f33" />
-                            <ThemedText style={styles.addButtonText}>إلغاء</ThemedText>
+                            <ThemedText style={[styles.addButtonText, getTextDirection()]}>إلغاء</ThemedText>
                           </TouchableOpacity>
                         </ThemedView>
                       </ThemedView>
@@ -814,14 +807,12 @@ export default function AddStudentScreen() {
                             <IconSymbol size={20} name="xmark.circle.fill" color="#F44336" />
                           </TouchableOpacity>
                           <ThemedView style={styles.evidenceInfo}>
-                            <ThemedText style={styles.itemTitle}>{evidence.title}</ThemedText>
-                            <ThemedText style={styles.evidenceType}>{evidence.type}</ThemedText>
+                            <ThemedText style={[styles.itemTitle, getTextDirection()]}>{evidence.title}</ThemedText>
+                            <ThemedText style={[styles.evidenceType, getTextDirection()]}>{evidence.type}</ThemedText>
                           </ThemedView>
                         </ThemedView>
                         <ThemedView style={styles.evidenceDetails}>
-                          <ThemedText style={styles.evidenceDetailText}>
-                            النوع: {evidence.type}
-                          </ThemedText>
+                          <ThemedText style={[styles.evidenceDetailText, getTextDirection()]}>النوع: {evidence.type}</ThemedText>
                           {evidence.fileName && (
                             <ThemedView style={styles.fileDisplayInfo}>
                               <IconSymbol 
@@ -833,25 +824,19 @@ export default function AddStudentScreen() {
                                 } 
                                 color="#4CAF50" 
                               />
-                              <ThemedText style={styles.evidenceDetailText}>
-                                الملف: {evidence.fileName}
-                              </ThemedText>
+                              <ThemedText style={[styles.evidenceDetailText, getTextDirection()]}>الملف: {evidence.fileName}</ThemedText>
                               <TouchableOpacity 
                                 style={styles.viewFileBtn}
                                 onPress={() => Alert.alert('عرض الملف', `فتح: ${evidence.fileName}`)}
                               >
                                 <IconSymbol size={14} name="eye.fill" color="#2196F3" />
-                                <ThemedText style={styles.viewFileBtnText}>عرض</ThemedText>
+                                <ThemedText style={[styles.viewFileBtnText, getTextDirection()]}>عرض</ThemedText>
                               </TouchableOpacity>
                             </ThemedView>
                           )}
-                          <ThemedText style={styles.evidenceDetailText}>
-                            التاريخ: {evidence.date}
-                          </ThemedText>
+                          <ThemedText style={[styles.evidenceDetailText, getTextDirection()]}>التاريخ: {evidence.date}</ThemedText>
                           {evidence.notes && (
-                            <ThemedText style={styles.evidenceDetailText}>
-                              الملاحظات: {evidence.notes}
-                            </ThemedText>
+                            <ThemedText style={[styles.evidenceDetailText, getTextDirection()]}>الملاحظات: {evidence.notes}</ThemedText>
                           )}
                         </ThemedView>
                       </ThemedView>
@@ -860,13 +845,14 @@ export default function AddStudentScreen() {
 
                   {/* ملاحظات إضافية */}
                   <ThemedView style={styles.sectionContainer}>
-                    <ThemedText style={styles.sectionTitle}>ملاحظات إضافية</ThemedText>
+                    <ThemedText style={[styles.sectionTitle, getTextDirection()]}>ملاحظات إضافية</ThemedText>
                     <TextInput
                       style={[styles.textInput, styles.textArea]}
                       value={studentData.notes}
                       onChangeText={(text) => setStudentData({...studentData, notes: text})}
                       placeholder="أدخل أي ملاحظات إضافية"
                       textAlign="right"
+                      writingDirection="rtl"
                       multiline
                       numberOfLines={4}
                     />
@@ -880,9 +866,7 @@ export default function AddStudentScreen() {
                       activeOpacity={0.8}
                     >
                       <IconSymbol size={20} name="checkmark.circle.fill" color="#1c1f33" />
-                      <ThemedText style={styles.saveButtonText}>
-                        حفظ البيانات
-                      </ThemedText>
+                      <ThemedText style={[styles.saveButtonText, getTextDirection()]}>حفظ البيانات</ThemedText>
                     </TouchableOpacity>
 
                     <TouchableOpacity 
@@ -904,9 +888,7 @@ export default function AddStudentScreen() {
                       activeOpacity={0.8}
                     >
                       <IconSymbol size={18} name="xmark.circle.fill" color="#666" />
-                      <ThemedText style={styles.cancelButtonText}>
-                        إلغاء
-                      </ThemedText>
+                      <ThemedText style={[styles.cancelButtonText, getTextDirection()]}>إلغاء</ThemedText>
                     </TouchableOpacity>
                   </ThemedView>
                 </ThemedView>
@@ -915,6 +897,57 @@ export default function AddStudentScreen() {
           </KeyboardAvoidingView>
         
       </ImageBackground>
+
+      <Modal visible={duplicateModalVisible} transparent animationType="fade">
+        <View style={styles.modalOverlay}>
+          <View style={styles.modalBox}>
+            <ThemedText style={styles.modalTitle}>تنبيه</ThemedText>
+            <ThemedText style={styles.modalMessage}>يوجد متعلم بنفس الاسم، هل تريد المتابعة؟</ThemedText>
+            <View style={styles.modalButtons}>
+              <TouchableOpacity style={[styles.modalButton, styles.modalButtonCancel]} onPress={() => setDuplicateModalVisible(false)}>
+                <ThemedText style={styles.modalButtonCancelText}>إلغاء</ThemedText>
+              </TouchableOpacity>
+              <TouchableOpacity style={[styles.modalButton, styles.modalButtonConfirm]} onPress={handleDuplicateContinue}>
+                <ThemedText style={styles.modalButtonConfirmText}>متابعة</ThemedText>
+              </TouchableOpacity>
+            </View>
+          </View>
+        </View>
+      </Modal>
+
+      <Modal visible={successModalVisible} transparent animationType="fade">
+        <View style={styles.modalOverlay}>
+          <View style={styles.modalBox}>
+            <ThemedText style={styles.modalTitle}>✅ تم الحفظ بنجاح!</ThemedText>
+            <ThemedText style={styles.modalMessage}>{successModalMessage}</ThemedText>
+            <View style={styles.modalButtons}>
+              <TouchableOpacity style={[styles.modalButton, styles.modalButtonConfirm]} onPress={handleSuccessViewStudents}>
+                <ThemedText style={styles.modalButtonConfirmText}>عرض المتعلمين</ThemedText>
+              </TouchableOpacity>
+              <TouchableOpacity style={[styles.modalButton, styles.modalButtonCancel]} onPress={handleSuccessAddAnother}>
+                <ThemedText style={styles.modalButtonCancelText}>إضافة متعلم آخر</ThemedText>
+              </TouchableOpacity>
+            </View>
+          </View>
+        </View>
+      </Modal>
+
+      <Modal visible={errorModalVisible} transparent animationType="fade">
+        <View style={styles.modalOverlay}>
+          <View style={styles.modalBox}>
+            <ThemedText style={styles.modalTitle}>❌ خطأ في الحفظ</ThemedText>
+            <ThemedText style={styles.modalMessage}>{errorModalMessage}</ThemedText>
+            <View style={styles.modalButtons}>
+              <TouchableOpacity style={[styles.modalButton, styles.modalButtonCancel]} onPress={() => setErrorModalVisible(false)}>
+                <ThemedText style={styles.modalButtonCancelText}>إلغاء</ThemedText>
+              </TouchableOpacity>
+              <TouchableOpacity style={[styles.modalButton, styles.modalButtonConfirm]} onPress={handleErrorRetry}>
+                <ThemedText style={styles.modalButtonConfirmText}>إعادة المحاولة</ThemedText>
+              </TouchableOpacity>
+            </View>
+          </View>
+        </View>
+      </Modal>
       <BottomNavigationBar />
     </ThemedView>
   );
@@ -986,14 +1019,14 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
     marginTop: 15,
     marginBottom: 10,
-    textAlign: 'center',
+    textAlign: 'right',
     writingDirection: 'rtl',
     color: '#000000',
   },
   subtitle: {
     fontSize: 16,
     color: '#666666',
-    textAlign: 'center',
+    textAlign: 'right',
     writingDirection: 'rtl',
     marginBottom: 20,
   },
@@ -1098,7 +1131,8 @@ const styles = StyleSheet.create({
     color: '#1c1f33',
     fontSize: 14,
     fontWeight: '600',
-    textAlign: 'center',
+    textAlign: 'right',
+    writingDirection: 'rtl',
   },
   formCard: {
     backgroundColor: '#fff',
@@ -1503,5 +1537,58 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: 'bold',
   },
-
+  modalOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0,0,0,0.5)',
+    justifyContent: 'center',
+    alignItems: 'center',
+    padding: 24,
+  },
+  modalBox: {
+    width: '100%',
+    maxWidth: 340,
+    backgroundColor: '#fff',
+    borderRadius: 16,
+    padding: 20,
+  },
+  modalTitle: {
+    fontSize: 18,
+    fontWeight: 'bold',
+    color: '#1c1f33',
+    marginBottom: 12,
+    textAlign: 'right',
+  },
+  modalMessage: {
+    fontSize: 14,
+    color: '#666',
+    marginBottom: 20,
+    textAlign: 'right',
+    lineHeight: 22,
+  },
+  modalButtons: {
+    flexDirection: 'row',
+    justifyContent: 'flex-end',
+    gap: 12,
+  },
+  modalButton: {
+    paddingVertical: 10,
+    paddingHorizontal: 20,
+    borderRadius: 12,
+  },
+  modalButtonCancel: {
+    backgroundColor: '#E5E5EA',
+  },
+  modalButtonCancelText: {
+    color: '#666',
+    fontWeight: '600',
+    fontSize: 15,
+  },
+  modalButtonConfirm: {
+    backgroundColor: '#4CAF50',
+  },
+  modalButtonConfirmText: {
+    color: '#fff',
+    fontWeight: '600',
+    fontSize: 15,
+  },
 });

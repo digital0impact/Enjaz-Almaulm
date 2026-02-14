@@ -6,6 +6,7 @@ import { ThemedView } from '@/components/ThemedView';
 import { IconSymbol } from '@/components/ui/IconSymbol';
 import { useRouter } from 'expo-router';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { getTextDirection, formatRTLText } from '@/utils/rtl-utils';
 
 export default function TestLoginScreen() {
   const router = useRouter();
@@ -73,26 +74,26 @@ export default function TestLoginScreen() {
                 <IconSymbol size={60} name="lock.shield.fill" color="#1c1f33" />
               </ThemedView>
               
-              <ThemedText type="title" style={styles.title}>
-                تسجيل الدخول للاختبار
+              <ThemedText type="title" style={[styles.title, getTextDirection()]}> 
+                {formatRTLText('تسجيل الدخول للاختبار')}
               </ThemedText>
               
-              <ThemedText style={styles.subtitle}>
-                أدخل أي بريد إلكتروني وكلمة مرور للاختبار
+              <ThemedText style={[styles.subtitle, getTextDirection()]}> 
+                {formatRTLText('أدخل أي بريد إلكتروني وكلمة مرور للاختبار')}
               </ThemedText>
             </ThemedView>
 
             {/* Login Form */}
             <ThemedView style={styles.formContainer}>
               <ThemedView style={styles.inputContainer}>
-                <ThemedText style={styles.inputLabel}>البريد الإلكتروني</ThemedText>
+                <ThemedText style={[styles.inputLabel, getTextDirection()]}>البريد الإلكتروني</ThemedText>
                 <ThemedView style={styles.inputWrapper}>
                   <IconSymbol size={20} name="envelope.fill" color="#666666" style={styles.inputIcon} />
                   <TextInput
-                    style={styles.textInput}
+                    style={[styles.textInput, getTextDirection()]}
                     value={email}
                     onChangeText={setEmail}
-                    placeholder="أدخل بريدك الإلكتروني"
+                    placeholder={formatRTLText('أدخل بريدك الإلكتروني')}
                     keyboardType="email-address"
                     autoCapitalize="none"
                     autoCorrect={false}
@@ -103,14 +104,14 @@ export default function TestLoginScreen() {
               </ThemedView>
 
               <ThemedView style={styles.inputContainer}>
-                <ThemedText style={styles.inputLabel}>كلمة المرور</ThemedText>
+                <ThemedText style={[styles.inputLabel, getTextDirection()]}>كلمة المرور</ThemedText>
                 <ThemedView style={styles.inputWrapper}>
                   <IconSymbol size={20} name="lock.shield.fill" color="#666666" style={styles.inputIcon} />
                   <TextInput
-                    style={styles.textInput}
+                    style={[styles.textInput, getTextDirection()]}
                     value={password}
                     onChangeText={setPassword}
-                    placeholder="أدخل كلمة المرور"
+                    placeholder={formatRTLText('أدخل كلمة المرور')}
                     secureTextEntry={true}
                     autoCapitalize="none"
                     autoCorrect={false}
@@ -128,16 +129,16 @@ export default function TestLoginScreen() {
                 {isLoading ? (
                   <ActivityIndicator color="#FFFFFF" />
                 ) : (
-                  <ThemedText style={styles.loginButtonText}>
-                    تسجيل الدخول للاختبار
+                  <ThemedText style={[styles.loginButtonText, getTextDirection()]}> 
+                    {formatRTLText('تسجيل الدخول للاختبار')}
                   </ThemedText>
                 )}
               </TouchableOpacity>
 
               <ThemedView style={styles.footerContainer}>
                 <TouchableOpacity onPress={() => router.push('/login')}>
-                  <ThemedText style={styles.createAccountText}>
-                    العودة لتسجيل الدخول العادي
+                  <ThemedText style={[styles.createAccountText, getTextDirection()]}> 
+                    {formatRTLText('العودة لتسجيل الدخول العادي')}
                   </ThemedText>
                 </TouchableOpacity>
               </ThemedView>

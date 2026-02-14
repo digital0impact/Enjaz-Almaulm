@@ -117,6 +117,12 @@ const MAPPING = {
   // أيقونات الإجازات الرسمية
   'moon.stars.fill': 'nights-stay',
   'flag.fill': 'flag',
+  'bell.badge.fill': 'notifications-active',
+  'clock.arrow.circlepath': 'history',
+  'clock.fill': 'schedule',
+  'card-giftcard': 'card-giftcard',
+  'workspace-premium': 'workspace-premium',
+  'stars': 'stars',
 } as IconMapping;
 
 /**

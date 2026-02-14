@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { StyleSheet, TouchableOpacity, I18nManager, ImageBackground, KeyboardAvoidingView, ScrollView, Platform, StatusBar, TextInput, Alert } from 'react-native';
+import { StyleSheet, TouchableOpacity, I18nManager, ImageBackground, KeyboardAvoidingView, ScrollView, Platform, StatusBar, TextInput, Alert, Linking } from 'react-native';
 
 import { ThemedText } from '@/components/ThemedText';
 import { ThemedView } from '@/components/ThemedView';
@@ -7,6 +7,7 @@ import { IconSymbol } from '@/components/ui/IconSymbol';
 import { useRouter } from 'expo-router';
 import AuthService from '@/services/AuthService';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { getTextDirection, formatRTLText } from '@/utils/rtl-utils';
 
 export default function SignupScreen() {
   const router = useRouter();
@@ -17,6 +18,8 @@ export default function SignupScreen() {
   const [isLoading, setIsLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+  const [acceptTerms, setAcceptTerms] = useState(false);
+  const [termsError, setTermsError] = useState('');
 
   const validateForm = () => {
     if (!fullName.trim()) {
@@ -39,6 +42,11 @@ export default function SignupScreen() {
       Alert.alert('خطأ', 'كلمة المرور غير متطابقة');
       return false;
     }
+    if (!acceptTerms) {
+      setTermsError('يجب الموافقة على الشروط والأحكام للمتابعة');
+      return false;
+    }
+    setTermsError('');
     return true;
   };
 
@@ -115,72 +123,66 @@ export default function SignupScreen() {
                   <IconSymbol size={60} name="person.badge.plus" color="#1c1f33" />
                 </ThemedView>
                 
-                <ThemedText type="title" style={styles.title}>
-                  إنشاء حساب جديد
+                <ThemedText type="title" style={[styles.title, getTextDirection()]}> 
+                  {formatRTLText('إنشاء حساب جديد')}
                 </ThemedText>
                 
-                <ThemedText style={styles.subtitle}>
-                  أدخل بياناتك لإنشاء حساب جديد
+                <ThemedText style={[styles.subtitle, getTextDirection()]}> 
+                  {formatRTLText('أدخل بياناتك لإنشاء حساب جديد')}
                 </ThemedText>
               </ThemedView>
 
               {/* Signup Form */}
               <ThemedView style={styles.formContainer}>
                 <ThemedView style={styles.inputContainer}>
-                  <ThemedText style={styles.inputLabel}>الاسم الكامل</ThemedText>
+                  <ThemedText style={[styles.inputLabel, { textAlign: 'right', writingDirection: 'rtl' }]}>الاسم الكامل</ThemedText>
                   <ThemedView style={styles.inputWrapper}>
                     <IconSymbol size={20} name="person.fill" color="#666666" style={styles.inputIcon} />
                     <TextInput
-                      style={styles.textInput}
+                      style={[styles.textInput, getTextDirection()]}
                       value={fullName}
                       onChangeText={setFullName}
-                      placeholder="أدخل اسمك الكامل"
+                      placeholder={formatRTLText('أدخل اسمك الكامل')}
                       autoCapitalize="words"
                       autoCorrect={false}
                       placeholderTextColor="#999999"
                       textAlign="right"
-                      textDirection="rtl"
-                      writingDirection="rtl"
                     />
                   </ThemedView>
                 </ThemedView>
 
                 <ThemedView style={styles.inputContainer}>
-                  <ThemedText style={styles.inputLabel}>البريد الإلكتروني</ThemedText>
+                  <ThemedText style={[styles.inputLabel, { textAlign: 'right', writingDirection: 'rtl' }]}>البريد الإلكتروني</ThemedText>
                   <ThemedView style={styles.inputWrapper}>
                     <IconSymbol size={20} name="envelope.fill" color="#666666" style={styles.inputIcon} />
                     <TextInput
-                      style={styles.textInput}
+                      style={[styles.textInput, getTextDirection()]}
                       value={email}
                       onChangeText={setEmail}
-                      placeholder="أدخل بريدك الإلكتروني"
+                      placeholder={formatRTLText('أدخل بريدك الإلكتروني')}
                       keyboardType="email-address"
                       autoCapitalize="none"
                       autoCorrect={false}
                       placeholderTextColor="#999999"
                       textAlign="right"
-                      textDirection="rtl"
-                      writingDirection="rtl"
                     />
                   </ThemedView>
                 </ThemedView>
 
                 <ThemedView style={styles.inputContainer}>
-                  <ThemedText style={styles.inputLabel}>كلمة المرور</ThemedText>
+                  <ThemedText style={[styles.inputLabel, { textAlign: 'right', writingDirection: 'rtl' }]}>كلمة المرور</ThemedText>
                   <ThemedView style={styles.inputWrapper}>
                     <IconSymbol size={20} name="lock.shield.fill" color="#666666" style={styles.inputIcon} />
                     <TextInput
-                      style={styles.textInput}
+                      style={[styles.textInput, getTextDirection()]}
                       value={password}
                       onChangeText={setPassword}
-                      placeholder="أدخل كلمة المرور (6 أحرف على الأقل)"
+                      placeholder={formatRTLText('أدخل كلمة المرور (6 أحرف على الأقل)')}
                       secureTextEntry={!showPassword}
                       autoCapitalize="none"
                       autoCorrect={false}
                       placeholderTextColor="#999999"
                       textAlign="right"
-                      textDirection="rtl"
-                      writingDirection="rtl"
                     />
                     <TouchableOpacity
                       style={styles.eyeButton}
@@ -196,21 +198,19 @@ export default function SignupScreen() {
                 </ThemedView>
 
                 <ThemedView style={styles.inputContainer}>
-                  <ThemedText style={styles.inputLabel}>تأكيد كلمة المرور</ThemedText>
+                  <ThemedText style={[styles.inputLabel, { textAlign: 'right', writingDirection: 'rtl' }]}>تأكيد كلمة المرور</ThemedText>
                   <ThemedView style={styles.inputWrapper}>
                     <IconSymbol size={20} name="lock.shield.fill" color="#666666" style={styles.inputIcon} />
                     <TextInput
-                      style={styles.textInput}
+                      style={[styles.textInput, getTextDirection()]}
                       value={confirmPassword}
                       onChangeText={setConfirmPassword}
-                      placeholder="أعد إدخال كلمة المرور"
+                      placeholder={formatRTLText('أعد إدخال كلمة المرور')}
                       secureTextEntry={!showConfirmPassword}
                       autoCapitalize="none"
                       autoCorrect={false}
                       placeholderTextColor="#999999"
                       textAlign="right"
-                      textDirection="rtl"
-                      writingDirection="rtl"
                     />
                     <TouchableOpacity
                       style={styles.eyeButton}
@@ -225,13 +225,42 @@ export default function SignupScreen() {
                   </ThemedView>
                 </ThemedView>
 
+                {/* Terms and Conditions Checkbox */}
+                <ThemedView style={styles.termsContainer}>
+                  <TouchableOpacity 
+                    style={[styles.termsCheckboxContainer, { flexDirection: 'row-reverse', alignItems: 'center' }]}
+                    onPress={() => setAcceptTerms(!acceptTerms)}
+                  >
+                    <ThemedView style={[styles.checkbox, acceptTerms && styles.checkboxChecked]}>
+                      {acceptTerms && <IconSymbol size={12} name="checkmark" color="#FFFFFF" />}
+                    </ThemedView>
+                    <ThemedText style={[styles.termsText, { marginRight: 8 }]}>
+                      أوافق على{' '}
+                      <ThemedText 
+                        style={styles.termsLink}
+                        onPress={() => Linking.openURL('https://sites.google.com/view/enjazalmaulm/%D8%AA%D9%88%D8%A7%D8%B5%D9%84-%D9%85%D8%B9%D8%A7%D9%86%D8%A7/%D8%A7%D9%84%D8%B4%D8%B1%D9%88%D8%B7-%D9%88%D8%A7%D9%84%D8%A3%D8%AD%D9%83%D8%A7%D9%85')}
+                      >
+                          شروط الاستخدام
+                      </ThemedText>
+                      {' '}و{' '}
+                      <ThemedText 
+                        style={styles.termsLink}
+                        onPress={() => Linking.openURL('https://sites.google.com/view/enjazalmaulm/%D8%AA%D9%88%D8%A7%D8%B5%D9%84-%D9%85%D8%B9%D8%A7%D9%86%D8%A7/%D8%B3%D9%8A%D8%A7%D8%B3%D8%A9-%D8%A7%D9%84%D8%AE%D8%B5%D9%88%D8%B5%D9%8A%D8%A9?authuser=0')}
+                      >
+                        سياسة الخصوصية
+                      </ThemedText>
+                    </ThemedText>
+                  </TouchableOpacity>
+                  {termsError ? <ThemedText style={[styles.errorText, getTextDirection()]}>{termsError}</ThemedText> : null}
+                </ThemedView>
+
                 <TouchableOpacity
                   style={[styles.signupButton, isLoading && styles.disabledButton]}
                   onPress={handleSignup}
                   disabled={isLoading}
                 >
-                  <ThemedText style={styles.signupButtonText}>
-                    {isLoading ? 'جاري إنشاء الحساب...' : 'إنشاء الحساب'}
+                  <ThemedText style={[styles.signupButtonText, getTextDirection()]}> 
+                    {isLoading ? formatRTLText('جاري إنشاء الحساب...') : formatRTLText('إنشاء الحساب')}
                   </ThemedText>
                 </TouchableOpacity>
 
@@ -243,8 +272,8 @@ export default function SignupScreen() {
                   style={styles.loginButton}
                   onPress={() => router.push('/login')}
                 >
-                  <ThemedText style={styles.loginButtonText}>
-                    لديك حساب بالفعل؟ تسجيل الدخول
+                  <ThemedText style={[styles.loginButtonText, getTextDirection()]}> 
+                    {formatRTLText('لديك حساب بالفعل؟ تسجيل الدخول')}
                   </ThemedText>
                 </TouchableOpacity>
               </ThemedView>
@@ -447,6 +476,45 @@ const styles = StyleSheet.create({
     fontSize: 14,
     fontWeight: '500',
     backgroundColor: 'transparent',
+  },
+  termsContainer: {
+    marginVertical: 15,
+    backgroundColor: 'transparent',
+  },
+  termsCheckboxContainer: {
+    alignItems: 'center',
+    backgroundColor: 'transparent',
+  },
+  termsText: {
+    color: '#666666',
+    fontSize: 14,
+    lineHeight: 20,
+    backgroundColor: 'transparent',
+  },
+  termsLink: {
+    color: '#2E7D32',
+    textDecorationLine: 'underline',
+    fontWeight: '600',
+  },
+  checkbox: {
+    width: 20,
+    height: 20,
+    borderRadius: 4,
+    borderWidth: 2,
+    borderColor: '#666666',
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: 'transparent',
+  },
+  checkboxChecked: {
+    backgroundColor: '#1c1f33',
+    borderColor: '#1c1f33',
+  },
+  errorText: {
+    color: '#FF3B30',
+    fontSize: 12,
+    marginTop: 4,
+    textAlign: 'right',
   },
 
 }); 

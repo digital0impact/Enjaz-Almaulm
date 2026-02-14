@@ -1,9 +1,10 @@
 import React from 'react';
-import { StyleSheet, ViewStyle } from 'react-native';
+import { StyleSheet } from 'react-native';
 import { ThemedText } from '@/components/ThemedText';
 import { ThemedView } from '@/components/ThemedView';
 import { StyleProps } from '@/types';
 import { VERSION_INFO } from '@/constants/Version';
+import { getTextDirection, formatRTLText } from '@/utils/rtl-utils';
 
 interface VersionTrackerProps extends StyleProps {
   showBuildInfo?: boolean;
@@ -19,16 +20,16 @@ export const VersionTracker: React.FC<VersionTrackerProps> = ({
 
   return (
     <ThemedView style={[styles.container, style]}>
-      <ThemedText style={styles.versionText}>
-        الإصدار {appVersion} • تطوير الأثر الرقمي
+      <ThemedText style={[styles.versionText, getTextDirection()]}> 
+        {formatRTLText(`الإصدار ${appVersion} • تطوير الأثر الرقمي`)}
       </ThemedText>
       {showBuildInfo && (
         <>
-          <ThemedText style={styles.buildText}>
-            البناء {buildNumber}
+          <ThemedText style={[styles.buildText, getTextDirection()]}> 
+            {formatRTLText(`البناء ${buildNumber}`)}
           </ThemedText>
-          <ThemedText style={styles.dateText}>
-            تاريخ الإصدار: {releaseDate}
+          <ThemedText style={[styles.dateText, getTextDirection()]}> 
+            {formatRTLText(`تاريخ الإصدار: ${releaseDate}`)}
           </ThemedText>
         </>
       )}

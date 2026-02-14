@@ -5,11 +5,8 @@ import { Platform } from 'react-native';
 import { HapticTab } from '@/components/HapticTab';
 import { IconSymbol } from '@/components/ui/IconSymbol';
 import TabBarBackground from '@/components/ui/TabBarBackground';
-import { Colors } from '@/constants/Colors';
-import { useColorScheme } from '@/hooks/useColorScheme';
 
 export default function TabLayout() {
-  const colorScheme = useColorScheme();
 
   return (
     <Tabs
@@ -29,7 +26,9 @@ export default function TabLayout() {
             backgroundColor: '#E8F5F4',
           },
         }),
-      }}>
+      }}
+      initialRouteName="index">
+      {/* ترتيب التبويبات مطابق لشريط أذكاري: الأدوات المساعدة | الأداء المهني | البيانات الأساسية | الرئيسية */}
       <Tabs.Screen
         name="explore"
         options={{

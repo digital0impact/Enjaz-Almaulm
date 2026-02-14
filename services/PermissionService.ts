@@ -1,11 +1,10 @@
 import { InAppPurchaseService } from './InAppPurchaseService';
-
-
+import { SubscriptionService } from './SubscriptionService';
 
 export class PermissionService {
   private static instance: PermissionService;
   private userId: string | null = null;
-  private subscriptionType: string = 'مجاني';
+  private subscriptionType: 'yearly' | 'half_yearly' | 'free' = 'free';
 
   private constructor() {}
 
@@ -18,45 +17,42 @@ export class PermissionService {
 
   public async initialize(userId: string): Promise<void> {
     this.userId = userId;
-    const purchaseService = InAppPurchaseService.getInstance();
-    const subscription = await purchaseService.getCurrentSubscription(userId);
-    this.subscriptionType = subscription.type;
+    const subscription = await SubscriptionService.getCurrentSubscription(userId);
+    this.subscriptionType = subscription?.plan_type || 'free';
   }
 
   public async canDownload(): Promise<boolean> {
-    return this.subscriptionType !== 'مجاني';
+    return this.subscriptionType !== 'free';
   }
 
   public async canExport(): Promise<boolean> {
-    return this.subscriptionType !== 'مجاني';
+    return this.subscriptionType !== 'free';
   }
 
   public async canBackup(): Promise<boolean> {
-    return this.subscriptionType !== 'مجاني';
+    return this.subscriptionType !== 'free';
   }
 
   public async getMaxBackups(): Promise<number> {
     switch (this.subscriptionType) {
-      case 'سنوي':
+      case 'yearly':
         return -1; // غير محدود
-      case 'نصف سنوي':
+      case 'half_yearly':
         return 5;
       default:
         return 0;
     }
   }
 
-
-
   public async canShareFiles(): Promise<boolean> {
-    return this.subscriptionType !== 'مجاني';
+    return this.subscriptionType !== 'free';
   }
 
   public async getMaxStudents(): Promise<number> {
     switch (this.subscriptionType) {
-      case 'سنوي':
+      case 'yearly':
         return -1; // غير محدود
-      case 'نصف سنوي':
+      case 'half_yearly':
         return 100;
       default:
         return 20;
@@ -65,9 +61,9 @@ export class PermissionService {
 
   public async getMaxReports(): Promise<number> {
     switch (this.subscriptionType) {
-      case 'سنوي':
+      case 'yearly':
         return -1; // غير محدود
-      case 'نصف سنوي':
+      case 'half_yearly':
         return 50;
       default:
         return 10;
@@ -75,14 +71,14 @@ export class PermissionService {
   }
 
   public async canAccessAdvancedFeatures(): Promise<boolean> {
-    return this.subscriptionType === 'سنوي';
+    return this.subscriptionType === 'yearly';
   }
 
   public async getStorageLimit(): Promise<number> {
     switch (this.subscriptionType) {
-      case 'سنوي':
+      case 'yearly':
         return 10 * 1024 * 1024 * 1024; // 10GB
-      case 'نصف سنوي':
+      case 'half_yearly':
         return 5 * 1024 * 1024 * 1024; // 5GB
       default:
         return 100 * 1024 * 1024; // 100MB

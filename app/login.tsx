@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { StyleSheet, TouchableOpacity, I18nManager, ImageBackground, KeyboardAvoidingView, ScrollView, Platform, StatusBar, TextInput, Alert, ActivityIndicator } from 'react-native';
+import { StyleSheet, TouchableOpacity, ImageBackground, KeyboardAvoidingView, ScrollView, Platform, StatusBar, TextInput, Alert, ActivityIndicator, Linking } from 'react-native';
 
 import { ThemedText } from '@/components/ThemedText';
 import { ThemedView } from '@/components/ThemedView';
@@ -7,6 +7,13 @@ import { IconSymbol } from '@/components/ui/IconSymbol';
 import { useRouter } from 'expo-router';
 import AuthService from '@/services/AuthService';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { rtlStyles } from '@/styles/rtl-styles';
+import { 
+  getRTLTextStyle, 
+  getRTLMargins, 
+  getRTLPadding, 
+  getFlexDirection 
+} from '@/utils/rtl-utils';
 
 export default function LoginScreen() {
   const router = useRouter();
@@ -63,6 +70,8 @@ export default function LoginScreen() {
     return true;
   };
 
+
+
   const handleEmailLogin = async () => {
     const isEmailValid = validateEmail(email);
     const isPasswordValid = validatePassword(password);
@@ -73,13 +82,6 @@ export default function LoginScreen() {
 
     setIsLoading(true);
     try {
-      // نظام تسجيل دخول مؤقت للاختبار
-      const mockUser = {
-        id: '1',
-        email: email,
-        name: email.split('@')[0] || 'المعلم'
-      };
-
       if (rememberMe) {
         await AsyncStorage.setItem('savedEmail', email);
         await AsyncStorage.setItem('rememberMe', 'true');
@@ -88,23 +90,32 @@ export default function LoginScreen() {
         await AsyncStorage.removeItem('rememberMe');
       }
 
-      // حفظ بيانات المستخدم
-      await AsyncStorage.setItem('userInfo', JSON.stringify(mockUser));
-      await AsyncStorage.setItem('userToken', 'mock-token-' + Date.now());
-      await AsyncStorage.setItem('basicData', JSON.stringify({ 
-        fullName: mockUser.name,
-        email: mockUser.email 
-      }));
+      const user = await AuthService.signInWithEmail(email, password);
 
-      // محاولة تسجيل الدخول الحقيقي إذا كان متاحاً
-      try {
-        const user = await AuthService.signInWithEmail(email, password);
-        console.log('Real login successful:', user);
-      } catch (supabaseError) {
-        console.log('Supabase login failed, using mock login:', supabaseError);
-        // استخدام تسجيل الدخول المؤقت
+      // تحديث البيانات الأساسية بشكل لطيف (بدون كسر بيانات موجودة مثل المهنة)
+      const existingBasicData = await AsyncStorage.getItem('basicData');
+      let basicData: any = {
+        fullName: user.name || (user.email?.split('@')[0] ?? 'المعلم'),
+        email: user.email,
+      };
+
+      if (existingBasicData) {
+        try {
+          const parsedBasicData = JSON.parse(existingBasicData);
+          basicData = {
+            ...parsedBasicData,
+            fullName: basicData.fullName,
+            email: basicData.email,
+          };
+        } catch {
+          // تجاهل أخطاء parsing للحفاظ على تسجيل الدخول
+        }
       }
 
+      await AsyncStorage.setItem('basicData', JSON.stringify(basicData));
+
+      // بعد تسجيل الدخول نوجّه إلى الجذر، ونقطة الدخول (`app/index.tsx`)
+      // تتكفّل بإرسال المستخدم إلى تبويب الرئيسية.
       router.replace('/');
     } catch (error) {
       console.error('Login error:', error);
@@ -146,7 +157,7 @@ export default function LoginScreen() {
   };
 
   return (
-    <ThemedView style={styles.container}>
+    <ThemedView style={[styles.container, rtlStyles.container]}>
       <StatusBar 
         barStyle="dark-content" 
         backgroundColor={Platform.OS === 'ios' ? 'transparent' : '#E8F5F4'} 
@@ -158,161 +169,137 @@ export default function LoginScreen() {
         style={styles.backgroundImage}
         resizeMode="cover"
       >
-        
-          <KeyboardAvoidingView
-            style={{ flex: 1 }}
-            behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-            keyboardVerticalOffset={Platform.OS === 'ios' ? 0 : 25}
+        <KeyboardAvoidingView
+          style={{ flex: 1 }}
+          behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+          keyboardVerticalOffset={Platform.OS === 'ios' ? 0 : 25}
+        >
+          <ScrollView 
+            style={styles.scrollContainer}
+            contentContainerStyle={styles.scrollContentContainer}
+            keyboardShouldPersistTaps="handled"
+            showsVerticalScrollIndicator={false}
           >
-            <ScrollView 
-              style={styles.scrollContainer}
-              contentContainerStyle={styles.scrollContentContainer}
-              keyboardShouldPersistTaps="handled"
-              showsVerticalScrollIndicator={false}
-              bounces={true}
-              bouncesZoom={true}
-              alwaysBounceVertical={true}
-              decelerationRate="normal"
-              scrollEventThrottle={16}
-              overScrollMode="always"
-              fadingEdgeLength={Platform.OS === 'android' ? 100 : 0}
-              maintainVisibleContentPosition={{
-                minIndexForVisible: 0,
-                autoscrollToTopThreshold: 100
-              }}
-            >
-              {/* Header */}
-              <ThemedView style={styles.header}>
-                <TouchableOpacity 
-                  style={styles.backButton}
-                  onPress={() => router.back()}
-                  activeOpacity={0.7}
-                >
-                  <IconSymbol size={20} name="chevron.left" color="#1c1f33" />
-                </TouchableOpacity>
+            {/* Header */}
+            <ThemedView style={[styles.header, { alignItems: 'center', justifyContent: 'center' }]}>
+              <ThemedView style={styles.iconContainer}>
+                <IconSymbol size={60} name="person.fill" color="#1c1f33" />
+              </ThemedView>
+              
+              <ThemedText type="title" style={[styles.title, { textAlign: 'center' }]}>
+                تسجيل الدخول
+              </ThemedText>
+              
+              <ThemedText style={[styles.subtitle, { textAlign: 'center' }]}>
+                أهلاً بك مجدداً! يرجى تسجيل الدخول للمتابعة
+              </ThemedText>
+            </ThemedView>
 
-                <ThemedView style={styles.iconContainer}>
-                  <IconSymbol size={60} name="lock.shield.fill" color="#1c1f33" />
+            <ThemedView style={styles.formContainer}>
+              <ThemedView style={styles.inputContainer}>
+                <ThemedText style={[styles.inputLabel, { textAlign: 'right', writingDirection: 'rtl' }]}>البريد الإلكتروني</ThemedText>
+                <ThemedView style={[styles.inputWrapper, emailError && styles.inputError, rtlStyles.rowReverse]}>
+                  <IconSymbol size={20} name="envelope.fill" color="#666666" style={[styles.inputIcon, rtlStyles.icon]} />
+                  <TextInput
+                    style={[styles.textInput, rtlStyles.text]}
+                    value={email}
+                    onChangeText={(text) => {
+                      setEmail(text);
+                      validateEmail(text);
+                    }}
+                    placeholder="أدخل بريدك الإلكتروني"
+                    keyboardType="email-address"
+                    autoCapitalize="none"
+                    autoCorrect={false}
+                    placeholderTextColor="#999999"
+                    textAlign="right"
+                    textDirection="rtl"
+                    writingDirection="rtl"
+                  />
                 </ThemedView>
-                
-                <ThemedText type="title" style={styles.title}>
-                  تسجيل الدخول
-                </ThemedText>
-                
-                <ThemedText style={styles.subtitle}>
-                  أدخل بياناتك للوصول إلى حسابك
-                </ThemedText>
+                {emailError ? <ThemedText style={[styles.errorText, rtlStyles.text]}>{emailError}</ThemedText> : null}
               </ThemedView>
 
-              {/* Login Form */}
-              <ThemedView style={styles.formContainer}>
-                <ThemedView style={styles.inputContainer}>
-                  <ThemedText style={styles.inputLabel}>البريد الإلكتروني</ThemedText>
-                  <ThemedView style={[styles.inputWrapper, emailError && styles.inputError]}>
-                    <IconSymbol size={20} name="envelope.fill" color="#666666" style={styles.inputIcon} />
-                    <TextInput
-                      style={[styles.textInput, { textAlign: 'right' }]}
-                      value={email}
-                      onChangeText={(text) => {
-                        setEmail(text);
-                        validateEmail(text);
-                      }}
-                      placeholder="أدخل بريدك الإلكتروني"
-                      keyboardType="email-address"
-                      autoCapitalize="none"
-                      autoCorrect={false}
-                      placeholderTextColor="#999999"
-                      textAlign="right"
-                      textDirection="rtl"
-                      writingDirection="rtl"
-                    />
-                  </ThemedView>
-                  {emailError ? <ThemedText style={styles.errorText}>{emailError}</ThemedText> : null}
-                </ThemedView>
-
-                <ThemedView style={styles.inputContainer}>
-                  <ThemedText style={styles.inputLabel}>كلمة المرور</ThemedText>
-                  <ThemedView style={[styles.inputWrapper, passwordError && styles.inputError]}>
-                    <IconSymbol size={20} name="lock.shield.fill" color="#666666" style={styles.inputIcon} />
-                    <TextInput
-                      style={[styles.textInput, { textAlign: 'right' }]}
-                      value={password}
-                      onChangeText={(text) => {
-                        setPassword(text);
-                        validatePassword(text);
-                      }}
-                      placeholder="أدخل كلمة المرور"
-                      secureTextEntry={!showPassword}
-                      autoCapitalize="none"
-                      autoCorrect={false}
-                      placeholderTextColor="#999999"
-                      textAlign="right"
-                      textDirection="rtl"
-                      writingDirection="rtl"
-                    />
-                    <TouchableOpacity
-                      style={styles.eyeButton}
-                      onPress={() => setShowPassword(!showPassword)}
-                    >
-                      <IconSymbol 
-                        size={20} 
-                        name={showPassword ? "eye" : "eye.slash"} 
-                        color="#666666" 
-                      />
-                    </TouchableOpacity>
-                  </ThemedView>
-                  {passwordError ? <ThemedText style={styles.errorText}>{passwordError}</ThemedText> : null}
-                </ThemedView>
-
-                {/* Remember Me and Forgot Password */}
-                <ThemedView style={styles.optionsContainer}>
-                  <TouchableOpacity onPress={handleForgotPassword}>
-                    <ThemedText style={styles.forgotPasswordText}>نسيت كلمة المرور؟</ThemedText>
-                  </TouchableOpacity>
-                  
-                  <TouchableOpacity 
-                    style={styles.rememberMeContainer}
-                    onPress={() => setRememberMe(!rememberMe)}
+              <ThemedView style={styles.inputContainer}>
+                <ThemedText style={[styles.inputLabel, { textAlign: 'right', writingDirection: 'rtl' }]}>كلمة المرور</ThemedText>
+                <ThemedView style={[styles.inputWrapper, passwordError && styles.inputError, rtlStyles.rowReverse]}>
+                  <IconSymbol size={20} name="lock.shield.fill" color="#666666" style={[styles.inputIcon, rtlStyles.icon]} />
+                  <TextInput
+                    style={[styles.textInput, rtlStyles.text]}
+                    value={password}
+                    onChangeText={(text) => {
+                      setPassword(text);
+                      validatePassword(text);
+                    }}
+                    placeholder="أدخل كلمة المرور"
+                    secureTextEntry={!showPassword}
+                    autoCapitalize="none"
+                    autoCorrect={false}
+                    placeholderTextColor="#999999"
+                    textAlign="right"
+                    textDirection="rtl"
+                    writingDirection="rtl"
+                  />
+                  <TouchableOpacity
+                    style={styles.eyeButton}
+                    onPress={() => setShowPassword(!showPassword)}
                   >
-                    <ThemedText style={styles.rememberMeText}>تذكرني</ThemedText>
-                    <ThemedView style={[styles.checkbox, rememberMe && styles.checkboxChecked]}>
-                      {rememberMe && <IconSymbol size={12} name="checkmark" color="#FFFFFF" />}
-                    </ThemedView>
+                    <IconSymbol 
+                      size={20} 
+                      name={showPassword ? "eye" : "eye.slash"} 
+                      color="#666666" 
+                    />
                   </TouchableOpacity>
                 </ThemedView>
-
-                <TouchableOpacity
-                  style={[styles.loginButton, isLoading && styles.disabledButton]}
-                  onPress={handleEmailLogin}
-                  disabled={isLoading}
-                >
-                  {isLoading ? (
-                    <ActivityIndicator color="#FFFFFF" />
-                  ) : (
-                    <ThemedText style={styles.loginButtonText}>
-                      تسجيل الدخول
-                    </ThemedText>
-                  )}
-                </TouchableOpacity>
-
-
-
-
-
-                <ThemedView style={styles.footerContainer}>
-                  <TouchableOpacity onPress={() => router.push('/signup')}>
-                    <ThemedText style={styles.createAccountText}>
-                      إنشاء حساب جديد
-                    </ThemedText>
-                  </TouchableOpacity>
-                  <ThemedText style={styles.footerText}>
-                    ليس لديك حساب؟
-                  </ThemedText>
-                </ThemedView>
+                {passwordError ? <ThemedText style={[styles.errorText, rtlStyles.text]}>{passwordError}</ThemedText> : null}
               </ThemedView>
-            </ScrollView>
-          </KeyboardAvoidingView>
-        
+
+              {/* Remember Me and Forgot Password */}
+              <ThemedView style={[styles.optionsContainer, { flexDirection: 'row-reverse', justifyContent: 'space-between' }]}>
+                <TouchableOpacity 
+                  style={[styles.rememberMeContainer, { flexDirection: 'row-reverse', alignItems: 'center' }]}
+                  onPress={() => setRememberMe(!rememberMe)}
+                >
+                  <ThemedView style={[styles.checkbox, rememberMe && styles.checkboxChecked]}>
+                    {rememberMe && <IconSymbol size={12} name="checkmark" color="#FFFFFF" />}
+                  </ThemedView>
+                  <ThemedText style={[styles.rememberMeText, { marginRight: 8 }]}>تذكرني</ThemedText>
+                </TouchableOpacity>
+                
+                <TouchableOpacity onPress={handleForgotPassword}>
+                  <ThemedText style={styles.forgotPasswordText}>نسيت كلمة المرور؟</ThemedText>
+                </TouchableOpacity>
+              </ThemedView>
+
+              {/* Terms and Conditions - تم نقلها إلى صفحة إنشاء الحساب */}
+
+              <TouchableOpacity
+                style={[styles.loginButton, isLoading && styles.disabledButton]}
+                onPress={handleEmailLogin}
+                disabled={isLoading}
+              >
+                {isLoading ? (
+                  <ActivityIndicator color="#FFFFFF" />
+                ) : (
+                  <ThemedText style={[styles.loginButtonText, rtlStyles.text]}>
+                    تسجيل الدخول
+                  </ThemedText>
+                )}
+              </TouchableOpacity>
+
+              <ThemedView style={[styles.footerContainer, rtlStyles.rowReverse]}>
+                <TouchableOpacity onPress={() => router.push('/signup')}>
+                  <ThemedText style={[styles.createAccountText, rtlStyles.text]}>
+                    إنشاء حساب جديد
+                  </ThemedText>
+                </TouchableOpacity>
+                <ThemedText style={[styles.footerText, rtlStyles.text]}>
+                  ليس لديك حساب؟
+                </ThemedText>
+              </ThemedView>
+            </ThemedView>
+          </ScrollView>
+        </KeyboardAvoidingView>
       </ImageBackground>
     </ThemedView>
   );
@@ -327,9 +314,6 @@ const styles = StyleSheet.create({
     flex: 1,
     width: '100%',
     height: '100%',
-  },
-  gradientOverlay: {
-    flex: 1,
   },
   scrollContainer: {
     flex: 1,
@@ -349,23 +333,6 @@ const styles = StyleSheet.create({
     backgroundColor: 'transparent',
     position: 'relative',
   },
-  backButton: {
-    position: 'absolute',
-    top: Platform.OS === 'ios' ? 60 : 40,
-    left: 20,
-    backgroundColor: '#add4ce',
-    width: 40,
-    height: 40,
-    borderRadius: 20,
-    justifyContent: 'center',
-    alignItems: 'center',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.2,
-    shadowRadius: 8,
-    elevation: 8,
-    zIndex: 1,
-  },
   iconContainer: {
     marginBottom: 10,
     padding: 15,
@@ -383,18 +350,12 @@ const styles = StyleSheet.create({
     fontSize: 28,
     fontWeight: 'bold',
     marginBottom: 6,
-    textAlign: 'center',
-    writingDirection: 'rtl',
-    textDirection: 'rtl',
     color: '#000000',
     backgroundColor: 'transparent',
   },
   subtitle: {
     fontSize: 16,
     color: '#666666',
-    textAlign: 'center',
-    writingDirection: 'rtl',
-    textDirection: 'rtl',
     marginBottom: 10,
     backgroundColor: 'transparent',
   },
@@ -411,7 +372,6 @@ const styles = StyleSheet.create({
     width: '100%',
   },
   inputWrapper: {
-    flexDirection: 'row-reverse',
     alignItems: 'center',
     backgroundColor: '#FFFFFF',
     borderRadius: 12,
@@ -433,11 +393,8 @@ const styles = StyleSheet.create({
     flex: 1,
     fontSize: 16,
     color: '#1c1f33',
-    textAlign: 'right',
     paddingVertical: 0,
     minHeight: 20,
-    writingDirection: 'rtl',
-    textDirection: 'rtl',
     width: '100%',
   },
   eyeButton: {
@@ -464,66 +421,14 @@ const styles = StyleSheet.create({
     color: '#FFFFFF',
     fontSize: 18,
     fontWeight: '600',
-    writingDirection: 'rtl',
-    textDirection: 'rtl',
-  },
-
-
-  dividerContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginVertical: 16,
-    backgroundColor: 'transparent',
-  },
-  dividerLine: {
-    flex: 1,
-    height: 1,
-    backgroundColor: '#E5E5EA',
-  },
-  dividerText: {
-    marginHorizontal: 16,
-    color: '#666666',
-    fontSize: 14,
-    fontWeight: '500',
-    writingDirection: 'rtl',
-    textDirection: 'rtl',
-    backgroundColor: 'transparent',
-  },
-
-  footerContainer: {
-    flexDirection: I18nManager.isRTL ? 'row-reverse' : 'row',
-    justifyContent: 'center',
-    alignItems: 'center',
-    marginTop: 15,
-    backgroundColor: 'transparent',
-  },
-  footerText: {
-    color: '#666666',
-    fontSize: 18,
-    marginHorizontal: 5,
-    fontWeight: '500',
-    writingDirection: 'rtl',
-    textDirection: 'rtl',
-    backgroundColor: 'transparent',
-  },
-  createAccountText: {
-    color: '#1c1f33',
-    fontSize: 18,
-    fontWeight: '600',
-    textDecorationLine: 'underline',
-    writingDirection: 'rtl',
-    textDirection: 'rtl',
-    backgroundColor: 'transparent',
   },
   optionsContainer: {
-    flexDirection: I18nManager.isRTL ? 'row-reverse' : 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
     marginVertical: 8,
     backgroundColor: 'transparent',
   },
   rememberMeContainer: {
-    flexDirection: I18nManager.isRTL ? 'row-reverse' : 'row',
     alignItems: 'center',
     backgroundColor: 'transparent',
   },
@@ -532,8 +437,6 @@ const styles = StyleSheet.create({
     color: '#666666',
     fontSize: 16,
     fontWeight: '500',
-    writingDirection: 'rtl',
-    textDirection: 'rtl',
     backgroundColor: 'transparent',
   },
   checkbox: {
@@ -555,8 +458,6 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: '500',
     textDecorationLine: 'underline',
-    writingDirection: 'rtl',
-    textDirection: 'rtl',
   },
   inputError: {
     borderWidth: 1,
@@ -566,18 +467,32 @@ const styles = StyleSheet.create({
     color: '#FF3B30',
     fontSize: 12,
     marginTop: 4,
-    textAlign: 'right',
-    writingDirection: 'rtl',
-    textDirection: 'rtl',
   },
   inputLabel: {
     fontSize: 14,
     fontWeight: '600',
     color: '#1c1f33',
     marginBottom: 4,
-    textAlign: 'right',
-    writingDirection: 'rtl',
-    textDirection: 'rtl',
+    backgroundColor: 'transparent',
+  },
+  footerContainer: {
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginTop: 15,
+    backgroundColor: 'transparent',
+  },
+  footerText: {
+    color: '#666666',
+    fontSize: 18,
+    marginHorizontal: 5,
+    fontWeight: '500',
+    backgroundColor: 'transparent',
+  },
+  createAccountText: {
+    color: '#1c1f33',
+    fontSize: 18,
+    fontWeight: '600',
+    textDecorationLine: 'underline',
     backgroundColor: 'transparent',
   },
 

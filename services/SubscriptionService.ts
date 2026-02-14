@@ -22,14 +22,14 @@ export interface SubscriptionFeatures {
 }
 
 const SUBSCRIPTION_PRICES = {
-  yearly: 299,
-  half_yearly: 179,
+  yearly: 49.99,
+  half_yearly: 29.99,
   free: 0
 };
 
 const SUBSCRIPTION_DURATIONS = {
-  yearly: 365,
-  half_yearly: 180,
+  yearly: 365, // 365 يوم
+  half_yearly: 180, // 180 يوم
   free: 0
 };
 
@@ -39,14 +39,14 @@ const SUBSCRIPTION_FEATURES: Record<Subscription['plan_type'], SubscriptionFeatu
     canExport: true,
     canBackup: true,
     maxBackups: -1, // غير محدود
-    supportLevel: '24/7'
+    supportLevel: 'none'
   },
   half_yearly: {
     canDownload: true,
     canExport: true,
     canBackup: true,
-    maxBackups: 10,
-    supportLevel: 'business'
+    maxBackups: -1, // غير محدود
+    supportLevel: 'none'
   },
   free: {
     canDownload: false,
@@ -88,16 +88,16 @@ export class SubscriptionService {
   // دالة جديدة لإنشاء اشتراك بعد التحقق من الدفع
   static async createVerifiedSubscription(
     userId: string, 
-    planType: 'yearly' | 'half_yearly', 
-    transactionId: string
+    planType: 'yearly' | 'half_yearly' | 'free', 
+    transactionId: string,
+    verified: boolean = true
   ): Promise<boolean> {
+    try {
     const startDate = new Date();
     const endDate = new Date();
     endDate.setDate(endDate.getDate() + SUBSCRIPTION_DURATIONS[planType]);
 
-    const { error } = await supabase
-      .from('subscriptions')
-      .insert({
+      const subscriptionData = {
         user_id: userId,
         plan_type: planType,
         start_date: startDate.toISOString(),
@@ -105,15 +105,34 @@ export class SubscriptionService {
         status: 'active',
         price: SUBSCRIPTION_PRICES[planType],
         transaction_id: transactionId,
-        purchase_verified: true
-      });
+        purchase_verified: verified
+      };
+
+      console.log('Creating subscription with data:', subscriptionData);
+
+      const { error } = await supabase
+        .from('subscriptions')
+        .insert(subscriptionData);
 
     if (error) {
+        console.error('Database error:', error);
       logError('Error creating verified subscription', 'SubscriptionService', error);
+        
+        // في بيئة التطوير، نعرض رسالة أكثر وضوحاً
+        if (__DEV__) {
+          console.log('⚠️ Database schema issue detected. Please run the update-subscription-schema.sql script in Supabase.');
+        }
+        
+        return false;
+      }
+
+      console.log('Subscription created successfully');
+      return true;
+    } catch (error) {
+      console.error('Unexpected error in createVerifiedSubscription:', error);
+      logError('Unexpected error creating subscription', 'SubscriptionService', error);
       return false;
     }
-
-    return true;
   }
 
   // دالة قديمة - محذوفة لمنع الاستخدام المباشر

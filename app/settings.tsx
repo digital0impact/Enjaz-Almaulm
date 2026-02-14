@@ -11,6 +11,7 @@ import { BackupService, BackupProgress } from '@/services/BackupService';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useRouter } from 'expo-router';
 import { VERSION_INFO } from '@/constants/Version';
+import { getTextDirection, formatRTLText } from '@/utils/rtl-utils';
 
 export default function SettingsScreen() {
   const router = useRouter();
@@ -444,12 +445,12 @@ export default function SettingsScreen() {
                   <IconSymbol size={60} name="gear" color="#1c1f33" />
                 </Animated.View>
                 
-                <ThemedText type="title" style={styles.title}>
-                  الإعدادات
+                <ThemedText type="title" style={[styles.title, getTextDirection()]}> 
+                  {formatRTLText('الإعدادات')}
                 </ThemedText>
                 
-                <ThemedText style={styles.subtitle}>
-                  إدارة إعدادات التطبيق والحساب
+                <ThemedText style={[styles.subtitle, getTextDirection()]}> 
+                  {formatRTLText('إدارة إعدادات التطبيق والحساب')}
                 </ThemedText>
               </Animated.View>
 
@@ -457,16 +458,14 @@ export default function SettingsScreen() {
 
 
               <Animated.View style={[styles.settingsSection, { opacity: fadeAnim, transform: [{ translateX: slideAnim }] }]}>
-                <ThemedText style={styles.sectionTitle}>الإشعارات</ThemedText>
+                <ThemedText style={[styles.sectionTitle, getTextDirection()]}>الإشعارات</ThemedText>
                 
                 <ThemedView style={styles.settingItem}>
                   <ThemedView style={styles.settingInfo}>
                     <IconSymbol size={24} name="bell.fill" color="#FF9800" />
                     <ThemedView style={styles.settingText}>
-                      <ThemedText style={styles.settingTitle}>الإشعارات العامة</ThemedText>
-                      <ThemedText style={styles.settingDescription}>
-                        استلام إشعارات حول التحديثات والأنشطة
-                      </ThemedText>
+                      <ThemedText style={[styles.settingTitle, getTextDirection()]}>الإشعارات العامة</ThemedText>
+                      <ThemedText style={[styles.settingDescription, getTextDirection()]}>استلام إشعارات حول التحديثات والأنشطة</ThemedText>
                     </ThemedView>
                   </ThemedView>
                   <TouchableOpacity 
@@ -480,7 +479,7 @@ export default function SettingsScreen() {
               </Animated.View>
 
               <Animated.View style={[styles.settingsSection, { opacity: fadeAnim, transform: [{ translateX: slideAnim }] }]}>
-                <ThemedText style={styles.sectionTitle}>الاشتراك</ThemedText>
+                <ThemedText style={[styles.sectionTitle, getTextDirection()]}>الاشتراك</ThemedText>
                 
                 <TouchableOpacity 
                   style={styles.settingItem}
@@ -490,10 +489,8 @@ export default function SettingsScreen() {
                   <ThemedView style={styles.settingInfo}>
                     <IconSymbol size={24} name="creditcard.fill" color="#2196F3" />
                     <ThemedView style={styles.settingText}>
-                      <ThemedText style={styles.settingTitle}>إدارة الاشتراكات</ThemedText>
-                      <ThemedText style={styles.settingDescription}>
-                        ترقية أو إلغاء الاشتراك
-                      </ThemedText>
+                      <ThemedText style={[styles.settingTitle, getTextDirection()]}>إدارة الاشتراكات</ThemedText>
+                      <ThemedText style={[styles.settingDescription, getTextDirection()]}>ترقية أو إلغاء الاشتراك</ThemedText>
                     </ThemedView>
                   </ThemedView>
                   <IconSymbol size={20} name="chevron.left" color="#666" />
@@ -501,22 +498,18 @@ export default function SettingsScreen() {
               </Animated.View>
 
               <Animated.View style={[styles.settingsSection, { opacity: fadeAnim, transform: [{ translateX: slideAnim }] }]}>
-                <ThemedText style={styles.sectionTitle}>البيانات</ThemedText>
+                <ThemedText style={[styles.sectionTitle, getTextDirection()]}>البيانات</ThemedText>
                 
                 <ThemedView style={styles.backupCard}>
                   <ThemedView style={styles.backupHeader}>
                     <IconSymbol size={24} name="arrow.clockwise" color="#4CAF50" />
-                    <ThemedText style={styles.backupTitle}>النسخ الاحتياطي</ThemedText>
+                    <ThemedText style={[styles.backupTitle, getTextDirection()]}>النسخ الاحتياطي</ThemedText>
                   </ThemedView>
                   
                   {lastBackupInfo && (
                     <ThemedView style={styles.lastBackupInfo}>
-                      <ThemedText style={styles.lastBackupText}>
-                        آخر نسخة: {lastBackupInfo.date} ({lastBackupInfo.type})
-                      </ThemedText>
-                      <ThemedText style={styles.lastBackupSize}>
-                        الحجم: {lastBackupInfo.size}
-                      </ThemedText>
+                      <ThemedText style={[styles.lastBackupText, getTextDirection()]}>آخر نسخة: {lastBackupInfo.date} ({lastBackupInfo.type})</ThemedText>
+                      <ThemedText style={[styles.lastBackupSize, getTextDirection()]}>الحجم: {lastBackupInfo.size}</ThemedText>
                     </ThemedView>
                   )}
                   
@@ -527,8 +520,8 @@ export default function SettingsScreen() {
                       activeOpacity={0.8}
                       disabled={isBackupInProgress}
                     >
-                      <ThemedText style={styles.backupButtonText}>
-                        {isBackupInProgress ? 'جاري إنشاء النسخة...' : 'عمل نسخة احتياطية'}
+                      <ThemedText style={[styles.backupButtonText, getTextDirection()]}> 
+                        {isBackupInProgress ? formatRTLText('جاري إنشاء النسخة...') : formatRTLText('عمل نسخة احتياطية')}
                       </ThemedText>
                     </TouchableOpacity>
                     
@@ -538,8 +531,8 @@ export default function SettingsScreen() {
                       activeOpacity={0.8}
                       disabled={isBackupInProgress}
                     >
-                      <ThemedText style={styles.restoreButtonText}>
-                        {isBackupInProgress ? 'جاري الاستعادة...' : 'استعادة نسخة احتياطية'}
+                      <ThemedText style={[styles.restoreButtonText, getTextDirection()]}> 
+                        {isBackupInProgress ? formatRTLText('جاري الاستعادة...') : formatRTLText('استعادة نسخة احتياطية')}
                       </ThemedText>
                     </TouchableOpacity>
                   </ThemedView>
@@ -547,7 +540,7 @@ export default function SettingsScreen() {
               </Animated.View>
 
               <Animated.View style={[styles.settingsSection, { opacity: fadeAnim, transform: [{ translateX: slideAnim }] }]}>
-                <ThemedText style={styles.sectionTitle}>الحساب</ThemedText>
+                <ThemedText style={[styles.sectionTitle, getTextDirection()]}>الحساب</ThemedText>
                 
                 <TouchableOpacity 
                   style={styles.settingItem}
@@ -557,10 +550,8 @@ export default function SettingsScreen() {
                   <ThemedView style={styles.settingInfo}>
                     <IconSymbol size={24} name="trash.fill" color="#F44336" />
                     <ThemedView style={styles.settingText}>
-                      <ThemedText style={styles.settingTitle}>حذف الحساب</ThemedText>
-                      <ThemedText style={styles.settingDescription}>
-                        حذف الحساب نهائياً (لا يمكن التراجع)
-                      </ThemedText>
+                      <ThemedText style={[styles.settingTitle, getTextDirection()]}>حذف الحساب</ThemedText>
+                      <ThemedText style={[styles.settingDescription, getTextDirection()]}>حذف الحساب نهائياً (لا يمكن التراجع)</ThemedText>
                     </ThemedView>
                   </ThemedView>
                   <IconSymbol size={20} name="chevron.left" color="#666" />
@@ -572,23 +563,28 @@ export default function SettingsScreen() {
                 <ThemedView style={styles.versionCard}>
                   <ThemedView style={styles.versionHeader}>
                     <IconSymbol size={40} name="info.circle.fill" color="#add4ce" />
-                    <ThemedText style={styles.versionTitle}>معلومات التطبيق</ThemedText>
+                    <ThemedText style={[styles.versionTitle, getTextDirection()]}>معلومات التطبيق</ThemedText>
                   </ThemedView>
                   
                   <ThemedView style={styles.versionInfo}>
                     <ThemedView style={styles.versionRow}>
-                      <ThemedText style={styles.versionLabel}>رقم الإصدار:</ThemedText>
-                      <ThemedText style={styles.versionValue}>{versionInfo.version}</ThemedText>
+                      <ThemedText style={[styles.versionLabel, getTextDirection()]}>رقم الإصدار:</ThemedText>
+                      <ThemedText style={[styles.versionValue, getTextDirection()]}>{versionInfo.version}</ThemedText>
                     </ThemedView>
                     
                     <ThemedView style={styles.versionRow}>
-                      <ThemedText style={styles.versionLabel}>التطوير:</ThemedText>
-                      <ThemedText style={styles.versionValue}>الأثر الرقمي</ThemedText>
+                      <ThemedText style={[styles.versionLabel, getTextDirection()]}>رقم البناء:</ThemedText>
+                      <ThemedText style={[styles.versionValue, getTextDirection()]}>{VERSION_INFO.build}</ThemedText>
                     </ThemedView>
                     
                     <ThemedView style={styles.versionRow}>
-                      <ThemedText style={styles.versionLabel}>تاريخ الإصدار:</ThemedText>
-                      <ThemedText style={styles.versionValue}>{versionInfo.releaseDate}</ThemedText>
+                      <ThemedText style={[styles.versionLabel, getTextDirection()]}>التطوير:</ThemedText>
+                      <ThemedText style={[styles.versionValue, getTextDirection()]}>الأثر الرقمي</ThemedText>
+                    </ThemedView>
+                    
+                    <ThemedView style={styles.versionRow}>
+                      <ThemedText style={[styles.versionLabel, getTextDirection()]}>تاريخ الإصدار:</ThemedText>
+                      <ThemedText style={[styles.versionValue, getTextDirection()]}>{versionInfo.releaseDate}</ThemedText>
                     </ThemedView>
                   </ThemedView>
                 </ThemedView>

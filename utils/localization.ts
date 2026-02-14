@@ -1,5 +1,6 @@
-import { I18nManager, Platform } from 'react-native';
+import { Platform } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { SafeI18nManager } from './i18n-manager';
 
 const RTL_KEY = '@app_rtl_enabled';
 
@@ -14,9 +15,8 @@ export const initializeLocalization = async () => {
 
     // تطبيق RTL
     if (shouldEnableRTL) {
-      // إعادة تعيين RTL أولاً
-      I18nManager.allowRTL(true);
-      I18nManager.forceRTL(true);
+      SafeI18nManager.allowRTL(true);
+      await SafeI18nManager.forceRTL(true);
 
       // حفظ الإعداد إذا لم يكن موجوداً
       if (savedRTL === null) {
@@ -25,14 +25,14 @@ export const initializeLocalization = async () => {
     }
 
     return {
-      isRTL: I18nManager.isRTL,
+      isRTL: SafeI18nManager.isRTL(),
       languageCode: 'ar',
       countryCode: 'SA',
     };
   } catch (error) {
     console.error('خطأ في تهيئة RTL:', error);
     return {
-      isRTL: false,
+      isRTL: true, // Default to RTL for Arabic app
       languageCode: 'ar',
       countryCode: 'SA',
     };
@@ -45,8 +45,8 @@ export const initializeLocalization = async () => {
 export const enableRTL = async () => {
   try {
     // تفعيل RTL
-    I18nManager.allowRTL(true);
-    I18nManager.forceRTL(true);
+    SafeI18nManager.allowRTL(true);
+    await SafeI18nManager.forceRTL(true);
     
     // حفظ الإعداد
     await AsyncStorage.setItem(RTL_KEY, 'true');
@@ -69,8 +69,8 @@ export const enableRTL = async () => {
 export const disableRTL = async () => {
   try {
     // تعطيل RTL
-    I18nManager.allowRTL(false);
-    I18nManager.forceRTL(false);
+    SafeI18nManager.allowRTL(false);
+    await SafeI18nManager.forceRTL(false);
     
     // حفظ الإعداد
     await AsyncStorage.setItem(RTL_KEY, 'false');
@@ -95,9 +95,9 @@ export const checkRTLStatus = async () => {
     const savedRTL = await AsyncStorage.getItem(RTL_KEY);
     
     const status = {
-      isRTL: I18nManager.isRTL,
-      allowRTL: I18nManager.allowRTL,
-      forceRTL: I18nManager.forceRTL,
+      isRTL: SafeI18nManager.isRTL(),
+      allowRTL: SafeI18nManager.allowRTL,
+      forceRTL: SafeI18nManager.forceRTL,
       savedSetting: savedRTL,
     };
     
@@ -115,13 +115,13 @@ export const checkRTLStatus = async () => {
  */
 export const RTLStyles = {
   text: {
-    textAlign: I18nManager.isRTL ? 'right' : 'left',
-    writingDirection: I18nManager.isRTL ? 'rtl' : 'ltr',
+    textAlign: SafeI18nManager.getTextAlign(),
+    writingDirection: SafeI18nManager.getWritingDirection(),
   },
   view: {
-    flexDirection: I18nManager.isRTL ? 'row-reverse' : 'row',
+    flexDirection: SafeI18nManager.getFlexDirection(),
   },
   icon: {
-    transform: [{ scaleX: I18nManager.isRTL ? -1 : 1 }],
+    transform: SafeI18nManager.getIconTransform(),
   },
 }; 

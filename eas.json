@@ -1,32 +1,8 @@
 {
   "cli": {
-    "version": ">= 5.9.1"
+    "version": ">=3.0.0"
   },
   "build": {
-    "production": {
-      "android": {
-        "buildType": "app-bundle",
-        "gradleCommand": ":app:bundleRelease"
-      },
-      "ios": {
-        "buildConfiguration": "Release",
-        "distribution": "store",
-        "resourceClass": "m-medium"
-      },
-      "env": {
-        "APP_VARIANT": "production"
-      }
-    },
-    "preview": {
-      "android": {
-        "buildType": "apk",
-        "gradleCommand": ":app:assembleRelease"
-      },
-      "ios": {
-        "distribution": "internal",
-        "resourceClass": "m-medium"
-      }
-    },
     "development": {
       "developmentClient": true,
       "distribution": "internal",
@@ -35,20 +11,28 @@
         "gradleCommand": ":app:assembleDebug"
       },
       "ios": {
-        "resourceClass": "m-medium"
+        "buildConfiguration": "Debug"
       }
-    }
-  },
-  "submit": {
-    "production": {
+    },
+    "preview": {
       "android": {
-        "track": "production",
-        "releaseStatus": "completed"
+        "buildType": "apk",
+        "gradleCommand": ":app:assembleRelease",
+        "withoutCredentials": true
       },
       "ios": {
-        "appleId": "digital0trace@gmail.com",
-        "ascAppId": "6474041933",
-        "appleTeamId": "ANR9KYY747"
+        "buildConfiguration": "Release",
+        "distribution": "internal"
+      }
+    },
+    "production": {
+      "android": {
+        "buildType": "app-bundle",
+        "gradleCommand": ":app:bundlePlayRelease"
+      },
+      "ios": {
+        "buildConfiguration": "Release",
+        "distribution": "store"
       }
     }
   }

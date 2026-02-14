@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { StyleSheet, ScrollView, TouchableOpacity, ImageBackground, KeyboardAvoidingView, Platform, Alert } from 'react-native';
+import { StyleSheet, ScrollView, TouchableOpacity, ImageBackground, KeyboardAvoidingView, Platform, Alert, Modal, View } from 'react-native';
 
 // تطبيق RTL عند بدء الصفحة
 import { ThemedText } from '@/components/ThemedText';
@@ -15,6 +15,10 @@ import * as Sharing from 'expo-sharing';
 import * as Print from 'expo-print';
 import { StorageService } from '@/services/StorageService';
 import XLSX from 'xlsx';
+import { 
+  getTextDirection, 
+  formatRTLText 
+} from '@/utils/rtl-utils';
 
 interface Student {
   id: string;
@@ -52,6 +56,9 @@ export default function RemedialPlansScreen() {
   const [selectedCategory, setSelectedCategory] = useState<string>('ضعف');
   const [filteredPlans, setFilteredPlans] = useState<(RemedialPlan & { studentName: string })[]>([]);
   const [expandedCategory, setExpandedCategory] = useState<string | null>(null);
+  const [exportModalVisible, setExportModalVisible] = useState(false);
+  const [exportModalData, setExportModalData] = useState<any>(null);
+  const [teacherName, setTeacherName] = useState<string>('');
 
   const categories = [
     { key: 'ضعف', label: 'الضعف', color: '#9C27B0', icon: 'minus.circle.fill' },
@@ -114,6 +121,19 @@ export default function RemedialPlansScreen() {
   }, []);
 
   useEffect(() => {
+    const loadTeacherName = async () => {
+      try {
+        const basicData = await AsyncStorage.getItem('basicData');
+        if (basicData) {
+          const parsed = JSON.parse(basicData);
+          if (parsed.fullName) setTeacherName(parsed.fullName);
+        }
+      } catch (_) {}
+    };
+    loadTeacherName();
+  }, []);
+
+  useEffect(() => {
     console.log('Category changed to:', selectedCategory);
     console.log('Active plans count:', activePlans.length);
     console.log('Students count:', students.length);
@@ -150,93 +170,53 @@ export default function RemedialPlansScreen() {
   const generateExcelFile = async (data: any) => {
     try {
       const workbook = XLSX.utils.book_new();
-      
-      // إنشاء ورقة الإحصائيات العامة
-      const statsData = [
+
+      const goalsText = (s: any) => {
+        if (!s.goals?.length) return '-';
+        return s.goals.map((g: any) => (typeof g === 'string' ? g : g.text)).join('، ');
+      };
+      const goalProgress = (s: any) => {
+        if (!s.goals?.length) return '-';
+        return `${Math.round(s.goals.reduce((sum: number, g: any) => sum + (g.progress || 0), 0) / s.goals.length)}%`;
+      };
+
+      // ورقة الجدول الفعلي
+      const tableHeaders = [
+        ['اسم المتعلم', 'الصف', 'الأهداف', 'مدى تحقق الهدف', 'الاحتياجات', 'الشواهد', 'الملاحظات']
+      ];
+      const tableRows = (data.students || []).map((student: any) => [
+        student.name || '-',
+        student.grade || '-',
+        goalsText(student),
+        goalProgress(student),
+        (student.needs || []).join('، ') || '-',
+        (student.evidence || []).join('، ') || '-',
+        student.notes || '-'
+      ]);
+      const titleRows = [
         ['تقرير الخطط العلاجية'],
+        ['اسم المعلم: ' + (data.teacherName || 'غير محدد')],
+        []
+      ];
+      if (data.categoryLabel) titleRows.push([`جدول: ${data.categoryLabel}`], []);
+      const tableSheet = XLSX.utils.aoa_to_sheet([...titleRows, ...tableHeaders, ...tableRows]);
+      tableSheet['!cols'] = [{ wch: 18 }, { wch: 10 }, { wch: 35 }, { wch: 14 }, { wch: 35 }, { wch: 35 }, { wch: 30 }];
+      XLSX.utils.book_append_sheet(workbook, tableSheet, 'جدول الفئة');
+
+      // ورقة الإحصائيات
+      const statsData = [
+        ['تقرير الخطط العلاجية', data.categoryLabel || ''],
+        ['اسم المعلم:', data.teacherName || 'غير محدد'],
         [],
         ['الإحصائيات العامة'],
-        ['إجمالي المتعلمين', data.students.length],
-        ['لديهم خطط علاجية', data.students.filter(s => s.remedialPlans && s.remedialPlans.length > 0).length],
-        ['الخطط النشطة', data.activePlans],
-        ['الخطط المكتملة', data.completedPlans],
-        ['الخطط المعلقة', data.pendingPlans],
+        ['إجمالي المتعلمين', (data.students || []).length],
+        ['لديهم خطط علاجية', (data.students || []).filter((s: any) => s.remedialPlans && s.remedialPlans.length > 0).length],
+        ['الخطط النشطة', data.activePlans ?? 0],
+        ['الخطط المكتملة', data.completedPlans ?? 0],
+        ['الخطط المعلقة', data.pendingPlans ?? 0],
       ];
-      
       const statsSheet = XLSX.utils.aoa_to_sheet(statsData);
       XLSX.utils.book_append_sheet(workbook, statsSheet, 'الإحصائيات');
-
-      // إنشاء ورقة تفاصيل المتعلمين
-      const studentsHeaders = [
-        ['اسم المتعلم', 'الصف', 'الحالة', 'عدد الخطط', 'متوسط التقدم', 'الأهداف', 'الاحتياجات', 'الشواهد', 'آخر تحديث']
-      ];
-      const studentsData = data.students.map(student => [
-        student.name,
-        student.grade,
-        student.status,
-        student.remedialPlans?.length || 0,
-        `${student.averageProgress || 0}%`,
-        (student as any).goals?.join('، ') || '-',
-        (student as any).needs?.join('، ') || '-',
-        (student as any).evidence?.join('، ') || '-',
-        student.lastUpdate || '-'
-      ]);
-
-      const studentsSheet = XLSX.utils.aoa_to_sheet([...studentsHeaders, ...studentsData]);
-      
-      // تعديل عرض الأعمدة
-      const wscols = [
-        {wch: 20}, // اسم المتعلم
-        {wch: 10}, // الصف
-        {wch: 10}, // الحالة
-        {wch: 10}, // عدد الخطط
-        {wch: 12}, // متوسط التقدم
-        {wch: 30}, // الأهداف
-        {wch: 30}, // الاحتياجات
-        {wch: 30}, // الشواهد
-        {wch: 15}, // آخر تحديث
-      ];
-      studentsSheet['!cols'] = wscols;
-
-      XLSX.utils.book_append_sheet(workbook, studentsSheet, 'تفاصيل المتعلمين');
-
-      // إنشاء ورقة تفاصيل الخطط
-      const plansHeaders = [
-        ['اسم المتعلم', 'عنوان الخطة', 'الحالة', 'نسبة التقدم', 'الأهداف', 'الاحتياجات', 'الشواهد', 'تاريخ البدء', 'تاريخ الانتهاء', 'ملاحظات']
-      ];
-      const plansData = data.students.flatMap(student => 
-        (student.remedialPlans || []).map(plan => [
-          student.name,
-          plan.title || '-',
-          plan.status || '-',
-          `${plan.progress || 0}%`,
-          plan.goals?.join('، ') || '-',
-          plan.needs?.join('، ') || '-',
-          plan.evidence?.join('، ') || '-',
-          plan.startDate || '-',
-          plan.endDate || '-',
-          plan.notes || '-'
-        ])
-      );
-
-      const plansSheet = XLSX.utils.aoa_to_sheet([...plansHeaders, ...plansData]);
-      
-      // تعديل عرض الأعمدة للخطط
-      const plansCols = [
-        {wch: 20}, // اسم المتعلم
-        {wch: 25}, // عنوان الخطة
-        {wch: 10}, // الحالة
-        {wch: 12}, // نسبة التقدم
-        {wch: 30}, // الأهداف
-        {wch: 30}, // الاحتياجات
-        {wch: 30}, // الشواهد
-        {wch: 15}, // تاريخ البدء
-        {wch: 15}, // تاريخ الانتهاء
-        {wch: 30}, // ملاحظات
-      ];
-      plansSheet['!cols'] = plansCols;
-
-      XLSX.utils.book_append_sheet(workbook, plansSheet, 'تفاصيل الخطط');
 
       // تحويل الملف إلى صيغة ثنائية
       const wbout = XLSX.write(workbook, { type: 'base64', bookType: 'xlsx' });
@@ -257,8 +237,17 @@ export default function RemedialPlansScreen() {
     }
   };
 
-  const generatePDFContent = async (data: any) => {
-    const htmlContent = `
+  const getRemedialPlansReportHTML = (data: any): string => {
+    const studentsList = data.students || [];
+    const goalsText = (s: any) => {
+      if (!s.goals?.length) return '-';
+      return s.goals.map((g: any) => (typeof g === 'string' ? g : (g.text || ''))).join('، ');
+    };
+    const goalProgress = (s: any) => {
+      if (!s.goals?.length) return '-';
+      return `${Math.round(s.goals.reduce((sum: number, g: any) => sum + (g.progress || 0), 0) / s.goals.length)}%`;
+    };
+    return `
       <!DOCTYPE html>
       <html dir="rtl" lang="ar">
       <head>
@@ -279,7 +268,12 @@ export default function RemedialPlansScreen() {
           .title {
             font-size: 24px;
             color: #4CAF50;
-            margin-bottom: 10px;
+            margin-bottom: 8px;
+          }
+          .teacher-name {
+            font-size: 16px;
+            color: #333;
+            margin: 0 0 8px 0;
           }
           .stats {
             margin: 20px 0;
@@ -328,98 +322,60 @@ export default function RemedialPlansScreen() {
       </head>
       <body>
         <div class="header">
-          <h1 class="title">تقرير الخطط العلاجية</h1>
+          <h1 class="title">تقرير الخطط العلاجية${data.categoryLabel ? ' - ' + data.categoryLabel : ''}</h1>
+          <p class="teacher-name">${data.teacherName || 'غير محدد'}</p>
           <p>تاريخ التقرير: ${new Date().toLocaleDateString('ar-SA')}</p>
         </div>
 
         <div class="stats">
           <h2 class="stats-title">الإحصائيات العامة</h2>
-          <p>• إجمالي المتعلمين: ${data.students.length}</p>
-          <p>• لديهم خطط علاجية: ${data.students.filter(s => s.remedialPlans && s.remedialPlans.length > 0).length}</p>
-          <p>• الخطط النشطة: ${data.activePlans}</p>
-          <p>• الخطط المكتملة: ${data.completedPlans}</p>
-          <p>• الخطط المعلقة: ${data.pendingPlans}</p>
+          <p>• إجمالي المتعلمين: ${studentsList.length}</p>
+          <p>• لديهم خطط علاجية: ${studentsList.filter((s: any) => s.remedialPlans && s.remedialPlans.length > 0).length}</p>
+          <p>• الخطط النشطة: ${data.activePlans ?? 0}</p>
+          <p>• الخطط المكتملة: ${data.completedPlans ?? 0}</p>
+          <p>• الخطط المعلقة: ${data.pendingPlans ?? 0}</p>
         </div>
 
-        <h2 class="stats-title">تفاصيل المتعلمين</h2>
+        <h2 class="stats-title">جدول الفئة</h2>
         <table class="table">
           <thead>
             <tr>
               <th>اسم المتعلم</th>
               <th>الصف</th>
-              <th>الحالة</th>
-              <th>عدد الخطط</th>
-              <th>متوسط التقدم</th>
               <th>الأهداف</th>
+              <th>مدى تحقق الهدف</th>
               <th>الاحتياجات</th>
               <th>الشواهد</th>
-              <th>آخر تحديث</th>
+              <th>الملاحظات</th>
             </tr>
           </thead>
           <tbody>
-            ${data.students.map(student => `
+            ${studentsList.map((student: any) => `
               <tr>
-                <td>${student.name}</td>
-                <td>${student.grade}</td>
-                <td>${student.status}</td>
-                <td>${student.remedialPlans?.length || 0}</td>
-                <td>${student.averageProgress || 0}%</td>
-                <td class="long-text">${(student as any).goals?.join('، ') || '-'}</td>
-                <td class="long-text">${(student as any).needs?.join('، ') || '-'}</td>
-                <td class="long-text">${(student as any).evidence?.join('، ') || '-'}</td>
-                <td>${student.lastUpdate || '-'}</td>
+                <td>${student.name || '-'}</td>
+                <td>${student.grade || '-'}</td>
+                <td class="long-text">${goalsText(student)}</td>
+                <td>${goalProgress(student)}</td>
+                <td class="long-text">${(student.needs || []).join('، ') || '-'}</td>
+                <td class="long-text">${(student.evidence || []).join('، ') || '-'}</td>
+                <td class="long-text">${student.notes || '-'}</td>
               </tr>
             `).join('')}
           </tbody>
         </table>
-
-        <div class="section">
-          <h2 class="stats-title">تفاصيل الخطط</h2>
-          <table class="table">
-            <thead>
-              <tr>
-                <th>اسم المتعلم</th>
-                <th>عنوان الخطة</th>
-                <th>الحالة</th>
-                <th>نسبة التقدم</th>
-                <th>الأهداف</th>
-                <th>الاحتياجات</th>
-                <th>الشواهد</th>
-                <th>تاريخ البدء</th>
-                <th>تاريخ الانتهاء</th>
-                <th>ملاحظات</th>
-              </tr>
-            </thead>
-            <tbody>
-              ${data.students.flatMap(student => 
-                (student.remedialPlans || []).map(plan => `
-                  <tr>
-                    <td>${student.name}</td>
-                    <td>${plan.title || '-'}</td>
-                    <td>${plan.status || '-'}</td>
-                    <td>${plan.progress || 0}%</td>
-                    <td class="long-text">${plan.goals?.join('، ') || '-'}</td>
-                    <td class="long-text">${plan.needs?.join('، ') || '-'}</td>
-                    <td class="long-text">${plan.evidence?.join('، ') || '-'}</td>
-                    <td>${plan.startDate || '-'}</td>
-                    <td>${plan.endDate || '-'}</td>
-                    <td class="long-text">${plan.notes || '-'}</td>
-                  </tr>
-                `).join('')
-              )}
-            </tbody>
-          </table>
-        </div>
       </body>
       </html>
     `;
+  };
 
+  const generatePDFContent = async (data: any): Promise<string> => {
+    const htmlContent = getRemedialPlansReportHTML(data);
     try {
       const { uri } = await Print.printToFileAsync({
         html: htmlContent,
         base64: false,
-        width: 842, // A4 width in points
-        height: 595, // A4 height in points
+        width: 842,
+        height: 595,
       });
       return uri;
     } catch (error) {
@@ -428,74 +384,86 @@ export default function RemedialPlansScreen() {
     }
   };
 
-  const exportTableData = async (data: any) => {
-    Alert.alert(
-      'تحميل الجدول',
-      'اختر نوع الملف المطلوب',
-      [
-        {
-          text: 'إلغاء',
-          style: 'cancel',
-        },
-        {
-          text: 'Excel ملف',
-          onPress: async () => {
-            try {
-              // إضافة متوسط التقدم لكل طالب
-              data.students = data.students.map(student => ({
-                ...student,
-                averageProgress: student.remedialPlans?.length 
-                  ? Math.round(student.remedialPlans.reduce((total, plan) => total + plan.progress, 0) / student.remedialPlans.length)
-                  : 0
-              }));
+  const exportTableData = (data: any) => {
+    setExportModalData(data);
+    setExportModalVisible(true);
+  };
 
-              const filePath = await generateExcelFile(data);
-              
-              if (await Sharing.isAvailableAsync()) {
-                await Sharing.shareAsync(filePath, {
-                  mimeType: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
-                  dialogTitle: 'حفظ ملف Excel',
-                  UTI: 'com.microsoft.excel.xlsx'
-                });
-              }
-            } catch (error) {
-              console.error('خطأ في تحميل Excel:', error);
-              Alert.alert('خطأ', 'حدث خطأ أثناء إنشاء ملف Excel');
-            }
-          },
-          style: 'default',
-        },
-        {
-          text: 'PDF ملف',
-          onPress: async () => {
-            try {
-              // إضافة متوسط التقدم لكل طالب
-              data.students = data.students.map(student => ({
-                ...student,
-                averageProgress: student.remedialPlans?.length 
-                  ? Math.round(student.remedialPlans.reduce((total, plan) => total + plan.progress, 0) / student.remedialPlans.length)
-                  : 0
-              }));
+  const doExportExcel = async () => {
+    if (!exportModalData) return;
+    setExportModalVisible(false);
+    const data = { ...exportModalData };
+    try {
+      data.students = data.students.map((student: any) => ({
+        ...student,
+        averageProgress: student.remedialPlans?.length
+          ? Math.round(student.remedialPlans.reduce((total: number, plan: any) => total + plan.progress, 0) / student.remedialPlans.length)
+          : 0
+      }));
+      const filePath = await generateExcelFile(data);
+      if (await Sharing.isAvailableAsync()) {
+        await Sharing.shareAsync(filePath, {
+          mimeType: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+          dialogTitle: 'حفظ ملف Excel',
+          UTI: 'com.microsoft.excel.xlsx'
+        });
+      }
+      Alert.alert('تم بنجاح', 'تم إنشاء ملف Excel');
+    } catch (error) {
+      console.error('خطأ في تحميل Excel:', error);
+      Alert.alert('خطأ', 'حدث خطأ أثناء إنشاء ملف Excel');
+    }
+    setExportModalData(null);
+  };
 
-              const pdfUri = await generatePDFContent(data);
-              
-              if (await Sharing.isAvailableAsync()) {
-                await Sharing.shareAsync(pdfUri, {
-                  mimeType: 'application/pdf',
-                  dialogTitle: 'حفظ ملف PDF',
-                  UTI: 'com.adobe.pdf'
-                });
-              }
-            } catch (error) {
-              console.error('خطأ في تحميل PDF:', error);
-              Alert.alert('خطأ', 'حدث خطأ أثناء إنشاء ملف PDF');
-            }
-          },
-          style: 'default',
-        },
-      ],
-      { cancelable: true }
-    );
+  const doExportPDF = async () => {
+    if (!exportModalData) return;
+    setExportModalVisible(false);
+    const data = { ...exportModalData };
+    data.students = (data.students || []).map((student: any) => ({
+      ...student,
+      averageProgress: student.remedialPlans?.length
+        ? Math.round(student.remedialPlans.reduce((total: number, plan: any) => total + plan.progress, 0) / student.remedialPlans.length)
+        : 0
+    }));
+    setExportModalData(null);
+
+    if (Platform.OS === 'web' && typeof window !== 'undefined') {
+      try {
+        const htmlContent = getRemedialPlansReportHTML(data);
+        const printWindow = window.open('', '_blank');
+        if (!printWindow) {
+          Alert.alert('تنبيه', 'الرجاء السماح بالنوافذ المنبثقة ثم إعادة المحاولة.');
+          return;
+        }
+        printWindow.document.write(htmlContent);
+        printWindow.document.close();
+        printWindow.focus();
+        setTimeout(() => {
+          printWindow.print();
+        }, 300);
+        Alert.alert('تم بنجاح', 'استخدم "حفظ كـ PDF" أو "Save as PDF" في نافذة الطباعة لحفظ التقرير.');
+      } catch (error) {
+        console.error('خطأ في تحميل PDF:', error);
+        Alert.alert('خطأ', 'حدث خطأ أثناء فتح معاينة الطباعة');
+      }
+      return;
+    }
+
+    try {
+      const pdfUri = await generatePDFContent(data);
+      if (await Sharing.isAvailableAsync()) {
+        await Sharing.shareAsync(pdfUri, {
+          mimeType: 'application/pdf',
+          dialogTitle: 'حفظ ملف PDF',
+          UTI: 'com.adobe.pdf'
+        });
+      }
+      Alert.alert('تم بنجاح', 'تم إنشاء ملف PDF');
+    } catch (error) {
+      console.error('خطأ في تحميل PDF:', error);
+      Alert.alert('خطأ', 'حدث خطأ أثناء إنشاء ملف PDF');
+    }
   };
 
   // حذف مصفوفة statusCategories
@@ -601,14 +569,16 @@ export default function RemedialPlansScreen() {
                   <ThemedView style={styles.tableContainer}>
                     {/* عنوان الجدول مع زر التحميل */}
                     <ThemedView style={styles.tableHeaderSection}>
-                      <ThemedText style={styles.tableTitle}>
-                        {category.label}
+                      <ThemedText style={[styles.tableTitle, getTextDirection()]}>
+                        {formatRTLText(category.label)}
                       </ThemedText>
                   <TouchableOpacity 
                         style={styles.downloadButton}
                         onPress={() => {
                           // تحضير البيانات للفئة الحالية فقط
                           const categoryData = {
+                            categoryLabel: category.label,
+                            teacherName: teacherName || 'غير محدد',
                             students: students.filter(s => s.status === category.key),
                             activePlans: students
                               .filter(s => s.status === category.key)
@@ -635,37 +605,37 @@ export default function RemedialPlansScreen() {
                     <ThemedView style={[styles.tableHeader, { direction: 'rtl' }]}>
                       {/* الملاحظات - أقصى اليسار */}
                       <ThemedView style={[styles.headerCell, { minWidth: 200, flex: 2 }]}>
-                        <ThemedText style={styles.headerCellText}>الملاحظات</ThemedText>
+                        <ThemedText style={[styles.headerCellText, getTextDirection()]}>الملاحظات</ThemedText>
                       </ThemedView>
                       
                       {/* الشواهد */}
                       <ThemedView style={[styles.headerCell, { minWidth: 200, flex: 2 }]}>
-                        <ThemedText style={styles.headerCellText}>الشواهد</ThemedText>
+                        <ThemedText style={[styles.headerCellText, getTextDirection()]}>الشواهد</ThemedText>
                       </ThemedView>
 
                       {/* الاحتياجات */}
                       <ThemedView style={[styles.headerCell, { minWidth: 200, flex: 2 }]}>
-                        <ThemedText style={styles.headerCellText}>الاحتياجات</ThemedText>
+                        <ThemedText style={[styles.headerCellText, getTextDirection()]}>الاحتياجات</ThemedText>
                       </ThemedView>
 
                       {/* مدى تحقق الهدف */}
                       <ThemedView style={[styles.headerCell, { minWidth: 120, flex: 1.5 }]}>
-                        <ThemedText style={styles.headerCellText}>مدى تحقق الهدف</ThemedText>
+                        <ThemedText style={[styles.headerCellText, getTextDirection()]}>مدى تحقق الهدف</ThemedText>
                       </ThemedView>
 
                       {/* الأهداف */}
                       <ThemedView style={[styles.headerCell, { minWidth: 200, flex: 2 }]}>
-                        <ThemedText style={styles.headerCellText}>الأهداف</ThemedText>
+                        <ThemedText style={[styles.headerCellText, getTextDirection()]}>الأهداف</ThemedText>
                       </ThemedView>
                       
                       {/* الصف الدراسي */}
                       <ThemedView style={[styles.headerCell, { minWidth: 100, flex: 1 }]}>
-                        <ThemedText style={styles.headerCellText}>الصف الدراسي</ThemedText>
+                        <ThemedText style={[styles.headerCellText, getTextDirection()]}>الصف الدراسي</ThemedText>
                       </ThemedView>
 
                       {/* اسم المتعلم - أقصى اليمين */}
                       <ThemedView style={[styles.headerCell, { minWidth: 150, flex: 2 }]}>
-                        <ThemedText style={styles.headerCellText}>اسم المتعلم</ThemedText>
+                        <ThemedText style={[styles.headerCellText, getTextDirection()]}>اسم المتعلم</ThemedText>
                       </ThemedView>
                     </ThemedView>
 
@@ -681,8 +651,8 @@ export default function RemedialPlansScreen() {
                         >
                           {/* الملاحظات - أقصى اليسار */}
                           <ThemedView style={[styles.cell, { minWidth: 200, flex: 2 }]}>
-                            <ThemedText style={styles.tableCellText} numberOfLines={2}>
-                              {student.notes || '-'}
+                            <ThemedText style={[styles.tableCellText, getTextDirection()]} numberOfLines={2}>
+                              {formatRTLText(student.notes || '-')}
                             </ThemedText>
                           </ThemedView>
 
@@ -690,15 +660,15 @@ export default function RemedialPlansScreen() {
                           <ThemedView style={[styles.cell, { minWidth: 200, flex: 2 }]}>
                             {student.evidence && student.evidence.length > 0 ? (
                               <ThemedView>
-                                <ThemedText style={styles.itemCount}>
-                                  {student.evidence.length} شواهد
+                                <ThemedText style={[styles.itemCount, getTextDirection()]}> 
+                                  {formatRTLText(`${student.evidence.length} شواهد`)}
                                 </ThemedText>
-                                <ThemedText style={styles.itemPreview} numberOfLines={2}>
-                                  {student.evidence.join('، ')}
+                                <ThemedText style={[styles.itemPreview, getTextDirection()]} numberOfLines={2}>
+                                  {formatRTLText(student.evidence.join('، '))}
                                 </ThemedText>
                               </ThemedView>
                             ) : (
-                              <ThemedText style={styles.tableCellText}>-</ThemedText>
+                              <ThemedText style={[styles.tableCellText, getTextDirection()]}>-</ThemedText>
                             )}
                           </ThemedView>
 
@@ -706,15 +676,15 @@ export default function RemedialPlansScreen() {
                           <ThemedView style={[styles.cell, { minWidth: 200, flex: 2 }]}>
                             {student.needs && student.needs.length > 0 ? (
                               <ThemedView>
-                                <ThemedText style={styles.itemCount}>
-                                  {student.needs.length} احتياج
+                                <ThemedText style={[styles.itemCount, getTextDirection()]}> 
+                                  {formatRTLText(`${student.needs.length} احتياج`)}
                                 </ThemedText>
-                                <ThemedText style={styles.itemPreview} numberOfLines={2}>
-                                  {student.needs.join('، ')}
+                                <ThemedText style={[styles.itemPreview, getTextDirection()]} numberOfLines={2}>
+                                  {formatRTLText(student.needs.join('، '))}
                                 </ThemedText>
                               </ThemedView>
                             ) : (
-                              <ThemedText style={styles.tableCellText}>-</ThemedText>
+                              <ThemedText style={[styles.tableCellText, getTextDirection()]}>-</ThemedText>
                             )}
                           </ThemedView>
 
@@ -722,8 +692,8 @@ export default function RemedialPlansScreen() {
                           <ThemedView style={[styles.cell, { minWidth: 120, flex: 1.5 }]}>
                             {student.goals && student.goals.length > 0 ? (
                               <ThemedView style={styles.progressContainer}>
-                                <ThemedText style={styles.progressText}>
-                                  {Math.round(student.goals.reduce((sum, goal) => sum + goal.progress, 0) / student.goals.length)}%
+                                <ThemedText style={[styles.progressText, getTextDirection()]}> 
+                                  {formatRTLText(`${Math.round(student.goals.reduce((sum, goal) => sum + goal.progress, 0) / student.goals.length)}%`)}
                                 </ThemedText>
                                 <ThemedView style={styles.progressBar}>
                                   <ThemedView 
@@ -738,7 +708,7 @@ export default function RemedialPlansScreen() {
                                 </ThemedView>
                               </ThemedView>
                             ) : (
-                              <ThemedText style={styles.tableCellText}>-</ThemedText>
+                              <ThemedText style={[styles.tableCellText, getTextDirection()]}>-</ThemedText>
                             )}
                           </ThemedView>
 
@@ -746,21 +716,21 @@ export default function RemedialPlansScreen() {
                           <ThemedView style={[styles.cell, { minWidth: 200, flex: 2 }]}>
                             {student.goals && student.goals.length > 0 ? (
                               <ThemedView>
-                                <ThemedText style={styles.itemCount}>
-                                  {student.goals.length} أهداف
+                                <ThemedText style={[styles.itemCount, getTextDirection()]}> 
+                                  {formatRTLText(`${student.goals.length} أهداف`)}
                                 </ThemedText>
-                                <ThemedText style={styles.itemPreview} numberOfLines={2}>
-                                  {student.goals.map(goal => goal.text).join('، ')}
+                                <ThemedText style={[styles.itemPreview, getTextDirection()]} numberOfLines={2}>
+                                  {formatRTLText(student.goals.map(goal => goal.text).join('، '))}
                                 </ThemedText>
                             </ThemedView>
                             ) : (
-                              <ThemedText style={styles.tableCellText}>-</ThemedText>
+                              <ThemedText style={[styles.tableCellText, getTextDirection()]}>-</ThemedText>
                             )}
                           </ThemedView>
 
                           {/* الصف الدراسي */}
                           <ThemedView style={[styles.cell, { minWidth: 100, flex: 1 }]}>
-                            <ThemedText style={styles.tableCellText}>{student.grade}</ThemedText>
+                            <ThemedText style={[styles.tableCellText, getTextDirection()]}>{formatRTLText(student.grade)}</ThemedText>
                           </ThemedView>
 
                           {/* اسم المتعلم - أقصى اليمين */}
@@ -776,8 +746,8 @@ export default function RemedialPlansScreen() {
                                   });
                               }}
                             >
-                              <ThemedText style={styles.studentNameText}>
-                                {student.name}
+                              <ThemedText style={[styles.studentNameText, getTextDirection()]}> 
+                                {formatRTLText(student.name)}
                               </ThemedText>
                               <IconSymbol size={16} name="chevron.left" color="#2196F3" />
                             </TouchableOpacity>
@@ -824,12 +794,12 @@ export default function RemedialPlansScreen() {
 
                 <ThemedView style={styles.iconContainer}>
                   <IconSymbol size={60} name="doc.text.fill" color="#1c1f33" />
-                    </ThemedView>
-                <ThemedText type="title" style={styles.title}>
-                  إدارة الخطط العلاجية
+                </ThemedView>
+                <ThemedText type="title" style={[styles.title, getTextDirection()]}> 
+                  {formatRTLText('إدارة الخطط العلاجية')}
                 </ThemedText>
-                <ThemedText style={styles.subtitle}>
-                  متابعة وإدارة الخطط العلاجية للمتعلمين
+                <ThemedText style={[styles.subtitle, getTextDirection()]}> 
+                  {formatRTLText('متابعة وإدارة الخطط العلاجية للمتعلمين')}
                 </ThemedText>
                         </ThemedView>
 
@@ -876,6 +846,25 @@ export default function RemedialPlansScreen() {
           </KeyboardAvoidingView>
         </ScrollView>
       </ImageBackground>
+
+      <Modal visible={exportModalVisible} transparent animationType="fade" onRequestClose={() => setExportModalVisible(false)}>
+        <View style={styles.exportModalOverlay}>
+          <TouchableOpacity style={StyleSheet.absoluteFill} activeOpacity={1} onPress={() => setExportModalVisible(false)} />
+          <View style={styles.exportModalBox}>
+            <ThemedText style={styles.exportModalTitle}>تحميل الجدول</ThemedText>
+            <ThemedText style={styles.exportModalMessage}>اختر نوع الملف المطلوب</ThemedText>
+            <TouchableOpacity style={styles.exportOptionButton} onPress={doExportExcel}>
+              <ThemedText style={styles.exportOptionText}>ملف Excel</ThemedText>
+            </TouchableOpacity>
+            <TouchableOpacity style={styles.exportOptionButton} onPress={doExportPDF}>
+              <ThemedText style={styles.exportOptionText}>ملف PDF</ThemedText>
+            </TouchableOpacity>
+            <TouchableOpacity style={[styles.exportOptionButton, styles.exportOptionCancel]} onPress={() => { setExportModalVisible(false); setExportModalData(null); }}>
+              <ThemedText style={styles.exportOptionCancelText}>إلغاء</ThemedText>
+            </TouchableOpacity>
+          </View>
+        </View>
+      </Modal>
       <BottomNavigationBar />
     </ThemedView>
   );
@@ -884,7 +873,6 @@ export default function RemedialPlansScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    direction: 'rtl',
   },
   backgroundImage: {
     flex: 1,
@@ -904,14 +892,14 @@ const styles = StyleSheet.create({
   content: {
     flex: 1,
     padding: 16,
-    direction: 'rtl',
+    backgroundColor: 'transparent',
   },
   header: {
     paddingHorizontal: 20,
     paddingTop: 60,
     paddingBottom: 20,
     alignItems: 'center',
-    direction: 'rtl',
+    backgroundColor: 'transparent',
   },
   backButton: {
     position: 'absolute',
@@ -920,19 +908,28 @@ const styles = StyleSheet.create({
     width: 40,
     height: 40,
     borderRadius: 20,
-    backgroundColor: '#FFFFFF',
+    backgroundColor: '#add4ce',
     alignItems: 'center',
     justifyContent: 'center',
     shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
-    elevation: 3,
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.2,
+    shadowRadius: 8,
+    elevation: 8,
     zIndex: 1,
   },
   iconContainer: {
-    marginBottom: 16,
-    alignItems: 'center',
+    marginBottom: 20,
+    padding: 20,
+    backgroundColor: '#F8F9FA',
+    borderRadius: 50,
+    borderWidth: 1,
+    borderColor: '#E5E5EA',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 6 },
+    shadowOpacity: 0.25,
+    shadowRadius: 12,
+    elevation: 10,
   },
   headerIcon: {
     transform: Platform.OS === 'android' ? [] : [{ rotateY: '180deg' }],
@@ -958,6 +955,7 @@ const styles = StyleSheet.create({
     gap: 10,
     marginHorizontal: 20,
     marginBottom: 20,
+    backgroundColor: 'transparent',
   },
   statCard: {
     flex: 1,
@@ -972,6 +970,7 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.1,
     shadowRadius: 4,
     elevation: 3,
+    backgroundColor: 'rgba(255, 255, 255, 0.9)',
   },
   statNumber: {
     fontSize: 24,
@@ -1496,38 +1495,11 @@ const styles = StyleSheet.create({
     color: '#333',
     textAlign: 'right',
   },
-  needsContainer: {
-    flex: 1,
-  },
-  needsCount: {
-    fontSize: 12,
-    color: '#666',
-    marginBottom: 4,
-    textAlign: 'right',
-  },
-  needsPreview: {
-    fontSize: 14,
-    color: '#333',
-    textAlign: 'right',
-  },
-  evidenceContainer: {
-    flex: 1,
-  },
-  evidenceCount: {
-    fontSize: 12,
-    color: '#666',
-    marginBottom: 4,
-    textAlign: 'right',
-  },
-  evidencePreview: {
-    fontSize: 14,
-    color: '#333',
-    textAlign: 'right',
-  },
+
   categoriesContainer: {
     paddingHorizontal: 20,
     marginBottom: 20,
-    direction: 'rtl',
+    backgroundColor: 'transparent',
   },
   categoriesGrid: {
     flexDirection: 'column',
@@ -1626,9 +1598,7 @@ const styles = StyleSheet.create({
   tableScrollViewContent: {
     paddingBottom: 20,
   },
-  tableContainer: {
-    minWidth: '100%',
-  },
+
   tableBodyScroll: {
     width: '100%',
   },
@@ -1648,6 +1618,61 @@ const styles = StyleSheet.create({
     borderRadius: 8,
     marginBottom: 16,
     marginRight: 16,
+  },
+  exportModalOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0,0,0,0.5)',
+    justifyContent: 'center',
+    alignItems: 'center',
+    padding: 24,
+  },
+  exportModalBox: {
+    width: '100%',
+    maxWidth: 320,
+    backgroundColor: '#fff',
+    borderRadius: 16,
+    padding: 20,
+    direction: 'rtl',
+  },
+  exportModalTitle: {
+    fontSize: 18,
+    fontWeight: 'bold',
+    color: '#1c1f33',
+    marginBottom: 8,
+    textAlign: 'right',
+  },
+  exportModalMessage: {
+    fontSize: 14,
+    color: '#666',
+    marginBottom: 16,
+    textAlign: 'right',
+  },
+  exportOptionButton: {
+    paddingVertical: 14,
+    paddingHorizontal: 16,
+    borderRadius: 12,
+    backgroundColor: '#F0F8FF',
+    marginBottom: 10,
+    borderWidth: 1,
+    borderColor: '#E3F2FD',
+  },
+  exportOptionText: {
+    fontSize: 16,
+    color: '#1c1f33',
+    fontWeight: '500',
+    textAlign: 'right',
+  },
+  exportOptionCancel: {
+    backgroundColor: '#F5F5F5',
+    borderColor: '#E5E5EA',
+    marginTop: 8,
+    marginBottom: 0,
+  },
+  exportOptionCancelText: {
+    fontSize: 16,
+    color: '#666',
+    fontWeight: '500',
+    textAlign: 'center',
   },
 });
 

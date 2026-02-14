@@ -5,8 +5,10 @@ import { StyleSheet, ScrollView, TouchableOpacity, Alert, TextInput, I18nManager
 import { ThemedText } from '@/components/ThemedText';
 import { ThemedView } from '@/components/ThemedView';
 import { IconSymbol } from '@/components/ui/IconSymbol';
+import { BottomNavigationBar } from '@/components/BottomNavigationBar';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useRouter } from 'expo-router';
+import { getTextDirection, formatRTLText } from '@/utils/rtl-utils';
 
 const { width } = Dimensions.get('window');
 
@@ -220,38 +222,38 @@ export default function ImprovementPlanScreen() {
             </TouchableOpacity>
             <ThemedView style={styles.headerContent}>
               <IconSymbol size={50} name="chart.line.uptrend.xyaxis" color="#1c1f33" />
-              <ThemedText type="title" style={styles.headerTitle}>
-                خطة التحسين المهني
+              <ThemedText type="title" style={[styles.headerTitle, getTextDirection()]}> 
+                {formatRTLText('خطة التحسين المهني')}
               </ThemedText>
-              <ThemedText style={styles.headerSubtitle}>
-                خطة شاملة لتطوير أدائك المهني وتحقيق أهدافك التعليمية
+              <ThemedText style={[styles.headerSubtitle, getTextDirection()]}> 
+                {formatRTLText('خطة شاملة لتطوير أدائك المهني وتحقيق أهدافك التعليمية')}
               </ThemedText>
             </ThemedView>
           </ThemedView>
 
           <ScrollView style={styles.content}>
             <ThemedView style={styles.overviewCard}>
-              <ThemedText style={styles.overviewTitle}>
-                نظرة عامة على الأهداف
+              <ThemedText style={[styles.overviewTitle, getTextDirection()]}> 
+                {formatRTLText('نظرة عامة على الأهداف')}
               </ThemedText>
               <ThemedView style={styles.statsRow}>
                 <ThemedView style={styles.statItem}>
                   <ThemedText style={styles.statNumber}>
                     {improvementGoals.filter(goal => goal.completed).length}
                   </ThemedText>
-                  <ThemedText style={styles.statLabel}>مكتملة</ThemedText>
+                  <ThemedText style={[styles.statLabel, getTextDirection()]}>مكتملة</ThemedText>
                 </ThemedView>
                 <ThemedView style={styles.statItem}>
                   <ThemedText style={styles.statNumber}>
                     {improvementGoals.filter(goal => !goal.completed).length}
                   </ThemedText>
-                  <ThemedText style={styles.statLabel}>قيد التنفيذ</ThemedText>
+                  <ThemedText style={[styles.statLabel, getTextDirection()]}>قيد التنفيذ</ThemedText>
                 </ThemedView>
                 <ThemedView style={styles.statItem}>
                   <ThemedText style={styles.statNumber}>
                     {improvementGoals.length}
                   </ThemedText>
-                  <ThemedText style={styles.statLabel}>إجمالي الأهداف</ThemedText>
+                  <ThemedText style={[styles.statLabel, getTextDirection()]}>إجمالي الأهداف</ThemedText>
                 </ThemedView>
               </ThemedView>
             </ThemedView>
@@ -265,9 +267,7 @@ export default function ImprovementPlanScreen() {
                   <IconSymbol size={16} name="plus.circle.fill" color="#1c1f33" />
                   <ThemedText style={styles.addGoalText}>إضافة هدف</ThemedText>
                 </TouchableOpacity>
-                <ThemedText style={styles.sectionTitle}>
-                  أهداف التحسين
-                </ThemedText>
+                <ThemedText style={[styles.sectionTitle, getTextDirection()]}>أهداف التحسين</ThemedText>
               </ThemedView>
 
               {improvementGoals.map((goal) => (
@@ -289,12 +289,13 @@ export default function ImprovementPlanScreen() {
                     <ThemedView style={styles.goalInfo}>
                       <ThemedText style={[
                         styles.goalTitle,
+                        getTextDirection(),
                         goal.completed && styles.completedGoalTitle
-                      ]}>
-                        {goal.title}
+                      ]}> 
+                        {formatRTLText(goal.title)}
                       </ThemedText>
-                      <ThemedText style={styles.goalDescription}>
-                        {goal.description}
+                      <ThemedText style={[styles.goalDescription, getTextDirection()]}> 
+                        {formatRTLText(goal.description)}
                       </ThemedText>
                     </ThemedView>
                     <TouchableOpacity
@@ -311,8 +312,8 @@ export default function ImprovementPlanScreen() {
 
                   <ThemedView style={styles.progressSection}>
                     <ThemedView style={styles.progressInfo}>
-                      <ThemedText style={styles.progressLabel}>
-                        التقدم: {goal.currentScore} / {goal.targetScore}
+                      <ThemedText style={[styles.progressLabel, getTextDirection()]}> 
+                        {formatRTLText(`التقدم: ${goal.currentScore} / ${goal.targetScore}`)}
                       </ThemedText>
                       <ThemedText style={[
                         styles.progressPercentage,
@@ -333,8 +334,8 @@ export default function ImprovementPlanScreen() {
                       />
                     </ThemedView>
                     {goal.deadline && (
-                      <ThemedText style={styles.deadline}>
-                        الموعد المستهدف: {goal.deadline}
+                      <ThemedText style={[styles.deadline, getTextDirection()]}> 
+                        {formatRTLText(`الموعد المستهدف: ${goal.deadline}`)}
                       </ThemedText>
                     )}
                   </ThemedView>
@@ -342,10 +343,10 @@ export default function ImprovementPlanScreen() {
                   {editingGoal === goal.id && (
                     <ThemedView style={styles.editingSection}>
                       <ThemedView style={styles.actionsSection}>
-                        <ThemedText style={styles.subsectionTitle}>الإجراءات المطلوبة:</ThemedText>
+                        <ThemedText style={[styles.subsectionTitle, getTextDirection()]}>الإجراءات المطلوبة:</ThemedText>
                         {goal.actions.map((action, index) => (
                           <ThemedView key={index} style={styles.actionItem}>
-                            <ThemedText style={styles.actionText}>• {action}</ThemedText>
+                            <ThemedText style={[styles.actionText, getTextDirection()]}>• {formatRTLText(action)}</ThemedText>
                             <TouchableOpacity
                               onPress={() => removeAction(goal.id, index)}
                               style={styles.removeButton}
@@ -372,10 +373,10 @@ export default function ImprovementPlanScreen() {
                       </ThemedView>
 
                       <ThemedView style={styles.resourcesSection}>
-                        <ThemedText style={styles.subsectionTitle}>الموارد المطلوبة:</ThemedText>
+                        <ThemedText style={[styles.subsectionTitle, getTextDirection()]}>الموارد المطلوبة:</ThemedText>
                         {goal.resources.map((resource, index) => (
                           <ThemedView key={index} style={styles.resourceItem}>
-                            <ThemedText style={styles.resourceText}>• {resource}</ThemedText>
+                            <ThemedText style={[styles.resourceText, getTextDirection()]}>• {formatRTLText(resource)}</ThemedText>
                             <TouchableOpacity
                               onPress={() => removeResource(goal.id, index)}
                               style={styles.removeButton}
@@ -414,7 +415,7 @@ export default function ImprovementPlanScreen() {
                 }}
               >
                 <IconSymbol size={20} name="checkmark.circle.fill" color="#1c1f33" />
-                <ThemedText style={styles.buttonText}>حفظ الخطة</ThemedText>
+                <ThemedText style={[styles.buttonText, getTextDirection()]}>حفظ الخطة</ThemedText>
               </TouchableOpacity>
 
               <TouchableOpacity 
@@ -424,12 +425,13 @@ export default function ImprovementPlanScreen() {
                 }}
               >
                 <IconSymbol size={20} name="square.and.arrow.up.fill" color="#1c1f33" />
-                <ThemedText style={styles.buttonText}>تصدير الخطة</ThemedText>
+                <ThemedText style={[styles.buttonText, getTextDirection()]}>تصدير الخطة</ThemedText>
               </TouchableOpacity>
             </ThemedView>
           </ScrollView>
-        
-      </ImageBackground>
+          
+          <BottomNavigationBar />
+        </ImageBackground>
     </ThemedView>
   );
 }

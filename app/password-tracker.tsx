@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { StyleSheet, ScrollView, TouchableOpacity, Alert, I18nManager, ImageBackground, Dimensions, TextInput, Platform, KeyboardAvoidingView } from 'react-native';
+import NetInfo from '@react-native-community/netinfo';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { ThemedText } from '@/components/ThemedText';
@@ -8,6 +9,7 @@ import { IconSymbol } from '@/components/ui/IconSymbol';
 import { useRouter } from 'expo-router';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { BottomNavigationBar } from '@/components/BottomNavigationBar';
+import { getTextDirection, formatRTLText, getRTLTextStyle } from '@/utils/rtl-utils';
 
 const { width } = Dimensions.get('window');
 
@@ -72,6 +74,9 @@ export default function PasswordTrackerScreen() {
     notes: ''
   });
 
+  const [isConnected, setIsConnected] = useState(true);
+  const [isLoading, setIsLoading] = useState(false);
+
   const getStrengthColor = (strength: PasswordEntry['strength']) => {
     switch (strength) {
       case 'قوي': return '#4CAF50';
@@ -100,32 +105,83 @@ export default function PasswordTrackerScreen() {
     }
   };
 
-  const addPassword = () => {
-    if (newPassword.websiteName.trim() && newPassword.username.trim() && newPassword.password.trim()) {
-      const passwordEntry: PasswordEntry = {
-        id: Date.now().toString(),
-        websiteName: newPassword.websiteName,
-        url: newPassword.url,
-        username: newPassword.username,
-        password: newPassword.password,
-        category: newPassword.category,
-        lastUpdated: new Date().toISOString().split('T')[0],
-        strength: getPasswordStrength(newPassword.password),
-        notes: newPassword.notes
-      };
-      setPasswords([...passwords, passwordEntry]);
-      setNewPassword({
-        websiteName: '',
-        url: '',
-        username: '',
-        password: '',
-        category: 'تعليمي',
-        notes: ''
-      });
-      setShowAddForm(false);
-      Alert.alert('تم بنجاح', 'تم إضافة كلمة المرور بنجاح');
-    } else {
-      Alert.alert('خطأ', 'الرجاء ملء جميع الحقول المطلوبة');
+  useEffect(() => {
+    const checkConnection = async () => {
+      try {
+        const state = await NetInfo.fetch();
+        setIsConnected(state.isConnected || false);
+        
+        if (!state.isConnected) {
+          Alert.alert(
+            'تنبيه',
+            'لا يوجد اتصال بالإنترنت. بعض الميزات قد لا تعمل بشكل صحيح.',
+            [{ text: 'حسناً', style: 'default' }]
+          );
+        }
+      } catch (error) {
+        console.error('خطأ في فحص الاتصال:', error);
+      }
+    };
+
+    checkConnection();
+
+    const unsubscribe = NetInfo.addEventListener(state => {
+      setIsConnected(state.isConnected || false);
+    });
+
+    return () => {
+      unsubscribe();
+    };
+  }, []);
+
+  const handleNetworkError = () => {
+    if (!isConnected) {
+      Alert.alert(
+        'خطأ في الاتصال',
+        'يرجى التحقق من اتصال الإنترنت والمحاولة مرة أخرى',
+        [{ text: 'حسناً', style: 'default' }]
+      );
+      return true;
+    }
+    return false;
+  };
+
+  const addPassword = async () => {
+    if (handleNetworkError()) return;
+    
+    setIsLoading(true);
+    try {
+      if (newPassword.websiteName.trim() && newPassword.username.trim() && newPassword.password.trim()) {
+        const passwordEntry: PasswordEntry = {
+          id: Date.now().toString(),
+          websiteName: newPassword.websiteName,
+          url: newPassword.url,
+          username: newPassword.username,
+          password: newPassword.password,
+          category: newPassword.category,
+          lastUpdated: new Date().toISOString().split('T')[0],
+          strength: getPasswordStrength(newPassword.password),
+          notes: newPassword.notes
+        };
+        setPasswords([...passwords, passwordEntry]);
+        setNewPassword({
+          websiteName: '',
+          url: '',
+          username: '',
+          password: '',
+          category: 'تعليمي',
+          notes: ''
+        });
+        setShowAddForm(false);
+        Alert.alert('تم بنجاح', 'تم إضافة كلمة المرور بنجاح');
+      } else {
+        Alert.alert('خطأ', 'الرجاء ملء جميع الحقول المطلوبة');
+      }
+    } catch (error) {
+      console.error('خطأ في إضافة كلمة المرور:', error);
+      Alert.alert('خطأ', 'حدث خطأ أثناء إضافة كلمة المرور. يرجى المحاولة مرة أخرى.');
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -142,35 +198,45 @@ export default function PasswordTrackerScreen() {
     setSelectedView('edit');
   };
 
-  const updatePassword = () => {
-    if (editPassword.websiteName.trim() && editPassword.username.trim() && editPassword.password.trim()) {
-      const updatedPasswords = passwords.map(p => 
-        p.id === editingPassword?.id ? {
-          ...p,
-          websiteName: editPassword.websiteName,
-          url: editPassword.url,
-          username: editPassword.username,
-          password: editPassword.password,
-          category: editPassword.category,
-          lastUpdated: new Date().toISOString().split('T')[0],
-          strength: getPasswordStrength(editPassword.password),
-          notes: editPassword.notes
-        } : p
-      );
-      setPasswords(updatedPasswords);
-      setEditingPassword(null);
-      setEditPassword({
-        websiteName: '',
-        url: '',
-        username: '',
-        password: '',
-        category: 'تعليمي',
-        notes: ''
-      });
-      setSelectedView('overview');
-      Alert.alert('تم بنجاح', 'تم تحديث كلمة المرور بنجاح');
-    } else {
-      Alert.alert('خطأ', 'الرجاء ملء جميع الحقول المطلوبة');
+  const updatePassword = async () => {
+    if (handleNetworkError()) return;
+    
+    setIsLoading(true);
+    try {
+      if (editPassword.websiteName.trim() && editPassword.username.trim() && editPassword.password.trim()) {
+        const updatedPasswords = passwords.map(p => 
+          p.id === editingPassword?.id ? {
+            ...p,
+            websiteName: editPassword.websiteName,
+            url: editPassword.url,
+            username: editPassword.username,
+            password: editPassword.password,
+            category: editPassword.category,
+            lastUpdated: new Date().toISOString().split('T')[0],
+            strength: getPasswordStrength(editPassword.password),
+            notes: editPassword.notes
+          } : p
+        );
+        setPasswords(updatedPasswords);
+        setEditingPassword(null);
+        setEditPassword({
+          websiteName: '',
+          url: '',
+          username: '',
+          password: '',
+          category: 'تعليمي',
+          notes: ''
+        });
+        setSelectedView('overview');
+        Alert.alert('تم بنجاح', 'تم تحديث كلمة المرور بنجاح');
+      } else {
+        Alert.alert('خطأ', 'الرجاء ملء جميع الحقول المطلوبة');
+      }
+    } catch (error) {
+      console.error('خطأ في تحديث كلمة المرور:', error);
+      Alert.alert('خطأ', 'حدث خطأ أثناء تحديث كلمة المرور. يرجى المحاولة مرة أخرى.');
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -190,24 +256,24 @@ export default function PasswordTrackerScreen() {
   const renderOverviewTab = () => (
     <ThemedView style={styles.tabContent}>
       <ThemedView style={styles.summarySection}>
-        <ThemedText style={styles.sectionTitle}>إحصائيات كلمات المرور</ThemedText>
+        <ThemedText style={[styles.sectionTitle, getTextDirection()]}>{formatRTLText('إحصائيات كلمات المرور')}</ThemedText>
         <ThemedView style={styles.statsGrid}>
           <ThemedView style={[styles.statCard, { backgroundColor: '#E3F2FD' }]}>
             <IconSymbol size={24} name="key.fill" color="#2196F3" />
-            <ThemedText style={styles.statValue}>{passwords.length}</ThemedText>
-            <ThemedText style={styles.statLabel}>إجمالي كلمات المرور</ThemedText>
+            <ThemedText style={[styles.statValue, getTextDirection()]}>{passwords.length}</ThemedText>
+            <ThemedText style={[styles.statLabel, getTextDirection()]}>إجمالي كلمات المرور</ThemedText>
           </ThemedView>
 
           <ThemedView style={[styles.statCard, { backgroundColor: '#E8F5E8' }]}>
             <IconSymbol size={24} name="checkmark.shield.fill" color="#4CAF50" />
-            <ThemedText style={styles.statValue}>{passwords.filter(p => p.strength === 'قوي').length}</ThemedText>
-            <ThemedText style={styles.statLabel}>كلمات مرور قوية</ThemedText>
+            <ThemedText style={[styles.statValue, getTextDirection()]}>{passwords.filter(p => p.strength === 'قوي').length}</ThemedText>
+            <ThemedText style={[styles.statLabel, getTextDirection()]}>كلمات مرور قوية</ThemedText>
           </ThemedView>
 
           <ThemedView style={[styles.statCard, { backgroundColor: '#FFEBEE' }]}>
             <IconSymbol size={24} name="exclamationmark.triangle.fill" color="#F44336" />
-            <ThemedText style={styles.statValue}>{passwords.filter(p => p.strength === 'ضعيف').length}</ThemedText>
-            <ThemedText style={styles.statLabel}>تحتاج تحديث</ThemedText>
+            <ThemedText style={[styles.statValue, getTextDirection()]}>{passwords.filter(p => p.strength === 'ضعيف').length}</ThemedText>
+            <ThemedText style={[styles.statLabel, getTextDirection()]}>تحتاج تحديث</ThemedText>
           </ThemedView>
         </ThemedView>
       </ThemedView>
@@ -219,13 +285,13 @@ export default function PasswordTrackerScreen() {
               <ThemedText style={styles.websiteName} numberOfLines={1}>
                 {item.websiteName}
               </ThemedText>
-              <ThemedView style={[styles.strengthBadge, { backgroundColor: getStrengthColor(item.strength) }]}>
+              <ThemedView style={[styles.strengthBadge, { backgroundColor: getStrengthColor(item.strength) }]}> 
                 <ThemedText style={styles.strengthText}>{item.strength}</ThemedText>
               </ThemedView>
             </ThemedView>
 
-            <ThemedText style={styles.username}>المستخدم: {item.username}</ThemedText>
-            <ThemedText style={styles.lastUpdated}>آخر تحديث: {item.lastUpdated}</ThemedText>
+            <ThemedText style={[styles.username, getTextDirection()]}>المستخدم: {item.username}</ThemedText>
+            <ThemedText style={[styles.lastUpdated, getTextDirection()]}>آخر تحديث: {item.lastUpdated}</ThemedText>
 
             <ThemedView style={styles.passwordActions}>
               <TouchableOpacity 
@@ -263,14 +329,14 @@ export default function PasswordTrackerScreen() {
       <ThemedView style={styles.formContainer}>
         <ThemedView style={styles.formHeader}>
           <IconSymbol size={30} name="plus.circle.fill" color="#add4ce" />
-          <ThemedText style={styles.sectionTitle}>إضافة كلمة مرور جديدة</ThemedText>
-          <ThemedText style={styles.formSubtitle}>
-            أضف معلومات الموقع وكلمة المرور بأمان
+          <ThemedText style={[styles.sectionTitle, getTextDirection()]}>إضافة كلمة مرور جديدة</ThemedText>
+          <ThemedText style={[styles.formSubtitle, getTextDirection()]}>
+            {formatRTLText('أضف معلومات الموقع وكلمة المرور بأمان')}
           </ThemedText>
         </ThemedView>
 
         <ThemedView style={styles.formGroup}>
-          <ThemedText style={styles.formLabel}>اسم الموقع *</ThemedText>
+          <ThemedText style={[styles.formLabel, getTextDirection()]}>اسم الموقع *</ThemedText>
           <TextInput
             style={styles.formInput}
             value={newPassword.websiteName}
@@ -284,7 +350,7 @@ export default function PasswordTrackerScreen() {
         </ThemedView>
 
         <ThemedView style={styles.formGroup}>
-          <ThemedText style={styles.formLabel}>رابط الموقع</ThemedText>
+          <ThemedText style={[styles.formLabel, getTextDirection()]}>رابط الموقع</ThemedText>
           <TextInput
             style={styles.formInput}
             value={newPassword.url}
@@ -300,7 +366,7 @@ export default function PasswordTrackerScreen() {
         </ThemedView>
 
         <ThemedView style={styles.formGroup}>
-          <ThemedText style={styles.formLabel}>اسم المستخدم *</ThemedText>
+          <ThemedText style={[styles.formLabel, getTextDirection()]}>اسم المستخدم *</ThemedText>
           <TextInput
             style={styles.formInput}
             value={newPassword.username}
@@ -314,7 +380,7 @@ export default function PasswordTrackerScreen() {
         </ThemedView>
 
         <ThemedView style={styles.formGroup}>
-          <ThemedText style={styles.formLabel}>كلمة المرور *</ThemedText>
+          <ThemedText style={[styles.formLabel, getTextDirection()]}>كلمة المرور *</ThemedText>
           <TextInput
             style={styles.formInput}
             value={newPassword.password}
@@ -327,8 +393,8 @@ export default function PasswordTrackerScreen() {
             blurOnSubmit={false}
           />
           <ThemedView style={styles.strengthContainer}>
-            <ThemedText style={[styles.strengthIndicator, { color: getStrengthColor(getPasswordStrength(newPassword.password)) }]}>
-              قوة كلمة المرور: {getPasswordStrength(newPassword.password)}
+            <ThemedText style={[styles.strengthIndicator, getTextDirection(), { color: getStrengthColor(getPasswordStrength(newPassword.password)) }]}>
+              {formatRTLText('قوة كلمة المرور:')} {getPasswordStrength(newPassword.password)}
             </ThemedText>
             <ThemedView style={[styles.strengthBar, { backgroundColor: getStrengthColor(getPasswordStrength(newPassword.password)) + '30' }]}>
               <ThemedView 
@@ -345,7 +411,7 @@ export default function PasswordTrackerScreen() {
         </ThemedView>
 
         <ThemedView style={styles.formGroup}>
-          <ThemedText style={styles.formLabel}>الفئة</ThemedText>
+          <ThemedText style={[styles.formLabel, getTextDirection()]}>الفئة</ThemedText>
           <ThemedView style={styles.categorySelector}>
             {['تعليمي', 'إداري', 'شخصي'].map((category) => (
               <TouchableOpacity
@@ -360,9 +426,10 @@ export default function PasswordTrackerScreen() {
               >
                 <ThemedText style={[
                   styles.categoryText,
+                  getTextDirection(),
                   newPassword.category === category && { color: 'white' }
                 ]}>
-                  {category}
+                  {formatRTLText(category)}
                 </ThemedText>
               </TouchableOpacity>
             ))}
@@ -370,7 +437,7 @@ export default function PasswordTrackerScreen() {
         </ThemedView>
 
         <ThemedView style={styles.formGroup}>
-          <ThemedText style={styles.formLabel}>ملاحظات</ThemedText>
+          <ThemedText style={[styles.formLabel, getTextDirection()]}>ملاحظات</ThemedText>
           <TextInput
             style={[styles.formInput, styles.textArea]}
             value={newPassword.notes}
@@ -387,7 +454,7 @@ export default function PasswordTrackerScreen() {
 
         <TouchableOpacity style={styles.saveButton} onPress={addPassword} activeOpacity={0.8}>
           <IconSymbol size={20} name="checkmark.circle.fill" color="#1c1f33" />
-          <ThemedText style={styles.saveButtonText}>حفظ كلمة المرور</ThemedText>
+          <ThemedText style={[styles.saveButtonText, getTextDirection()]}>حفظ كلمة المرور</ThemedText>
         </TouchableOpacity>
       </ThemedView>
     </ThemedView>
@@ -398,14 +465,14 @@ export default function PasswordTrackerScreen() {
       <ThemedView style={styles.formContainer}>
         <ThemedView style={styles.formHeader}>
           <IconSymbol size={30} name="pencil.circle.fill" color="#add4ce" />
-          <ThemedText style={styles.sectionTitle}>تعديل كلمة المرور</ThemedText>
-          <ThemedText style={styles.formSubtitle}>
-            قم بتحديث معلومات كلمة المرور
+          <ThemedText style={[styles.sectionTitle, getTextDirection()]}>تعديل كلمة المرور</ThemedText>
+          <ThemedText style={[styles.formSubtitle, getTextDirection()]}>
+            {formatRTLText('قم بتحديث معلومات كلمة المرور')}
           </ThemedText>
         </ThemedView>
 
         <ThemedView style={styles.formGroup}>
-          <ThemedText style={styles.formLabel}>اسم الموقع *</ThemedText>
+          <ThemedText style={[styles.formLabel, getTextDirection()]}>اسم الموقع *</ThemedText>
           <TextInput
             style={styles.formInput}
             value={editPassword.websiteName}
@@ -419,7 +486,7 @@ export default function PasswordTrackerScreen() {
         </ThemedView>
 
         <ThemedView style={styles.formGroup}>
-          <ThemedText style={styles.formLabel}>رابط الموقع</ThemedText>
+          <ThemedText style={[styles.formLabel, getTextDirection()]}>رابط الموقع</ThemedText>
           <TextInput
             style={styles.formInput}
             value={editPassword.url}
@@ -433,7 +500,7 @@ export default function PasswordTrackerScreen() {
         </ThemedView>
 
         <ThemedView style={styles.formGroup}>
-          <ThemedText style={styles.formLabel}>اسم المستخدم *</ThemedText>
+          <ThemedText style={[styles.formLabel, getTextDirection()]}>اسم المستخدم *</ThemedText>
           <TextInput
             style={styles.formInput}
             value={editPassword.username}
@@ -447,7 +514,7 @@ export default function PasswordTrackerScreen() {
         </ThemedView>
 
         <ThemedView style={styles.formGroup}>
-          <ThemedText style={styles.formLabel}>كلمة المرور *</ThemedText>
+          <ThemedText style={[styles.formLabel, getTextDirection()]}>كلمة المرور *</ThemedText>
           <TextInput
             style={styles.formInput}
             value={editPassword.password}
@@ -460,8 +527,8 @@ export default function PasswordTrackerScreen() {
             blurOnSubmit={false}
           />
           <ThemedView style={styles.strengthContainer}>
-            <ThemedText style={[styles.strengthIndicator, { color: getStrengthColor(getPasswordStrength(editPassword.password)) }]}>
-              قوة كلمة المرور: {getPasswordStrength(editPassword.password)}
+            <ThemedText style={[styles.strengthIndicator, getTextDirection(), { color: getStrengthColor(getPasswordStrength(editPassword.password)) }]}>
+              {formatRTLText('قوة كلمة المرور:')} {getPasswordStrength(editPassword.password)}
             </ThemedText>
             <ThemedView style={[styles.strengthBar, { backgroundColor: getStrengthColor(getPasswordStrength(editPassword.password)) + '30' }]}>
               <ThemedView 
@@ -478,7 +545,7 @@ export default function PasswordTrackerScreen() {
         </ThemedView>
 
         <ThemedView style={styles.formGroup}>
-          <ThemedText style={styles.formLabel}>الفئة</ThemedText>
+          <ThemedText style={[styles.formLabel, getTextDirection()]}>الفئة</ThemedText>
           <ThemedView style={styles.categorySelector}>
             {['تعليمي', 'إداري', 'شخصي'].map((category) => (
               <TouchableOpacity
@@ -492,9 +559,10 @@ export default function PasswordTrackerScreen() {
               >
                 <ThemedText style={[
                   styles.categoryText,
+                  getTextDirection(),
                   editPassword.category === category && { color: 'white' }
                 ]}>
-                  {category}
+                  {formatRTLText(category)}
                 </ThemedText>
               </TouchableOpacity>
             ))}
@@ -502,7 +570,7 @@ export default function PasswordTrackerScreen() {
         </ThemedView>
 
         <ThemedView style={styles.formGroup}>
-          <ThemedText style={styles.formLabel}>ملاحظات</ThemedText>
+          <ThemedText style={[styles.formLabel, getTextDirection()]}>ملاحظات</ThemedText>
           <TextInput
             style={[styles.formInput, styles.textArea]}
             value={editPassword.notes}
@@ -520,12 +588,12 @@ export default function PasswordTrackerScreen() {
         <ThemedView style={styles.formButtonsContainer}>
           <TouchableOpacity style={styles.saveButton} onPress={updatePassword} activeOpacity={0.8}>
             <IconSymbol size={20} name="checkmark.circle.fill" color="#1c1f33" />
-            <ThemedText style={styles.saveButtonText}>حفظ التعديلات</ThemedText>
+            <ThemedText style={[styles.saveButtonText, getTextDirection()]}>حفظ التعديلات</ThemedText>
           </TouchableOpacity>
 
           <TouchableOpacity style={styles.cancelButton} onPress={cancelEdit} activeOpacity={0.8}>
             <IconSymbol size={20} name="xmark.circle.fill" color="#F44336" />
-            <ThemedText style={styles.cancelButtonText}>إلغاء</ThemedText>
+            <ThemedText style={[styles.cancelButtonText, getTextDirection()]}>إلغاء</ThemedText>
           </TouchableOpacity>
         </ThemedView>
       </ThemedView>
@@ -535,50 +603,42 @@ export default function PasswordTrackerScreen() {
   const renderRecommendationsTab = () => (
     <ThemedView style={styles.tabContent}>
       <ThemedView style={styles.recommendationsContainer}>
-        <ThemedText style={styles.sectionTitle}>توصيات الأمان</ThemedText>
+        <ThemedText style={[styles.sectionTitle, getTextDirection()]}>توصيات الأمان</ThemedText>
 
         <ThemedView style={styles.recommendationCard}>
-          <ThemedText style={styles.recommendationTitle}>
-            <IconSymbol size={16} name="exclamationmark.triangle.fill" color="#F44336" /> كلمات مرور ضعيفة
+          <ThemedText style={[styles.recommendationTitle, getTextDirection()]}>
+            <IconSymbol size={16} name="exclamationmark.triangle.fill" color="#F44336" /> {formatRTLText('كلمات مرور ضعيفة')}
           </ThemedText>
           {passwords.filter(p => p.strength === 'ضعيف').map((password) => (
-            <ThemedText key={password.id} style={styles.recommendationText}>
-              • {password.websiteName} - يحتاج إلى تحديث كلمة المرور
+            <ThemedText key={password.id} style={[styles.recommendationText, getTextDirection()]}>
+              {formatRTLText('•')} {password.websiteName} - {formatRTLText('يحتاج إلى تحديث كلمة المرور')}
             </ThemedText>
           ))}
         </ThemedView>
 
         <ThemedView style={styles.recommendationCard}>
-          <ThemedText style={styles.recommendationTitle}>
-            <IconSymbol size={16} name="calendar" color="#9C27B0" /> كلمات مرور قديمة
+          <ThemedText style={[styles.recommendationTitle, getTextDirection()]}>
+            <IconSymbol size={16} name="calendar" color="#9C27B0" /> {formatRTLText('كلمات مرور قديمة')}
           </ThemedText>
           {passwords.filter(p => {
             const lastUpdate = new Date(p.lastUpdated);
             const monthsOld = (Date.now() - lastUpdate.getTime()) / (1000 * 60 * 60 * 24 * 30);
             return monthsOld > 6;
           }).map((password) => (
-            <ThemedText key={password.id} style={styles.recommendationText}>
-              • {password.websiteName} - لم يتم تحديثها منذ أكثر من 6 أشهر
+            <ThemedText key={password.id} style={[styles.recommendationText, getTextDirection()]}>
+              {formatRTLText('•')} {password.websiteName} - {formatRTLText('لم يتم تحديثها منذ أكثر من 6 أشهر')}
             </ThemedText>
           ))}
         </ThemedView>
 
         <ThemedView style={styles.recommendationCard}>
-          <ThemedText style={styles.recommendationTitle}>
-            <IconSymbol size={16} name="star.fill" color="#FF9800" /> نصائح الأمان
+          <ThemedText style={[styles.recommendationTitle, getTextDirection()]}>
+            <IconSymbol size={16} name="star.fill" color="#FF9800" /> {formatRTLText('نصائح الأمان')}
           </ThemedText>
-          <ThemedText style={styles.recommendationText}>
-            • استخدم كلمات مرور فريدة لكل موقع
-          </ThemedText>
-          <ThemedText style={styles.recommendationText}>
-            • قم بتحديث كلمات المرور كل 3-6 أشهر
-          </ThemedText>
-          <ThemedText style={styles.recommendationText}>
-            • استخدم المصادقة الثنائية عند توفرها
-          </ThemedText>
-          <ThemedText style={styles.recommendationText}>
-            • تجنب استخدام معلومات شخصية في كلمات المرور
-          </ThemedText>
+          <ThemedText style={[styles.recommendationText, getTextDirection()]}>• استخدم كلمات مرور فريدة لكل موقع</ThemedText>
+          <ThemedText style={[styles.recommendationText, getTextDirection()]}>• قم بتحديث كلمات المرور كل 3-6 أشهر</ThemedText>
+          <ThemedText style={[styles.recommendationText, getTextDirection()]}>• استخدم المصادقة الثنائية عند توفرها</ThemedText>
+          <ThemedText style={[styles.recommendationText, getTextDirection()]}>• تجنب استخدام معلومات شخصية في كلمات المرور</ThemedText>
         </ThemedView>
       </ThemedView>
     </ThemedView>
@@ -623,87 +683,81 @@ export default function PasswordTrackerScreen() {
   };
 
   return (
-    <ThemedView style={styles.container}>
+    <ThemedView style={[styles.container, { direction: 'rtl' }]}>
       <ImageBackground
         source={require('@/assets/images/background.png')}
-        style={styles.backgroundImage}
+        style={[styles.backgroundImage, { direction: 'rtl' }]}
         resizeMode="cover"
       >
-        <ThemedView style={styles.header}>
-          <TouchableOpacity 
-            style={styles.backButton}
-            onPress={() => router.back()}
-          >
-            <IconSymbol size={20} name="chevron.left" color="#1c1f33" />
-          </TouchableOpacity>
-
-          <ThemedView style={styles.iconContainer}>
-            <IconSymbol size={60} name="key.fill" color="#1c1f33" />
-          </ThemedView>
-          <ThemedText type="title" style={styles.title}>
-            متتبع المواقع وكلمات المرور
-          </ThemedText>
-          <ThemedText style={styles.subtitle}>
-            إدارة آمنة لجميع كلمات المرور والمواقع المهمة
-          </ThemedText>
-
-          <TouchableOpacity
-            style={styles.addButton}
-            onPress={() => setSelectedView('add')}
-          >
-            <IconSymbol size={24} name="plus" color="#1c1f33" />
-            <ThemedText style={styles.addButtonText}>إضافة كلمة مرور</ThemedText>
-          </TouchableOpacity>
-        </ThemedView>
-
-        <ThemedView style={styles.tabSelector}>
-          <TouchableOpacity
-            style={[styles.tabButton, selectedView === 'recommendations' && styles.activeTabButton]}
-            onPress={() => setSelectedView('recommendations')}
-          >
-            <IconSymbol size={16} name="lightbulb.fill" color={selectedView === 'recommendations' ? '#fff' : '#666'} />
-            <ThemedText style={[styles.tabButtonText, selectedView === 'recommendations' && styles.activeTabButtonText]}>
-              توصيات الأمان
-            </ThemedText>
-          </TouchableOpacity>
-
-          <TouchableOpacity
-            style={[styles.tabButton, selectedView === 'add' && styles.activeTabButton]}
-            onPress={() => setSelectedView('add')}
-          >
-            <IconSymbol size={16} name="plus.circle.fill" color={selectedView === 'add' ? '#fff' : '#666'} />
-            <ThemedText style={[styles.tabButtonText, selectedView === 'add' && styles.activeTabButtonText]}>
-              إضافة جديد
-            </ThemedText>
-          </TouchableOpacity>
-
-          <TouchableOpacity
-            style={[styles.tabButton, selectedView === 'overview' && styles.activeTabButton]}
-            onPress={() => setSelectedView('overview')}
-          >
-            <IconSymbol size={16} name="list.bullet" color={selectedView === 'overview' ? '#fff' : '#666'} />
-            <ThemedText style={[styles.tabButtonText, selectedView === 'overview' && styles.activeTabButtonText]}>
-              جميع كلمات المرور
-            </ThemedText>
-          </TouchableOpacity>
-        </ThemedView>
-
         <KeyboardAvoidingView
-          style={styles.keyboardAvoidingContainer}
-          behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-          keyboardVerticalOffset={Platform.OS === 'ios' ? 0 : 20}
+          style={{ flex: 1 }}
+          behavior={Platform.OS === 'ios' ? 'padding' : undefined}
         >
-          <ScrollView 
-            style={styles.content}
-            contentContainerStyle={styles.contentContainer}
+          <ScrollView
+            style={styles.scrollContainer}
+            contentContainerStyle={styles.scrollContent}
             showsVerticalScrollIndicator={false}
             keyboardShouldPersistTaps="handled"
-            contentInsetAdjustmentBehavior="automatic"
-            maintainVisibleContentPosition={{
-              minIndexForVisible: 0,
-              autoscrollToTopThreshold: 10
-            }}
           >
+            <ThemedView style={[styles.header, { paddingTop: insets.top + 20 }]}>
+              <TouchableOpacity 
+                style={styles.backButton}
+                onPress={() => router.back()}
+              >
+                <IconSymbol size={20} name="chevron.left" color="#1c1f33" />
+              </TouchableOpacity>
+
+              <ThemedView style={styles.iconContainer}>
+                <IconSymbol size={60} name="key.fill" color="#1c1f33" />
+              </ThemedView>
+              <ThemedText type="title" style={[styles.title, getTextDirection()]}> 
+                {formatRTLText('متتبع المواقع وكلمات المرور')}
+              </ThemedText>
+              <ThemedText style={[styles.subtitle, getTextDirection()]}> 
+                {formatRTLText('إدارة آمنة لجميع كلمات المرور والمواقع المهمة')}
+              </ThemedText>
+
+              <TouchableOpacity
+                style={styles.addButton}
+                onPress={() => setSelectedView('add')}
+              >
+                <IconSymbol size={24} name="plus" color="#1c1f33" />
+                <ThemedText style={[styles.addButtonText, getTextDirection()]}>إضافة كلمة مرور</ThemedText>
+              </TouchableOpacity>
+            </ThemedView>
+
+            <ThemedView style={styles.tabSelector}>
+              <TouchableOpacity
+                style={[styles.tabButton, selectedView === 'overview' && styles.activeTabButton]}
+                onPress={() => setSelectedView('overview')}
+              >
+                <IconSymbol size={16} name="list.bullet" color={selectedView === 'overview' ? '#fff' : '#666'} />
+                <ThemedText style={[styles.tabButtonText, getTextDirection(), selectedView === 'overview' && styles.activeTabButtonText]}> 
+                  {formatRTLText('جميع كلمات المرور')}
+                </ThemedText>
+              </TouchableOpacity>
+
+              <TouchableOpacity
+                style={[styles.tabButton, selectedView === 'add' && styles.activeTabButton]}
+                onPress={() => setSelectedView('add')}
+              >
+                <IconSymbol size={16} name="plus.circle.fill" color={selectedView === 'add' ? '#fff' : '#666'} />
+                <ThemedText style={[styles.tabButtonText, getTextDirection(), selectedView === 'add' && styles.activeTabButtonText]}> 
+                  {formatRTLText('إضافة جديد')}
+                </ThemedText>
+              </TouchableOpacity>
+
+              <TouchableOpacity
+                style={[styles.tabButton, selectedView === 'recommendations' && styles.activeTabButton]}
+                onPress={() => setSelectedView('recommendations')}
+              >
+                <IconSymbol size={16} name="lightbulb.fill" color={selectedView === 'recommendations' ? '#fff' : '#666'} />
+                <ThemedText style={[styles.tabButtonText, getTextDirection(), selectedView === 'recommendations' && styles.activeTabButtonText]}> 
+                  {formatRTLText('توصيات الأمان')}
+                </ThemedText>
+              </TouchableOpacity>
+            </ThemedView>
+
             {renderCurrentTab()}
           </ScrollView>
         </KeyboardAvoidingView>
@@ -718,11 +772,17 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
   },
-
   backgroundImage: {
     flex: 1,
     width: '100%',
     height: '100%',
+  },
+  scrollContainer: {
+    flex: 1,
+  },
+  scrollContent: {
+    flexGrow: 1,
+    paddingBottom: 100,
   },
   keyboardAvoidingContainer: {
     flex: 1,
@@ -774,18 +834,18 @@ const styles = StyleSheet.create({
     marginTop: 15,
     marginBottom: 10,
     textAlign: 'center',
-    writingDirection: 'rtl',
+    ...getRTLTextStyle(),
     color: '#000000',
   },
   subtitle: {
     fontSize: 16,
     color: '#666666',
     textAlign: 'center',
-    writingDirection: 'rtl',
+    ...getRTLTextStyle(),
     marginBottom: 20,
   },
   addButton: {
-    flexDirection: 'row',
+    flexDirection: 'row-reverse',
     alignItems: 'center',
     justifyContent: 'center',
     paddingVertical: 15,
@@ -806,9 +866,10 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: 'bold',
     textAlign: 'center',
+    ...getRTLTextStyle(),
   },
   tabSelector: {
-    flexDirection: 'row',
+    flexDirection: 'row-reverse',
     backgroundColor: '#fff',
     marginHorizontal: 15,
     borderRadius: 25,
@@ -821,7 +882,7 @@ const styles = StyleSheet.create({
   },
   tabButton: {
     flex: 1,
-    flexDirection: 'row',
+    flexDirection: 'row-reverse',
     alignItems: 'center',
     justifyContent: 'center',
     paddingVertical: 10,
@@ -837,21 +898,25 @@ const styles = StyleSheet.create({
     color: '#666',
     fontWeight: '600',
     textAlign: 'center',
-    writingDirection: 'rtl',
+    ...getRTLTextStyle(),
   },
   activeTabButtonText: {
     color: '#fff',
   },
   content: {
     flex: 1,
-    padding: 20,
+    width: '100%',
   },
   contentContainer: {
-    paddingBottom: Platform.OS === 'ios' ? 120 : 105,
     flexGrow: 1,
+    width: '100%',
+    paddingHorizontal: 20,
+    paddingBottom: Platform.OS === 'ios' ? 120 : 105,
   },
   tabContent: {
     backgroundColor: 'transparent',
+    flex: 1,
+    width: '100%',
   },
   summarySection: {
     backgroundColor: '#fff',
@@ -863,19 +928,22 @@ const styles = StyleSheet.create({
     shadowOffset: { width: 0, height: 1 },
     shadowOpacity: 0.1,
     shadowRadius: 3,
+    width: '100%',
+    alignSelf: 'stretch',
   },
   sectionTitle: {
     fontSize: 18,
     fontWeight: 'bold',
     color: '#333',
-    textAlign: 'center',
-    writingDirection: 'rtl',
+    ...getRTLTextStyle(),
     marginBottom: 15,
+    width: '100%',
   },
   statsGrid: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     gap: 10,
+    width: '100%',
   },
   statCard: {
     flex: 1,
@@ -898,7 +966,7 @@ const styles = StyleSheet.create({
     fontSize: 12,
     color: '#666',
     textAlign: 'center',
-    writingDirection: 'rtl',
+    ...getRTLTextStyle(),
     marginTop: 4,
   },
   passwordsGrid: {
@@ -916,12 +984,14 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.1,
     shadowRadius: 3,
     marginBottom: 10,
+    direction: 'rtl',
   },
   passwordHeader: {
-    flexDirection: 'row',
+    flexDirection: 'row-reverse',
     justifyContent: 'space-between',
     alignItems: 'center',
     marginBottom: 8,
+    width: '100%',
   },
   websiteName: {
     fontSize: 14,
@@ -929,12 +999,13 @@ const styles = StyleSheet.create({
     color: '#333',
     flex: 1,
     textAlign: 'right',
-    writingDirection: 'rtl',
+    ...getRTLTextStyle(),
   },
   strengthBadge: {
     paddingHorizontal: 8,
     paddingVertical: 4,
     borderRadius: 10,
+    marginRight: 10,
   },
   strengthText: {
     fontSize: 10,
@@ -945,24 +1016,22 @@ const styles = StyleSheet.create({
     fontSize: 12,
     color: '#666',
     marginBottom: 4,
-    textAlign: 'right',
-    writingDirection: 'rtl',
+    ...getRTLTextStyle(),
   },
   lastUpdated: {
     fontSize: 10,
     color: '#999',
     marginBottom: 8,
-    textAlign: 'right',
-    writingDirection: 'rtl',
+    ...getRTLTextStyle(),
   },
   passwordActions: {
-    flexDirection: 'row',
+    flexDirection: 'row-reverse',
     justifyContent: 'space-between',
     gap: 3,
   },
   actionButton: {
     flex: 1,
-    flexDirection: 'row',
+    flexDirection: 'row-reverse',
     alignItems: 'center',
     justifyContent: 'center',
     backgroundColor: '#f8f9fa',
@@ -996,7 +1065,7 @@ const styles = StyleSheet.create({
     fontSize: 14,
     color: '#666',
     textAlign: 'center',
-    writingDirection: 'rtl',
+    ...getRTLTextStyle(),
     marginTop: 5,
   },
   formGroup: {
@@ -1007,8 +1076,7 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
     color: '#333',
     marginBottom: 8,
-    textAlign: 'right',
-    writingDirection: 'rtl',
+    ...getRTLTextStyle(),
   },
   formInput: {
     backgroundColor: '#f8f9fa',
@@ -1018,8 +1086,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 15,
     paddingVertical: 12,
     fontSize: 14,
-    textAlign: 'right',
-    writingDirection: 'rtl',
+    ...getRTLTextStyle(),
   },
   textArea: {
     height: 80,
@@ -1028,8 +1095,7 @@ const styles = StyleSheet.create({
   strengthIndicator: {
     fontSize: 12,
     marginTop: 5,
-    textAlign: 'right',
-    writingDirection: 'rtl',
+    ...getRTLTextStyle(),
     fontWeight: '600',
   },
   strengthContainer: {
@@ -1047,7 +1113,7 @@ const styles = StyleSheet.create({
     transition: 'width 0.3s ease',
   },
   categorySelector: {
-    flexDirection: 'row',
+    flexDirection: 'row-reverse',
     gap: 10,
   },
   categoryOption: {
@@ -1063,7 +1129,7 @@ const styles = StyleSheet.create({
     textAlign: 'center',
   },
   saveButton: {
-    flexDirection: 'row',
+    flexDirection: 'row-reverse',
     alignItems: 'center',
     justifyContent: 'center',
     backgroundColor: '#add4ce',
@@ -1081,8 +1147,7 @@ const styles = StyleSheet.create({
     color: '#1c1f33',
     fontSize: 16,
     fontWeight: '600',
-    writingDirection: 'rtl',
-    textAlign: 'center',
+    ...getRTLTextStyle(),
   },
   recommendationsContainer: {
     gap: 15,
@@ -1102,25 +1167,23 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
     color: '#333',
     marginBottom: 12,
-    textAlign: 'right',
-    writingDirection: 'rtl',
+    ...getRTLTextStyle(),
   },
   recommendationText: {
     fontSize: 14,
     color: '#666',
     lineHeight: 22,
     marginBottom: 8,
-    textAlign: 'right',
-    writingDirection: 'rtl',
+    ...getRTLTextStyle(),
   },
   formButtonsContainer: {
-    flexDirection: 'row',
+    flexDirection: 'row-reverse',
     gap: 15,
     marginTop: 10,
   },
   cancelButton: {
     flex: 1,
-    flexDirection: 'row',
+    flexDirection: 'row-reverse',
     alignItems: 'center',
     justifyContent: 'center',
     backgroundColor: '#ffebee',
@@ -1135,8 +1198,7 @@ const styles = StyleSheet.create({
     color: '#F44336',
     fontSize: 16,
     fontWeight: '600',
-    writingDirection: 'rtl',
-    textAlign: 'center',
+    ...getRTLTextStyle(),
   },
 
 });

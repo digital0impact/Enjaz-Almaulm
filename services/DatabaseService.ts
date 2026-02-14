@@ -77,21 +77,27 @@ class DatabaseService {
     }
   }
 
-  // إضافة مستخدم جديد
+  // إضافة/تحديث الملف الشخصي للمستخدم الحالي (يُستدعى مع معرف المستخدم من auth)
   async addUser(name: string, email: string, phoneNumber?: string, jobTitle?: string, workLocation?: string) {
     try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user?.id) throw new Error('يجب تسجيل الدخول أولاً');
       const { data, error } = await supabase
         .from('user_profiles')
-        .insert([{ 
-          name, 
-          email, 
-          phone_number: phoneNumber || '',
-          job_title: jobTitle || '',
-          work_location: workLocation || ''
-        }])
+        .upsert(
+          {
+            id: user.id,
+            name,
+            email,
+            phone_number: phoneNumber || '',
+            job_title: jobTitle || '',
+            work_location: workLocation || '',
+            updated_at: new Date().toISOString(),
+          },
+          { onConflict: 'id' }
+        )
         .select()
         .single();
-      
       if (error) {
         logError('Insert error', 'DatabaseService', error);
         throw error;
@@ -106,12 +112,22 @@ class DatabaseService {
   // User Profile Operations
   async saveUserProfile(userProfile: UserProfile): Promise<string> {
     try {
+      const id = userProfile.id;
+      if (!id) throw new Error('معرف المستخدم مطلوب لحفظ الملف الشخصي');
+      const row = {
+        id,
+        name: userProfile.name,
+        email: userProfile.email,
+        phone_number: userProfile.phoneNumber ?? '',
+        job_title: userProfile.jobTitle ?? '',
+        work_location: userProfile.workLocation ?? '',
+        updated_at: new Date().toISOString(),
+      };
       const { data, error } = await supabase
         .from('user_profiles')
-        .insert([userProfile])
+        .upsert(row, { onConflict: 'id' })
         .select()
         .single();
-      
       if (error) throw error;
       return data.id;
     } catch (error) {
@@ -127,9 +143,18 @@ class DatabaseService {
         .select('*')
         .eq('id', userId)
         .single();
-      
       if (error && error.code !== 'PGRST116') throw error;
-      return data;
+      if (!data) return null;
+      return {
+        id: data.id,
+        name: data.name ?? '',
+        email: data.email ?? '',
+        phoneNumber: data.phone_number ?? '',
+        jobTitle: data.job_title ?? '',
+        workLocation: data.work_location ?? '',
+        created_at: data.created_at,
+        updated_at: data.updated_at,
+      };
     } catch (error) {
       logError('Error getting user profile', 'DatabaseService', error);
       throw error;
@@ -138,11 +163,13 @@ class DatabaseService {
 
   async updateUserProfile(userId: string, updates: Partial<UserProfile>): Promise<void> {
     try {
-      const { error } = await supabase
-        .from('user_profiles')
-        .update(updates)
-        .eq('id', userId);
-      
+      const row: Record<string, unknown> = { updated_at: new Date().toISOString() };
+      if (updates.name !== undefined) row.name = updates.name;
+      if (updates.email !== undefined) row.email = updates.email;
+      if (updates.phoneNumber !== undefined) row.phone_number = updates.phoneNumber;
+      if (updates.jobTitle !== undefined) row.job_title = updates.jobTitle;
+      if (updates.workLocation !== undefined) row.work_location = updates.workLocation;
+      const { error } = await supabase.from('user_profiles').update(row).eq('id', userId);
       if (error) throw error;
     } catch (error) {
       logError('Error updating user profile', 'DatabaseService', error);
@@ -153,12 +180,18 @@ class DatabaseService {
   // Performance Data Operations
   async savePerformanceData(performanceData: PerformanceData): Promise<string> {
     try {
+      const row = {
+        userid: performanceData.userId,
+        axis_id: performanceData.axisId,
+        axis_title: performanceData.axisTitle,
+        evidences: performanceData.evidences ?? [],
+        score: performanceData.score,
+      };
       const { data, error } = await supabase
         .from('performance_data')
-        .insert([{...performanceData, userid: performanceData.userId}])
+        .insert([row])
         .select()
         .single();
-      
       if (error) throw error;
       return data.id;
     } catch (error) {
@@ -174,9 +207,17 @@ class DatabaseService {
         .select('*')
         .eq('userid', userId)
         .order('created_at', { ascending: false });
-      
       if (error) throw error;
-      return data || [];
+      return (data || []).map((row: Record<string, unknown>) => ({
+        id: row.id,
+        userId: row.userid,
+        axisId: row.axis_id,
+        axisTitle: row.axis_title,
+        evidences: (row.evidences as Evidence[]) ?? [],
+        score: Number(row.score),
+        created_at: row.created_at,
+        updated_at: row.updated_at,
+      }));
     } catch (error) {
       logError('Error getting performance data', 'DatabaseService', error);
       throw error;
@@ -185,11 +226,13 @@ class DatabaseService {
 
   async updatePerformanceData(performanceId: string, updates: Partial<PerformanceData>): Promise<void> {
     try {
-      const { error } = await supabase
-        .from('performance_data')
-        .update(updates)
-        .eq('id', performanceId);
-      
+      const row: Record<string, unknown> = {};
+      if (updates.axisId !== undefined) row.axis_id = updates.axisId;
+      if (updates.axisTitle !== undefined) row.axis_title = updates.axisTitle;
+      if (updates.evidences !== undefined) row.evidences = updates.evidences;
+      if (updates.score !== undefined) row.score = updates.score;
+      if (Object.keys(row).length === 0) return;
+      const { error } = await supabase.from('performance_data').update(row).eq('id', performanceId);
       if (error) throw error;
     } catch (error) {
       logError('Error updating performance data', 'DatabaseService', error);
@@ -200,12 +243,15 @@ class DatabaseService {
   // Alerts Operations
   async saveAlert(alert: Alert): Promise<string> {
     try {
-      const { data, error } = await supabase
-        .from('alerts')
-        .insert([{...alert, userid: alert.userId}])
-        .select()
-        .single();
-      
+      const row = {
+        userid: alert.userId,
+        title: alert.title,
+        description: alert.description ?? '',
+        date: alert.date,
+        time: alert.time,
+        is_active: alert.isActive ?? true,
+      };
+      const { data, error } = await supabase.from('alerts').insert([row]).select().single();
       if (error) throw error;
       return data.id;
     } catch (error) {
@@ -221,9 +267,18 @@ class DatabaseService {
         .select('*')
         .eq('userid', userId)
         .order('created_at', { ascending: false });
-      
       if (error) throw error;
-      return data || [];
+      return (data || []).map((row: Record<string, unknown>) => ({
+        id: row.id,
+        userId: row.userid,
+        title: row.title,
+        description: row.description,
+        date: row.date,
+        time: row.time,
+        isActive: row.is_active,
+        created_at: row.created_at,
+        updated_at: row.updated_at,
+      }));
     } catch (error) {
       logError('Error getting alerts', 'DatabaseService', error);
       throw error;
@@ -232,11 +287,14 @@ class DatabaseService {
 
   async updateAlert(alertId: string, updates: Partial<Alert>): Promise<void> {
     try {
-      const { error } = await supabase
-        .from('alerts')
-        .update(updates)
-        .eq('id', alertId);
-      
+      const row: Record<string, unknown> = {};
+      if (updates.title !== undefined) row.title = updates.title;
+      if (updates.description !== undefined) row.description = updates.description;
+      if (updates.date !== undefined) row.date = updates.date;
+      if (updates.time !== undefined) row.time = updates.time;
+      if (updates.isActive !== undefined) row.is_active = updates.isActive;
+      if (Object.keys(row).length === 0) return;
+      const { error } = await supabase.from('alerts').update(row).eq('id', alertId);
       if (error) throw error;
     } catch (error) {
       logError('Error updating alert', 'DatabaseService', error);

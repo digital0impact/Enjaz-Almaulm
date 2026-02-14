@@ -1,13 +1,16 @@
 import React from 'react';
 import { View, Text, TouchableOpacity } from 'react-native';
 import { useTheme } from '@/contexts/ThemeContext';
+import { getTextDirection, formatRTLText } from '@/utils/rtl-utils';
 
 export default function MyComponent() {
   const { colors } = useTheme();
 
   return (
     <View style={{ backgroundColor: colors.background, flex: 1 }}>
-      <Text style={{ color: colors.text }}>مرحبًا!</Text>
+      <Text style={[{ color: colors.text }, getTextDirection()]}>
+        {formatRTLText('مرحبًا!')}
+      </Text>
 
       <View style={{
         backgroundColor: colors.surface,
@@ -17,7 +20,9 @@ export default function MyComponent() {
         borderWidth: 1,
         borderColor: colors.border
       }}>
-        <Text style={{ color: colors.text }}>هذا كرت</Text>
+        <Text style={[{ color: colors.text }, getTextDirection()]}>
+          {formatRTLText('هذا كرت')}
+        </Text>
       </View>
 
       <TouchableOpacity style={{
@@ -27,7 +32,9 @@ export default function MyComponent() {
         margin: 10,
         alignItems: 'center'
       }}>
-        <Text style={{ color: colors.text }}>زر</Text>
+        <Text style={[{ color: colors.text }, getTextDirection()]}>
+          {formatRTLText('زر')}
+        </Text>
       </TouchableOpacity>
     </View>
   );

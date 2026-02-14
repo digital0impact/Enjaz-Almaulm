@@ -33,6 +33,28 @@ ON CONFLICT (id) DO NOTHING;
 -- 2. سياسات الأمان للـ Buckets
 -- =====================================================
 
+-- إزالة السياسات إن وُجدت (لتشغيل السكريبت أكثر من مرة)
+DROP POLICY IF EXISTS "Users can upload attachments" ON storage.objects;
+DROP POLICY IF EXISTS "Users can view their own attachments" ON storage.objects;
+DROP POLICY IF EXISTS "Users can update their own attachments" ON storage.objects;
+DROP POLICY IF EXISTS "Users can delete their own attachments" ON storage.objects;
+DROP POLICY IF EXISTS "Users can upload user files" ON storage.objects;
+DROP POLICY IF EXISTS "Users can view their own user files" ON storage.objects;
+DROP POLICY IF EXISTS "Users can update their own user files" ON storage.objects;
+DROP POLICY IF EXISTS "Users can delete their own user files" ON storage.objects;
+DROP POLICY IF EXISTS "Anyone can view profile images" ON storage.objects;
+DROP POLICY IF EXISTS "Users can upload profile images" ON storage.objects;
+DROP POLICY IF EXISTS "Users can update their own profile images" ON storage.objects;
+DROP POLICY IF EXISTS "Users can delete their own profile images" ON storage.objects;
+DROP POLICY IF EXISTS "Users can upload documents" ON storage.objects;
+DROP POLICY IF EXISTS "Users can view their own documents" ON storage.objects;
+DROP POLICY IF EXISTS "Users can update their own documents" ON storage.objects;
+DROP POLICY IF EXISTS "Users can delete their own documents" ON storage.objects;
+DROP POLICY IF EXISTS "Users can upload backups" ON storage.objects;
+DROP POLICY IF EXISTS "Users can view their own backups" ON storage.objects;
+DROP POLICY IF EXISTS "Users can update their own backups" ON storage.objects;
+DROP POLICY IF EXISTS "Users can delete their own backups" ON storage.objects;
+
 -- سياسات attachments bucket
 CREATE POLICY "Users can upload attachments" ON storage.objects
 FOR INSERT WITH CHECK (bucket_id = 'attachments' AND auth.uid() IS NOT NULL);
@@ -121,6 +143,11 @@ CREATE INDEX IF NOT EXISTS idx_file_attachments_created_at ON public.file_attach
 -- سياسات RLS لجدول file_attachments
 ALTER TABLE public.file_attachments ENABLE ROW LEVEL SECURITY;
 
+DROP POLICY IF EXISTS "Users can view their own file attachments" ON public.file_attachments;
+DROP POLICY IF EXISTS "Users can insert their own file attachments" ON public.file_attachments;
+DROP POLICY IF EXISTS "Users can update their own file attachments" ON public.file_attachments;
+DROP POLICY IF EXISTS "Users can delete their own file attachments" ON public.file_attachments;
+
 CREATE POLICY "Users can view their own file attachments" ON public.file_attachments
 FOR SELECT USING (auth.uid() = user_id);
 
@@ -149,7 +176,7 @@ DROP TRIGGER IF EXISTS update_file_attachments_updated_at ON public.file_attachm
 CREATE TRIGGER update_file_attachments_updated_at
     BEFORE UPDATE ON public.file_attachments
     FOR EACH ROW
-    EXECUTE FUNCTION update_updated_at_column();
+    EXECUTE PROCEDURE update_updated_at_column();
 
 -- 5. رسالة تأكيد
 -- =====================================================

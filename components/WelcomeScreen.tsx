@@ -1,13 +1,16 @@
 import React from 'react';
 import { View, Text, StyleSheet } from 'react-native';
 import { useUser } from '../contexts/UserContext';
+import { getTextDirection, formatRTLText } from '@/utils/rtl-utils';
 
 export default function WelcomeScreen() {
   const { userName } = useUser();
 
   return (
     <View style={styles.container}>
-      <Text style={styles.greeting}>مرحبًا، {userName} 👋</Text>
+      <Text style={[styles.greeting, getTextDirection()]}> 
+        {formatRTLText(`مرحبًا، ${userName} 👋`)}
+      </Text>
     </View>
   );
 }

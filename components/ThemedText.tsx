@@ -1,5 +1,4 @@
 import { Text, type TextProps } from 'react-native';
-import { RTLStyles } from '@/utils/localization';
 import { useTheme } from '@/contexts/ThemeContext';
 
 export type ThemedTextProps = TextProps & {
@@ -22,13 +21,12 @@ export function ThemedText({
     <Text
       style={[
         { color },
-        RTLStyles.text,
         type === 'default' && styles.default,
         type === 'title' && styles.title,
         type === 'defaultSemiBold' && styles.defaultSemiBold,
         type === 'subtitle' && styles.subtitle,
         type === 'link' && styles.link,
-        style,
+        style, // يجب أن يكون الأخير
       ]}
       {...rest}
     />

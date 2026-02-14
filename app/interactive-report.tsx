@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from 'react';
-import { StyleSheet, ScrollView, TouchableOpacity, Alert, ImageBackground, KeyboardAvoidingView, Platform, StatusBar, I18nManager, Dimensions, View } from 'react-native';
+import { StyleSheet, ScrollView, TouchableOpacity, Alert, ImageBackground, KeyboardAvoidingView, Platform, StatusBar, Dimensions, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { BarChart } from 'react-native-chart-kit';
+import { useFocusEffect } from '@react-navigation/native';
 
 import { ThemedText } from '@/components/ThemedText';
 import { ThemedView } from '@/components/ThemedView';
@@ -12,6 +13,7 @@ import { BottomNavigationBar } from '@/components/BottomNavigationBar';
 import * as Sharing from 'expo-sharing';
 import * as Print from 'expo-print';
 import * as FileSystem from 'expo-file-system';
+import { getTextDirection, formatRTLText, isRTL } from '@/utils/rtl-utils';
 
 const { width } = Dimensions.get('window');
 
@@ -35,122 +37,889 @@ export default function InteractiveReportScreen() {
   const [selectedChart, setSelectedChart] = useState('overall');
   const [performanceData, setPerformanceData] = useState<PerformanceItem[]>([]);
   const [loading, setLoading] = useState(true);
+  // إضافة مستمع للتركيز على الصفحة باستخدام useFocusEffect
+  useFocusEffect(
+    React.useCallback(() => {
+      // إعادة تحميل البيانات عند العودة إلى الصفحة
+      loadPerformanceData();
+    }, [])
+  );
 
   // تحميل البيانات الفعلية من AsyncStorage
   useEffect(() => {
     loadPerformanceData();
   }, []);
 
+  // إضافة مستمع لتغيير المهنة
+  useEffect(() => {
+    const checkProfessionChange = async () => {
+      try {
+        const basicData = await AsyncStorage.getItem('basicData');
+        if (basicData) {
+          const parsedBasicData = JSON.parse(basicData);
+          const currentProfession = parsedBasicData.profession || 'معلم/ة';
+          
+          // التحقق من تغيير المهنة وإعادة تحميل البيانات إذا لزم الأمر
+          const currentProfessionData = getDefaultPerformanceData(currentProfession);
+          if (performanceData.length !== currentProfessionData.length) {
+            console.log('Profession changed, reloading data...');
+            loadPerformanceData();
+          }
+        }
+      } catch (error) {
+        console.log('Error checking profession change:', error);
+      }
+    };
+
+    // فحص تغيير المهنة كل 3 ثانية (تقليل التكرار)
+    const interval = setInterval(checkProfessionChange, 3000);
+    return () => clearInterval(interval);
+  }, [performanceData.length]);
+
   const loadPerformanceData = async () => {
     try {
+      // تحميل البيانات الأساسية للحصول على المهنة
+      const basicData = await AsyncStorage.getItem('basicData');
+      let profession = 'معلم/ة';
+      if (basicData) {
+        const parsedBasicData = JSON.parse(basicData);
+        profession = parsedBasicData.profession || 'معلم/ة';
+      }
+
+      // تحميل بيانات الأداء
       const storedData = await AsyncStorage.getItem('performanceData');
       if (storedData) {
         const parsedData = JSON.parse(storedData);
-        // معالجة: إضافة category افتراضي إذا لم يوجد
-        const normalizedData = Array.isArray(parsedData)
-          ? parsedData.map(item => ({
-              ...item,
-              category: item.category || 'غير محدد',
-            }))
-          : [];
-        if (Array.isArray(normalizedData) && normalizedData.length > 0) {
+        
+        // التحقق من أن البيانات المحفوظة تتطابق مع المهنة الحالية
+        const currentProfessionData = getDefaultPerformanceData(profession);
+        
+        if (Array.isArray(parsedData) && parsedData.length === currentProfessionData.length) {
+          // إذا كانت البيانات المحفوظة تتطابق مع المهنة الحالية
+          const normalizedData = parsedData.map(item => ({
+            ...item,
+            category: getCategoryByTitle(item.title, profession),
+          }));
           setPerformanceData(normalizedData);
           console.log('Loaded performanceData from AsyncStorage:', normalizedData);
         } else {
-          setPerformanceData(getDefaultPerformanceData());
-          console.log('No valid data in AsyncStorage, using default data');
+          // إذا تغيرت المهنة أو كانت البيانات غير متطابقة، استخدم البيانات الجديدة
+          setPerformanceData(currentProfessionData);
+          console.log('Profession changed or data mismatch, using new profession data');
+          // حفظ البيانات الجديدة
+          await AsyncStorage.setItem('performanceData', JSON.stringify(currentProfessionData));
         }
       } else {
-        setPerformanceData(getDefaultPerformanceData());
-        console.log('No data in AsyncStorage, using default data');
+        // إذا لم تكن هناك بيانات محفوظة، استخدم البيانات حسب المهنة
+        setPerformanceData(currentProfessionData);
+        console.log('No data in AsyncStorage, using default data for profession:', profession);
+        // حفظ البيانات الجديدة
+        await AsyncStorage.setItem('performanceData', JSON.stringify(currentProfessionData));
       }
       setLoading(false);
     } catch (error) {
       console.log('Error loading performance data:', error);
-      setPerformanceData(getDefaultPerformanceData());
+      const fallbackData = getDefaultPerformanceData('معلم/ة');
+      setPerformanceData(fallbackData);
+      // حفظ البيانات الافتراضية في حالة الخطأ
+      try {
+        await AsyncStorage.setItem('performanceData', JSON.stringify(fallbackData));
+      } catch (saveError) {
+        console.log('Error saving fallback data:', saveError);
+      }
       setLoading(false);
     }
   };
 
-  const getDefaultPerformanceData = () => [
-    {
-      id: 1,
-      title: 'أداء الواجبات الوظيفية',
-      score: 85,
-      weight: 10,
-      category: 'وظيفي'
-    },
-    {
-      id: 2,
-      title: 'التفاعل مع المجتمع المهني',
-      score: 78,
-      weight: 10,
-      category: 'تفاعلي'
-    },
-    {
-      id: 3,
-      title: 'التفاعل مع أولياء الأمور',
-      score: 92,
-      weight: 10,
-      category: 'تفاعلي'
-    },
-    {
-      id: 4,
-      title: 'تنويع استراتيجيات التدريس',
-      score: 88,
-      weight: 10,
-      category: 'تعليمي'
-    },
-    {
-      id: 5,
-      title: 'تحسين نتائج المتعلمين',
-      score: 75,
-      weight: 10,
-      category: 'تعليمي'
-    },
-    {
-      id: 6,
-      title: 'إعداد خطة وتنفيذ التعلم',
-      score: 82,
-      weight: 10,
-      category: 'تخطيطي'
-    },
-    {
-      id: 7,
-      title: 'توظيف تقنيات ووسائل التعلم',
-      score: 90,
-      weight: 10,
-      category: 'تقني'
-    },
-    {
-      id: 8,
-      title: 'تهيئة البيئة التعليمية',
-      score: 85,
-      weight: 5,
-      category: 'بيئي'
-    },
-    {
-      id: 9,
-      title: 'الإدارة الصفية',
-      score: 88,
-      weight: 5,
-      category: 'إداري'
-    },
-    {
-      id: 10,
-      title: 'تحليل نتائج المتعلمين وتشخيص مستوياتهم',
-      score: 80,
-      weight: 10,
-      category: 'تحليلي'
-    },
-    {
-      id: 11,
-      title: 'تنويع أساليب التقويم',
-      score: 85,
-      weight: 10,
-      category: 'تقويمي'
-    },
-  ];
+  const getCategoryByTitle = (title: string, profession: string) => {
+    // تصنيف المحاور حسب المهنة - مطابق لصفحة الأداء المهني
+    switch (profession) {
+      case 'معلم/ة مسند له نشاط طلابي':
+        // المحاور الوظيفية
+        if (title.includes('أداء الواجبات الوظيفية') || title.includes('التفاعل مع المجتمع المهني') || title.includes('التفاعل مع أولياء الأمور')) {
+          return 'وظيفي';
+        }
+        // المحاور التعليمية
+        else if (title.includes('التنويع في استراتيجيات التدريس') || title.includes('تحسين نتائج المتعلمين') || 
+                 title.includes('إعداد وتنفيذ خطة التعلم') || title.includes('توظيف تقنيات ووسائل التعلم المناسبة') ||
+                 title.includes('تهيئة بيئة تعليمية') || title.includes('الإدارة الصفية') ||
+                 title.includes('تحليل نتائج المتعلمين وتشخيص مستوياتهم') || title.includes('تنوع أساليب التقويم')) {
+          return 'تعليمي';
+        }
+        // المحاور الخاصة بالنشاط الطلابي
+        else if (title.includes('إعداد خطة مزمنة ومعتمدة لبرامج وفعاليات النشاط الطلابي') || 
+                 title.includes('تهيئة البيئة المدرسية للبرامج والأنشطة الطلابية') ||
+                 title.includes('يدعم المتعلمين وفق احتياجاتهم وميولهم للأنشطة') ||
+                 title.includes('يحفز المتعلمين على المشاركة في الأنشطة المدرسية')) {
+          return 'نشاط طلابي';
+        }
+        break;
+
+      case 'معلم/ة مسند له توجيه صحي':
+        // المحاور الوظيفية
+        if (title.includes('أداء الواجبات الوظيفية') || title.includes('التفاعل مع المجتمع المهني') || title.includes('التفاعل مع أولياء الأمور')) {
+          return 'وظيفي';
+        }
+        // المحاور التعليمية
+        else if (title.includes('التنويع في استراتيجيات التدريس') || title.includes('تحسين نتائج المتعلمين') || 
+                 title.includes('إعداد وتنفيذ خطة التعلم') || title.includes('توظيف تقنيات ووسائل التعلم المناسبة') ||
+                 title.includes('تهيئة بيئة تعليمية') || title.includes('الإدارة الصفية') ||
+                 title.includes('تحليل نتائج المتعلمين وتشخيص مستوياتهم') || title.includes('تنوع أساليب التقويم')) {
+          return 'تعليمي';
+        }
+        // المحاور الصحية
+        else if (title.includes('تنفيذ الخطة المشتركة للتوجيه الصحي') || 
+                 title.includes('حصر الحالات الصحية وتصنيفها') ||
+                 title.includes('تهيئة البيئة الصحية المدرسية') ||
+                 title.includes('تنفيذ برامج التوعية الصحية') ||
+                 title.includes('متابعة الحالات الصحية وتوثيقها')) {
+          return 'صحي';
+        }
+        break;
+
+      case 'الموجه/ه الطلابي':
+        // المحاور الوظيفية
+        if (title.includes('أداء الواجبات الوظيفية') || title.includes('التفاعل مع المجتمع المهني') || title.includes('التفاعل مع أولياء الأمور')) {
+          return 'وظيفي';
+        }
+        // المحاور التوجيهية
+        else if (title.includes('تعزيز الانضباط المدرسي') || title.includes('تعزيز دافعية التعلم') || 
+                 title.includes('إعداد خطة لبرامج التوجيه الطلابي') ||
+                 title.includes('تنفيذ برامج التوجيه الطلابي') ||
+                 title.includes('متابعة وتقييم برامج التوجيه')) {
+          return 'توجيه';
+        }
+        // المحاور الإرشادية
+        else if (title.includes('يصنف الحالات الطلابية') || title.includes('يقدم التدخلات الإرشادية') || 
+                 title.includes('يساعد المتعلمين في حل مشكلاتهم') ||
+                 title.includes('يعد التقارير الإرشادية') ||
+                 title.includes('يتعاون مع الجهات المختصة')) {
+          return 'إرشاد';
+        }
+        break;
+
+      case 'وكيل/ة المدرسة':
+        // المحاور الوظيفية
+        if (title.includes('أداء الواجبات الوظيفية') || title.includes('التفاعل مع المجتمع المهني') || title.includes('التفاعل مع أولياء الأمور')) {
+          return 'وظيفي';
+        }
+        // المحاور الإدارية
+        else if (title.includes('يدير الموارد المدرسية') || title.includes('يقيم أداء منسوبي المدرسة') || 
+                 title.includes('يتابع تنفيذ الخطط والبرامج') ||
+                 title.includes('يدير الشؤون المالية والإدارية') ||
+                 title.includes('يتابع الأمن والسلامة المدرسية')) {
+          return 'إداري';
+        }
+        // المحاور التطويرية
+        else if (title.includes('يدعم تنفيذ برامج التطوير') || title.includes('يعد خطة للتطوير المهني') || 
+                 title.includes('يشارك في إعداد خطة المدرسة الاستراتيجية') ||
+                 title.includes('يتابع تطبيق المعايير المهنية') ||
+                 title.includes('يدعم المبادرات التطويرية')) {
+          return 'تطويري';
+        }
+        // المحاور التربوية
+        else if (title.includes('يتابع تعزيز السلوك الإيجابي') || title.includes('يبني بيئة مدرسية محفزة') || 
+                 title.includes('يدعم الأنشطة الطلابية') ||
+                 title.includes('يتابع تطبيق السياسات التربوية')) {
+          return 'تربوي';
+        }
+        break;
+
+      case 'مدير/ة المدرسة':
+        // المحاور الوظيفية
+        if (title.includes('أداء الواجبات الوظيفية') || title.includes('التفاعل مع المجتمع المهني') || title.includes('التفاعل مع أولياء الأمور')) {
+          return 'وظيفي';
+        }
+        // المحاور الإدارية
+        else if (title.includes('يدير الموارد المدرسية') || title.includes('يقيم أداء منسوبي المدرسة') || 
+                 title.includes('يتابع تنفيذ الخطط والبرامج') ||
+                 title.includes('يدير الشؤون المالية والإدارية') ||
+                 title.includes('يتابع الأمن والسلامة المدرسية')) {
+          return 'إداري';
+        }
+        // المحاور التطويرية
+        else if (title.includes('يدعم تنفيذ برامج التطوير') || title.includes('يعد خطة للتطوير المهني') || 
+                 title.includes('يشارك في إعداد خطة المدرسة الاستراتيجية') ||
+                 title.includes('يتابع تطبيق المعايير المهنية') ||
+                 title.includes('يدعم المبادرات التطويرية')) {
+          return 'تطويري';
+        }
+        // المحاور التربوية
+        else if (title.includes('يتابع تعزيز السلوك الإيجابي') || title.includes('يبني بيئة مدرسية محفزة') || 
+                 title.includes('يدعم الأنشطة الطلابية') ||
+                 title.includes('يتابع تطبيق السياسات التربوية')) {
+          return 'تربوي';
+        }
+        break;
+
+      default: // معلم/ة عادي
+        // المحاور الوظيفية
+        if (title.includes('أداء الواجبات الوظيفية') || title.includes('التفاعل مع المجتمع المهني') || title.includes('التفاعل مع أولياء الأمور')) {
+          return 'وظيفي';
+        }
+        // المحاور التعليمية
+        else if (title.includes('التنويع في استراتيجيات التدريس') || title.includes('تحسين نتائج المتعلمين') || 
+                 title.includes('إعداد وتنفيذ خطة التعلم') || title.includes('توظيف تقنيات ووسائل التعلم المناسبة') ||
+                 title.includes('تهيئة بيئة تعليمية') || title.includes('الإدارة الصفية') ||
+                 title.includes('تحليل نتائج المتعلمين وتشخيص مستوياتهم') || title.includes('تنوع أساليب التقويم')) {
+          return 'تعليمي';
+        }
+        break;
+    }
+    return 'غير محدد';
+  };
+
+  const getDefaultPerformanceData = (profession: string) => {
+    // تحميل البيانات الافتراضية حسب المهنة - مطابق لصفحة الأداء المهني
+    switch (profession) {
+      case 'معلم/ة مسند له نشاط طلابي':
+        return [
+          {
+            id: 1,
+            title: 'أداء الواجبات الوظيفية',
+            score: 85,
+            weight: 10,
+            category: 'وظيفي'
+          },
+          {
+            id: 2,
+            title: 'التفاعل مع المجتمع المهني',
+            score: 78,
+            weight: 10,
+            category: 'وظيفي'
+          },
+          {
+            id: 3,
+            title: 'التفاعل مع أولياء الأمور',
+            score: 92,
+            weight: 10,
+            category: 'وظيفي'
+          },
+          {
+            id: 4,
+            title: 'التنويع في استراتيجيات التدريس',
+            score: 88,
+            weight: 5,
+            category: 'تعليمي'
+          },
+          {
+            id: 5,
+            title: 'تحسين نتائج المتعلمين',
+            score: 82,
+            weight: 5,
+            category: 'تعليمي'
+          },
+          {
+            id: 6,
+            title: 'إعداد وتنفيذ خطة التعلم',
+            score: 75,
+            weight: 5,
+            category: 'تعليمي'
+          },
+          {
+            id: 7,
+            title: 'توظيف تقنيات ووسائل التعلم المناسبة',
+            score: 80,
+            weight: 5,
+            category: 'تعليمي'
+          },
+          {
+            id: 8,
+            title: 'تهيئة بيئة تعليمية',
+            score: 85,
+            weight: 5,
+            category: 'تعليمي'
+          },
+          {
+            id: 9,
+            title: 'الإدارة الصفية',
+            score: 88,
+            weight: 5,
+            category: 'تعليمي'
+          },
+          {
+            id: 10,
+            title: 'تحليل نتائج المتعلمين وتشخيص مستوياتهم',
+            score: 82,
+            weight: 5,
+            category: 'تعليمي'
+          },
+          {
+            id: 11,
+            title: 'تنوع أساليب التقويم',
+            score: 78,
+            weight: 5,
+            category: 'تعليمي'
+          },
+          {
+            id: 12,
+            title: 'إعداد خطة مزمنة ومعتمدة لبرامج وفعاليات النشاط الطلابي',
+            score: 88,
+            weight: 10,
+            category: 'نشاط طلابي'
+          },
+          {
+            id: 13,
+            title: 'تهيئة البيئة المدرسية للبرامج والأنشطة الطلابية',
+            score: 75,
+            weight: 5,
+            category: 'نشاط طلابي'
+          },
+          {
+            id: 14,
+            title: 'يدعم المتعلمين وفق احتياجاتهم وميولهم للأنشطة',
+            score: 82,
+            weight: 5,
+            category: 'نشاط طلابي'
+          },
+          {
+            id: 15,
+            title: 'يحفز المتعلمين على المشاركة في الأنشطة المدرسية',
+            score: 90,
+            weight: 10,
+            category: 'نشاط طلابي'
+          }
+        ];
+
+      case 'معلم/ة مسند له توجيه صحي':
+        return [
+          {
+            id: 1,
+            title: 'أداء الواجبات الوظيفية',
+            score: 85,
+            weight: 10,
+            category: 'وظيفي'
+          },
+          {
+            id: 2,
+            title: 'التفاعل مع المجتمع المهني',
+            score: 78,
+            weight: 10,
+            category: 'وظيفي'
+          },
+          {
+            id: 3,
+            title: 'التفاعل مع أولياء الأمور',
+            score: 92,
+            weight: 10,
+            category: 'وظيفي'
+          },
+          {
+            id: 4,
+            title: 'التنويع في استراتيجيات التدريس',
+            score: 88,
+            weight: 5,
+            category: 'تعليمي'
+          },
+          {
+            id: 5,
+            title: 'تحسين نتائج المتعلمين',
+            score: 82,
+            weight: 5,
+            category: 'تعليمي'
+          },
+          {
+            id: 6,
+            title: 'إعداد وتنفيذ خطة التعلم',
+            score: 75,
+            weight: 5,
+            category: 'تعليمي'
+          },
+          {
+            id: 7,
+            title: 'توظيف تقنيات ووسائل التعلم المناسبة',
+            score: 80,
+            weight: 5,
+            category: 'تعليمي'
+          },
+          {
+            id: 8,
+            title: 'تهيئة بيئة تعليمية',
+            score: 85,
+            weight: 5,
+            category: 'تعليمي'
+          },
+          {
+            id: 9,
+            title: 'الإدارة الصفية',
+            score: 88,
+            weight: 5,
+            category: 'تعليمي'
+          },
+          {
+            id: 10,
+            title: 'تحليل نتائج المتعلمين وتشخيص مستوياتهم',
+            score: 82,
+            weight: 5,
+            category: 'تعليمي'
+          },
+          {
+            id: 11,
+            title: 'تنوع أساليب التقويم',
+            score: 78,
+            weight: 5,
+            category: 'تعليمي'
+          },
+          {
+            id: 12,
+            title: 'تنفيذ الخطة المشتركة للتوجيه الصحي',
+            score: 88,
+            weight: 10,
+            category: 'صحي'
+          },
+          {
+            id: 13,
+            title: 'حصر الحالات الصحية وتصنيفها',
+            score: 75,
+            weight: 5,
+            category: 'صحي'
+          },
+          {
+            id: 14,
+            title: 'تهيئة البيئة الصحية المدرسية',
+            score: 82,
+            weight: 5,
+            category: 'صحي'
+          },
+          {
+            id: 15,
+            title: 'تنفيذ برامج التوعية الصحية',
+            score: 85,
+            weight: 5,
+            category: 'صحي'
+          },
+          {
+            id: 16,
+            title: 'متابعة الحالات الصحية وتوثيقها',
+            score: 80,
+            weight: 5,
+            category: 'صحي'
+          }
+        ];
+
+      case 'الموجه/ه الطلابي':
+        return [
+          {
+            id: 1,
+            title: 'أداء الواجبات الوظيفية',
+            score: 85,
+            weight: 10,
+            category: 'وظيفي'
+          },
+          {
+            id: 2,
+            title: 'التفاعل مع المجتمع المهني',
+            score: 78,
+            weight: 10,
+            category: 'وظيفي'
+          },
+          {
+            id: 3,
+            title: 'التفاعل مع أولياء الأمور',
+            score: 92,
+            weight: 10,
+            category: 'وظيفي'
+          },
+          {
+            id: 4,
+            title: 'تعزيز الانضباط المدرسي',
+            score: 88,
+            weight: 10,
+            category: 'توجيه'
+          },
+          {
+            id: 5,
+            title: 'تعزيز دافعية التعلم',
+            score: 85,
+            weight: 10,
+            category: 'توجيه'
+          },
+          {
+            id: 6,
+            title: 'إعداد خطة لبرامج التوجيه الطلابي',
+            score: 82,
+            weight: 10,
+            category: 'توجيه'
+          },
+          {
+            id: 7,
+            title: 'تنفيذ برامج التوجيه الطلابي',
+            score: 80,
+            weight: 10,
+            category: 'توجيه'
+          },
+          {
+            id: 8,
+            title: 'متابعة وتقييم برامج التوجيه',
+            score: 75,
+            weight: 10,
+            category: 'توجيه'
+          },
+          {
+            id: 9,
+            title: 'يصنف الحالات الطلابية',
+            score: 90,
+            weight: 10,
+            category: 'إرشاد'
+          },
+          {
+            id: 10,
+            title: 'يقدم التدخلات الإرشادية',
+            score: 88,
+            weight: 10,
+            category: 'إرشاد'
+          },
+          {
+            id: 11,
+            title: 'يساعد المتعلمين في حل مشكلاتهم',
+            score: 85,
+            weight: 10,
+            category: 'إرشاد'
+          },
+          {
+            id: 12,
+            title: 'يعد التقارير الإرشادية',
+            score: 82,
+            weight: 10,
+            category: 'إرشاد'
+          },
+          {
+            id: 13,
+            title: 'يتعاون مع الجهات المختصة',
+            score: 78,
+            weight: 10,
+            category: 'إرشاد'
+          }
+        ];
+
+      case 'وكيل/ة المدرسة':
+        return [
+          {
+            id: 1,
+            title: 'أداء الواجبات الوظيفية',
+            score: 85,
+            weight: 10,
+            category: 'وظيفي'
+          },
+          {
+            id: 2,
+            title: 'التفاعل مع المجتمع المهني',
+            score: 78,
+            weight: 10,
+            category: 'وظيفي'
+          },
+          {
+            id: 3,
+            title: 'التفاعل مع أولياء الأمور',
+            score: 92,
+            weight: 10,
+            category: 'وظيفي'
+          },
+          {
+            id: 4,
+            title: 'يدير الموارد المدرسية',
+            score: 88,
+            weight: 10,
+            category: 'إداري'
+          },
+          {
+            id: 5,
+            title: 'يقيم أداء منسوبي المدرسة',
+            score: 85,
+            weight: 10,
+            category: 'إداري'
+          },
+          {
+            id: 6,
+            title: 'يتابع تنفيذ الخطط والبرامج',
+            score: 82,
+            weight: 10,
+            category: 'إداري'
+          },
+          {
+            id: 7,
+            title: 'يدير الشؤون المالية والإدارية',
+            score: 80,
+            weight: 10,
+            category: 'إداري'
+          },
+          {
+            id: 8,
+            title: 'يتابع الأمن والسلامة المدرسية',
+            score: 75,
+            weight: 10,
+            category: 'إداري'
+          },
+          {
+            id: 9,
+            title: 'يدعم تنفيذ برامج التطوير',
+            score: 90,
+            weight: 10,
+            category: 'تطويري'
+          },
+          {
+            id: 10,
+            title: 'يعد خطة للتطوير المهني',
+            score: 88,
+            weight: 10,
+            category: 'تطويري'
+          },
+          {
+            id: 11,
+            title: 'يشارك في إعداد خطة المدرسة الاستراتيجية',
+            score: 85,
+            weight: 10,
+            category: 'تطويري'
+          },
+          {
+            id: 12,
+            title: 'يتابع تطبيق المعايير المهنية',
+            score: 82,
+            weight: 10,
+            category: 'تطويري'
+          },
+          {
+            id: 13,
+            title: 'يدعم المبادرات التطويرية',
+            score: 78,
+            weight: 10,
+            category: 'تطويري'
+          },
+          {
+            id: 14,
+            title: 'يتابع تعزيز السلوك الإيجابي',
+            score: 85,
+            weight: 10,
+            category: 'تربوي'
+          },
+          {
+            id: 15,
+            title: 'يبني بيئة مدرسية محفزة',
+            score: 88,
+            weight: 10,
+            category: 'تربوي'
+          },
+          {
+            id: 16,
+            title: 'يدعم الأنشطة الطلابية',
+            score: 82,
+            weight: 10,
+            category: 'تربوي'
+          },
+          {
+            id: 17,
+            title: 'يتابع تطبيق السياسات التربوية',
+            score: 80,
+            weight: 10,
+            category: 'تربوي'
+          }
+        ];
+
+      case 'مدير/ة المدرسة':
+        return [
+          {
+            id: 1,
+            title: 'أداء الواجبات الوظيفية',
+            score: 85,
+            weight: 10,
+            category: 'وظيفي'
+          },
+          {
+            id: 2,
+            title: 'التفاعل مع المجتمع المهني',
+            score: 78,
+            weight: 10,
+            category: 'وظيفي'
+          },
+          {
+            id: 3,
+            title: 'التفاعل مع أولياء الأمور',
+            score: 92,
+            weight: 10,
+            category: 'وظيفي'
+          },
+          {
+            id: 4,
+            title: 'يدير الموارد المدرسية',
+            score: 88,
+            weight: 10,
+            category: 'إداري'
+          },
+          {
+            id: 5,
+            title: 'يقيم أداء منسوبي المدرسة',
+            score: 85,
+            weight: 10,
+            category: 'إداري'
+          },
+          {
+            id: 6,
+            title: 'يتابع تنفيذ الخطط والبرامج',
+            score: 82,
+            weight: 10,
+            category: 'إداري'
+          },
+          {
+            id: 7,
+            title: 'يدير الشؤون المالية والإدارية',
+            score: 80,
+            weight: 10,
+            category: 'إداري'
+          },
+          {
+            id: 8,
+            title: 'يتابع الأمن والسلامة المدرسية',
+            score: 75,
+            weight: 10,
+            category: 'إداري'
+          },
+          {
+            id: 9,
+            title: 'يدعم تنفيذ برامج التطوير',
+            score: 90,
+            weight: 10,
+            category: 'تطويري'
+          },
+          {
+            id: 10,
+            title: 'يعد خطة للتطوير المهني',
+            score: 88,
+            weight: 10,
+            category: 'تطويري'
+          },
+          {
+            id: 11,
+            title: 'يشارك في إعداد خطة المدرسة الاستراتيجية',
+            score: 85,
+            weight: 10,
+            category: 'تطويري'
+          },
+          {
+            id: 12,
+            title: 'يتابع تطبيق المعايير المهنية',
+            score: 82,
+            weight: 10,
+            category: 'تطويري'
+          },
+          {
+            id: 13,
+            title: 'يدعم المبادرات التطويرية',
+            score: 78,
+            weight: 10,
+            category: 'تطويري'
+          },
+          {
+            id: 14,
+            title: 'يتابع تعزيز السلوك الإيجابي',
+            score: 85,
+            weight: 10,
+            category: 'تربوي'
+          },
+          {
+            id: 15,
+            title: 'يبني بيئة مدرسية محفزة',
+            score: 88,
+            weight: 10,
+            category: 'تربوي'
+          },
+          {
+            id: 16,
+            title: 'يدعم الأنشطة الطلابية',
+            score: 82,
+            weight: 10,
+            category: 'تربوي'
+          },
+          {
+            id: 17,
+            title: 'يتابع تطبيق السياسات التربوية',
+            score: 80,
+            weight: 10,
+            category: 'تربوي'
+          }
+        ];
+
+      default: // معلم/ة عادي
+        return [
+          {
+            id: 1,
+            title: 'أداء الواجبات الوظيفية',
+            score: 85,
+            weight: 10,
+            category: 'وظيفي'
+          },
+          {
+            id: 2,
+            title: 'التفاعل مع المجتمع المهني',
+            score: 78,
+            weight: 10,
+            category: 'وظيفي'
+          },
+          {
+            id: 3,
+            title: 'التفاعل مع أولياء الأمور',
+            score: 92,
+            weight: 10,
+            category: 'وظيفي'
+          },
+          {
+            id: 4,
+            title: 'التنويع في استراتيجيات التدريس',
+            score: 88,
+            weight: 10,
+            category: 'تعليمي'
+          },
+          {
+            id: 5,
+            title: 'تحسين نتائج المتعلمين',
+            score: 75,
+            weight: 10,
+            category: 'تعليمي'
+          },
+          {
+            id: 6,
+            title: 'إعداد خطة وتنفيذ التعلم',
+            score: 82,
+            weight: 10,
+            category: 'تخطيطي'
+          },
+          {
+            id: 7,
+            title: 'توظيف تقنيات ووسائل التعلم',
+            score: 90,
+            weight: 10,
+            category: 'تخطيطي'
+          },
+          {
+            id: 8,
+            title: 'تهيئة البيئة التعليمية',
+            score: 85,
+            weight: 10,
+            category: 'إداري'
+          },
+          {
+            id: 9,
+            title: 'الإدارة الصفية',
+            score: 88,
+            weight: 10,
+            category: 'إداري'
+          },
+          {
+            id: 10,
+            title: 'تحليل نتائج المتعلمين وتشخيص مستوياتهم',
+            score: 80,
+            weight: 5,
+            category: 'تقويمي'
+          },
+          {
+            id: 11,
+            title: 'تنوع أساليب التقويم',
+            score: 85,
+            weight: 5,
+            category: 'تقويمي'
+          }
+        ];
+    }
+  };
 
   const getScoreColor = (score: number) => {
     if (score >= 90) return '#4CAF50';
@@ -167,43 +936,60 @@ export default function InteractiveReportScreen() {
   };
 
   const calculateOverallAverage = () => {
-    if (performanceData.length === 0) return 0;
-    const weightedSum = performanceData.reduce((acc, item) => acc + (item.score * item.weight), 0);
-    const totalWeight = performanceData.reduce((acc, item) => acc + item.weight, 0);
+    if (!performanceData || !Array.isArray(performanceData) || performanceData.length === 0) return 0;
+    const weightedSum = performanceData.reduce((acc, item) => acc + ((item?.score || 0) * (item?.weight || 0)), 0);
+    const totalWeight = performanceData.reduce((acc, item) => acc + (item?.weight || 0), 0);
     return Math.round(weightedSum / totalWeight);
   };
 
   const getCategoryAverage = (category: string) => {
-    if (!category || !performanceData || performanceData.length === 0) {
+    if (!category || !performanceData || !Array.isArray(performanceData) || performanceData.length === 0) {
       return 0;
     }
     
-    const categoryItems = performanceData.filter(item => item.category === category);
+    const categoryItems = performanceData.filter(item => item?.category === category);
     if (categoryItems.length === 0) return 0;
-    const sum = categoryItems.reduce((acc, item) => acc + (item.score || 0), 0);
+    const sum = categoryItems.reduce((acc, item) => acc + (item?.score || 0), 0);
     return Math.round(sum / categoryItems.length);
   };
 
-  const getCategories = () => {
-    if (!performanceData || performanceData.length === 0) {
+  type FileInfo = {
+    name: string;
+    size: string;
+    type: string;
+    date: string;
+  };
+
+  type UploadedFiles = {
+    [key: string]: FileInfo[];
+  };
+
+  type Category = {
+    name: string;
+    average: number;
+    count: number;
+  };
+
+  const getCategories = (): Category[] => {
+    if (!performanceData || !Array.isArray(performanceData) || performanceData.length === 0) {
       return [];
     }
     
     // استخدام عناوين المحاور بدلاً من الفئات
     return performanceData.map(item => ({
-      name: item.title || 'غير محدد',
-      average: item.score || 0,
+      name: item?.title || 'غير محدد',
+      average: item?.score || 0,
       count: 1
-    }));
+    })).filter(cat => cat && cat.name);
   };
 
   const renderProgressChart = () => {
-    const sortedData = [...performanceData].sort((a, b) => b.score - a.score);
+    const sortedData = [...performanceData].sort((a: PerformanceItem, b: PerformanceItem) => b.score - a.score);
     return (
       <ThemedView style={styles.chartContainer}>
         <ThemedText style={styles.chartTitle}>ترتيب المحاور حسب الأداء</ThemedText>
         <ThemedView>
-          {sortedData.map((item, index) => (
+          {sortedData.map((item: PerformanceItem, index: number) => (
             <ThemedView key={item.id} style={{ marginBottom: 8 }}>
               <ThemedView style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 4 }}>
                 <ThemedText style={{ fontSize: 12, fontWeight: 'bold' }}>{item.title}</ThemedText>
@@ -317,15 +1103,17 @@ export default function InteractiveReportScreen() {
       backgroundGradientFrom: '#ffffff',
       backgroundGradientTo: '#ffffff',
       decimalPlaces: 0,
-      color: (opacity = 1, index) => {
-        const score = validCategories[index]?.average || 0;
+      color: (opacity = 1, index?: number) => {
+        const score = index !== undefined ? validCategories[index]?.average || 0 : 0;
         const color = getScoreColor(score);
         // تحويل اللون إلى rgba
-        if (color === '#4CAF50') return `rgba(76, 175, 80, ${opacity})`; // أخضر
-        if (color === '#2196F3') return `rgba(33, 150, 243, ${opacity})`; // أزرق
-        if (color === '#FF9800') return `rgba(255, 152, 0, ${opacity})`; // برتقالي
-        if (color === '#F44336') return `rgba(244, 67, 54, ${opacity})`; // أحمر
-        return `rgba(33, 150, 243, ${opacity})`; // لون افتراضي
+        switch (color) {
+          case '#4CAF50': return `rgba(76, 175, 80, ${opacity})`; // أخضر
+          case '#FF9800': return `rgba(255, 152, 0, ${opacity})`; // برتقالي
+          case '#FFC107': return `rgba(255, 193, 7, ${opacity})`; // أصفر
+          case '#F44336': return `rgba(244, 67, 54, ${opacity})`; // أحمر
+          default: return `rgba(33, 150, 243, ${opacity})`; // لون افتراضي
+        }
       },
       labelColor: (opacity = 1) => `rgba(28, 31, 51, ${opacity})`,
       style: {
@@ -370,6 +1158,7 @@ export default function InteractiveReportScreen() {
             style={{ marginVertical: 10 }}
           >
             <BarChart
+              // @ts-ignore
               data={data}
               width={chartWidth}
               height={280}
@@ -385,9 +1174,6 @@ export default function InteractiveReportScreen() {
               withVerticalLabels={true}
               withHorizontalLabels={true}
               segments={5}
-              bezier={false}
-              withDots={false}
-              withShadow={false}
               yAxisLabel=""
               yAxisSuffix=""
               yLabelsOffset={10}
@@ -403,6 +1189,7 @@ export default function InteractiveReportScreen() {
             style={{ marginVertical: 10 }}
           >
             <BarChart
+              // @ts-ignore
               data={data}
               width={chartWidth}
               height={280}
@@ -418,9 +1205,10 @@ export default function InteractiveReportScreen() {
               withVerticalLabels={true}
               withHorizontalLabels={true}
               segments={5}
-              bezier={false}
-              withDots={false}
-              withShadow={false}
+              yAxisLabel=""
+              yAxisSuffix=""
+              yLabelsOffset={10}
+              xLabelsOffset={-10}
             />
           </ScrollView>
         )}
@@ -445,10 +1233,25 @@ export default function InteractiveReportScreen() {
     }
   };
 
+  type ReportData = {
+    performanceId: number;
+    evidenceIndex: number;
+    evidence: Evidence[];
+    files: FileInfo[];
+  };
+
+  type ReportItem = {
+    id: number;
+    title: string;
+    score: number;
+    weight: number;
+    evidence: Evidence[];
+  };
+
   const generateReportHTML = async () => {
     const averageScore = calculateOverallAverage();
     const categories = getCategories();
-    const scores = performanceData.map(item => item.score);
+    const scores = performanceData.map((item: PerformanceItem) => item.score);
     const maxScore = Math.max(...scores, 0);
     const minScore = Math.min(...scores, 0);
     const excellentCount = scores.filter(score => score >= 90).length;
@@ -458,6 +1261,7 @@ export default function InteractiveReportScreen() {
     // تحميل البيانات الشخصية والمهنية
     let userData = {
       fullName: 'غير محدد',
+      profession: 'غير محدد',
       specialty: 'غير محدد',
       experience: 'غير محدد',
       education: 'غير محدد',
@@ -471,8 +1275,8 @@ export default function InteractiveReportScreen() {
     };
 
     // تحميل الشواهد المرفقة
-    let uploadedFiles = {};
-    let performanceDataWithEvidence = [];
+    let uploadedFiles: UploadedFiles = {};
+    let performanceDataWithEvidence: ReportItem[] = [];
 
     try {
       const storedData = await AsyncStorage.getItem('basicData');
@@ -807,6 +1611,7 @@ export default function InteractiveReportScreen() {
           </div>
           <h1>📊 التقرير التفاعلي للأداء المهني</h1>
           <p>تحليل شامل لأداءك المهني مع مؤشرات تفاعلية</p>
+          <p><strong>المهنة:</strong> ${userData.profession}</p>
           <p>تاريخ التقرير: ${new Date().toLocaleDateString('ar-SA')}</p>
         </div>
 
@@ -816,6 +1621,10 @@ export default function InteractiveReportScreen() {
             <div class="info-item">
               <span class="info-label">الاسم الكامل:</span>
               <span class="info-value">${userData.fullName}</span>
+            </div>
+            <div class="info-item">
+              <span class="info-label">المهنة:</span>
+              <span class="info-value">${userData.profession}</span>
             </div>
             <div class="info-item">
               <span class="info-label">التخصص:</span>
@@ -855,7 +1664,7 @@ export default function InteractiveReportScreen() {
 
 
         <div class="summary-section">
-          <h2>ملخص الأداء العام</h2>
+          <h2>ملخص الأداء العام - ${userData.profession}</h2>
           <div class="summary-row">
             <div class="summary-item">
               <div class="summary-value">${averageScore}%</div>
@@ -892,7 +1701,7 @@ export default function InteractiveReportScreen() {
         </div>
 
         <div class="categories-section">
-          <h3>متوسط الدرجات حسب الفئة</h3>
+          <h3>متوسط الدرجات حسب الفئة - ${userData.profession}</h3>
           ${categories.map(category => `
             <div class="category-item">
               <span class="category-name">${category.name}</span>
@@ -904,7 +1713,7 @@ export default function InteractiveReportScreen() {
         <div class="page-break"></div>
 
         <div class="performance-list">
-          <h3>تفاصيل جميع المحاور</h3>
+          <h3>تفاصيل جميع المحاور - ${userData.profession}</h3>
           ${performanceData
             .sort((a, b) => b.score - a.score)
             .map((item, index) => `
@@ -916,7 +1725,7 @@ export default function InteractiveReportScreen() {
         </div>
 
         <div class="recommendations">
-          <h3>🔍 توصيات للتحسين</h3>
+          <h3>🔍 توصيات للتحسين - ${userData.profession}</h3>
           ${performanceData
             .filter(item => item.score < 85)
             .sort((a, b) => a.score - b.score)
@@ -933,15 +1742,15 @@ export default function InteractiveReportScreen() {
         <div class="page-break"></div>
 
         <div class="evidence-section">
-          <h3>📎 الشواهد المرفقة</h3>
+          <h3>📎 الشواهد المرفقة - ${userData.profession}</h3>
           ${performanceDataWithEvidence.length > 0 ? 
             performanceDataWithEvidence
-              .filter(item => item.evidence && item.evidence.length > 0)
-              .map((item, index) => `
+              .filter((item: ReportItem) => item.evidence && item.evidence.length > 0)
+              .map((item: ReportItem, index: number) => `
                 <div class="performance-evidence">
                   <h4>${index + 1}. ${item.title}</h4>
                   <div class="evidence-list">
-                    ${item.evidence.map((evidence, evidenceIndex) => {
+                    ${item.evidence.map((evidence: Evidence, evidenceIndex: number) => {
                       const fileKey = `${item.id}_${evidenceIndex}`;
                       const files = uploadedFiles[fileKey] || [];
                       return `
@@ -953,7 +1762,7 @@ export default function InteractiveReportScreen() {
                           ${files.length > 0 ? `
                             <div class="evidence-files">
                               <strong>الملفات المرفقة:</strong>
-                              ${files.map(file => `
+                              ${files.map((file: FileInfo) => `
                                 <div class="file-item">
                                   <span class="file-icon">📎</span>
                                   <div class="file-info">
@@ -985,33 +1794,29 @@ export default function InteractiveReportScreen() {
   };
 
   const handleExportReport = () => {
-    Alert.alert(
-      'تصدير التقرير',
-      'اختر تنسيق التصدير:',
-      [
-        {
-          text: 'PDF',
-          onPress: exportToPDF
-        },
-        {
-          text: 'HTML',
-          onPress: exportToHTML
-        },
-        {
-          text: 'نص عادي',
-          onPress: exportToText
-        },
-        {
-          text: 'إلغاء',
-          style: 'cancel'
-        }
-      ]
-    );
+    exportToPDF();
   };
 
   const exportToPDF = async () => {
     try {
       const htmlContent = await generateReportHTML();
+
+      if (Platform.OS === 'web') {
+        const printWindow = typeof window !== 'undefined' && window.open('', '_blank');
+        if (!printWindow) {
+          Alert.alert('تنبيه', 'السماح بالنافذة المنبثقة لتصدير التقرير، ثم أعد المحاولة.');
+          return;
+        }
+        printWindow.document.write(htmlContent);
+        printWindow.document.close();
+        printWindow.focus();
+        setTimeout(() => {
+          printWindow.print();
+        }, 300);
+        Alert.alert('تم بنجاح', 'تم فتح نافذة التقرير. اختر «حفظ كـ PDF» أو «Save as PDF» في نافذة الطباعة لحفظ الملف.');
+        return;
+      }
+
       const { uri } = await Print.printToFileAsync({
         html: htmlContent,
         base64: false
@@ -1036,209 +1841,6 @@ export default function InteractiveReportScreen() {
     } catch (error) {
       console.error('Error exporting PDF:', error);
       Alert.alert('خطأ', 'فشل في تصدير التقرير كملف PDF');
-    }
-  };
-
-  const exportToHTML = async () => {
-    try {
-      const htmlContent = await generateReportHTML();
-      const fileName = `تقرير_الأداء_${new Date().toISOString().split('T')[0]}.html`;
-      const fileUri = `${FileSystem.documentDirectory}${fileName}`;
-
-      await FileSystem.writeAsStringAsync(fileUri, htmlContent);
-      await Sharing.shareAsync(fileUri);
-
-      Alert.alert('تم بنجاح', 'تم تصدير التقرير كملف HTML');
-    } catch (error) {
-      console.error('Error exporting HTML:', error);
-      Alert.alert('خطأ', 'فشل في تصدير التقرير كملف HTML');
-    }
-  };
-
-  const exportToText = async () => {
-    try {
-      const averageScore = calculateOverallAverage();
-      const categories = getCategories();
-
-      // تحميل البيانات الشخصية والمهنية
-      let userData = {
-        fullName: 'غير محدد',
-        specialty: 'غير محدد',
-        experience: 'غير محدد',
-        education: 'غير محدد',
-        school: 'غير محدد',
-        educationDepartment: 'غير محدد',
-        gradeLevel: 'غير محدد',
-        vision: 'غير محدد',
-        mission: 'غير محدد',
-        email: 'غير محدد',
-        phone: 'غير محدد'
-      };
-
-      // تحميل الشواهد المرفقة
-      let uploadedFiles = {};
-      let performanceDataWithEvidence = [];
-
-      try {
-        const storedData = await AsyncStorage.getItem('basicData');
-        if (storedData) {
-          userData = { ...userData, ...JSON.parse(storedData) };
-        }
-
-        // تحميل بيانات الأداء مع الشواهد
-        const storedPerformanceData = await AsyncStorage.getItem('performanceData');
-        if (storedPerformanceData) {
-          performanceDataWithEvidence = JSON.parse(storedPerformanceData);
-        }
-
-        // تحميل الملفات المرفقة
-        const storedFiles = await AsyncStorage.getItem('uploadedFiles');
-        if (storedFiles) {
-          uploadedFiles = JSON.parse(storedFiles);
-        }
-      } catch (error) {
-        console.log('Error loading data for text export:', error);
-      }
-
-      const textContent = `
-📊 التقرير التفاعلي للأداء المهني
-========================================
-
-🇸🇦 المملكة العربية السعودية - وزارة التعليم
-
-تاريخ التقرير: ${new Date().toLocaleDateString('ar-SA')}
-
-👤 البيانات الشخصية والمهنية:
-========================================
-الاسم الكامل: ${userData.fullName}
-التخصص: ${userData.specialty}
-سنوات الخبرة: ${userData.experience}
-المؤهل العلمي: ${userData.education}
-المدرسة: ${userData.school}
-الإدارة التعليمية: ${userData.educationDepartment}
-المرحلة الدراسية: ${userData.gradeLevel}
-البريد الإلكتروني: ${userData.email}
-رقم الهاتف: ${userData.phone}
-
-
-
-📈 ملخص الأداء العام:
-- المتوسط العام: ${averageScore}%
-- مستوى الأداء: ${getScoreLevel(averageScore)}
-
-📊 الإحصائيات التفصيلية:
-- أعلى درجة: ${Math.max(...performanceData.map(item => item.score), 0)}%
-- أقل درجة: ${Math.min(...performanceData.map(item => item.score), 0)}%
-- محاور ممتازة: ${performanceData.filter(item => item.score >= 90).length}
-- محاور جيدة: ${performanceData.filter(item => item.score >= 80 && item.score < 90).length}
-- تحتاج تحسين: ${performanceData.filter(item => item.score < 70).length}
-
-📋 متوسط الدرجات حسب الفئة:
-${categories.map(cat => `- ${cat.name}: ${cat.average}%`).join('\n')}
-
-📝 تفاصيل جميع المحاور:
-${performanceData
-  .sort((a, b) => b.score - a.score)
-  .map((item, index) => `${index + 1}. ${item.title}: ${item.score}%`)
-  .join('\n')}
-
-💡 توصيات للتحسين:
-${performanceData
-  .filter(item => item.score < 85)
-  .sort((a, b) => a.score - b.score)
-  .slice(0, 3)
-  .map(item => `• ركز على تحسين "${item.title}" (الدرجة الحالية: ${item.score}%)`)
-  .join('\n')}
-
-${performanceData.filter(item => item.score < 85).length === 0 ? 
-  '• ممتاز! جميع المحاور تحصل على درجات عالية. استمر في الأداء المتميز.' : ''}
-
-📎 الشواهد المرفقة:
-========================================
-${performanceDataWithEvidence.length > 0 ? 
-  performanceDataWithEvidence
-    .filter(item => item.evidence && item.evidence.length > 0)
-    .map((item, index) => `
-${index + 1}. ${item.title}:
-${item.evidence.map((evidence, evidenceIndex) => {
-  const fileKey = `${item.id}_${evidenceIndex}`;
-  const files = uploadedFiles[fileKey] || [];
-  return `
-  - ${evidence.name} (${evidence.available ? 'متوفر' : 'غير متوفر'})
-    ${files.length > 0 ? 
-      files.map(file => `    📎 ${file.name} (${file.size}, ${file.type}, ${file.date})`).join('\n') : 
-      '    لا توجد ملفات مرفقة'
-    }`;
-}).join('\n')}`
-    ).join('\n\n') : 
-  'لا توجد شواهد مرفقة حالياً'
-}
-
-========================================
-تم إنشاء هذا التقرير تلقائياً بواسطة نظام تقييم الأداء المهني
-© ${new Date().getFullYear()} - جميع الحقوق محفوظة
-      `;
-
-      const fileName = `تقرير_الأداء_${new Date().toISOString().split('T')[0]}.txt`;
-      const fileUri = `${FileSystem.documentDirectory}${fileName}`;
-
-      await FileSystem.writeAsStringAsync(fileUri, textContent);
-      await Sharing.shareAsync(fileUri);
-
-      Alert.alert('تم بنجاح', 'تم تصدير التقرير كملف نصي');
-    } catch (error) {
-      console.error('Error exporting text:', error);
-      Alert.alert('خطأ', 'فشل في تصدير التقرير كملف نصي');
-    }
-  };
-
-  const handlePrintReport = async () => {
-    try {
-      const htmlContent = await generateReportHTML();
-
-      if (Platform.OS === 'ios') {
-        await Print.printAsync({
-          html: htmlContent,
-          printerUrl: undefined, // يستخدم الطابعة الافتراضية
-        });
-      } else {
-        // في الأندرويد، نعرض معاينة الطباعة
-        const { uri } = await Print.printToFileAsync({
-          html: htmlContent,
-          base64: false
-        });
-
-        Alert.alert(
-          'طباعة التقرير',
-          'تم إنشاء ملف PDF للطباعة',
-          [
-            {
-              text: 'مشاركة للطباعة',
-              onPress: async () => {
-                await Sharing.shareAsync(uri, {
-                  UTI: '.pdf',
-                  mimeType: 'application/pdf'
-                });
-              }
-            },
-            {
-              text: 'طباعة مباشرة',
-              onPress: async () => {
-                await Print.printAsync({
-                  uri: uri
-                });
-              }
-            },
-            {
-              text: 'إلغاء',
-              style: 'cancel'
-            }
-          ]
-        );
-      }
-    } catch (error) {
-      console.error('Error printing:', error);
-      Alert.alert('خطأ', 'فشل في طباعة التقرير');
     }
   };
 
@@ -1285,19 +1887,19 @@ ${item.evidence.map((evidence, evidenceIndex) => {
               <ThemedView style={styles.iconContainer}>
                 <IconSymbol size={60} name="chart.line.uptrend.xyaxis" color="#1c1f33" />
               </ThemedView>
-              <ThemedText type="title" style={styles.title}>
-                التقرير التفاعلي
-              </ThemedText>
-              <ThemedText style={styles.subtitle}>
-                تحليل شامل لأداءك المهني مع مؤشرات تفاعلية
-              </ThemedText>
+                              <ThemedText type="title" style={styles.title}>
+                  التقرير التفاعلي
+                </ThemedText>
+                <ThemedText style={styles.subtitle}>
+                  تحليل شامل لأداءك المهني مع مؤشرات تفاعلية
+                </ThemedText>
             </ThemedView>
 
             <ThemedView style={styles.content}>
               <ThemedView style={styles.summaryCard}>
-              <ThemedText type="subtitle" style={styles.summaryTitle}>
-                ملخص الأداء العام
-              </ThemedText>
+                              <ThemedText type="subtitle" style={styles.summaryTitle}>
+                  ملخص الأداء العام
+                </ThemedText>
               <ThemedView style={styles.summaryRow}>
                 <ThemedView style={styles.summaryItem}>
                   <ThemedText style={[styles.summaryValue, { color: getScoreColor(calculateOverallAverage()) }]}>
@@ -1315,14 +1917,16 @@ ${item.evidence.map((evidence, evidenceIndex) => {
             </ThemedView>
 
             <ThemedView style={styles.chartSelector}>
-              <ThemedText style={styles.selectorTitle}>اختر نوع التحليل:</ThemedText>
+                              <ThemedText style={styles.selectorTitle}>
+                  اختر نوع التحليل:
+                </ThemedText>
               <ThemedView style={styles.selectorButtons}>
                 <TouchableOpacity
                   style={[styles.selectorButton, selectedChart === 'statistics' && styles.activeSelectorButton]}
                   onPress={() => setSelectedChart('statistics')}
                 >
                   <IconSymbol size={16} name="chart.pie.fill" color={selectedChart === 'statistics' ? '#fff' : '#666'} />
-                  <ThemedText style={[styles.selectorButtonText, selectedChart === 'statistics' && styles.activeSelectorButtonText]}>
+                                    <ThemedText style={[styles.selectorButtonText, selectedChart === 'statistics' && styles.activeSelectorButtonText]}>
                     الإحصائيات
                   </ThemedText>
                 </TouchableOpacity>
@@ -1332,7 +1936,7 @@ ${item.evidence.map((evidence, evidenceIndex) => {
                   onPress={() => setSelectedChart('overall')}
                 >
                   <IconSymbol size={16} name="list.bullet" color={selectedChart === 'overall' ? '#fff' : '#666'} />
-                  <ThemedText style={[styles.selectorButtonText, selectedChart === 'overall' && styles.activeSelectorButtonText]}>
+                                    <ThemedText style={[styles.selectorButtonText, selectedChart === 'overall' && styles.activeSelectorButtonText]}>
                     الترتيب
                   </ThemedText>
                 </TouchableOpacity>
@@ -1342,7 +1946,7 @@ ${item.evidence.map((evidence, evidenceIndex) => {
                   onPress={() => setSelectedChart('categories')}
                 >
                   <IconSymbol size={16} name="chart.bar.fill" color={selectedChart === 'categories' ? '#fff' : '#666'} />
-                  <ThemedText style={[styles.selectorButtonText, selectedChart === 'categories' && styles.activeSelectorButtonText]}>
+                                    <ThemedText style={[styles.selectorButtonText, selectedChart === 'categories' && styles.activeSelectorButtonText]}>
                     الفئة
                   </ThemedText>
                 </TouchableOpacity>
@@ -1352,9 +1956,9 @@ ${item.evidence.map((evidence, evidenceIndex) => {
             {renderChart()}
 
             <ThemedView style={styles.recommendationsCard}>
-              <ThemedText style={styles.recommendationsTitle}>
-                <IconSymbol size={20} name="lightbulb.fill" color="#FF9800" /> توصيات للتحسين
-              </ThemedText>
+                              <ThemedText style={styles.recommendationsTitle}>
+                  <IconSymbol size={20} name="lightbulb.fill" color="#FF9800" /> توصيات للتحسين
+                </ThemedText>
               <ThemedView style={styles.recommendationsList}>
                 {performanceData
                   .filter(item => item.score < 85)
@@ -1362,14 +1966,14 @@ ${item.evidence.map((evidence, evidenceIndex) => {
                   .slice(0, 3)
                   .map((item, index) => (
                     <ThemedView key={item.id} style={styles.recommendationItem}>
-                      <ThemedText style={styles.recommendationText}>
-                        • ركز على تحسين &quot;{item.title}&quot; (الدرجة الحالية: {item.score}%)
-                      </ThemedText>
+                                          <ThemedText style={styles.recommendationText}>
+                      {`• ركز على تحسين "${item.title}" (الدرجة الحالية: ${item.score}%)`}
+                    </ThemedText>
                     </ThemedView>
                   ))}
                 {performanceData.filter(item => item.score < 85).length === 0 && (
                   <ThemedView key="no-improvements-needed" style={styles.recommendationItem}>
-                    <ThemedText style={styles.recommendationText}>
+                                        <ThemedText style={styles.recommendationText}>
                       • ممتاز! جميع المحاور تحصل على درجات عالية. استمر في الأداء المتميز.
                     </ThemedText>
                   </ThemedView>
@@ -1385,14 +1989,6 @@ ${item.evidence.map((evidence, evidenceIndex) => {
                 <IconSymbol size={20} name="square.and.arrow.up.fill" color="#1c1f33" />
                 <ThemedText style={styles.buttonText}>تصدير التقرير</ThemedText>
               </TouchableOpacity>
-
-              <TouchableOpacity 
-                style={styles.printButton}
-                onPress={handlePrintReport}
-              >
-                <IconSymbol size={20} name="printer.fill" color="#1c1f33" />
-                <ThemedText style={styles.buttonText}>طباعة</ThemedText>
-              </TouchableOpacity>
             </ThemedView>
             </ThemedView>
           </ScrollView>
@@ -1403,7 +1999,7 @@ ${item.evidence.map((evidence, evidenceIndex) => {
   );
 }
 
-const styles = StyleSheet.create({
+const styles = StyleSheet.create<any>({
   container: {
     flex: 1,
   },
@@ -1464,16 +2060,13 @@ const styles = StyleSheet.create({
     marginTop: 15,
     marginBottom: 10,
     textAlign: 'center',
-    writingDirection: 'rtl',
-    textDirection: 'rtl',
     color: '#000000',
   },
   subtitle: {
     fontSize: 16,
     color: '#666666',
     textAlign: 'center',
-    writingDirection: 'rtl',
-    textDirection: 'rtl',
+
     marginBottom: 2,
   },
   content: {
@@ -1500,8 +2093,7 @@ const styles = StyleSheet.create({
     marginBottom: 20,
     color: '#1c1f33',
     textAlign: 'center',
-    writingDirection: 'rtl',
-    textDirection: 'rtl',
+
   },
   summaryRow: {
     flexDirection: 'row',
@@ -1527,8 +2119,7 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
     marginBottom: 12,
     textAlign: 'center',
-    writingDirection: 'rtl',
-    textDirection: 'rtl',
+
     textShadowColor: 'rgba(0, 0, 0, 0.1)',
     textShadowOffset: { width: 1, height: 1 },
     textShadowRadius: 2,
@@ -1538,8 +2129,7 @@ const styles = StyleSheet.create({
     fontSize: 16,
     color: '#1c1f33',
     textAlign: 'center',
-    writingDirection: 'rtl',
-    textDirection: 'rtl',
+
     fontWeight: '600',
     textShadowColor: 'rgba(0, 0, 0, 0.05)',
     textShadowOffset: { width: 0.5, height: 0.5 },
@@ -1559,6 +2149,7 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
     color: '#1c1f33',
     textAlign: 'right',
+    alignSelf: 'flex-end',
     writingDirection: 'rtl',
     textDirection: 'rtl',
     marginBottom: 10,
@@ -1586,9 +2177,8 @@ const styles = StyleSheet.create({
     fontSize: 14,
     color: '#666',
     fontWeight: '600',
-    textAlign: 'right',
-    writingDirection: 'rtl',
-    textDirection: 'rtl',
+    textAlign: 'left',
+
   },
   activeSelectorButtonText: {
     color: '#1c1f33',
@@ -1621,8 +2211,7 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
     color: '#1c1f33',
     textAlign: 'center',
-    writingDirection: 'rtl',
-    textDirection: 'rtl',
+
     marginBottom: 10,
   },
   legendItems: {
@@ -1647,9 +2236,8 @@ const styles = StyleSheet.create({
   legendText: {
     fontSize: 12,
     color: '#333',
-    textAlign: 'right',
-    writingDirection: 'rtl',
-    textDirection: 'rtl',
+    textAlign: 'left',
+
     flex: 1,
   },
   chartTitle: {
@@ -1657,8 +2245,7 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
     color: '#1c1f33',
     textAlign: 'center',
-    writingDirection: 'rtl',
-    textDirection: 'rtl',
+
     marginBottom: 15,
   },
   pieLegendContainer: {
@@ -1692,25 +2279,22 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: 'bold',
     color: '#1c1f33',
-    textAlign: 'right',
-    writingDirection: 'rtl',
-    textDirection: 'rtl',
+    textAlign: 'left',
+
     marginBottom: 4,
   },
   pieDetails: {
     fontSize: 14,
     color: '#666666',
-    textAlign: 'right',
-    writingDirection: 'rtl',
-    textDirection: 'rtl',
+    textAlign: 'left',
+
     marginBottom: 2,
   },
   pieAverage: {
     fontSize: 14,
     fontWeight: '600',
-    textAlign: 'right',
-    writingDirection: 'rtl',
-    textDirection: 'rtl',
+    textAlign: 'left',
+
   },
   progressList: {
     gap: 12,
@@ -1741,8 +2325,7 @@ const styles = StyleSheet.create({
     minWidth: 60,
     height: 60,
     textAlign: 'center',
-    writingDirection: 'rtl',
-    textDirection: 'rtl',
+
     backgroundColor: '#add4ce',
     borderRadius: 30,
     lineHeight: 60,
@@ -1835,6 +2418,7 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
     color: '#1c1f33',
     textAlign: 'right',
+    alignSelf: 'flex-end',
     writingDirection: 'rtl',
     textDirection: 'rtl',
     marginBottom: 15,
@@ -1879,28 +2463,11 @@ const styles = StyleSheet.create({
     shadowRadius: 12,
     elevation: 12,
   },
-  printButton: {
-    flex: 1,
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    backgroundColor: '#add4ce',
-    paddingVertical: 15,
-    paddingHorizontal: 25,
-    borderRadius: 25,
-    gap: 10,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 6 },
-    shadowOpacity: 0.4,
-    shadowRadius: 12,
-    elevation: 12,
-  },
   buttonText: {
     color: '#1c1f33',
     fontSize: 16,
     fontWeight: '600',
-    writingDirection: 'rtl',
-    textDirection: 'rtl',
+
     textAlign: 'center',
   },
   statisticsContainer: {
@@ -1916,6 +2483,7 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
     color: '#1c1f33',
     textAlign: 'right',
+    alignSelf: 'flex-end',
     writingDirection: 'rtl',
     textDirection: 'rtl',
     marginBottom: 15,

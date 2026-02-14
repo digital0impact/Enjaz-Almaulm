@@ -10,6 +10,7 @@ import * as XLSX from 'xlsx';
 import * as FileSystem from 'expo-file-system';
 import * as Sharing from 'expo-sharing';
 import * as Print from 'expo-print';
+import { getTextDirection, formatRTLText } from '@/utils/rtl-utils';
 
 interface Student {
   id: string;
@@ -163,8 +164,8 @@ const StudentCategoryDetailsScreen = () => {
               </TouchableOpacity>
 
               <ThemedView style={styles.headerContent}>
-                <ThemedText style={styles.title}>
-                  {categoryLabel}
+                <ThemedText style={[styles.title, getTextDirection()]}> 
+                  {formatRTLText(categoryLabel)}
                 </ThemedText>
                 <ThemedView style={styles.headerActions}>
                   <TouchableOpacity 
@@ -172,10 +173,10 @@ const StudentCategoryDetailsScreen = () => {
                     onPress={() => setShowExportOptions(true)}
                   >
                     <IconSymbol size={20} name="arrow.down.circle" color="#1c1f33" />
-                    <ThemedText style={styles.downloadButtonText}>تحميل الجدول</ThemedText>
+                    <ThemedText style={[styles.downloadButtonText, getTextDirection()]}>تحميل الجدول</ThemedText>
                   </TouchableOpacity>
-                  <ThemedText style={styles.subtitle}>
-                    {students.length} متعلم
+                  <ThemedText style={[styles.subtitle, getTextDirection()]}> 
+                    {students.length} {formatRTLText('متعلم')}
                   </ThemedText>
                 </ThemedView>
               </ThemedView>
@@ -186,12 +187,12 @@ const StudentCategoryDetailsScreen = () => {
               <ThemedView style={styles.tableContainer}>
                 {/* Table Header */}
                 <ThemedView style={[styles.tableHeader, { backgroundColor: categoryColor || '#4CAF50' }]}>
-                  <ThemedText style={[styles.headerCell, { flex: 2 }]}>اسم المتعلم</ThemedText>
-                  <ThemedText style={[styles.headerCell, { flex: 1.5 }]}>الصف الدراسي</ThemedText>
-                  <ThemedText style={[styles.headerCell, { flex: 2 }]}>الأهداف</ThemedText>
-                  <ThemedText style={[styles.headerCell, { flex: 2 }]}>احتياجات المتعلم</ThemedText>
-                  <ThemedText style={[styles.headerCell, { flex: 2 }]}>الشواهد</ThemedText>
-                  <ThemedText style={[styles.headerCell, { flex: 2 }]}>ملاحظات</ThemedText>
+                  <ThemedText style={[styles.headerCell, getTextDirection(), { flex: 2 }]}>اسم المتعلم</ThemedText>
+                  <ThemedText style={[styles.headerCell, getTextDirection(), { flex: 1.5 }]}>الصف الدراسي</ThemedText>
+                  <ThemedText style={[styles.headerCell, getTextDirection(), { flex: 2 }]}>الأهداف</ThemedText>
+                  <ThemedText style={[styles.headerCell, getTextDirection(), { flex: 2 }]}>احتياجات المتعلم</ThemedText>
+                  <ThemedText style={[styles.headerCell, getTextDirection(), { flex: 2 }]}>الشواهد</ThemedText>
+                  <ThemedText style={[styles.headerCell, getTextDirection(), { flex: 2 }]}>ملاحظات</ThemedText>
                 </ThemedView>
 
                 {/* Table Rows */}
@@ -214,13 +215,13 @@ const StudentCategoryDetailsScreen = () => {
                     }}
                   >
                     <ThemedView style={[styles.cell, { flex: 2 }]}>
-                      <ThemedText style={[styles.cellText, styles.studentName]}>
+                      <ThemedText style={[styles.cellText, styles.studentName, getTextDirection()]}> 
                         {student.name}
                       </ThemedText>
                     </ThemedView>
 
                     <ThemedView style={[styles.cell, { flex: 1.5 }]}>
-                      <ThemedText style={styles.cellText}>
+                      <ThemedText style={[styles.cellText, getTextDirection()]}>
                         {student.grade}
                       </ThemedText>
                     </ThemedView>
@@ -228,10 +229,10 @@ const StudentCategoryDetailsScreen = () => {
                     <ThemedView style={[styles.cell, { flex: 2 }]}>
                       {student.goals && student.goals.length > 0 ? (
                         <ThemedView>
-                          <ThemedText style={styles.itemCount}>
-                            {student.goals.length} أهداف
+                          <ThemedText style={[styles.itemCount, getTextDirection()]}> 
+                            {student.goals.length} {formatRTLText('أهداف')}
                           </ThemedText>
-                          <ThemedText style={styles.itemPreview} numberOfLines={2}>
+                          <ThemedText style={[styles.itemPreview, getTextDirection()]} numberOfLines={2}> 
                             {student.goals.slice(0, 2).join('، ')}
                             {student.goals.length > 2 ? '...' : ''}
                           </ThemedText>
@@ -244,10 +245,10 @@ const StudentCategoryDetailsScreen = () => {
                     <ThemedView style={[styles.cell, { flex: 2 }]}>
                       {student.needs && student.needs.length > 0 ? (
                         <ThemedView>
-                          <ThemedText style={styles.itemCount}>
-                            {student.needs.length} احتياج
+                          <ThemedText style={[styles.itemCount, getTextDirection()]}> 
+                            {student.needs.length} {formatRTLText('احتياج')}
                           </ThemedText>
-                          <ThemedText style={styles.itemPreview} numberOfLines={2}>
+                          <ThemedText style={[styles.itemPreview, getTextDirection()]} numberOfLines={2}> 
                             {student.needs.slice(0, 2).join('، ')}
                             {student.needs.length > 2 ? '...' : ''}
                           </ThemedText>
@@ -260,10 +261,10 @@ const StudentCategoryDetailsScreen = () => {
                     <ThemedView style={[styles.cell, { flex: 2 }]}>
                       {student.evidence && student.evidence.length > 0 ? (
                         <ThemedView>
-                          <ThemedText style={styles.itemCount}>
-                            {student.evidence.length} شواهد
+                          <ThemedText style={[styles.itemCount, getTextDirection()]}> 
+                            {student.evidence.length} {formatRTLText('شواهد')}
                           </ThemedText>
-                          <ThemedText style={styles.itemPreview} numberOfLines={2}>
+                          <ThemedText style={[styles.itemPreview, getTextDirection()]} numberOfLines={2}> 
                             {student.evidence.slice(0, 2).join('، ')}
                             {student.evidence.length > 2 ? '...' : ''}
                           </ThemedText>
@@ -274,7 +275,7 @@ const StudentCategoryDetailsScreen = () => {
                     </ThemedView>
 
                     <ThemedView style={[styles.cell, { flex: 2 }]}>
-                      <ThemedText style={styles.cellText} numberOfLines={2}>
+                      <ThemedText style={[styles.cellText, getTextDirection()]} numberOfLines={2}> 
                         {student.notes || '-'}
                       </ThemedText>
                     </ThemedView>
@@ -286,9 +287,9 @@ const StudentCategoryDetailsScreen = () => {
                 <ThemedView style={styles.emptyIconContainer}>
                   <IconSymbol size={80} name="person.2.slash" color="#ccc" />
                 </ThemedView>
-                <ThemedText style={styles.emptyTitle}>لا يوجد متعلمين</ThemedText>
-                <ThemedText style={styles.emptySubtitle}>
-                  لا يوجد متعلمين في هذه الفئة حالياً
+                <ThemedText style={[styles.emptyTitle, getTextDirection()]}>لا يوجد متعلمين</ThemedText>
+                <ThemedText style={[styles.emptySubtitle, getTextDirection()]}> 
+                  {formatRTLText('لا يوجد متعلمين في هذه الفئة حالياً')}
                 </ThemedText>
               </ThemedView>
             )}
@@ -305,7 +306,7 @@ const StudentCategoryDetailsScreen = () => {
       >
         <View style={styles.modalOverlay}>
           <ThemedView style={styles.modalContent}>
-            <ThemedText style={styles.modalTitle}>اختر صيغة التحميل</ThemedText>
+            <ThemedText style={[styles.modalTitle, getTextDirection()]}>اختر صيغة التحميل</ThemedText>
             
             <TouchableOpacity 
               style={styles.exportOption}
@@ -315,7 +316,7 @@ const StudentCategoryDetailsScreen = () => {
               }}
             >
               <IconSymbol size={24} name="doc.text" color="#1c1f33" />
-              <ThemedText style={styles.exportOptionText}>Excel تحميل بصيغة</ThemedText>
+              <ThemedText style={[styles.exportOptionText, getTextDirection()]}>Excel تحميل بصيغة</ThemedText>
             </TouchableOpacity>
 
             <TouchableOpacity 
@@ -326,14 +327,14 @@ const StudentCategoryDetailsScreen = () => {
               }}
             >
               <IconSymbol size={24} name="doc.pdf" color="#1c1f33" />
-              <ThemedText style={styles.exportOptionText}>PDF تحميل بصيغة</ThemedText>
+              <ThemedText style={[styles.exportOptionText, getTextDirection()]}>PDF تحميل بصيغة</ThemedText>
             </TouchableOpacity>
 
             <TouchableOpacity 
               style={[styles.exportOption, styles.cancelButton]}
               onPress={() => setShowExportOptions(false)}
             >
-              <ThemedText style={styles.cancelButtonText}>إلغاء</ThemedText>
+              <ThemedText style={[styles.cancelButtonText, getTextDirection()]}>إلغاء</ThemedText>
             </TouchableOpacity>
           </ThemedView>
         </View>

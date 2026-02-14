@@ -42,7 +42,6 @@ export class StorageService {
         relatedId
       } = options;
 
-      // إنشاء مسار الملف
       const userId = (await supabase.auth.getUser()).data.user?.id;
       if (!userId) {
         throw new Error('المستخدم غير مسجل الدخول');
