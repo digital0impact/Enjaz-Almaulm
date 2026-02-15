@@ -1,17 +1,30 @@
 import 'react-native-url-polyfill/auto';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { createClient } from '@supabase/supabase-js';
+import { createClient, SupabaseClient } from '@supabase/supabase-js';
 
-const supabaseUrl = process.env.EXPO_PUBLIC_SUPABASE_URL;
-const supabaseAnonKey = process.env.EXPO_PUBLIC_SUPABASE_ANON_KEY;
+let supabaseUrl = process.env.EXPO_PUBLIC_SUPABASE_URL ?? '';
+let supabaseAnonKey = process.env.EXPO_PUBLIC_SUPABASE_ANON_KEY ?? '';
 
-if (!supabaseUrl || !supabaseAnonKey) {
+const isWeb = typeof window !== 'undefined';
+const hasEnv = Boolean(supabaseUrl && supabaseAnonKey);
+
+if (!hasEnv && !isWeb) {
   throw new Error(
     'Missing Supabase env vars. Please set EXPO_PUBLIC_SUPABASE_URL and EXPO_PUBLIC_SUPABASE_ANON_KEY in .env'
   );
 }
 
-export const supabase = createClient(supabaseUrl, supabaseAnonKey, {
+if (!hasEnv && isWeb) {
+  supabaseUrl = 'https://placeholder.supabase.co';
+  supabaseAnonKey = 'placeholder-key';
+  if (typeof console !== 'undefined') {
+    console.warn(
+      '[Supabase] EXPO_PUBLIC_SUPABASE_URL و EXPO_PUBLIC_SUPABASE_ANON_KEY غير معرّفة. أضفها في Vercel → Settings → Environment Variables ثم أعد النشر.'
+    );
+  }
+}
+
+export const supabase: SupabaseClient = createClient(supabaseUrl, supabaseAnonKey, {
   auth: {
     storage: AsyncStorage,
     autoRefreshToken: true,
