@@ -6,6 +6,7 @@ import { ThemedView } from '@/components/ThemedView';
 import { IconSymbol } from '@/components/ui/IconSymbol';
 import { useRouter } from 'expo-router';
 import AuthService from '@/services/AuthService';
+import { isSupabaseConfigured } from '@/config/supabase';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { rtlStyles } from '@/styles/rtl-styles';
 import { 
@@ -119,10 +120,18 @@ export default function LoginScreen() {
       router.replace('/');
     } catch (error) {
       console.error('Login error:', error);
-      Alert.alert(
-        'خطأ في تسجيل الدخول',
-        'تأكد من صحة البريد الإلكتروني وكلمة المرور'
-      );
+      const message = error instanceof Error ? error.message : '';
+      if (!isSupabaseConfigured) {
+        Alert.alert(
+          'تسجيل الدخول غير متاح',
+          'لم يتم إعداد الاتصال بقاعدة البيانات. إذا كنت تفتح التطبيق من الويب، أضف EXPO_PUBLIC_SUPABASE_URL و EXPO_PUBLIC_SUPABASE_ANON_KEY في Vercel → Settings → Environment Variables ثم أعد النشر.'
+        );
+      } else {
+        Alert.alert(
+          'خطأ في تسجيل الدخول',
+          message || 'تأكد من صحة البريد الإلكتروني وكلمة المرور'
+        );
+      }
     } finally {
       setIsLoading(false);
     }

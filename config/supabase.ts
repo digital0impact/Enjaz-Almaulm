@@ -24,6 +24,9 @@ if (!hasEnv && isWeb) {
   }
 }
 
+/** true إذا تم تعيين متغيرات Supabase الحقيقية (غير الوضع المؤقت على الويب) */
+export const isSupabaseConfigured = hasEnv;
+
 export const supabase: SupabaseClient = createClient(supabaseUrl, supabaseAnonKey, {
   auth: {
     storage: AsyncStorage,
