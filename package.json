@@ -33,7 +33,6 @@
     "@supabase/supabase-js": "^2.95.3",
     "axios": "^1.10.0",
     "babel-plugin-module-resolver": "^5.0.2",
-    "canvas": "^2.11.2",
     "date-fns": "^4.1.0",
     "expo": "^54.0.33",
     "expo-auth-session": "~7.0.10",
