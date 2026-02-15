@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { View, StyleSheet, ScrollView, TouchableOpacity, Platform, StatusBar, Animated, ImageBackground, Linking } from 'react-native';
 import { useRouter } from 'expo-router';
+import Constants from 'expo-constants';
 import { InAppPurchaseService, SubscriptionProduct } from '@/services/InAppPurchaseService';
 import { SubscriptionService } from '@/services/SubscriptionService';
 import { ThemedView } from '@/components/ThemedView';
@@ -44,12 +45,19 @@ const FALLBACK_PLANS: SubscriptionProduct[] = [
   }
 ];
 
-/** رابط متجر الويب (صفحة الدفع الخاصة بك) - يُضاف له ?plan=yearly أو ?plan=half_yearly */
-const WEB_STORE_URL = (typeof process !== 'undefined' && process.env?.EXPO_PUBLIC_WEB_STORE_URL?.trim()) || '';
+/** قراءة رابط متجر الويب: من المتغير البيئي (عند البناء) أو من app.json extra (داخل الحزمة) */
+function getWebStoreUrl(): string {
+  const fromEnv = typeof process !== 'undefined' && process.env?.EXPO_PUBLIC_WEB_STORE_URL;
+  const envUrl = (typeof fromEnv === 'string' && fromEnv.trim()) || '';
+  if (envUrl) return envUrl;
+  const fromExtra = Constants.expoConfig?.extra?.webStoreUrl;
+  return (typeof fromExtra === 'string' && fromExtra.trim()) || '';
+}
 
 const SubscriptionScreen = () => {
   const router = useRouter();
   const isWeb = Platform.OS === 'web';
+  const WEB_STORE_URL = getWebStoreUrl();
   const [loading, setLoading] = useState(true);
   const [products, setProducts] = useState<SubscriptionProduct[]>([]);
   const [error, setError] = useState<string | null>(null);

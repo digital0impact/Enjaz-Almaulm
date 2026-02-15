@@ -56,7 +56,8 @@
       "router": {},
       "eas": {
         "projectId": "e1a21878-53e7-4976-9884-6206e56653c3"
-      }
+      },
+      "webStoreUrl": "https://salla.sa/moaen.lkm.com/cart"
     }
   }
 }
