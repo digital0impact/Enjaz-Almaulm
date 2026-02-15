@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { StyleSheet, ScrollView, TouchableOpacity, Alert, I18nManager, ImageBackground, Dimensions, TextInput, Platform } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
@@ -30,6 +30,7 @@ export default function ScheduleScreen() {
   const [selectedDay, setSelectedDay] = useState('الأحد');
   const [showAddForm, setShowAddForm] = useState(false);
   const [editingEntry, setEditingEntry] = useState<ScheduleEntry | null>(null);
+  const daysScrollRef = useRef<ScrollView>(null);
 
   const [formData, setFormData] = useState({
     day: 'الأحد',
@@ -79,6 +80,13 @@ export default function ScheduleScreen() {
     setCurrentWeek(getCurrentWeek());
     // RTL is handled by the safe wrapper in utils/rtl-utils.ts
   }, []);
+
+  useEffect(() => {
+    if (showAddForm && daysScrollRef.current) {
+      const t = setTimeout(() => daysScrollRef.current?.scrollToEnd({ animated: false }), 50);
+      return () => clearTimeout(t);
+    }
+  }, [showAddForm]);
 
   const loadScheduleData = async () => {
     try {
@@ -240,28 +248,6 @@ export default function ScheduleScreen() {
     });
   };
 
-  const exportSchedule = () => {
-    Alert.alert(
-      'تصدير الجدول',
-      'اختر صيغة التصدير:',
-      [
-        {
-          text: 'PDF',
-          onPress: () => Alert.alert('PDF', 'سيتم تصدير الجدول كملف PDF')
-        },
-        {
-          text: 'صورة',
-          onPress: () => Alert.alert('صورة', 'سيتم حفظ الجدول كصورة')
-        },
-        {
-          text: 'طباعة',
-          onPress: () => Alert.alert('طباعة', 'سيتم فتح معاينة الطباعة')
-        },
-        { text: 'إلغاء', style: 'cancel' }
-      ]
-    );
-  };
-
   const getDaySchedule = (day: string) => {
     return schedule.filter(entry => entry.day === day).sort((a, b) => {
       const timeA = timeSlots.indexOf(a.time);
@@ -283,7 +269,7 @@ export default function ScheduleScreen() {
 
   if (showAddForm) {
     return (
-      <ThemedView style={styles.container}>
+      <ThemedView style={[styles.container, styles.formPageRTL]}>
         <ImageBackground
           source={require('@/assets/images/background.png')}
           style={styles.backgroundImage}
@@ -291,18 +277,15 @@ export default function ScheduleScreen() {
         >
             <ScrollView 
               style={styles.scrollContainer}
-              contentContainerStyle={{ 
-                paddingBottom: 150,
-                flexGrow: 1 
-              }}
+              contentContainerStyle={[styles.formScrollContent, { paddingBottom: 150, flexGrow: 1 }]}
               showsVerticalScrollIndicator={false}
               keyboardShouldPersistTaps="handled"
               keyboardDismissMode="interactive"
               automaticallyAdjustContentInsets={false}
             >
-              <ThemedView style={styles.header}>
+              <ThemedView style={[styles.header, styles.formPageHeader]}>
                 <TouchableOpacity 
-                  style={styles.backButton}
+                  style={[styles.backButton, styles.formBackButton]}
                   onPress={() => setShowAddForm(false)}
                 >
                   <IconSymbol size={20} name="chevron.left" color="#1c1f33" />
@@ -311,10 +294,10 @@ export default function ScheduleScreen() {
                 <ThemedView style={styles.iconContainer}>
                   <IconSymbol size={60} name="plus.circle.fill" color="#1c1f33" />
                 </ThemedView>
-                <ThemedText type="title" style={styles.title}> 
+                <ThemedText type="title" style={[styles.title, getTextDirection()]}> 
                   {editingEntry ? 'تعديل الحصة' : 'إضافة حصة جديدة'}
                 </ThemedText>
-                <ThemedText style={styles.subtitle}> 
+                <ThemedText style={[styles.subtitle, getTextDirection()]}> 
                   إدخال تفاصيل الحصة الجديدة
                 </ThemedText>
 
@@ -323,17 +306,18 @@ export default function ScheduleScreen() {
                   onPress={addOrUpdateEntry}
                 >
                   <IconSymbol size={24} name="checkmark" color="#1c1f33" />
-                  <ThemedText style={styles.addButtonText}> 
+                  <ThemedText style={[styles.addButtonText, getTextDirection()]}> 
                     {editingEntry ? 'تحديث الحصة' : 'إضافة الحصة'}
                   </ThemedText>
                 </TouchableOpacity>
               </ThemedView>
 
-              <ThemedView style={styles.content}>
+              <ThemedView style={[styles.content, styles.formPageContent]}>
           <ThemedView style={styles.formCard}>
             <ThemedView style={styles.formGroup}>
-              <ThemedText style={styles.label}>{`\u202Aالأيام\u202C`}</ThemedText>
+              <ThemedText style={styles.formLabel}>الأيام</ThemedText>
               <ScrollView 
+                ref={daysScrollRef}
                 horizontal 
                 showsHorizontalScrollIndicator={false}
                 contentContainerStyle={styles.daysScrollContainer}
@@ -346,7 +330,7 @@ export default function ScheduleScreen() {
                     onPress={() => setFormData(prev => ({ ...prev, day }))}
                   >
                     <ThemedText style={[styles.dayButtonText, formData.day === day && styles.dayButtonTextSelected]}>
-                      {`\u202A${day}\u202C`}
+                      {day}
                     </ThemedText>
                   </TouchableOpacity>
                 ))}
@@ -354,7 +338,7 @@ export default function ScheduleScreen() {
             </ThemedView>
 
             <ThemedView style={styles.formGroup}>
-              <ThemedText style={styles.label}>{`\u202Aالحصة\u202C`}</ThemedText>
+              <ThemedText style={styles.formLabel}>الحصة</ThemedText>
               <ScrollView 
                 horizontal 
                 showsHorizontalScrollIndicator={false}
@@ -378,7 +362,7 @@ export default function ScheduleScreen() {
             {(
               <>
                 <ThemedView style={styles.formGroup}>
-                  <ThemedText style={styles.label}>المادة</ThemedText>
+                  <ThemedText style={styles.formLabel}>المادة</ThemedText>
                   <ThemedView style={styles.inputContainer}>
                     <IconSymbol size={20} name="book.fill" color="#666" />
                     <TextInput
@@ -388,12 +372,13 @@ export default function ScheduleScreen() {
                       placeholder="أدخل اسم المادة..."
                       placeholderTextColor="#999"
                       textAlign="right"
+                      writingDirection="rtl"
                     />
                   </ThemedView>
                 </ThemedView>
 
                 <ThemedView style={styles.formGroup}>
-                  <ThemedText style={styles.label}>الصف</ThemedText>
+                  <ThemedText style={styles.formLabel}>الصف</ThemedText>
                   <ThemedView style={styles.inputContainer}>
                     <IconSymbol size={20} name="person.2.fill" color="#666" />
                     <TextInput
@@ -403,6 +388,7 @@ export default function ScheduleScreen() {
                       placeholder="أدخل اسم الصف..."
                       placeholderTextColor="#999"
                       textAlign="right"
+                      writingDirection="rtl"
                     />
                   </ThemedView>
                 </ThemedView>
@@ -414,7 +400,7 @@ export default function ScheduleScreen() {
             <ThemedView style={styles.formActions}>
               <TouchableOpacity style={styles.saveButton} onPress={addOrUpdateEntry}>
                 <IconSymbol size={20} name="checkmark.circle.fill" color="#1c1f33" />
-                <ThemedText style={styles.saveButtonText}> 
+                <ThemedText style={[styles.saveButtonText, getTextDirection()]}> 
                   {editingEntry ? 'تحديث' : 'إضافة'}
                 </ThemedText>
               </TouchableOpacity>
@@ -428,7 +414,7 @@ export default function ScheduleScreen() {
                 }}
               >
                 <IconSymbol size={20} name="xmark.circle.fill" color="#1c1f33" />
-                <ThemedText style={styles.cancelButtonText}>إلغاء</ThemedText>
+                <ThemedText style={[styles.cancelButtonText, getTextDirection()]}>إلغاء</ThemedText>
               </TouchableOpacity>
             </ThemedView>
           </ThemedView>
@@ -601,13 +587,6 @@ export default function ScheduleScreen() {
             </ScrollView>
           </ThemedView>
 
-          {/* أزرار الإجراءات */}
-          <ThemedView style={styles.actionButtons}>
-            <TouchableOpacity style={styles.exportButton} onPress={exportSchedule}>
-              <IconSymbol size={20} name="square.and.arrow.up" color="#1c1f33" />
-              <ThemedText style={[styles.buttonText, getTextDirection()]}>تصدير الجدول</ThemedText>
-            </TouchableOpacity>
-          </ThemedView>
             </ThemedView>
           </ScrollView>
         
@@ -633,6 +612,24 @@ const styles = StyleSheet.create({
   scrollContainer: {
     flex: 1,
     paddingBottom: 20,
+  },
+  formPageRTL: {
+    direction: 'rtl',
+  },
+  formScrollContent: {
+    direction: 'rtl',
+  },
+  formPageHeader: {
+    alignItems: 'center',
+    direction: 'rtl',
+  },
+  formBackButton: {
+    left: undefined,
+    right: 20,
+  },
+  formPageContent: {
+    direction: 'rtl',
+    alignItems: 'stretch',
   },
   header: {
     alignItems: 'center',
@@ -1020,36 +1017,6 @@ const styles = StyleSheet.create({
   editIcon: {
     padding: 5,
   },
-  actionButtons: {
-    flexDirection: 'row-reverse',
-    gap: 10,
-    marginBottom: 20,
-    direction: 'rtl',
-  },
-  exportButton: {
-    flexDirection: 'row-reverse',
-    alignItems: 'center',
-    justifyContent: 'center',
-    backgroundColor: '#add4ce',
-    paddingVertical: 15,
-    paddingHorizontal: 25,
-    borderRadius: 25,
-    gap: 10,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 6 },
-    shadowOpacity: 0.4,
-    shadowRadius: 12,
-    elevation: 12,
-    direction: 'rtl',
-  },
-  buttonText: {
-    color: '#1c1f33',
-    fontSize: 16,
-    fontWeight: '600',
-    textAlign: 'right',
-    writingDirection: 'rtl',
-    textDirection: 'rtl',
-  },
 
   ////  نموذج الإضافة
   formCard: {
@@ -1075,6 +1042,14 @@ const styles = StyleSheet.create({
     textAlign: 'left',
     writingDirection: 'ltr',
     textDirection: 'ltr',
+  },
+  formLabel: {
+    fontSize: 16,
+    fontWeight: 'bold',
+    color: '#333',
+    marginBottom: 8,
+    textAlign: 'right',
+    writingDirection: 'rtl',
   },
   radioGroup: {
     flexDirection: 'row',
@@ -1113,11 +1088,12 @@ const styles = StyleSheet.create({
     maxHeight: 60,
   },
   daysScrollContainer: {
-    flexDirection: 'row',
+    flexDirection: 'row-reverse',
     alignItems: 'center',
+    justifyContent: 'flex-end',
     gap: 8,
     paddingHorizontal: 8,
-    direction: 'ltr',
+    direction: 'rtl',
   },
   dayButton: {
     paddingVertical: 12,
@@ -1140,15 +1116,13 @@ const styles = StyleSheet.create({
     fontSize: 12,
     color: '#666',
     fontWeight: '600',
-    textAlign: 'left',
-    writingDirection: 'ltr',
-    textDirection: 'ltr',
+    textAlign: 'right',
+    writingDirection: 'rtl',
   },
   dayButtonTextSelected: {
     color: '#fff',
-    textAlign: 'left',
-    writingDirection: 'ltr',
-    textDirection: 'ltr',
+    textAlign: 'right',
+    writingDirection: 'rtl',
   },
   timeGrid: {
     flexDirection: 'row',
@@ -1195,7 +1169,7 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.3,
     shadowRadius: 6,
     elevation: 4,
-    direction: 'ltr',
+    direction: 'rtl',
   },
   timeTextSelected: {
     color: '#fff',

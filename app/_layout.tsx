@@ -4,6 +4,7 @@ import { initializeRTL } from '../utils/rtl-utils';
 import { View } from 'react-native';
 import { ThemeProvider } from '../contexts/ThemeContext';
 import { UserProvider } from '../contexts/UserContext';
+import { AppLayoutWrapper } from '@/components/AppLayoutWrapper';
 
 export default function Layout() {
   useEffect(() => {
@@ -19,13 +20,15 @@ export default function Layout() {
   return (
     <ThemeProvider>
       <UserProvider>
-    <View style={{ flex: 1 }}>
-      <Stack
-        screenOptions={{
-          headerShown: false,
-        }}
-      />
-    </View>
+        <View style={{ flex: 1 }}>
+          <AppLayoutWrapper>
+            <Stack
+              screenOptions={{
+                headerShown: false,
+              }}
+            />
+          </AppLayoutWrapper>
+        </View>
       </UserProvider>
     </ThemeProvider>
   );

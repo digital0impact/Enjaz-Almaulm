@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { Image, StyleSheet, TouchableOpacity, ImageBackground, KeyboardAvoidingView, ScrollView, Platform, StatusBar, Animated } from 'react-native';
+import { Image, StyleSheet, TouchableOpacity, ImageBackground, KeyboardAvoidingView, ScrollView, Platform, StatusBar, Animated, useWindowDimensions, View } from 'react-native';
 
 import { ThemedText } from '@/components/ThemedText';
 import { ThemedView } from '@/components/ThemedView';
@@ -11,9 +11,15 @@ import { useRouter, useNavigation } from 'expo-router';
 import { getTextDirection, formatRTLText } from '@/utils/rtl-utils';
 import AuthService from '@/services/AuthService';
 
+const isWeb = Platform.OS === 'web';
+const WELCOME_MAX_CONTENT_WIDTH = 420;
+const LOGO_MAX_SIZE = 280;
+const LOGO_MIN_SIZE = 160;
+
 export default function HomeScreen() {
   const router = useRouter();
   const navigation = useNavigation();
+  const { width: screenWidth, height: screenHeight } = useWindowDimensions();
   const [currentScreen, setCurrentScreen] = useState('welcome');
   const [teacherName, setTeacherName] = useState('المعلم');
   const [userInfo, setUserInfo] = useState(null);
@@ -21,6 +27,12 @@ export default function HomeScreen() {
   
   // متغير للدوران
   const rotateAnim = useRef(new Animated.Value(0)).current;
+
+  // أحجام متجاوبة لصفحة الشعار (هواتف + ويب)
+  const logoSize = Math.max(LOGO_MIN_SIZE, Math.min(screenWidth * 0.55, LOGO_MAX_SIZE));
+  const contentWidth = isWeb ? Math.min(screenWidth, WELCOME_MAX_CONTENT_WIDTH) : screenWidth;
+  const horizontalPadding = screenWidth < 380 ? 16 : 24;
+  const subtitleFontSize = screenWidth < 380 ? 16 : 20;
   
 
 
@@ -145,13 +157,17 @@ export default function HomeScreen() {
 
   const handleLogout = async () => {
     try {
+      await AuthService.signOut();
+      setIsLoggedIn(false);
+      setUserInfo(null);
+      setCurrentScreen('welcome');
+    } catch (error) {
+      // إن فشل signOut من Supabase نمسح التخزين المحلي فقط
       await AsyncStorage.removeItem('userToken');
       await AsyncStorage.removeItem('userInfo');
       setIsLoggedIn(false);
       setUserInfo(null);
       setCurrentScreen('welcome');
-    } catch (error) {
-      console.log('Error logging out:', error);
     }
   };
 
@@ -173,71 +189,76 @@ export default function HomeScreen() {
           style={styles.backgroundImage}
           resizeMode="cover"
         >
-          <ThemedView style={[styles.welcomeContent, { backgroundColor: 'transparent' }]}>
-            <ThemedView style={[styles.heroSection, { backgroundColor: 'transparent' }]}>
-              <ThemedView style={[styles.logoContainer, { backgroundColor: 'transparent' }]}>
-                <Animated.View
-                  style={[
-                    styles.logoWithShadow,
-                    {
+          <ScrollView
+            contentContainerStyle={[
+              styles.welcomeScrollContent,
+              { minHeight: screenHeight, paddingHorizontal: horizontalPadding },
+            ]}
+            showsVerticalScrollIndicator={false}
+            keyboardShouldPersistTaps="handled"
+          >
+            <View style={[styles.welcomeContent, { width: contentWidth, maxWidth: '100%', alignSelf: 'center', backgroundColor: 'transparent' }]}>
+              <ThemedView style={[styles.heroSection, { backgroundColor: 'transparent' }]}>
+                <ThemedView style={[styles.logoContainer, { backgroundColor: 'transparent', width: logoSize, height: logoSize, borderRadius: logoSize / 2, marginBottom: screenHeight < 600 ? 8 : 10, overflow: 'hidden' }]}>
+                  <Animated.View
+                    style={{
                       transform: [{
                         rotateY: rotateAnim.interpolate({
                           inputRange: [0, 1],
-                          outputRange: ['0deg', '360deg'] // دورة واحدة كاملة
+                          outputRange: ['0deg', '360deg']
                         })
                       }]
-                    }
-                  ]}
-                >
-                  <Image 
-                    source={require('@/assets/images/Logo.png')} 
-                    style={styles.logoImage}
-                    resizeMode="contain"
-                  />
-                </Animated.View>
-              </ThemedView>
-              <ThemedText type="title" style={[styles.title, getTextDirection(), { backgroundColor: 'transparent' }]}> 
+                    }}
+                  >
+                    <Image 
+                      source={require('@/assets/images/Logo.png')} 
+                      style={{ width: logoSize, height: logoSize, backgroundColor: 'transparent' }}
+                      resizeMode="cover"
+                    />
+                  </Animated.View>
+                </ThemedView>
+                <ThemedText type="title" style={[styles.title, getTextDirection(), { backgroundColor: 'transparent' }]}> 
             
-              </ThemedText>
-              {/* استعادة العبارة كـ subtitle */}
-              <ThemedText style={[styles.subtitle, getTextDirection(), { textAlign: 'center', fontSize: 20, color: '#1c1f33', backgroundColor: 'transparent' }]}> 
-                {formatRTLText('منصتك المتكاملة لإدارة وعرض إنجازاتك المهنية')}
-              </ThemedText>
-            </ThemedView>
-
-            <ThemedView style={[styles.featuresSection, { marginBottom: 10, backgroundColor: 'transparent' }]}>
-              <ThemedView style={[styles.featureItem, { backgroundColor: 'transparent' }]}>
-                <ThemedText style={[styles.featureText, { backgroundColor: 'transparent' }]}></ThemedText>
-              </ThemedView>
-              <ThemedView style={[styles.featureItem, { backgroundColor: 'transparent' }]}>
-                <ThemedText style={[styles.featureText, { backgroundColor: 'transparent' }]}></ThemedText>
-              </ThemedView>
-            </ThemedView>
-
-            <ThemedView style={[styles.welcomeButtons, { backgroundColor: 'transparent' }]}>
-              <TouchableOpacity 
-                style={[styles.getStartedButton, { backgroundColor: 'rgba(173, 212, 206, 0.9)' }]}
-                onPress={handleGetStarted}
-              >
-                <ThemedText style={[styles.buttonText, getTextDirection(), { backgroundColor: 'transparent' }]}> 
-                  {formatRTLText('ابدأ الآن')}
                 </ThemedText>
-              </TouchableOpacity>
-              <TouchableOpacity 
-                style={[styles.loginLinkButton, { backgroundColor: 'transparent' }]}
-                onPress={() => router.push('/login')}
-              >
-                <ThemedText style={[styles.loginLinkText, getTextDirection(), { backgroundColor: 'transparent' }]}> 
-                  {formatRTLText('لديك حساب؟ تسجيل الدخول')}
+                <ThemedText style={[styles.subtitle, getTextDirection(), { textAlign: 'center', fontSize: subtitleFontSize, color: '#1c1f33', backgroundColor: 'transparent', paddingHorizontal: 8 }]}> 
+                  {formatRTLText('منصتك المتكاملة لإدارة وعرض إنجازاتك المهنية')}
                 </ThemedText>
-              </TouchableOpacity>
-            </ThemedView>
+              </ThemedView>
 
-            <VersionTracker 
-              showBuildInfo={false}
-              style={[styles.versionContainer, { backgroundColor: 'transparent' }]}
-            />
-          </ThemedView>
+              <ThemedView style={[styles.featuresSection, { marginBottom: 4, backgroundColor: 'transparent' }]}>
+                <ThemedView style={[styles.featureItem, { backgroundColor: 'transparent' }]}>
+                  <ThemedText style={[styles.featureText, { backgroundColor: 'transparent' }]}></ThemedText>
+                </ThemedView>
+                <ThemedView style={[styles.featureItem, { backgroundColor: 'transparent' }]}>
+                  <ThemedText style={[styles.featureText, { backgroundColor: 'transparent' }]}></ThemedText>
+                </ThemedView>
+              </ThemedView>
+
+              <ThemedView style={[styles.welcomeButtons, { backgroundColor: 'transparent' }]}>
+                <TouchableOpacity 
+                  style={[styles.getStartedButton, { backgroundColor: 'rgba(173, 212, 206, 0.9)', minWidth: screenWidth < 340 ? 140 : 160 }]}
+                  onPress={handleGetStarted}
+                >
+                  <ThemedText style={[styles.buttonText, getTextDirection(), { backgroundColor: 'transparent' }]}> 
+                    {formatRTLText('ابدأ الآن')}
+                  </ThemedText>
+                </TouchableOpacity>
+                <TouchableOpacity 
+                  style={[styles.loginLinkButton, { backgroundColor: 'transparent' }]}
+                  onPress={() => router.push('/login')}
+                >
+                  <ThemedText style={[styles.loginLinkText, getTextDirection(), { fontSize: screenWidth < 380 ? 14 : 15, backgroundColor: 'transparent' }]}> 
+                    {formatRTLText('لديك حساب؟ تسجيل الدخول')}
+                  </ThemedText>
+                </TouchableOpacity>
+              </ThemedView>
+
+              <VersionTracker 
+                showBuildInfo={false}
+                style={[styles.versionContainer, { backgroundColor: 'transparent' }]}
+              />
+            </View>
+          </ScrollView>
         </ImageBackground>
       </KeyboardAvoidingView>
     );
@@ -389,18 +410,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     backgroundColor: 'transparent',
     borderRadius: 160,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 8 },
-    shadowOpacity: 0.25,
-    shadowRadius: 15,
-    elevation: 10,
-  },
-  logoWithShadow: {
-    shadowColor: '#000',
-    shadowOffset: { width: 8, height: 8 },
-    shadowOpacity: 0.3,
-    shadowRadius: 15,
-    elevation: 15,
+    overflow: 'hidden',
   },
   logoImage: {
     width: 380,
@@ -408,12 +418,12 @@ const styles = StyleSheet.create({
   },
   heroSection: {
     alignItems: 'center',
-    marginBottom: 10,
+    marginBottom: 4,
   },
   featuresSection: {
     flexDirection: 'row',
     justifyContent: 'space-around',
-    marginBottom: 10,
+    marginBottom: 4,
     paddingHorizontal: 20,
   },
   featureItem: {
@@ -437,17 +447,22 @@ const styles = StyleSheet.create({
     writingDirection: 'rtl',
   },
   versionContainer: {
-    marginTop: 20,
+    marginTop: 8,
     backgroundColor: 'rgba(255,255,255,0.6)',
     borderRadius: 12,
     paddingVertical: 8,
     paddingHorizontal: 16,
   },
-  welcomeContent: {
-    flex: 1,
+  welcomeScrollContent: {
+    flexGrow: 1,
     justifyContent: 'center',
     alignItems: 'center',
-    padding: 30,
+    paddingVertical: 24,
+  },
+  welcomeContent: {
+    justifyContent: 'center',
+    alignItems: 'center',
+    paddingVertical: 20,
   },
   loginContent: {
     flex: 1,
@@ -486,7 +501,7 @@ const styles = StyleSheet.create({
     color: '#666666',
     textAlign: 'center',
     writingDirection: 'rtl',
-    marginBottom: 20,
+    marginBottom: 8,
   },
   getStartedButton: {
     backgroundColor: '#add4ce',
@@ -512,7 +527,7 @@ const styles = StyleSheet.create({
   welcomeButtons: {
     alignItems: 'center',
     gap: 12,
-    marginTop: 4,
+    marginTop: 0,
   },
   loginLinkButton: {
     paddingVertical: 10,

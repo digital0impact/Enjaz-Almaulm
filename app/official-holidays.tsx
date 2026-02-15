@@ -42,7 +42,7 @@ export default function OfficialHolidaysScreen() {
       id: '1',
       nameAr: 'رأس السنة الميلادية',
       nameEn: 'New Year\'s Day',
-      date: '2025-01-01',
+      date: '2026-01-01',
       duration: 1,
       type: 'fixed',
       category: 'international',
@@ -53,7 +53,7 @@ export default function OfficialHolidaysScreen() {
       id: '2',
       nameAr: 'يوم الرياضة السعودي',
       nameEn: 'Saudi Sports Day',
-      date: '2025-02-11',
+      date: '2026-02-11',
       duration: 1,
       type: 'fixed',
       category: 'national',
@@ -64,7 +64,7 @@ export default function OfficialHolidaysScreen() {
       id: '3',
       nameAr: 'يوم التأسيس',
       nameEn: 'Founding Day',
-      date: '2025-02-22',
+      date: '2026-02-22',
       duration: 1,
       type: 'fixed',
       category: 'national',
@@ -75,8 +75,8 @@ export default function OfficialHolidaysScreen() {
       id: '4',
       nameAr: 'عيد الفطر المبارك',
       nameEn: 'Eid Al-Fitr',
-      date: '2025-03-30',
-      hijriDate: '1 شوال 1446',
+      date: '2026-03-22',
+      hijriDate: '1 شوال 1447',
       duration: 3,
       type: 'variable',
       category: 'religious',
@@ -87,8 +87,8 @@ export default function OfficialHolidaysScreen() {
       id: '5',
       nameAr: 'يوم عرفة',
       nameEn: 'Arafat Day',
-      date: '2025-06-05',
-      hijriDate: '9 ذو الحجة 1446',
+      date: '2026-05-17',
+      hijriDate: '9 ذو الحجة 1447',
       duration: 1,
       type: 'variable',
       category: 'religious',
@@ -99,8 +99,8 @@ export default function OfficialHolidaysScreen() {
       id: '6',
       nameAr: 'عيد الأضحى المبارك',
       nameEn: 'Eid Al-Adha',
-      date: '2025-06-06',
-      hijriDate: '10 ذو الحجة 1446',
+      date: '2026-05-18',
+      hijriDate: '10 ذو الحجة 1447',
       duration: 4,
       type: 'variable',
       category: 'religious',
@@ -111,7 +111,7 @@ export default function OfficialHolidaysScreen() {
       id: '7',
       nameAr: 'اليوم الوطني السعودي',
       nameEn: 'Saudi National Day',
-      date: '2025-09-23',
+      date: '2026-09-23',
       duration: 1,
       type: 'fixed',
       category: 'national',
@@ -308,7 +308,7 @@ export default function OfficialHolidaysScreen() {
                 <ThemedText style={styles.addButtonText}>إضافة إجازة</ThemedText>
               </TouchableOpacity>
               <ThemedText type="subtitle" style={[styles.sectionTitle, getTextDirection()]}> 
-                {formatRTLText(`إجازات العام 2025 (${filteredHolidays.length})`)}
+                {formatRTLText(`إجازات العام 2026 (${filteredHolidays.length})`)}
               </ThemedText>
             </ThemedView>
 

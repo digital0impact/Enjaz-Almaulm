@@ -86,56 +86,10 @@ export class InAppPurchaseService {
       await this.initialize();
     }
 
-    // إذا لم تكن هناك منتجات من المتجر، نعرض المنتجات الافتراضية
+    // إذا لم تكن هناك منتجات من المتجر (ويب، محاكي، أو عدم اتصال)، نعرض المنتجات الافتراضية
     if (this.products.length === 0) {
-      return Platform.select({
-        ios: [
-          {
-            productId: 'Enjaz_basic_free',
-            title: 'الاشتراك الأساسي',
-            description: 'اشتراك مجاني مع ميزات أساسية',
-            price: 'مجاني',
-            features: this.getFeaturesByProductId('Enjaz_basic_free')
-          },
-          {
-            productId: 'Enjaz.Half_Yearly_Subscription30',
-            title: 'الاشتراك النصف سنوي',
-            description: 'اشتراك لمدة 6 أشهر',
-            price: '29.99 ريال',
-            features: this.getFeaturesByProductId('Enjaz.Half_Yearly_Subscription30')
-          },
-          {
-            productId: 'Enjaz_Yearly_Subscription_50',
-            title: 'الاشتراك السنوي',
-            description: 'اشتراك شامل لمدة سنة كاملة',
-            price: '49.99 ريال',
-            features: this.getFeaturesByProductId('Enjaz_Yearly_Subscription_50')
-          }
-        ],
-        android: [
-          {
-            productId: 'enjaz_subscription',
-            title: 'الاشتراك الأساسي',
-            description: 'اشتراك مجاني مع ميزات أساسية',
-            price: 'مجاني',
-            features: this.getFeaturesByProductId('enjaz_subscription')
-          },
-          {
-            productId: 'enjazhalfyearly30',
-            title: 'الاشتراك النصف سنوي',
-            description: 'اشتراك لمدة 6 أشهر',
-            price: '29.99 ريال',
-            features: this.getFeaturesByProductId('enjazhalfyearly30')
-          },
-          {
-            productId: 'enjazyearly50',
-            title: 'الاشتراك السنوي',
-            description: 'اشتراك شامل لمدة سنة كاملة',
-            price: '49.99 ريال',
-            features: this.getFeaturesByProductId('enjazyearly50')
-          }
-        ]
-      }) || [];
+      const defaultPlans = this.getDefaultPlans();
+      return defaultPlans;
     }
 
     return this.products.map(product => ({
@@ -145,6 +99,34 @@ export class InAppPurchaseService {
       price: product.localizedPrice,
       features: this.getFeaturesByProductId(product.productId)
     }));
+  }
+
+  /** خطط افتراضية عند عدم توفر منتجات من المتجر (ويب / محاكي / تطوير) */
+  private getDefaultPlans(): SubscriptionProduct[] {
+    const isIOS = Platform.OS === 'ios';
+    return [
+      {
+        productId: isIOS ? 'Enjaz_basic_free' : 'enjaz_subscription',
+        title: 'الاشتراك الأساسي',
+        description: 'اشتراك مجاني مع ميزات أساسية',
+        price: 'مجاني',
+        features: this.getFeaturesByProductId(isIOS ? 'Enjaz_basic_free' : 'enjaz_subscription')
+      },
+      {
+        productId: isIOS ? 'Enjaz.Half_Yearly_Subscription30' : 'enjazhalfyearly30',
+        title: 'الاشتراك النصف سنوي',
+        description: 'اشتراك لمدة 6 أشهر',
+        price: '29.99 ريال',
+        features: this.getFeaturesByProductId(isIOS ? 'Enjaz.Half_Yearly_Subscription30' : 'enjazhalfyearly30')
+      },
+      {
+        productId: isIOS ? 'Enjaz_Yearly_Subscription_50' : 'enjazyearly50',
+        title: 'الاشتراك السنوي',
+        description: 'اشتراك شامل لمدة سنة كاملة',
+        price: '49.99 ريال',
+        features: this.getFeaturesByProductId(isIOS ? 'Enjaz_Yearly_Subscription_50' : 'enjazyearly50')
+      }
+    ];
   }
 
   private getFeaturesByProductId(productId: string): string[] {

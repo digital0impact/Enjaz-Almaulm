@@ -2,12 +2,12 @@
   "expo": {
     "name": "إنجاز المعلم",
     "slug": "teacher-performance-app",
-    "version": "1.4.0",
+    "version": "1.4.1",
     "orientation": "portrait",
-    "icon": "./assets/icon.png",
+    "icon": "./assets/images/Logo.png",
     "userInterfaceStyle": "light",
     "splash": {
-      "image": "./assets/splash.png",
+      "image": "./assets/images/Logo.png",
       "resizeMode": "contain",
       "backgroundColor": "#ffffff"
     },
@@ -17,7 +17,7 @@
     "ios": {
       "supportsTablet": true,
       "bundleIdentifier": "com.teacherperformance.tdp",
-      "icon": "./assets/ios/icon.png",
+      "icon": "./assets/images/Logo.png",
       "infoPlist": {
         "ITSAppUsesNonExemptEncryption": false
       },
@@ -25,7 +25,7 @@
     },
     "android": {
       "adaptiveIcon": {
-        "foregroundImage": "./assets/adaptive-icon.png",
+        "foregroundImage": "./assets/images/Logo.png",
         "backgroundColor": "#ffffff"
       },
       "package": "com.teacherperformance.tdp",
@@ -45,7 +45,8 @@
       "favicon": "./assets/favicon.png"
     },
     "plugins": [
-      "expo-router"
+      "expo-router",
+      ["expo-build-properties",{"ios":{"deploymentTarget":"15.1"}}]
     ],
     "scheme": "enjazalmualm",
     "experiments": {

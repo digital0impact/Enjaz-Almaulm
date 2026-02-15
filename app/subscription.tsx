@@ -19,8 +19,37 @@ import {
   formatRTLDate 
 } from '@/utils/rtl-utils';
 
+/** خطط احتياطية عند فشل تحميل المنتجات من الخدمة (مثلاً على الويب) */
+const FALLBACK_PLANS: SubscriptionProduct[] = [
+  {
+    productId: 'enjaz_subscription',
+    title: 'الاشتراك الأساسي',
+    description: 'اشتراك مجاني مع ميزات أساسية',
+    price: 'مجاني',
+    features: ['إدارة الطلاب الأساسية', 'تتبع الأداء البسيط', 'تقارير أساسية', 'نسخ احتياطي محدود (5 ملفات)']
+  },
+  {
+    productId: 'enjazhalfyearly30',
+    title: 'الاشتراك النصف سنوي',
+    description: 'اشتراك لمدة 6 أشهر',
+    price: '29.99 ريال',
+    features: ['جميع الميزات الأساسية', 'تقارير متقدمة وشاملة', 'نسخ احتياطي غير محدود', 'تحديثات مجانية ومستمرة']
+  },
+  {
+    productId: 'enjazyearly50',
+    title: 'الاشتراك السنوي',
+    description: 'اشتراك شامل لمدة سنة كاملة',
+    price: '49.99 ريال',
+    features: ['جميع الميزات الأساسية', 'تقارير متقدمة وشاملة', 'نسخ احتياطي غير محدود', 'تحديثات مجانية ومستمرة', 'تصدير التقارير بصيغ متعددة', 'إحصائيات تفصيلية']
+  }
+];
+
+/** رابط متجر الويب (صفحة الدفع الخاصة بك) - يُضاف له ?plan=yearly أو ?plan=half_yearly */
+const WEB_STORE_URL = (typeof process !== 'undefined' && process.env?.EXPO_PUBLIC_WEB_STORE_URL?.trim()) || '';
+
 const SubscriptionScreen = () => {
   const router = useRouter();
+  const isWeb = Platform.OS === 'web';
   const [loading, setLoading] = useState(true);
   const [products, setProducts] = useState<SubscriptionProduct[]>([]);
   const [error, setError] = useState<string | null>(null);
@@ -53,17 +82,15 @@ const SubscriptionScreen = () => {
       setError(null);
       const purchaseService = InAppPurchaseService.getInstance();
       const availableProducts = await purchaseService.getProducts();
-      console.log('Loaded products:', availableProducts);
-      console.log('Products with features:', availableProducts.map(p => ({
-        productId: p.productId,
-        title: p.title,
-        featuresCount: p.features.length,
-        features: p.features
-      })));
-      setProducts(availableProducts);
+      if (availableProducts && availableProducts.length > 0) {
+        setProducts(availableProducts);
+      } else {
+        setProducts(FALLBACK_PLANS);
+      }
     } catch (err) {
-      setError('حدث خطأ في تحميل خطط الاشتراك');
       console.error('Error loading products:', err);
+      setProducts(FALLBACK_PLANS);
+      setError(null);
     } finally {
       setLoading(false);
     }
@@ -97,6 +124,33 @@ const SubscriptionScreen = () => {
         end_date: null
       });
     }
+  };
+
+  /** استخراج نوع الخطة من productId لاستخدامه في رابط متجر الويب */
+  const getPlanTypeForWebStore = (productId: string): 'yearly' | 'half_yearly' | null => {
+    if (productId.includes('yearly') && !productId.includes('half')) return 'yearly';
+    if (productId.includes('half') || productId.includes('Half')) return 'half_yearly';
+    return null;
+  };
+
+  const handleSubscribePress = async (productId: string) => {
+    const isFreePlan = productId.includes('free') || productId.includes('subscription');
+    const planType = getPlanTypeForWebStore(productId);
+
+    // على الويب: إذا كان هناك رابط متجر ويب وخطة مدفوعة، نفتح المتجر
+    if (isWeb && WEB_STORE_URL && !isFreePlan && planType) {
+      const separator = WEB_STORE_URL.includes('?') ? '&' : '?';
+      const url = `${WEB_STORE_URL}${separator}plan=${planType}`;
+      try {
+        await Linking.openURL(url);
+      } catch (e) {
+        console.error('Error opening web store:', e);
+        setError('تعذر فتح صفحة المتجر');
+      }
+      return;
+    }
+
+    await handlePurchase(productId);
   };
 
   const handlePurchase = async (productId: string) => {
@@ -282,8 +336,17 @@ const SubscriptionScreen = () => {
           <ThemedText style={styles.loadingText}>جاري تحميل خطط الاشتراك...</ThemedText>
             </Animated.View>
           ) : (
-            /* Subscription Plans */
-            <Animated.View style={[styles.plansSection, { opacity: fadeAnim, transform: [{ translateX: slideAnim }] }]}>
+            <>
+              {/* Subscription Plans */}
+              {isWeb && WEB_STORE_URL ? (
+                <Animated.View style={[styles.webStoreNote, { opacity: fadeAnim }]}>
+                  <IconSymbol size={20} name="link" color="#2196F3" />
+                  <ThemedText style={[styles.webStoreNoteText, getTextDirection()]}>
+                    {formatRTLText('الاشتراك من المتصفح يتم عبر متجرنا على الويب.')}
+                  </ThemedText>
+                </Animated.View>
+              ) : null}
+              <Animated.View style={[styles.plansSection, { opacity: fadeAnim, transform: [{ translateX: slideAnim }] }]}>
               <ThemedText style={[styles.sectionTitle, getTextDirection()]}>
               {formatRTLText('الخطط المتاحة')}
             </ThemedText>
@@ -340,7 +403,7 @@ const SubscriptionScreen = () => {
                       styles.subscribeButton,
                       { backgroundColor: getPlanColor(product.productId) }
                     ]}
-                  onPress={() => handlePurchase(product.productId)}
+                  onPress={() => handleSubscribePress(product.productId)}
                     activeOpacity={0.8}
                 >
                     <ThemedText style={[styles.buttonText, getTextDirection()]}>
@@ -349,7 +412,8 @@ const SubscriptionScreen = () => {
                 </TouchableOpacity>
                 </Animated.View>
               ))}
-            </Animated.View>
+              </Animated.View>
+            </>
           )}
 
 
@@ -457,6 +521,25 @@ const styles = StyleSheet.create({
     color: '#666666',
     textAlign: 'center',
     backgroundColor: 'transparent',
+  },
+  webStoreNote: {
+    flexDirection: 'row-reverse',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 8,
+    marginHorizontal: 20,
+    marginBottom: 12,
+    paddingVertical: 10,
+    paddingHorizontal: 16,
+    backgroundColor: 'rgba(33, 150, 243, 0.1)',
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: 'rgba(33, 150, 243, 0.3)',
+  },
+  webStoreNoteText: {
+    fontSize: 14,
+    color: '#1976D2',
+    ...getRTLTextStyle(),
   },
   plansSection: {
     marginBottom: 20,
