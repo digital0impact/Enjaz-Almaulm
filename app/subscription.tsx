@@ -458,7 +458,7 @@ const SubscriptionScreen = () => {
                     activeOpacity={0.8}
                 >
                     <ThemedText style={[styles.buttonText, getTextDirection()]}>
-                      {formatRTLText(product.productId.includes('free') ? 'تفعيل مجاناً' : 'اشترك الآن')}
+                      {formatRTLText(product.productId.includes('free') || product.productId.includes('subscription') ? 'مشترك' : 'اشترك الآن')}
                     </ThemedText>
                 </TouchableOpacity>
                 </Animated.View>
