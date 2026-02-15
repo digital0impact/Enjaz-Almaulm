@@ -137,20 +137,63 @@ const SubscriptionScreen = () => {
     const isFreePlan = productId.includes('free') || productId.includes('subscription');
     const planType = getPlanTypeForWebStore(productId);
 
-    // على الويب: إذا كان هناك رابط متجر ويب وخطة مدفوعة، نفتح المتجر
-    if (isWeb && WEB_STORE_URL && !isFreePlan && planType) {
-      const separator = WEB_STORE_URL.includes('?') ? '&' : '?';
-      const url = `${WEB_STORE_URL}${separator}plan=${planType}`;
-      try {
-        await Linking.openURL(url);
-      } catch (e) {
-        console.error('Error opening web store:', e);
-        setError('تعذر فتح صفحة المتجر');
+    // على الويب: التعامل مع كل الحالات دون استخدام IAP
+    if (isWeb) {
+      if (isFreePlan) {
+        // الخطة المجانية: تفعيلها مباشرة من Supabase دون شراء
+        await activateFreePlanOnWeb();
+        return;
       }
+      if (planType && WEB_STORE_URL) {
+        // خطة مدفوعة + رابط متجر: فتح صفحة المتجر (سلة أو غيرها)
+        const separator = WEB_STORE_URL.includes('?') ? '&' : '?';
+        const url = `${WEB_STORE_URL}${separator}plan=${planType}`;
+        try {
+          await Linking.openURL(url);
+        } catch (e) {
+          console.error('Error opening web store:', e);
+          setError('تعذر فتح صفحة المتجر');
+        }
+        return;
+      }
+      // خطة مدفوعة من المتصفح دون رابط متجر: رسالة واضحة بدل محاولة IAP
+      setError('الشراء من المتصفح يتطلب إضافة رابط متجرك (مثل سلة) في الإعدادات. يمكنك أيضاً الشراء من تطبيق الجوال.');
       return;
     }
 
     await handlePurchase(productId);
+  };
+
+  /** على الويب: تفعيل الاشتراك المجاني دون استخدام IAP */
+  const activateFreePlanOnWeb = async () => {
+    try {
+      setLoading(true);
+      setError(null);
+      const user = await AuthService.getCurrentUser();
+      if (!user) {
+        setError('يجب تسجيل الدخول أولاً');
+        return;
+      }
+      const ok = await SubscriptionService.createVerifiedSubscription(
+        user.id,
+        'free',
+        'web-free-' + Date.now(),
+        true
+      );
+      if (ok) {
+        await loadCurrentSubscription();
+        await loadProducts();
+      } else {
+        // قد يكون الاشتراك المجاني مفعّلاً مسبقاً
+        await loadCurrentSubscription();
+      }
+    } catch (err) {
+      console.error('Error activating free plan on web:', err);
+      setError('حدث خطأ أثناء التفعيل. إن كان اشتراكك الأساسي مفعّلاً، يمكنك تجاهل هذه الرسالة.');
+      await loadCurrentSubscription();
+    } finally {
+      setLoading(false);
+    }
   };
 
   const handlePurchase = async (productId: string) => {
