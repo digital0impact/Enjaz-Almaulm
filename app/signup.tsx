@@ -69,7 +69,7 @@ export default function SignupScreen() {
         [
           {
             text: formatRTLText('حسناً'),
-            onPress: () => router.replace('/(tabs)')
+            onPress: () => router.replace('/')
           }
         ]
       );

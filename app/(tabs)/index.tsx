@@ -7,6 +7,7 @@ import { IconSymbol } from '@/components/ui/IconSymbol';
 import { VersionTracker } from '@/components/VersionTracker';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useRouter, useNavigation } from 'expo-router';
+import { useFocusEffect } from '@react-navigation/native';
 
 import { getTextDirection, formatRTLText } from '@/utils/rtl-utils';
 import AuthService from '@/services/AuthService';
@@ -40,6 +41,13 @@ export default function HomeScreen() {
     checkLoginStatus();
     loadTeacherName();
   }, []);
+
+  // إعادة التحقق من تسجيل الدخول عند كل ظهور للصفحة (مثلاً بعد إنشاء حساب جديد)
+  useFocusEffect(
+    React.useCallback(() => {
+      checkLoginStatus();
+    }, [])
+  );
 
   // وظيفة الدوران العمودي مع توقف
   useEffect(() => {
