@@ -63,12 +63,16 @@ export default function SignupScreen() {
         email: user.email 
       }));
 
-      Alert.alert('تم إنشاء الحساب بنجاح', 'تم إرسال رابط التأكيد إلى بريدك الإلكتروني', [
-        {
-          text: 'حسناً',
-          onPress: () => router.replace('/(tabs)')
-        }
-      ]);
+      Alert.alert(
+        formatRTLText('تم إنشاء الحساب بنجاح'),
+        formatRTLText('يجب توثيق حسابك عبر البريد الإلكتروني. تم إرسال رابط التوثيق إلى بريدك، يرجى فتح الرسالة والنقر على الرابط لتفعيل الحساب. إن لم تجد الرسالة فتحقق من مجلد البريد العشوائي.'),
+        [
+          {
+            text: formatRTLText('حسناً'),
+            onPress: () => router.replace('/(tabs)')
+          }
+        ]
+      );
     } catch (error) {
       console.error('Signup error:', error);
       Alert.alert('خطأ في إنشاء الحساب', error instanceof Error ? error.message : 'حدث خطأ غير متوقع');
