@@ -45,19 +45,38 @@ const FALLBACK_PLANS: SubscriptionProduct[] = [
   }
 ];
 
-/** قراءة رابط متجر الويب: من المتغير البيئي (عند البناء) أو من app.json extra (داخل الحزمة) */
-function getWebStoreUrl(): string {
-  const fromEnv = typeof process !== 'undefined' && process.env?.EXPO_PUBLIC_WEB_STORE_URL;
-  const envUrl = (typeof fromEnv === 'string' && fromEnv.trim()) || '';
-  if (envUrl) return envUrl;
-  const fromExtra = Constants.expoConfig?.extra?.webStoreUrl;
-  return (typeof fromExtra === 'string' && fromExtra.trim()) || '';
+/** قراءة رابط صفحة منتج الخطة في متجر الويب (صفحة المنتج وليس عربة الشراء) */
+function getWebStoreProductUrl(plan: 'yearly' | 'half_yearly'): string {
+  const env = typeof process !== 'undefined' ? process.env : undefined;
+  const extra = Constants.expoConfig?.extra as Record<string, string | undefined> | undefined;
+  if (plan === 'yearly') {
+    const url = (env?.EXPO_PUBLIC_WEB_STORE_URL_YEARLY ?? extra?.webStoreUrlYearly ?? '').trim();
+    if (url) return url;
+    const fallback = (env?.EXPO_PUBLIC_WEB_STORE_URL ?? extra?.webStoreUrl ?? '').trim();
+    if (fallback) return fallback.includes('?') ? `${fallback}&plan=yearly` : `${fallback}?plan=yearly`;
+  } else {
+    const url = (env?.EXPO_PUBLIC_WEB_STORE_URL_HALF_YEARLY ?? extra?.webStoreUrlHalfYearly ?? '').trim();
+    if (url) return url;
+    const fallback = (env?.EXPO_PUBLIC_WEB_STORE_URL ?? extra?.webStoreUrl ?? '').trim();
+    if (fallback) return fallback.includes('?') ? `${fallback}&plan=half_yearly` : `${fallback}?plan=half_yearly`;
+  }
+  return '';
+}
+
+/** هل يوجد أي رابط لمتجر الويب (لإظهار ملاحظة المتصفح) */
+function hasWebStoreUrl(): boolean {
+  const env = typeof process !== 'undefined' ? process.env : undefined;
+  const extra = Constants.expoConfig?.extra as Record<string, string | undefined> | undefined;
+  if ((env?.EXPO_PUBLIC_WEB_STORE_URL ?? extra?.webStoreUrl ?? '').trim()) return true;
+  if ((env?.EXPO_PUBLIC_WEB_STORE_URL_YEARLY ?? extra?.webStoreUrlYearly ?? '').trim()) return true;
+  if ((env?.EXPO_PUBLIC_WEB_STORE_URL_HALF_YEARLY ?? extra?.webStoreUrlHalfYearly ?? '').trim()) return true;
+  return false;
 }
 
 const SubscriptionScreen = () => {
   const router = useRouter();
   const isWeb = Platform.OS === 'web';
-  const WEB_STORE_URL = getWebStoreUrl();
+  const hasWebStore = hasWebStoreUrl();
   const [loading, setLoading] = useState(true);
   const [products, setProducts] = useState<SubscriptionProduct[]>([]);
   const [error, setError] = useState<string | null>(null);
@@ -152,20 +171,19 @@ const SubscriptionScreen = () => {
         await activateFreePlanOnWeb();
         return;
       }
-      if (planType && WEB_STORE_URL) {
-        // خطة مدفوعة + رابط متجر: فتح صفحة المتجر (سلة أو غيرها)
-        const separator = WEB_STORE_URL.includes('?') ? '&' : '?';
-        const url = `${WEB_STORE_URL}${separator}plan=${planType}`;
-        try {
-          await Linking.openURL(url);
-        } catch (e) {
-          console.error('Error opening web store:', e);
-          setError('تعذر فتح صفحة المتجر');
+      if (planType) {
+        const productUrl = getWebStoreProductUrl(planType);
+        if (productUrl) {
+          try {
+            await Linking.openURL(productUrl);
+          } catch (e) {
+            console.error('Error opening product page:', e);
+            setError('تعذر فتح صفحة المنتج');
+          }
+          return;
         }
-        return;
       }
-      // خطة مدفوعة من المتصفح دون رابط متجر: رسالة واضحة بدل محاولة IAP
-      setError('الشراء من المتصفح يتطلب إضافة رابط متجرك (مثل سلة) في الإعدادات. يمكنك أيضاً الشراء من تطبيق الجوال.');
+      setError('الشراء من المتصفح يتطلب إضافة روابط صفحات المنتجات (سنوي / نصف سنوي) في الإعدادات. يمكنك أيضاً الشراء من تطبيق الجوال.');
       return;
     }
 
@@ -389,11 +407,11 @@ const SubscriptionScreen = () => {
           ) : (
             <>
               {/* Subscription Plans */}
-              {isWeb && WEB_STORE_URL ? (
+              {isWeb && hasWebStore ? (
                 <Animated.View style={[styles.webStoreNote, { opacity: fadeAnim }]}>
                   <IconSymbol size={20} name="link" color="#2196F3" />
                   <ThemedText style={[styles.webStoreNoteText, getTextDirection()]}>
-                    {formatRTLText('الاشتراك من المتصفح يتم عبر متجرنا على الويب.')}
+                    {formatRTLText('الاشتراك من المتصفح يتم عبر صفحة المنتج في متجرنا على الويب.')}
                   </ThemedText>
                 </Animated.View>
               ) : null}

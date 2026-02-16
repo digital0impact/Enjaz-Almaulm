@@ -1,11 +1,15 @@
 import React from 'react';
 import { StyleSheet, TouchableOpacity, View, Platform } from 'react-native';
 import { useRouter, usePathname } from 'expo-router';
+import { BlurView } from 'expo-blur';
+import * as Haptics from 'expo-haptics';
 import { ThemedView } from '@/components/ThemedView';
 import { ThemedText } from '@/components/ThemedText';
 import { IconSymbol } from '@/components/ui/IconSymbol';
 import { TabRoute } from '@/types';
 import { getRTLTextStyle } from '@/utils/rtl-utils';
+
+const TAB_BAR_TINT_COLOR = '#595b59';
 
 const tabs: TabRoute[] = [
   {
@@ -46,39 +50,45 @@ export const BottomNavigationBar: React.FC = () => {
   };
 
   const handleTabPress = (tab: TabRoute) => {
+    if (Platform.OS === 'ios') {
+      Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+    }
     if (!isActive(tab.route)) {
-      if (Platform.OS === 'ios') {
-        // يمكن إضافة Haptics هنا إذا كان مطلوباً
-      }
       router.push(tab.route);
     }
   };
 
   return (
     <ThemedView style={styles.container}>
-      <ThemedView style={styles.tabBar}>
-        {tabs.map((tab) => {
-          const active = isActive(tab.route);
-          return (
+      <View style={styles.tabBar}>
+        {Platform.OS === 'ios' && (
+          <BlurView
+            tint="systemChromeMaterial"
+            intensity={100}
+            style={StyleSheet.absoluteFill}
+          />
+        )}
+        <View style={styles.tabBarContent}>
+          {tabs.map((tab) => (
             <TouchableOpacity
               key={tab.key}
-              style={[styles.tab, active && styles.activeTab]}
+              style={styles.tab}
               onPress={() => handleTabPress(tab)}
               activeOpacity={0.7}
             >
               <IconSymbol
-                size={24}
+                size={28}
                 name={tab.icon as any}
-                color={active ? '#1c1f33' : '#666666'}
+                color={TAB_BAR_TINT_COLOR}
                 style={styles.tabIcon}
               />
-              <ThemedText style={[styles.tabText, active && styles.activeTabText]}>
+              <ThemedText style={styles.tabText}>
                 {tab.title}
               </ThemedText>
             </TouchableOpacity>
-          );
-        })}
-      </ThemedView>
+          ))}
+        </View>
+      </View>
     </ThemedView>
   );
 };
@@ -88,8 +98,6 @@ const styles = StyleSheet.create({
     backgroundColor: 'transparent',
   },
   tabBar: {
-    flexDirection: 'row',
-    backgroundColor: '#E8F5F4',
     borderTopWidth: 1,
     borderTopColor: '#E5E5EA',
     paddingHorizontal: 10,
@@ -99,6 +107,7 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.1,
     shadowRadius: 4,
     elevation: 8,
+    overflow: 'hidden',
     ...Platform.select({
       ios: {
         position: 'absolute',
@@ -108,6 +117,7 @@ const styles = StyleSheet.create({
         height: 88,
         paddingBottom: 20,
         paddingTop: 8,
+        backgroundColor: 'transparent',
       },
       default: {
         position: 'absolute',
@@ -116,8 +126,13 @@ const styles = StyleSheet.create({
         right: 0,
         height: 68,
         paddingTop: 8,
+        backgroundColor: '#E8F5F4',
       },
     }),
+  },
+  tabBarContent: {
+    flexDirection: 'row',
+    flex: 1,
   },
   tab: {
     flex: 1,
@@ -128,23 +143,15 @@ const styles = StyleSheet.create({
     minHeight: 44,
     paddingHorizontal: 4,
   },
-  activeTab: {
-    backgroundColor: 'rgba(28, 31, 51, 0.05)',
-  },
   tabIcon: {
     marginBottom: 4,
   },
   tabText: {
     fontSize: 12,
-    color: '#666666',
+    color: TAB_BAR_TINT_COLOR,
     marginTop: 2,
     textAlign: 'center',
     ...getRTLTextStyle(),
     fontWeight: '400',
-  },
-  activeTabText: {
-    color: '#1c1f33',
-    fontWeight: '600',
-    ...getRTLTextStyle(),
   },
 });
