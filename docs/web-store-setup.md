@@ -64,6 +64,42 @@ await supabaseAdmin.from('subscriptions').insert({
 
 إذا كانت صفحة الدفع على موقعك وتعرّف المستخدم (مثلاً عبر Supabase Auth)، يمكنك من نفس الصفحة استدعاء Supabase (بصلاحيات المستخدم المسجّل دخوله) لإدراج سجل في `subscriptions` بعد التحقق من نجاح الدفع.
 
+### الطريقة الثالثة: Edge Function الجاهزة (استدعاء من متجرك أو ويب هوك سلة)
+
+التطبيق يتضمن **Edge Function** جاهزة باسم `store-subscription-webhook` يمكنك استدعاؤها بعد الدفع في متجرك أو ربطها بويب هوك سلة.
+
+**رابط الاستدعاء (ضع بدل `YOUR_PROJECT_REF` معرّف مشروعك من لوحة Supabase):**
+```
+https://YOUR_PROJECT_REF.supabase.co/functions/v1/store-subscription-webhook
+```
+
+**الاستدعاء المباشر (من صفحة شكراً لك أو من سيرفرك):**
+- أرسل `POST` مع:
+  - `Content-Type: application/json`
+  - Header اختياري: `x-webhook-secret: YOUR_SECRET` (إذا ضبطت السر في Supabase)
+- Body مثال:
+```json
+{
+  "email": "البريد الذي سجّل به المستخدم في التطبيق",
+  "plan": "yearly",
+  "transaction_id": "معرف الطلب أو الفاتورة"
+}
+```
+- `plan` يكون إما `yearly` أو `half_yearly`.
+
+**ربط ويب هوك سلة:**
+1. من لوحة تحكم سلة → الإعدادات / التكاملات → **Webhooks**.
+2. أضف ويب هوك جديد، الحدث مثلاً: **طلب تم إنشاؤه** (`order.created`) أو **تم تحديث حالة الطلب** (`order.status.updated`).
+3. URL: نفس الرابط أعلاه `.../store-subscription-webhook`.
+4. إذا ضبطت سراً في Supabase (انظر أدناه)، أضف في رأس الطلب: `x-webhook-secret: YOUR_SECRET` (سلة قد تسمح بإضافة headers مخصصة أو استخدم Zapier/وسيط).
+5. الدالة تقرأ بريد العميل من الطلب وتحدد الخطة من اسم/منتج الطلب (سنوي → yearly، نصف سنوي → half_yearly) وتُدخل الاشتراك تلقائياً.
+
+**ضبط سر للويب هوك (موصى به):**
+- في Supabase: Project Settings → Edge Functions → إضافة Secret باسم `WEBHOOK_STORE_SECRET` وقيمة سرية.
+- في الطلبات المرسلة للدالة أضف الرأس: `x-webhook-secret: نفس القيمة`.
+
+**مهم:** المستخدم يجب أن يكون مسجلاً في التطبيق (Supabase Auth) **بنفس البريد** الذي يشتري به في متجرك حتى يتم ربط الاشتراك بحسابه.
+
 ---
 
 ## 4. أمثلة لبوابات دفع مناسبة للويب
