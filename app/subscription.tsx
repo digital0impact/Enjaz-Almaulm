@@ -45,20 +45,26 @@ const FALLBACK_PLANS: SubscriptionProduct[] = [
   }
 ];
 
+/** روابط وهمية لا تُفتح (يجب استبدالها بروابط متجرك الفعلية في .env أو app.json) */
+function isPlaceholderStoreUrl(url: string): boolean {
+  const u = url.toLowerCase();
+  return u.includes('your-store') || u.includes('رابط-المنتج');
+}
+
 /** قراءة رابط صفحة منتج الخطة في متجر الويب (صفحة المنتج وليس عربة الشراء) */
 function getWebStoreProductUrl(plan: 'yearly' | 'half_yearly'): string {
   const env = typeof process !== 'undefined' ? process.env : undefined;
   const extra = Constants.expoConfig?.extra as Record<string, string | undefined> | undefined;
   if (plan === 'yearly') {
     const url = (env?.EXPO_PUBLIC_WEB_STORE_URL_YEARLY ?? extra?.webStoreUrlYearly ?? '').trim();
-    if (url) return url;
+    if (url && !isPlaceholderStoreUrl(url)) return url;
     const fallback = (env?.EXPO_PUBLIC_WEB_STORE_URL ?? extra?.webStoreUrl ?? '').trim();
-    if (fallback) return fallback.includes('?') ? `${fallback}&plan=yearly` : `${fallback}?plan=yearly`;
+    if (fallback && !isPlaceholderStoreUrl(fallback)) return fallback.includes('?') ? `${fallback}&plan=yearly` : `${fallback}?plan=yearly`;
   } else {
     const url = (env?.EXPO_PUBLIC_WEB_STORE_URL_HALF_YEARLY ?? extra?.webStoreUrlHalfYearly ?? '').trim();
-    if (url) return url;
+    if (url && !isPlaceholderStoreUrl(url)) return url;
     const fallback = (env?.EXPO_PUBLIC_WEB_STORE_URL ?? extra?.webStoreUrl ?? '').trim();
-    if (fallback) return fallback.includes('?') ? `${fallback}&plan=half_yearly` : `${fallback}?plan=half_yearly`;
+    if (fallback && !isPlaceholderStoreUrl(fallback)) return fallback.includes('?') ? `${fallback}&plan=half_yearly` : `${fallback}?plan=half_yearly`;
   }
   return '';
 }
