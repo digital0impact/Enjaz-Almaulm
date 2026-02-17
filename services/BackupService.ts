@@ -1,6 +1,7 @@
 import { supabase } from '../config/supabase';
 import { logError } from '@/utils/logger';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { SubscriptionService } from './SubscriptionService';
 
 export interface BackupData {
   id: string;
@@ -246,29 +247,17 @@ export class BackupService {
     }
   }
 
-  // التحقق من صلاحيات النسخ الاحتياطي
+  // التحقق من صلاحيات النسخ الاحتياطي (الاشتراك المجاني = لا يسمح بالنسخ الاحتياطي)
   private async checkBackupPermissions(userId: string): Promise<boolean> {
     try {
-      // التحقق من نوع الاشتراك
-      const { data: subscription, error } = await supabase
-        .from('subscriptions')
-        .select('plan_type')
-        .eq('user_id', userId)
-        .eq('status', 'active')
-        .single();
-
-      // إذا لم يكن هناك اشتراك أو كان مجاني، نسمح بالنسخ الاحتياطي للمستخدمين المسجلين
-      if (error || !subscription) {
-        // السماح بالنسخ الاحتياطي للمستخدمين المسجلين حتى لو لم يكن لديهم اشتراك
-        return true;
+      const subscription = await SubscriptionService.getCurrentSubscription(userId);
+      if (!subscription || subscription.plan_type === 'free') {
+        return false;
       }
-
-      // السماح بالنسخ الاحتياطي لجميع أنواع الاشتراكات المدفوعة
-      return subscription.plan_type !== 'free';
+      return true;
     } catch (error) {
       logError('خطأ في التحقق من صلاحيات النسخ الاحتياطي', 'BackupService', error);
-      // في حالة الخطأ، نسمح بالنسخ الاحتياطي
-      return true;
+      return false;
     }
   }
 

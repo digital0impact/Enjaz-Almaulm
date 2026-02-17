@@ -14,6 +14,8 @@ import { BottomNavigationBar } from '@/components/BottomNavigationBar';
 import * as Sharing from 'expo-sharing';
 import * as Print from 'expo-print';
 import { StorageService } from '@/services/StorageService';
+import AuthService from '@/services/AuthService';
+import { SubscriptionService } from '@/services/SubscriptionService';
 import XLSX from 'xlsx';
 import { 
   getTextDirection, 
@@ -384,7 +386,25 @@ export default function RemedialPlansScreen() {
     }
   };
 
-  const exportTableData = (data: any) => {
+  const exportTableData = async (data: any) => {
+    try {
+      const user = await AuthService.getCurrentUser();
+      if (!user) return;
+      const status = await SubscriptionService.checkSubscriptionStatus(user.id);
+      if (!status.features.canExport) {
+        Alert.alert(
+          formatRTLText('ترقية الاشتراك مطلوبة'),
+          formatRTLText('تصدير الجدول (Excel/PDF) متاح للاشتراك المدفوع. يرجى ترقية اشتراكك.'),
+          [
+            { text: formatRTLText('حسناً'), style: 'cancel' as const },
+            { text: formatRTLText('عرض الخطط'), onPress: () => router.push('/subscription') }
+          ]
+        );
+        return;
+      }
+    } catch {
+      return;
+    }
     setExportModalData(data);
     setExportModalVisible(true);
   };

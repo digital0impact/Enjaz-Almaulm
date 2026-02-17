@@ -9,6 +9,8 @@ import { ThemedView } from '@/components/ThemedView';
 import { IconSymbol } from '@/components/ui/IconSymbol';
 import { useRouter } from 'expo-router';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import AuthService from '@/services/AuthService';
+import { SubscriptionService } from '@/services/SubscriptionService';
 import { BottomNavigationBar } from '@/components/BottomNavigationBar';
 import * as Sharing from 'expo-sharing';
 import * as Print from 'expo-print';
@@ -1793,7 +1795,25 @@ export default function InteractiveReportScreen() {
     `;
   };
 
-  const handleExportReport = () => {
+  const handleExportReport = async () => {
+    try {
+      const user = await AuthService.getCurrentUser();
+      if (!user) return;
+      const status = await SubscriptionService.checkSubscriptionStatus(user.id);
+      if (!status.features.canExport) {
+        Alert.alert(
+          formatRTLText('ترقية الاشتراك مطلوبة'),
+          formatRTLText('تصدير التقرير (PDF) متاح للاشتراك المدفوع. يرجى ترقية اشتراكك.'),
+          [
+            { text: formatRTLText('حسناً'), style: 'cancel' as const },
+            { text: formatRTLText('عرض الخطط'), onPress: () => router.push('/subscription') }
+          ]
+        );
+        return;
+      }
+    } catch {
+      return;
+    }
     exportToPDF();
   };
 

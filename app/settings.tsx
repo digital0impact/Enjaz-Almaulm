@@ -12,6 +12,8 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useRouter } from 'expo-router';
 import { VERSION_INFO } from '@/constants/Version';
 import { getTextDirection, formatRTLText } from '@/utils/rtl-utils';
+import AuthService from '@/services/AuthService';
+import { SubscriptionService } from '@/services/SubscriptionService';
 
 export default function SettingsScreen() {
   const router = useRouter();
@@ -27,6 +29,7 @@ export default function SettingsScreen() {
   const [showBackupProgress, setShowBackupProgress] = useState(false);
   const [isBackupInProgress, setIsBackupInProgress] = useState(false);
   const [lastBackupInfo, setLastBackupInfo] = useState<{date: string, size: string, type: string} | null>(null);
+  const [canUseBackup, setCanUseBackup] = useState<boolean | null>(null);
   
   // معلومات الإصدار
   const [versionInfo, setVersionInfo] = useState({
@@ -40,6 +43,7 @@ export default function SettingsScreen() {
     loadNotificationSettings();
     loadLastBackupInfo();
     loadVersionInfo();
+    loadBackupPermission();
     
     // تحريك الصفحة عند التحميل
     Animated.parallel([
@@ -56,10 +60,11 @@ export default function SettingsScreen() {
     ]).start();
   }, []);
 
-  // إعادة تحميل معلومات الإصدار عند التركيز على الشاشة
+  // إعادة تحميل معلومات الإصدار والصلاحيات عند التركيز على الشاشة
   useFocusEffect(
     React.useCallback(() => {
       loadVersionInfo();
+      loadBackupPermission();
     }, [])
   );
 
@@ -76,6 +81,20 @@ export default function SettingsScreen() {
   };
 
 
+
+  const loadBackupPermission = async () => {
+    try {
+      const user = await AuthService.getCurrentUser();
+      if (!user) {
+        setCanUseBackup(false);
+        return;
+      }
+      const subscription = await SubscriptionService.getCurrentSubscription(user.id);
+      setCanUseBackup(Boolean(subscription && subscription.plan_type !== 'free'));
+    } catch {
+      setCanUseBackup(false);
+    }
+  };
 
   const loadLastBackupInfo = async () => {
     try {
@@ -160,6 +179,17 @@ export default function SettingsScreen() {
   const handleCreateBackup = async () => {
     if (isBackupInProgress) {
       Alert.alert('تنبيه', 'هناك عملية نسخ احتياطية قيد التنفيذ حالياً');
+      return;
+    }
+    if (canUseBackup === false) {
+      Alert.alert(
+        formatRTLText('ترقية الاشتراك مطلوبة'),
+        formatRTLText('النسخ الاحتياطي متاح للاشتراك السنوي أو النصف سنوي. يرجى ترقية اشتراكك للاستفادة من هذه الميزة.'),
+        [
+          { text: formatRTLText('إلغاء'), style: 'cancel' as const },
+          { text: formatRTLText('عرض خطط الاشتراك'), onPress: () => router.push('/subscription') }
+        ]
+      );
       return;
     }
 
@@ -512,6 +542,11 @@ export default function SettingsScreen() {
                       <ThemedText style={[styles.lastBackupSize, getTextDirection()]}>الحجم: {lastBackupInfo.size}</ThemedText>
                     </ThemedView>
                   )}
+                  {canUseBackup === false && (
+                    <ThemedText style={[styles.backupUpgradeNote, getTextDirection()]}>
+                      {formatRTLText('النسخ الاحتياطي متاح مع الاشتراك المدفوع.')}
+                    </ThemedText>
+                  )}
                   
                   <ThemedView style={styles.backupButtons}>
                     <TouchableOpacity 
@@ -836,6 +871,13 @@ const styles = StyleSheet.create({
     fontSize: 13,
     color: '#6C757D',
     textAlign: 'right',
+    backgroundColor: 'transparent',
+  },
+  backupUpgradeNote: {
+    fontSize: 13,
+    color: '#856404',
+    textAlign: 'right',
+    marginBottom: 8,
     backgroundColor: 'transparent',
   },
   backupButtons: {
