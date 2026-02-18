@@ -6,6 +6,7 @@ import { ThemedView } from '@/components/ThemedView';
 import { IconSymbol } from '@/components/ui/IconSymbol';
 import { useRouter } from 'expo-router';
 import AuthService from '@/services/AuthService';
+import { DatabaseService } from '@/services/DatabaseService';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { getTextDirection, formatRTLText } from '@/utils/rtl-utils';
 
@@ -13,6 +14,7 @@ export default function SignupScreen() {
   const router = useRouter();
   const [fullName, setFullName] = useState('');
   const [email, setEmail] = useState('');
+  const [phone, setPhone] = useState('');
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
   const [isLoading, setIsLoading] = useState(false);
@@ -57,11 +59,17 @@ export default function SignupScreen() {
     try {
       const user = await AuthService.signUpWithEmail(email, password, fullName);
       
-      // حفظ البيانات الأساسية
+      // حفظ البيانات الأساسية (بما فيها الهاتف لربط الشراء من المتجر لاحقاً)
       await AsyncStorage.setItem('basicData', JSON.stringify({ 
         fullName: user.name || fullName,
-        email: user.email 
+        email: user.email,
+        phone: phone.trim() || undefined
       }));
+      try {
+        await DatabaseService.addUser(user.name || fullName, user.email, phone.trim() || undefined);
+      } catch (e) {
+        console.warn('Could not sync profile (phone):', e);
+      }
 
       Alert.alert(
         formatRTLText('تم إنشاء الحساب بنجاح'),
@@ -171,6 +179,24 @@ export default function SignupScreen() {
                       textAlign="right"
                     />
                   </ThemedView>
+                </ThemedView>
+
+                <ThemedView style={styles.inputContainer}>
+                  <ThemedText style={[styles.inputLabel, { textAlign: 'right', writingDirection: 'rtl' }]}>رقم الجوال (اختياري)</ThemedText>
+                  <ThemedView style={styles.inputWrapper}>
+                    <IconSymbol size={20} name="phone.fill" color="#666666" style={styles.inputIcon} />
+                    <TextInput
+                      style={[styles.textInput, getTextDirection()]}
+                      value={phone}
+                      onChangeText={setPhone}
+                      placeholder={formatRTLText('مثال: 05xxxxxxxx أو +9665xxxxxxxx')}
+                      keyboardType="phone-pad"
+                      autoCorrect={false}
+                      placeholderTextColor="#999999"
+                      textAlign="right"
+                    />
+                  </ThemedView>
+                  <ThemedText style={[styles.phoneHint, getTextDirection()]}>{formatRTLText('يُستخدم لربط اشتراكك عند الشراء من متجرنا بنفس الرقم')}</ThemedText>
                 </ThemedView>
 
                 <ThemedView style={styles.inputContainer}>
@@ -513,6 +539,12 @@ const styles = StyleSheet.create({
   checkboxChecked: {
     backgroundColor: '#1c1f33',
     borderColor: '#1c1f33',
+  },
+  phoneHint: {
+    fontSize: 11,
+    color: '#6C757D',
+    marginTop: 4,
+    textAlign: 'right',
   },
   errorText: {
     color: '#FF3B30',

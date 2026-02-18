@@ -18,7 +18,9 @@ import { ThemedView } from '@/components/ThemedView';
 import { IconSymbol } from '@/components/ui/IconSymbol';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import * as ImagePicker from 'expo-image-picker';
-import { useTheme } from '@/contexts/ThemeContext'; // Import useTheme hook
+import { useTheme } from '@/contexts/ThemeContext';
+import AuthService from '@/services/AuthService';
+import { DatabaseService } from '@/services/DatabaseService';
 import { getTextDirection, formatRTLText } from '@/utils/rtl-utils';
 
 export default function BasicDataScreen() {
@@ -78,10 +80,17 @@ export default function BasicDataScreen() {
 
   const saveUserData = async () => {
     try {
-      console.log('Saving user data:', userData);
       await AsyncStorage.setItem('basicData', JSON.stringify(userData));
       if (profileImage) {
         await AsyncStorage.setItem('profileImage', profileImage);
+      }
+      const user = await AuthService.getCurrentUser();
+      if (user?.id && userData.phone) {
+        try {
+          await DatabaseService.updateUserProfile(user.id, { phoneNumber: userData.phone });
+        } catch (e) {
+          console.warn('Could not sync phone to profile:', e);
+        }
       }
       setIsEditing(false);
       Alert.alert('تم الحفظ', 'تم حفظ البيانات بنجاح');

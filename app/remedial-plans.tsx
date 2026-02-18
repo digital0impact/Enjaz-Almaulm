@@ -432,7 +432,11 @@ export default function RemedialPlansScreen() {
       const result = await generateExcelFile(data);
 
       if (Platform.OS === 'web') {
-        const base64 = result as string;
+        const base64 = typeof result === 'string' ? result : '';
+        if (!base64) {
+          Alert.alert('خطأ', 'لم يتم إنشاء بيانات الملف. تأكد من وجود بيانات للتصدير.');
+          return;
+        }
         const binary = atob(base64);
         const bytes = new Uint8Array(binary.length);
         for (let i = 0; i < binary.length; i++) bytes[i] = binary.charCodeAt(i);
@@ -441,8 +445,10 @@ export default function RemedialPlansScreen() {
         const a = document.createElement('a');
         a.href = url;
         a.download = `الخطط_العلاجية_${new Date().toISOString().slice(0, 10)}.xlsx`;
+        document.body.appendChild(a);
         a.click();
-        URL.revokeObjectURL(url);
+        document.body.removeChild(a);
+        setTimeout(() => URL.revokeObjectURL(url), 15000);
         Alert.alert('تم بنجاح', 'تم تحميل ملف Excel');
       } else {
         const filePath = result as string;
@@ -475,22 +481,21 @@ export default function RemedialPlansScreen() {
     setExportModalData(null);
 
     if (Platform.OS === 'web' && typeof window !== 'undefined') {
+      const printWindow = window.open('', '_blank', 'noopener,noreferrer');
+      if (!printWindow) {
+        Alert.alert('تنبيه', 'الرجاء السماح بالنوافذ المنبثقة ثم إعادة المحاولة.');
+        return;
+      }
       try {
         const htmlContent = getRemedialPlansReportHTML(data);
-        const printWindow = window.open('', '_blank');
-        if (!printWindow) {
-          Alert.alert('تنبيه', 'الرجاء السماح بالنوافذ المنبثقة ثم إعادة المحاولة.');
-          return;
-        }
         printWindow.document.write(htmlContent);
         printWindow.document.close();
         printWindow.focus();
-        setTimeout(() => {
-          printWindow.print();
-        }, 300);
+        setTimeout(() => { printWindow.print(); }, 500);
         Alert.alert('تم بنجاح', 'استخدم "حفظ كـ PDF" أو "Save as PDF" في نافذة الطباعة لحفظ التقرير.');
       } catch (error) {
         console.error('خطأ في تحميل PDF:', error);
+        try { printWindow.close(); } catch (_) {}
         Alert.alert('خطأ', 'حدث خطأ أثناء فتح معاينة الطباعة');
       }
       return;

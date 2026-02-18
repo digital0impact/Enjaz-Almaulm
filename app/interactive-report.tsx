@@ -1815,27 +1815,28 @@ export default function InteractiveReportScreen() {
   };
 
   const openReportForPrint = async () => {
+    const isWeb = Platform.OS === 'web' && typeof window !== 'undefined';
+    const w = isWeb ? window.open('', '_blank', 'noopener,noreferrer') : null;
+    if (isWeb && !w) {
+      Alert.alert(formatRTLText('تنبيه'), formatRTLText('السماح بالنوافذ المنبثقة ثم أعد المحاولة.'));
+      return;
+    }
     try {
       const htmlContent = await generateReportHTML();
-      if (Platform.OS === 'web' && typeof window !== 'undefined') {
-        const blob = new Blob([htmlContent], { type: 'text/html; charset=utf-8' });
-        const url = URL.createObjectURL(blob);
-        const w = window.open(url, '_blank', 'noopener,noreferrer');
-        if (w) {
-          const doPrint = () => { try { w.print(); } catch (_) {} };
-          w.onload = () => setTimeout(doPrint, 600);
-          setTimeout(doPrint, 2000);
-          setTimeout(() => URL.revokeObjectURL(url), 6000);
-          Alert.alert(formatRTLText('تم فتح نافذة التقرير'), formatRTLText('اختر «حفظ كـ PDF» أو «Save as PDF» في نافذة الطباعة.'));
-        } else {
-          Alert.alert(formatRTLText('تنبيه'), formatRTLText('السماح بالنوافذ المنبثقة ثم أعد المحاولة.'));
-          URL.revokeObjectURL(url);
-        }
+      if (isWeb && w) {
+        w.document.write(htmlContent);
+        w.document.close();
+        w.focus();
+        const doPrint = () => { try { w.print(); } catch (_) {} };
+        setTimeout(doPrint, 600);
+        setTimeout(doPrint, 2000);
+        Alert.alert(formatRTLText('تم فتح نافذة التقرير'), formatRTLText('اختر «حفظ كـ PDF» أو «Save as PDF» في نافذة الطباعة.'));
       } else {
         await exportToPDF();
       }
     } catch (e) {
       console.error('Open report for print:', e);
+      if (w) try { w.close(); } catch (_) {}
       Alert.alert(formatRTLText('خطأ'), formatRTLText('تعذر فتح التقرير.'));
     }
   };
@@ -1843,10 +1844,21 @@ export default function InteractiveReportScreen() {
   const handleExportReport = async () => {
     if (isExporting) return;
     setIsExporting(true);
+    const isWeb = Platform.OS === 'web' && typeof window !== 'undefined';
+    const printWindowRef = isWeb ? window.open('', '_blank', 'noopener,noreferrer') : null;
+    if (isWeb && !printWindowRef) {
+      setIsExporting(false);
+      Alert.alert(
+        formatRTLText('تنبيه'),
+        formatRTLText('السماح بالنوافذ المنبثقة لهذا الموقع ثم اضغط «تصدير التقرير» مرة أخرى.')
+      );
+      return;
+    }
     try {
       let user = await AuthService.getCurrentUser();
       if (!user) user = await AuthService.checkAuthStatus();
       if (!user) {
+        if (printWindowRef) printWindowRef.close();
         Alert.alert(
           formatRTLText('تسجيل الدخول مطلوب'),
           formatRTLText('يرجى تسجيل الدخول مرة أخرى للسماح بتصدير التقرير.'),
@@ -1856,6 +1868,7 @@ export default function InteractiveReportScreen() {
       }
       const status = await SubscriptionService.checkSubscriptionStatus(user.id);
       if (!status?.features?.canExport) {
+        if (printWindowRef) printWindowRef.close();
         Alert.alert(
           formatRTLText('ترقية الاشتراك مطلوبة'),
           formatRTLText('تصدير التقرير (PDF) متاح للاشتراك المدفوع. يمكنك معاينة التقرير وطباعته أو حفظه كـ PDF من نافذة الطباعة.'),
@@ -1867,9 +1880,21 @@ export default function InteractiveReportScreen() {
         );
         return;
       }
-      await exportToPDF();
+      if (isWeb && printWindowRef) {
+        const htmlContent = await generateReportHTML();
+        printWindowRef.document.write(htmlContent);
+        printWindowRef.document.close();
+        printWindowRef.focus();
+        const doPrint = () => { try { printWindowRef.print(); } catch (_) {} };
+        setTimeout(doPrint, 600);
+        setTimeout(doPrint, 2000);
+        Alert.alert(formatRTLText('تم فتح نافذة التقرير'), formatRTLText('اختر «حفظ كـ PDF» أو «Save as PDF» في نافذة الطباعة.'));
+      } else {
+        await exportToPDF();
+      }
     } catch (err) {
       console.error('Export report error:', err);
+      if (printWindowRef) try { printWindowRef.close(); } catch (_) {}
       Alert.alert(
         formatRTLText('خطأ'),
         formatRTLText('حدث خطأ أثناء التصدير. يرجى المحاولة مرة أخرى أو التحقق من الاتصال.'),

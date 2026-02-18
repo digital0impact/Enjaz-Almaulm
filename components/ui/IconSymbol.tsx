@@ -24,6 +24,7 @@ const MAPPING = {
   'chart.line.uptrend.xyaxis': 'show-chart',
   'wrench.fill': 'build',
   'envelope.fill': 'mail',
+  'phone.fill': 'phone',
   'globe': 'public',
   'questionmark.circle': 'help',
   'help': 'help',
