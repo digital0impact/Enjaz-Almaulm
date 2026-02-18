@@ -361,7 +361,7 @@ export default function AddStudentScreen() {
           } else if (student.status === 'مقبول' as any) {
             updatedStatus = 'يحتاج إلى تطوير';
           } else if (student.status === 'ضعيف' as any) {
-            updatedStatus = 'صعوبات التعلم';
+            updatedStatus = 'ضعف';
           }
           return { ...student, status: updatedStatus as Student['status'] };
         });

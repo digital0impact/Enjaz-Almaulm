@@ -67,16 +67,17 @@ export default function StudentTrackingScreen() {
       if (stored) {
         let students = JSON.parse(stored);
 
-        // تحديث التصنيفات القديمة للتصنيفات الجديدة
+        // تحديث التصنيفات القديمة للتصنيفات الجديدة (بدون دمج ضعف مع صعوبات التعلم)
         students = students.map((student: Student) => {
           let updatedStatus = student.status;
           if (student.status === 'ممتاز') {
             updatedStatus = 'تفوق';
           } else if (student.status === 'مقبول') {
             updatedStatus = 'يحتاج إلى تطوير';
-          } else if (student.status === 'ضعيف' || student.status === 'ضعف') {
-            updatedStatus = 'صعوبات التعلم';
+          } else if (student.status === 'ضعيف') {
+            updatedStatus = 'ضعف';
           }
+          // ضعف يبقى ضعف — لا يُحوّل إلى صعوبات التعلم
 
           return {
             ...student,
@@ -297,7 +298,8 @@ export default function StudentTrackingScreen() {
     const totalStudents = students.length;
     const excellentStudents = students.filter(s => s.status === 'تفوق' || s.status === 'ممتاز').length;
     const needsDevelopment = students.filter(s => s.status === 'يحتاج إلى تطوير' || s.status === 'مقبول').length;
-    const learningDifficulties = students.filter(s => s.status === 'صعوبات التعلم' || s.status === 'ضعيف' || s.status === 'ضعف').length;
+    const learningDifficulties = students.filter(s => s.status === 'صعوبات التعلم').length;
+    const weakCount = students.filter(s => s.status === 'ضعف' || s.status === 'ضعيف').length;
 
     return (
       <ThemedView style={styles.statsCard}>
@@ -322,9 +324,15 @@ export default function StudentTrackingScreen() {
           </ThemedView>
           
           <ThemedView style={styles.statItem}>
-            <IconSymbol size={30} name="exclamationmark.triangle.fill" color="#F44336" />
+            <IconSymbol size={30} name="exclamationmark.triangle.fill" color="#9C27B0" />
                           <ThemedText style={styles.statNumber}>{learningDifficulties}</ThemedText>
               <ThemedText style={styles.statLabel}>صعوبات التعلم</ThemedText>
+          </ThemedView>
+
+          <ThemedView style={styles.statItem}>
+            <IconSymbol size={30} name="minus.circle.fill" color="#F44336" />
+                          <ThemedText style={styles.statNumber}>{weakCount}</ThemedText>
+              <ThemedText style={styles.statLabel}>ضعف</ThemedText>
           </ThemedView>
         </ThemedView>
       </ThemedView>

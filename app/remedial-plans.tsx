@@ -169,69 +169,66 @@ export default function RemedialPlansScreen() {
     }
   };
 
-  const generateExcelFile = async (data: any) => {
+  const generateExcelFile = async (data: any): Promise<string> => {
+    const goalsText = (s: any) => {
+      if (!s.goals?.length) return '-';
+      return s.goals.map((g: any) => (typeof g === 'string' ? g : g.text)).join('، ');
+    };
+    const goalProgress = (s: any) => {
+      if (!s.goals?.length) return '-';
+      return `${Math.round(s.goals.reduce((sum: number, g: any) => sum + (g.progress || 0), 0) / s.goals.length)}%`;
+    };
+
+    const workbook = XLSX.utils.book_new();
+    const tableHeaders = [
+      ['اسم المتعلم', 'الصف', 'الأهداف', 'مدى تحقق الهدف', 'الاحتياجات', 'الشواهد', 'الملاحظات']
+    ];
+    const tableRows = (data.students || []).map((student: any) => [
+      student.name || '-',
+      student.grade || '-',
+      goalsText(student),
+      goalProgress(student),
+      (student.needs || []).join('، ') || '-',
+      (student.evidence || []).join('، ') || '-',
+      student.notes || '-'
+    ]);
+    const titleRows = [
+      ['تقرير الخطط العلاجية'],
+      ['اسم المعلم: ' + (data.teacherName || 'غير محدد')],
+      []
+    ];
+    if (data.categoryLabel) titleRows.push([`جدول: ${data.categoryLabel}`], []);
+    const tableSheet = XLSX.utils.aoa_to_sheet([...titleRows, ...tableHeaders, ...tableRows]);
+    tableSheet['!cols'] = [{ wch: 18 }, { wch: 10 }, { wch: 35 }, { wch: 14 }, { wch: 35 }, { wch: 35 }, { wch: 30 }];
+    XLSX.utils.book_append_sheet(workbook, tableSheet, 'جدول الفئة');
+
+    const statsData = [
+      ['تقرير الخطط العلاجية', data.categoryLabel || ''],
+      ['اسم المعلم:', data.teacherName || 'غير محدد'],
+      [],
+      ['الإحصائيات العامة'],
+      ['إجمالي المتعلمين', (data.students || []).length],
+      ['لديهم خطط علاجية', (data.students || []).filter((s: any) => s.remedialPlans && s.remedialPlans.length > 0).length],
+      ['الخطط النشطة', data.activePlans ?? 0],
+      ['الخطط المكتملة', data.completedPlans ?? 0],
+      ['الخطط المعلقة', data.pendingPlans ?? 0],
+    ];
+    const statsSheet = XLSX.utils.aoa_to_sheet(statsData);
+    XLSX.utils.book_append_sheet(workbook, statsSheet, 'الإحصائيات');
+
+    const wbout = XLSX.write(workbook, { type: 'base64', bookType: 'xlsx' });
+
+    if (Platform.OS === 'web') {
+      return wbout;
+    }
+
     try {
-      const workbook = XLSX.utils.book_new();
-
-      const goalsText = (s: any) => {
-        if (!s.goals?.length) return '-';
-        return s.goals.map((g: any) => (typeof g === 'string' ? g : g.text)).join('، ');
-      };
-      const goalProgress = (s: any) => {
-        if (!s.goals?.length) return '-';
-        return `${Math.round(s.goals.reduce((sum: number, g: any) => sum + (g.progress || 0), 0) / s.goals.length)}%`;
-      };
-
-      // ورقة الجدول الفعلي
-      const tableHeaders = [
-        ['اسم المتعلم', 'الصف', 'الأهداف', 'مدى تحقق الهدف', 'الاحتياجات', 'الشواهد', 'الملاحظات']
-      ];
-      const tableRows = (data.students || []).map((student: any) => [
-        student.name || '-',
-        student.grade || '-',
-        goalsText(student),
-        goalProgress(student),
-        (student.needs || []).join('، ') || '-',
-        (student.evidence || []).join('، ') || '-',
-        student.notes || '-'
-      ]);
-      const titleRows = [
-        ['تقرير الخطط العلاجية'],
-        ['اسم المعلم: ' + (data.teacherName || 'غير محدد')],
-        []
-      ];
-      if (data.categoryLabel) titleRows.push([`جدول: ${data.categoryLabel}`], []);
-      const tableSheet = XLSX.utils.aoa_to_sheet([...titleRows, ...tableHeaders, ...tableRows]);
-      tableSheet['!cols'] = [{ wch: 18 }, { wch: 10 }, { wch: 35 }, { wch: 14 }, { wch: 35 }, { wch: 35 }, { wch: 30 }];
-      XLSX.utils.book_append_sheet(workbook, tableSheet, 'جدول الفئة');
-
-      // ورقة الإحصائيات
-      const statsData = [
-        ['تقرير الخطط العلاجية', data.categoryLabel || ''],
-        ['اسم المعلم:', data.teacherName || 'غير محدد'],
-        [],
-        ['الإحصائيات العامة'],
-        ['إجمالي المتعلمين', (data.students || []).length],
-        ['لديهم خطط علاجية', (data.students || []).filter((s: any) => s.remedialPlans && s.remedialPlans.length > 0).length],
-        ['الخطط النشطة', data.activePlans ?? 0],
-        ['الخطط المكتملة', data.completedPlans ?? 0],
-        ['الخطط المعلقة', data.pendingPlans ?? 0],
-      ];
-      const statsSheet = XLSX.utils.aoa_to_sheet(statsData);
-      XLSX.utils.book_append_sheet(workbook, statsSheet, 'الإحصائيات');
-
-      // تحويل الملف إلى صيغة ثنائية
-      const wbout = XLSX.write(workbook, { type: 'base64', bookType: 'xlsx' });
-      
-      // حفظ الملف مؤقتاً
       const timestamp = new Date().toISOString().replace(/[:.]/g, '-');
       const fileName = `الخطط_العلاجية_${timestamp}.xlsx`;
       const filePath = `${FileSystem.cacheDirectory}${fileName}`;
-      
       await FileSystem.writeAsStringAsync(filePath, wbout, {
         encoding: FileSystem.EncodingType.Base64
       });
-
       return filePath;
     } catch (error) {
       console.error('خطأ في إنشاء ملف الإكسل:', error);
@@ -388,10 +385,17 @@ export default function RemedialPlansScreen() {
 
   const exportTableData = async (data: any) => {
     try {
-      const user = await AuthService.getCurrentUser();
-      if (!user) return;
+      let user = await AuthService.getCurrentUser();
+      if (!user) user = await AuthService.checkAuthStatus();
+      if (!user) {
+        Alert.alert(
+          formatRTLText('تسجيل الدخول مطلوب'),
+          formatRTLText('يرجى تسجيل الدخول للسماح بتحميل الجداول.')
+        );
+        return;
+      }
       const status = await SubscriptionService.checkSubscriptionStatus(user.id);
-      if (!status.features.canExport) {
+      if (!status?.features?.canExport) {
         Alert.alert(
           formatRTLText('ترقية الاشتراك مطلوبة'),
           formatRTLText('تصدير الجدول (Excel/PDF) متاح للاشتراك المدفوع. يرجى ترقية اشتراكك.'),
@@ -402,7 +406,12 @@ export default function RemedialPlansScreen() {
         );
         return;
       }
-    } catch {
+    } catch (err) {
+      console.error('Export table check error:', err);
+      Alert.alert(
+        formatRTLText('خطأ'),
+        formatRTLText('تعذر التحقق من الصلاحية. يرجى المحاولة مرة أخرى.')
+      );
       return;
     }
     setExportModalData(data);
@@ -420,15 +429,32 @@ export default function RemedialPlansScreen() {
           ? Math.round(student.remedialPlans.reduce((total: number, plan: any) => total + plan.progress, 0) / student.remedialPlans.length)
           : 0
       }));
-      const filePath = await generateExcelFile(data);
-      if (await Sharing.isAvailableAsync()) {
-        await Sharing.shareAsync(filePath, {
-          mimeType: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
-          dialogTitle: 'حفظ ملف Excel',
-          UTI: 'com.microsoft.excel.xlsx'
-        });
+      const result = await generateExcelFile(data);
+
+      if (Platform.OS === 'web') {
+        const base64 = result as string;
+        const binary = atob(base64);
+        const bytes = new Uint8Array(binary.length);
+        for (let i = 0; i < binary.length; i++) bytes[i] = binary.charCodeAt(i);
+        const blob = new Blob([bytes], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `الخطط_العلاجية_${new Date().toISOString().slice(0, 10)}.xlsx`;
+        a.click();
+        URL.revokeObjectURL(url);
+        Alert.alert('تم بنجاح', 'تم تحميل ملف Excel');
+      } else {
+        const filePath = result as string;
+        if (await Sharing.isAvailableAsync()) {
+          await Sharing.shareAsync(filePath, {
+            mimeType: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+            dialogTitle: 'حفظ ملف Excel',
+            UTI: 'com.microsoft.excel.xlsx'
+          });
+        }
+        Alert.alert('تم بنجاح', 'تم إنشاء ملف Excel');
       }
-      Alert.alert('تم بنجاح', 'تم إنشاء ملف Excel');
     } catch (error) {
       console.error('خطأ في تحميل Excel:', error);
       Alert.alert('خطأ', 'حدث خطأ أثناء إنشاء ملف Excel');

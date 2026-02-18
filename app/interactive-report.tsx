@@ -941,9 +941,10 @@ export default function InteractiveReportScreen() {
 
   const calculateOverallAverage = () => {
     if (!performanceData || !Array.isArray(performanceData) || performanceData.length === 0) return 0;
-    return calculateOverallAverageFivePoint(
-      performanceData.map(item => ({ score: item?.score ?? 0, weight: item?.weight ?? 0 }))
-    );
+    const items = performanceData.map(item => ({ score: item?.score ?? 0, weight: item?.weight ?? 0 }));
+    const hasAnyScore = items.some(item => item.score > 0);
+    if (!hasAnyScore) return 0;
+    return calculateOverallAverageFivePoint(items);
   };
 
   const getCategoryAverage = (category: string) => {
@@ -1813,14 +1814,38 @@ export default function InteractiveReportScreen() {
     `;
   };
 
+  const openReportForPrint = async () => {
+    try {
+      const htmlContent = await generateReportHTML();
+      if (Platform.OS === 'web' && typeof window !== 'undefined') {
+        const blob = new Blob([htmlContent], { type: 'text/html; charset=utf-8' });
+        const url = URL.createObjectURL(blob);
+        const w = window.open(url, '_blank', 'noopener,noreferrer');
+        if (w) {
+          const doPrint = () => { try { w.print(); } catch (_) {} };
+          w.onload = () => setTimeout(doPrint, 600);
+          setTimeout(doPrint, 2000);
+          setTimeout(() => URL.revokeObjectURL(url), 6000);
+          Alert.alert(formatRTLText('تم فتح نافذة التقرير'), formatRTLText('اختر «حفظ كـ PDF» أو «Save as PDF» في نافذة الطباعة.'));
+        } else {
+          Alert.alert(formatRTLText('تنبيه'), formatRTLText('السماح بالنوافذ المنبثقة ثم أعد المحاولة.'));
+          URL.revokeObjectURL(url);
+        }
+      } else {
+        await exportToPDF();
+      }
+    } catch (e) {
+      console.error('Open report for print:', e);
+      Alert.alert(formatRTLText('خطأ'), formatRTLText('تعذر فتح التقرير.'));
+    }
+  };
+
   const handleExportReport = async () => {
     if (isExporting) return;
     setIsExporting(true);
     try {
       let user = await AuthService.getCurrentUser();
-      if (!user) {
-        user = await AuthService.checkAuthStatus();
-      }
+      if (!user) user = await AuthService.checkAuthStatus();
       if (!user) {
         Alert.alert(
           formatRTLText('تسجيل الدخول مطلوب'),
@@ -1833,10 +1858,11 @@ export default function InteractiveReportScreen() {
       if (!status?.features?.canExport) {
         Alert.alert(
           formatRTLText('ترقية الاشتراك مطلوبة'),
-          formatRTLText('تصدير التقرير (PDF) متاح للاشتراك المدفوع. يرجى ترقية اشتراكك.'),
+          formatRTLText('تصدير التقرير (PDF) متاح للاشتراك المدفوع. يمكنك معاينة التقرير وطباعته أو حفظه كـ PDF من نافذة الطباعة.'),
           [
             { text: formatRTLText('حسناً'), style: 'cancel' as const },
-            { text: formatRTLText('عرض الخطط'), onPress: () => router.push('/subscription') }
+            { text: formatRTLText('عرض الخطط'), onPress: () => router.push('/subscription') },
+            { text: formatRTLText('معاينة وطباعة'), onPress: () => openReportForPrint() }
           ]
         );
         return;
@@ -1846,7 +1872,11 @@ export default function InteractiveReportScreen() {
       console.error('Export report error:', err);
       Alert.alert(
         formatRTLText('خطأ'),
-        formatRTLText('حدث خطأ أثناء التصدير. يرجى المحاولة مرة أخرى أو التحقق من الاتصال.')
+        formatRTLText('حدث خطأ أثناء التصدير. يرجى المحاولة مرة أخرى أو التحقق من الاتصال.'),
+        [
+          { text: formatRTLText('حسناً'), style: 'cancel' as const },
+          { text: formatRTLText('معاينة وطباعة'), onPress: () => openReportForPrint() }
+        ]
       );
     } finally {
       setIsExporting(false);
@@ -1879,23 +1909,15 @@ export default function InteractiveReportScreen() {
         if (!printWindow) {
           Alert.alert(
             formatRTLText('تنبيه'),
-            formatRTLText('السماح بالنوافذ المنبثقة لمتصفحك ثم اضغط «تصدير التقرير» مرة أخرى. أو استخدم «طباعة» من المتصفح واختر «حفظ كـ PDF».')
+            formatRTLText('السماح بالنوافذ المنبثقة لمتصفحك ثم اضغط «تصدير التقرير» مرة أخرى. أو استخدم «معاينة وطباعة» واختر حفظ كـ PDF.')
           );
           URL.revokeObjectURL(url);
           return;
         }
-        printWindow.onload = () => {
-          try {
-            printWindow.print();
-            URL.revokeObjectURL(url);
-          } catch (e) {
-            console.error('Print error:', e);
-          }
-        };
-        printWindow.onerror = () => {
-          URL.revokeObjectURL(url);
-          Alert.alert('خطأ', 'فشل تحميل نافذة التقرير.');
-        };
+        const doPrint = () => { try { printWindow.print(); } catch (e) { console.error('Print error:', e); } };
+        printWindow.onload = () => setTimeout(doPrint, 500);
+        setTimeout(doPrint, 2000);
+        setTimeout(() => URL.revokeObjectURL(url), 6000);
         Alert.alert(
           formatRTLText('تم فتح نافذة التقرير'),
           formatRTLText('اختر «حفظ كـ PDF» أو «Save as PDF» في نافذة الطباعة لحفظ الملف.')
