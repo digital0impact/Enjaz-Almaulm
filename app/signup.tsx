@@ -57,7 +57,7 @@ export default function SignupScreen() {
 
     setIsLoading(true);
     try {
-      const user = await AuthService.signUpWithEmail(email, password, fullName);
+      const user = await AuthService.signUpWithEmail(email, password, fullName, phone.trim() || undefined);
       
       // حفظ البيانات الأساسية (بما فيها الهاتف لربط الشراء من المتجر لاحقاً)
       await AsyncStorage.setItem('basicData', JSON.stringify({ 

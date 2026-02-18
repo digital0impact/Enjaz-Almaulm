@@ -102,6 +102,19 @@ class DatabaseService {
         logError('Insert error', 'DatabaseService', error);
         throw error;
       }
+      const now = new Date().toISOString();
+      await supabase
+        .from('users')
+        .upsert(
+          {
+            id: user.id,
+            email,
+            name,
+            phone_number: phoneNumber || '',
+            updatedAt: now,
+          },
+          { onConflict: 'id' }
+        );
       return data;
     } catch (error) {
       logError('Error adding user', 'DatabaseService', error);
@@ -163,14 +176,38 @@ class DatabaseService {
 
   async updateUserProfile(userId: string, updates: Partial<UserProfile>): Promise<void> {
     try {
-      const row: Record<string, unknown> = { updated_at: new Date().toISOString() };
-      if (updates.name !== undefined) row.name = updates.name;
-      if (updates.email !== undefined) row.email = updates.email;
-      if (updates.phoneNumber !== undefined) row.phone_number = updates.phoneNumber;
-      if (updates.jobTitle !== undefined) row.job_title = updates.jobTitle;
-      if (updates.workLocation !== undefined) row.work_location = updates.workLocation;
-      const { error } = await supabase.from('user_profiles').update(row).eq('id', userId);
-      if (error) throw error;
+      const now = new Date().toISOString();
+      let current: UserProfile | null = null;
+      try {
+        current = await this.getUserProfile(userId);
+      } catch (_) {}
+      const row: Record<string, unknown> = {
+        id: userId,
+        name: updates.name ?? current?.name ?? '',
+        email: updates.email ?? current?.email ?? '',
+        phone_number: updates.phoneNumber ?? current?.phoneNumber ?? '',
+        job_title: updates.jobTitle ?? current?.jobTitle ?? '',
+        work_location: updates.workLocation ?? current?.workLocation ?? '',
+        updated_at: now,
+      };
+      const { error: profileError } = await supabase
+        .from('user_profiles')
+        .upsert(row, { onConflict: 'id' });
+      if (profileError) throw profileError;
+
+      if (updates.phoneNumber !== undefined) {
+        const usersRow: Record<string, unknown> = {
+          id: userId,
+          name: current?.name ?? updates.name ?? '',
+          email: current?.email ?? updates.email ?? '',
+          phone_number: updates.phoneNumber,
+          updatedAt: now,
+        };
+        const { error: usersError } = await supabase
+          .from('users')
+          .upsert(usersRow, { onConflict: 'id' });
+        if (usersError) logError('Error syncing phone to users table', 'DatabaseService', usersError);
+      }
     } catch (error) {
       logError('Error updating user profile', 'DatabaseService', error);
       throw error;

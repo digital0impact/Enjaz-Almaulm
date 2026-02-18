@@ -49,7 +49,7 @@ class AuthService {
     }
   }
 
-  async signUpWithEmail(email: string, password: string, name: string): Promise<User> {
+  async signUpWithEmail(email: string, password: string, name: string, phoneNumber?: string): Promise<User> {
     try {
       const { data, error } = await supabase.auth.signUp({
         email,
@@ -57,6 +57,7 @@ class AuthService {
         options: {
           data: {
             full_name: name,
+            ...(phoneNumber ? { phone_number: phoneNumber } : {}),
           },
         },
       });

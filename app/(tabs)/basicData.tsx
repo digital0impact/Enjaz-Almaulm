@@ -73,6 +73,23 @@ export default function BasicDataScreen() {
       if (storedImage) {
         setProfileImage(storedImage);
       }
+
+      const user = await AuthService.getCurrentUser();
+      if (user?.id) {
+        try {
+          const profile = await DatabaseService.getUserProfile(user.id);
+          if (profile) {
+            setUserData(prev => ({
+              ...prev,
+              fullName: profile.name || prev.fullName,
+              email: profile.email || prev.email,
+              phone: profile.phoneNumber || prev.phone,
+            }));
+          }
+        } catch {
+          // يبقى الاعتماد على البيانات المحلية فقط
+        }
+      }
     } catch {
       console.log('Error loading user data');
     }
@@ -85,11 +102,15 @@ export default function BasicDataScreen() {
         await AsyncStorage.setItem('profileImage', profileImage);
       }
       const user = await AuthService.getCurrentUser();
-      if (user?.id && userData.phone) {
+      if (user?.id) {
         try {
-          await DatabaseService.updateUserProfile(user.id, { phoneNumber: userData.phone });
+          await DatabaseService.updateUserProfile(user.id, {
+            name: userData.fullName,
+            email: userData.email,
+            phoneNumber: userData.phone || undefined,
+          });
         } catch (e) {
-          console.warn('Could not sync phone to profile:', e);
+          console.warn('Could not sync profile to Supabase:', e);
         }
       }
       setIsEditing(false);
