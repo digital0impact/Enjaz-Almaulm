@@ -316,6 +316,14 @@ export default function HomeScreen() {
                     <IconSymbol size={20} name="wrench.fill" color="#1c1f33" />
                     <ThemedText style={[styles.headerButtonText, getTextDirection()]}>الإعدادات</ThemedText>
                   </TouchableOpacity>
+
+                  <TouchableOpacity 
+                    style={styles.headerButton}
+                    onPress={() => router.push('/subscription')}
+                  >
+                    <IconSymbol size={20} name="creditcard.fill" color="#1c1f33" />
+                    <ThemedText style={[styles.headerButtonText, getTextDirection()]}>إدارة الاشتراك</ThemedText>
+                  </TouchableOpacity>
                   
                   <TouchableOpacity 
                     style={styles.headerButton}

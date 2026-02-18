@@ -149,10 +149,10 @@ const styles = StyleSheet.create({
     marginBottom: 4,
   },
   tabText: {
-    fontSize: 12,
+    fontSize: 10,
     color: TAB_BAR_TINT_COLOR,
     marginTop: 2,
     textAlign: 'center',
-    fontWeight: '400',
+    fontWeight: '500',
   },
 });

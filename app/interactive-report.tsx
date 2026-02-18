@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { StyleSheet, ScrollView, TouchableOpacity, Alert, ImageBackground, KeyboardAvoidingView, Platform, StatusBar, Dimensions, View } from 'react-native';
+import { StyleSheet, ScrollView, TouchableOpacity, Alert, ImageBackground, KeyboardAvoidingView, Platform, StatusBar, Dimensions, View, Image } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { BarChart } from 'react-native-chart-kit';
 import { useFocusEffect } from '@react-navigation/native';
@@ -1260,6 +1260,20 @@ export default function InteractiveReportScreen() {
     const goodCount = scores.filter(score => score >= 80 && score < 90).length;
     const needsImprovementCount = scores.filter(score => score < 70).length;
 
+    // تحميل شعار الوزارة للتقرير المصدر (PDF)
+    let logoDataUri = 'https://i.ibb.co/7XqJqK7/moe-logo.png';
+    try {
+      const Asset = require('expo-asset').Asset;
+      const asset = Asset.fromModule(require('@/assets/images/moe_logo.png'));
+      await asset.downloadAsync();
+      if (asset.localUri) {
+        const base64 = await FileSystem.readAsStringAsync(asset.localUri, { encoding: FileSystem.EncodingType.Base64 });
+        if (base64) logoDataUri = `data:image/png;base64,${base64}`;
+      }
+    } catch (_) {
+      // الإبقاء على الرابط الافتراضي إن فشل تحميل الأصل المحلي
+    }
+
     // تحميل البيانات الشخصية والمهنية
     let userData = {
       fullName: 'غير محدد',
@@ -1605,7 +1619,7 @@ export default function InteractiveReportScreen() {
       <div class="container">
         <div class="header">
           <div class="logo-section">
-            <img src="https://i.ibb.co/7XqJqK7/moe-logo.png" alt="شعار وزارة التعليم" class="logo">
+            <img src="${logoDataUri}" alt="شعار وزارة التعليم" class="logo">
             <div class="ministry-info">
               <h2 class="ministry-title">المملكة العربية السعودية</h2>
               <p class="ministry-subtitle">وزارة التعليم</p>
@@ -1796,9 +1810,19 @@ export default function InteractiveReportScreen() {
   };
 
   const handleExportReport = async () => {
+    let user = await AuthService.getCurrentUser();
+    if (!user) {
+      user = await AuthService.checkAuthStatus();
+    }
+    if (!user) {
+      Alert.alert(
+        formatRTLText('تسجيل الدخول مطلوب'),
+        formatRTLText('يرجى تسجيل الدخول مرة أخرى للسماح بتصدير التقرير.'),
+        [{ text: formatRTLText('حسناً'), style: 'cancel' as const }]
+      );
+      return;
+    }
     try {
-      const user = await AuthService.getCurrentUser();
-      if (!user) return;
       const status = await SubscriptionService.checkSubscriptionStatus(user.id);
       if (!status.features.canExport) {
         Alert.alert(
@@ -1811,7 +1835,12 @@ export default function InteractiveReportScreen() {
         );
         return;
       }
-    } catch {
+    } catch (err) {
+      console.error('Export subscription check error:', err);
+      Alert.alert(
+        formatRTLText('خطأ'),
+        formatRTLText('تعذر التحقق من صلاحية التصدير. يرجى التأكد من الاتصال ثم المحاولة مرة أخرى.')
+      );
       return;
     }
     exportToPDF();
@@ -1904,12 +1933,20 @@ export default function InteractiveReportScreen() {
                 <IconSymbol size={20} name="chevron.left" color="#1c1f33" />
               </TouchableOpacity>
 
-              <ThemedView style={styles.iconContainer}>
-                <IconSymbol size={60} name="chart.line.uptrend.xyaxis" color="#1c1f33" />
+              <ThemedView style={styles.headerLogoRow}>
+                <Image
+                  source={require('@/assets/images/moe_logo.png')}
+                  style={styles.moeLogo}
+                  resizeMode="contain"
+                  accessibilityLabel="شعار وزارة التعليم"
+                />
+                <ThemedView style={styles.iconContainer}>
+                  <IconSymbol size={60} name="chart.line.uptrend.xyaxis" color="#1c1f33" />
+                </ThemedView>
               </ThemedView>
-                              <ThemedText type="title" style={styles.title}>
-                  التقرير التفاعلي
-                </ThemedText>
+              <ThemedText type="title" style={styles.title}>
+                التقرير التفاعلي
+              </ThemedText>
                 <ThemedText style={styles.subtitle}>
                   تحليل شامل لأداءك المهني مع مؤشرات تفاعلية
                 </ThemedText>
@@ -2043,6 +2080,17 @@ const styles = StyleSheet.create<any>({
     paddingBottom: 30,
     backgroundColor: 'transparent',
     position: 'relative',
+  },
+  headerLogoRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 16,
+    marginBottom: 12,
+  },
+  moeLogo: {
+    width: 56,
+    height: 56,
   },
   backButton: {
     position: 'absolute',
