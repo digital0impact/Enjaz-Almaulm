@@ -10,6 +10,7 @@ import { useRouter } from 'expo-router';
 import * as ImagePicker from 'expo-image-picker';
 import * as DocumentPicker from 'expo-document-picker';
 import { getTextDirection, formatRTLText } from '@/utils/rtl-utils';
+import { calculateOverallAverageFivePoint } from '@/utils/performance-five-point';
 
 const { width, height } = Dimensions.get('window');
 
@@ -1887,10 +1888,9 @@ export default function PerformanceScreen() {
 
   const calculateOverallAverage = () => {
     if (!performanceData || performanceData.length === 0) return 0;
-    const totalWeightedScore = performanceData.reduce((sum, performance) => sum + (performance.score * performance.weight), 0);
-    const totalWeight = performanceData.reduce((sum, performance) => sum + performance.weight, 0);
-    if (totalWeight === 0) return 0;
-    return Math.round(totalWeightedScore / totalWeight);
+    return calculateOverallAverageFivePoint(
+      performanceData.map(p => ({ score: p.score, weight: p.weight }))
+    );
   };
 
   const updatePerformanceData = async (newData: any[]) => {

@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { StyleSheet, ScrollView, TouchableOpacity, Alert, ImageBackground, KeyboardAvoidingView, Platform, StatusBar, Dimensions, View, Image } from 'react-native';
+import { StyleSheet, ScrollView, TouchableOpacity, Alert, ImageBackground, KeyboardAvoidingView, Platform, StatusBar, Dimensions, View, ActivityIndicator } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { BarChart } from 'react-native-chart-kit';
 import { useFocusEffect } from '@react-navigation/native';
@@ -16,6 +16,7 @@ import * as Sharing from 'expo-sharing';
 import * as Print from 'expo-print';
 import * as FileSystem from 'expo-file-system';
 import { getTextDirection, formatRTLText, isRTL } from '@/utils/rtl-utils';
+import { calculateOverallAverageFivePoint } from '@/utils/performance-five-point';
 
 const { width } = Dimensions.get('window');
 
@@ -39,6 +40,7 @@ export default function InteractiveReportScreen() {
   const [selectedChart, setSelectedChart] = useState('overall');
   const [performanceData, setPerformanceData] = useState<PerformanceItem[]>([]);
   const [loading, setLoading] = useState(true);
+  const [isExporting, setIsExporting] = useState(false);
   // إضافة مستمع للتركيز على الصفحة باستخدام useFocusEffect
   useFocusEffect(
     React.useCallback(() => {
@@ -939,9 +941,9 @@ export default function InteractiveReportScreen() {
 
   const calculateOverallAverage = () => {
     if (!performanceData || !Array.isArray(performanceData) || performanceData.length === 0) return 0;
-    const weightedSum = performanceData.reduce((acc, item) => acc + ((item?.score || 0) * (item?.weight || 0)), 0);
-    const totalWeight = performanceData.reduce((acc, item) => acc + (item?.weight || 0), 0);
-    return Math.round(weightedSum / totalWeight);
+    return calculateOverallAverageFivePoint(
+      performanceData.map(item => ({ score: item?.score ?? 0, weight: item?.weight ?? 0 }))
+    );
   };
 
   const getCategoryAverage = (category: string) => {
@@ -1810,21 +1812,23 @@ export default function InteractiveReportScreen() {
   };
 
   const handleExportReport = async () => {
-    let user = await AuthService.getCurrentUser();
-    if (!user) {
-      user = await AuthService.checkAuthStatus();
-    }
-    if (!user) {
-      Alert.alert(
-        formatRTLText('تسجيل الدخول مطلوب'),
-        formatRTLText('يرجى تسجيل الدخول مرة أخرى للسماح بتصدير التقرير.'),
-        [{ text: formatRTLText('حسناً'), style: 'cancel' as const }]
-      );
-      return;
-    }
+    if (isExporting) return;
+    setIsExporting(true);
     try {
+      let user = await AuthService.getCurrentUser();
+      if (!user) {
+        user = await AuthService.checkAuthStatus();
+      }
+      if (!user) {
+        Alert.alert(
+          formatRTLText('تسجيل الدخول مطلوب'),
+          formatRTLText('يرجى تسجيل الدخول مرة أخرى للسماح بتصدير التقرير.'),
+          [{ text: formatRTLText('حسناً'), style: 'cancel' as const }]
+        );
+        return;
+      }
       const status = await SubscriptionService.checkSubscriptionStatus(user.id);
-      if (!status.features.canExport) {
+      if (!status?.features?.canExport) {
         Alert.alert(
           formatRTLText('ترقية الاشتراك مطلوبة'),
           formatRTLText('تصدير التقرير (PDF) متاح للاشتراك المدفوع. يرجى ترقية اشتراكك.'),
@@ -1835,15 +1839,16 @@ export default function InteractiveReportScreen() {
         );
         return;
       }
+      await exportToPDF();
     } catch (err) {
-      console.error('Export subscription check error:', err);
+      console.error('Export report error:', err);
       Alert.alert(
         formatRTLText('خطأ'),
-        formatRTLText('تعذر التحقق من صلاحية التصدير. يرجى التأكد من الاتصال ثم المحاولة مرة أخرى.')
+        formatRTLText('حدث خطأ أثناء التصدير. يرجى المحاولة مرة أخرى أو التحقق من الاتصال.')
       );
-      return;
+    } finally {
+      setIsExporting(false);
     }
-    exportToPDF();
   };
 
   const exportToPDF = async () => {
@@ -1933,16 +1938,8 @@ export default function InteractiveReportScreen() {
                 <IconSymbol size={20} name="chevron.left" color="#1c1f33" />
               </TouchableOpacity>
 
-              <ThemedView style={styles.headerLogoRow}>
-                <Image
-                  source={require('@/assets/images/moe_logo.png')}
-                  style={styles.moeLogo}
-                  resizeMode="contain"
-                  accessibilityLabel="شعار وزارة التعليم"
-                />
-                <ThemedView style={styles.iconContainer}>
-                  <IconSymbol size={60} name="chart.line.uptrend.xyaxis" color="#1c1f33" />
-                </ThemedView>
+              <ThemedView style={styles.iconContainer}>
+                <IconSymbol size={60} name="chart.line.uptrend.xyaxis" color="#1c1f33" />
               </ThemedView>
               <ThemedText type="title" style={styles.title}>
                 التقرير التفاعلي
@@ -2040,11 +2037,19 @@ export default function InteractiveReportScreen() {
 
             <ThemedView style={styles.actionButtons}>
               <TouchableOpacity 
-                style={styles.exportButton}
+                style={[styles.exportButton, isExporting && styles.exportButtonDisabled]}
                 onPress={handleExportReport}
+                disabled={isExporting}
+                activeOpacity={0.7}
               >
-                <IconSymbol size={20} name="square.and.arrow.up.fill" color="#1c1f33" />
-                <ThemedText style={styles.buttonText}>تصدير التقرير</ThemedText>
+                {isExporting ? (
+                  <ActivityIndicator color="#1c1f33" size="small" />
+                ) : (
+                  <IconSymbol size={20} name="square.and.arrow.up.fill" color="#1c1f33" />
+                )}
+                <ThemedText style={styles.buttonText}>
+                  {isExporting ? formatRTLText('جاري التصدير...') : formatRTLText('تصدير التقرير')}
+                </ThemedText>
               </TouchableOpacity>
             </ThemedView>
             </ThemedView>
@@ -2080,17 +2085,6 @@ const styles = StyleSheet.create<any>({
     paddingBottom: 30,
     backgroundColor: 'transparent',
     position: 'relative',
-  },
-  headerLogoRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    gap: 16,
-    marginBottom: 12,
-  },
-  moeLogo: {
-    width: 56,
-    height: 56,
   },
   backButton: {
     position: 'absolute',
@@ -2520,16 +2514,19 @@ const styles = StyleSheet.create<any>({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
+    gap: 10,
     backgroundColor: '#add4ce',
     paddingVertical: 15,
     paddingHorizontal: 25,
     borderRadius: 25,
-    gap: 10,
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 6 },
     shadowOpacity: 0.4,
     shadowRadius: 12,
     elevation: 12,
+  },
+  exportButtonDisabled: {
+    opacity: 0.7,
   },
   buttonText: {
     color: '#1c1f33',

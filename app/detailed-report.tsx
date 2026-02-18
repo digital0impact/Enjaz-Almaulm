@@ -8,6 +8,7 @@ import { useRouter } from 'expo-router';
 import { BottomNavigationBar } from '@/components/BottomNavigationBar';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { getTextDirection, formatRTLText } from '@/utils/rtl-utils';
+import { calculateOverallAverageFivePoint } from '@/utils/performance-five-point';
 
 // Types
 interface Evidence {
@@ -267,9 +268,10 @@ export default function DetailedReportScreen() {
   };
 
   const calculateOverallAverage = () => {
-    const weightedSum = performanceData.reduce((acc, item) => acc + (item.score * item.weight), 0);
-    const totalWeight = performanceData.reduce((acc, item) => acc + item.weight, 0);
-    return Math.round(weightedSum / totalWeight);
+    if (!performanceData?.length) return 0;
+    return calculateOverallAverageFivePoint(
+      performanceData.map(item => ({ score: item.score, weight: item.weight }))
+    );
   };
 
   const renderOverviewTab = () => (
