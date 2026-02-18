@@ -274,112 +274,112 @@ export default function InteractiveReportScreen() {
   };
 
   const getDefaultPerformanceData = (profession: string) => {
-    // تحميل البيانات الافتراضية حسب المهنة - مطابق لصفحة الأداء المهني
+    // هيكل المحاور فقط (درجة 0) — البيانات الحقيقية تُحمّل من AsyncStorage من صفحة الأداء المهني
     switch (profession) {
       case 'معلم/ة مسند له نشاط طلابي':
         return [
           {
             id: 1,
             title: 'أداء الواجبات الوظيفية',
-            score: 85,
+            score: 0,
             weight: 10,
             category: 'وظيفي'
           },
           {
             id: 2,
             title: 'التفاعل مع المجتمع المهني',
-            score: 78,
+            score: 0,
             weight: 10,
             category: 'وظيفي'
           },
           {
             id: 3,
             title: 'التفاعل مع أولياء الأمور',
-            score: 92,
+            score: 0,
             weight: 10,
             category: 'وظيفي'
           },
           {
             id: 4,
             title: 'التنويع في استراتيجيات التدريس',
-            score: 88,
+            score: 0,
             weight: 5,
             category: 'تعليمي'
           },
           {
             id: 5,
             title: 'تحسين نتائج المتعلمين',
-            score: 82,
+            score: 0,
             weight: 5,
             category: 'تعليمي'
           },
           {
             id: 6,
             title: 'إعداد وتنفيذ خطة التعلم',
-            score: 75,
+            score: 0,
             weight: 5,
             category: 'تعليمي'
           },
           {
             id: 7,
             title: 'توظيف تقنيات ووسائل التعلم المناسبة',
-            score: 80,
+            score: 0,
             weight: 5,
             category: 'تعليمي'
           },
           {
             id: 8,
             title: 'تهيئة بيئة تعليمية',
-            score: 85,
+            score: 0,
             weight: 5,
             category: 'تعليمي'
           },
           {
             id: 9,
             title: 'الإدارة الصفية',
-            score: 88,
+            score: 0,
             weight: 5,
             category: 'تعليمي'
           },
           {
             id: 10,
             title: 'تحليل نتائج المتعلمين وتشخيص مستوياتهم',
-            score: 82,
+            score: 0,
             weight: 5,
             category: 'تعليمي'
           },
           {
             id: 11,
             title: 'تنوع أساليب التقويم',
-            score: 78,
+            score: 0,
             weight: 5,
             category: 'تعليمي'
           },
           {
             id: 12,
             title: 'إعداد خطة مزمنة ومعتمدة لبرامج وفعاليات النشاط الطلابي',
-            score: 88,
+            score: 0,
             weight: 10,
             category: 'نشاط طلابي'
           },
           {
             id: 13,
             title: 'تهيئة البيئة المدرسية للبرامج والأنشطة الطلابية',
-            score: 75,
+            score: 0,
             weight: 5,
             category: 'نشاط طلابي'
           },
           {
             id: 14,
             title: 'يدعم المتعلمين وفق احتياجاتهم وميولهم للأنشطة',
-            score: 82,
+            score: 0,
             weight: 5,
             category: 'نشاط طلابي'
           },
           {
             id: 15,
             title: 'يحفز المتعلمين على المشاركة في الأنشطة المدرسية',
-            score: 90,
+            score: 0,
             weight: 10,
             category: 'نشاط طلابي'
           }
@@ -390,112 +390,112 @@ export default function InteractiveReportScreen() {
           {
             id: 1,
             title: 'أداء الواجبات الوظيفية',
-            score: 85,
+            score: 0,
             weight: 10,
             category: 'وظيفي'
           },
           {
             id: 2,
             title: 'التفاعل مع المجتمع المهني',
-            score: 78,
+            score: 0,
             weight: 10,
             category: 'وظيفي'
           },
           {
             id: 3,
             title: 'التفاعل مع أولياء الأمور',
-            score: 92,
+            score: 0,
             weight: 10,
             category: 'وظيفي'
           },
           {
             id: 4,
             title: 'التنويع في استراتيجيات التدريس',
-            score: 88,
+            score: 0,
             weight: 5,
             category: 'تعليمي'
           },
           {
             id: 5,
             title: 'تحسين نتائج المتعلمين',
-            score: 82,
+            score: 0,
             weight: 5,
             category: 'تعليمي'
           },
           {
             id: 6,
             title: 'إعداد وتنفيذ خطة التعلم',
-            score: 75,
+            score: 0,
             weight: 5,
             category: 'تعليمي'
           },
           {
             id: 7,
             title: 'توظيف تقنيات ووسائل التعلم المناسبة',
-            score: 80,
+            score: 0,
             weight: 5,
             category: 'تعليمي'
           },
           {
             id: 8,
             title: 'تهيئة بيئة تعليمية',
-            score: 85,
+            score: 0,
             weight: 5,
             category: 'تعليمي'
           },
           {
             id: 9,
             title: 'الإدارة الصفية',
-            score: 88,
+            score: 0,
             weight: 5,
             category: 'تعليمي'
           },
           {
             id: 10,
             title: 'تحليل نتائج المتعلمين وتشخيص مستوياتهم',
-            score: 82,
+            score: 0,
             weight: 5,
             category: 'تعليمي'
           },
           {
             id: 11,
             title: 'تنوع أساليب التقويم',
-            score: 78,
+            score: 0,
             weight: 5,
             category: 'تعليمي'
           },
           {
             id: 12,
             title: 'تنفيذ الخطة المشتركة للتوجيه الصحي',
-            score: 88,
+            score: 0,
             weight: 10,
             category: 'صحي'
           },
           {
             id: 13,
             title: 'حصر الحالات الصحية وتصنيفها',
-            score: 75,
+            score: 0,
             weight: 5,
             category: 'صحي'
           },
           {
             id: 14,
             title: 'تهيئة البيئة الصحية المدرسية',
-            score: 82,
+            score: 0,
             weight: 5,
             category: 'صحي'
           },
           {
             id: 15,
             title: 'تنفيذ برامج التوعية الصحية',
-            score: 85,
+            score: 0,
             weight: 5,
             category: 'صحي'
           },
           {
             id: 16,
             title: 'متابعة الحالات الصحية وتوثيقها',
-            score: 80,
+            score: 0,
             weight: 5,
             category: 'صحي'
           }
@@ -506,91 +506,91 @@ export default function InteractiveReportScreen() {
           {
             id: 1,
             title: 'أداء الواجبات الوظيفية',
-            score: 85,
+            score: 0,
             weight: 10,
             category: 'وظيفي'
           },
           {
             id: 2,
             title: 'التفاعل مع المجتمع المهني',
-            score: 78,
+            score: 0,
             weight: 10,
             category: 'وظيفي'
           },
           {
             id: 3,
             title: 'التفاعل مع أولياء الأمور',
-            score: 92,
+            score: 0,
             weight: 10,
             category: 'وظيفي'
           },
           {
             id: 4,
             title: 'تعزيز الانضباط المدرسي',
-            score: 88,
+            score: 0,
             weight: 10,
             category: 'توجيه'
           },
           {
             id: 5,
             title: 'تعزيز دافعية التعلم',
-            score: 85,
+            score: 0,
             weight: 10,
             category: 'توجيه'
           },
           {
             id: 6,
             title: 'إعداد خطة لبرامج التوجيه الطلابي',
-            score: 82,
+            score: 0,
             weight: 10,
             category: 'توجيه'
           },
           {
             id: 7,
             title: 'تنفيذ برامج التوجيه الطلابي',
-            score: 80,
+            score: 0,
             weight: 10,
             category: 'توجيه'
           },
           {
             id: 8,
             title: 'متابعة وتقييم برامج التوجيه',
-            score: 75,
+            score: 0,
             weight: 10,
             category: 'توجيه'
           },
           {
             id: 9,
             title: 'يصنف الحالات الطلابية',
-            score: 90,
+            score: 0,
             weight: 10,
             category: 'إرشاد'
           },
           {
             id: 10,
             title: 'يقدم التدخلات الإرشادية',
-            score: 88,
+            score: 0,
             weight: 10,
             category: 'إرشاد'
           },
           {
             id: 11,
             title: 'يساعد المتعلمين في حل مشكلاتهم',
-            score: 85,
+            score: 0,
             weight: 10,
             category: 'إرشاد'
           },
           {
             id: 12,
             title: 'يعد التقارير الإرشادية',
-            score: 82,
+            score: 0,
             weight: 10,
             category: 'إرشاد'
           },
           {
             id: 13,
             title: 'يتعاون مع الجهات المختصة',
-            score: 78,
+            score: 0,
             weight: 10,
             category: 'إرشاد'
           }
@@ -601,119 +601,119 @@ export default function InteractiveReportScreen() {
           {
             id: 1,
             title: 'أداء الواجبات الوظيفية',
-            score: 85,
+            score: 0,
             weight: 10,
             category: 'وظيفي'
           },
           {
             id: 2,
             title: 'التفاعل مع المجتمع المهني',
-            score: 78,
+            score: 0,
             weight: 10,
             category: 'وظيفي'
           },
           {
             id: 3,
             title: 'التفاعل مع أولياء الأمور',
-            score: 92,
+            score: 0,
             weight: 10,
             category: 'وظيفي'
           },
           {
             id: 4,
             title: 'يدير الموارد المدرسية',
-            score: 88,
+            score: 0,
             weight: 10,
             category: 'إداري'
           },
           {
             id: 5,
             title: 'يقيم أداء منسوبي المدرسة',
-            score: 85,
+            score: 0,
             weight: 10,
             category: 'إداري'
           },
           {
             id: 6,
             title: 'يتابع تنفيذ الخطط والبرامج',
-            score: 82,
+            score: 0,
             weight: 10,
             category: 'إداري'
           },
           {
             id: 7,
             title: 'يدير الشؤون المالية والإدارية',
-            score: 80,
+            score: 0,
             weight: 10,
             category: 'إداري'
           },
           {
             id: 8,
             title: 'يتابع الأمن والسلامة المدرسية',
-            score: 75,
+            score: 0,
             weight: 10,
             category: 'إداري'
           },
           {
             id: 9,
             title: 'يدعم تنفيذ برامج التطوير',
-            score: 90,
+            score: 0,
             weight: 10,
             category: 'تطويري'
           },
           {
             id: 10,
             title: 'يعد خطة للتطوير المهني',
-            score: 88,
+            score: 0,
             weight: 10,
             category: 'تطويري'
           },
           {
             id: 11,
             title: 'يشارك في إعداد خطة المدرسة الاستراتيجية',
-            score: 85,
+            score: 0,
             weight: 10,
             category: 'تطويري'
           },
           {
             id: 12,
             title: 'يتابع تطبيق المعايير المهنية',
-            score: 82,
+            score: 0,
             weight: 10,
             category: 'تطويري'
           },
           {
             id: 13,
             title: 'يدعم المبادرات التطويرية',
-            score: 78,
+            score: 0,
             weight: 10,
             category: 'تطويري'
           },
           {
             id: 14,
             title: 'يتابع تعزيز السلوك الإيجابي',
-            score: 85,
+            score: 0,
             weight: 10,
             category: 'تربوي'
           },
           {
             id: 15,
             title: 'يبني بيئة مدرسية محفزة',
-            score: 88,
+            score: 0,
             weight: 10,
             category: 'تربوي'
           },
           {
             id: 16,
             title: 'يدعم الأنشطة الطلابية',
-            score: 82,
+            score: 0,
             weight: 10,
             category: 'تربوي'
           },
           {
             id: 17,
             title: 'يتابع تطبيق السياسات التربوية',
-            score: 80,
+            score: 0,
             weight: 10,
             category: 'تربوي'
           }
@@ -724,119 +724,119 @@ export default function InteractiveReportScreen() {
           {
             id: 1,
             title: 'أداء الواجبات الوظيفية',
-            score: 85,
+            score: 0,
             weight: 10,
             category: 'وظيفي'
           },
           {
             id: 2,
             title: 'التفاعل مع المجتمع المهني',
-            score: 78,
+            score: 0,
             weight: 10,
             category: 'وظيفي'
           },
           {
             id: 3,
             title: 'التفاعل مع أولياء الأمور',
-            score: 92,
+            score: 0,
             weight: 10,
             category: 'وظيفي'
           },
           {
             id: 4,
             title: 'يدير الموارد المدرسية',
-            score: 88,
+            score: 0,
             weight: 10,
             category: 'إداري'
           },
           {
             id: 5,
             title: 'يقيم أداء منسوبي المدرسة',
-            score: 85,
+            score: 0,
             weight: 10,
             category: 'إداري'
           },
           {
             id: 6,
             title: 'يتابع تنفيذ الخطط والبرامج',
-            score: 82,
+            score: 0,
             weight: 10,
             category: 'إداري'
           },
           {
             id: 7,
             title: 'يدير الشؤون المالية والإدارية',
-            score: 80,
+            score: 0,
             weight: 10,
             category: 'إداري'
           },
           {
             id: 8,
             title: 'يتابع الأمن والسلامة المدرسية',
-            score: 75,
+            score: 0,
             weight: 10,
             category: 'إداري'
           },
           {
             id: 9,
             title: 'يدعم تنفيذ برامج التطوير',
-            score: 90,
+            score: 0,
             weight: 10,
             category: 'تطويري'
           },
           {
             id: 10,
             title: 'يعد خطة للتطوير المهني',
-            score: 88,
+            score: 0,
             weight: 10,
             category: 'تطويري'
           },
           {
             id: 11,
             title: 'يشارك في إعداد خطة المدرسة الاستراتيجية',
-            score: 85,
+            score: 0,
             weight: 10,
             category: 'تطويري'
           },
           {
             id: 12,
             title: 'يتابع تطبيق المعايير المهنية',
-            score: 82,
+            score: 0,
             weight: 10,
             category: 'تطويري'
           },
           {
             id: 13,
             title: 'يدعم المبادرات التطويرية',
-            score: 78,
+            score: 0,
             weight: 10,
             category: 'تطويري'
           },
           {
             id: 14,
             title: 'يتابع تعزيز السلوك الإيجابي',
-            score: 85,
+            score: 0,
             weight: 10,
             category: 'تربوي'
           },
           {
             id: 15,
             title: 'يبني بيئة مدرسية محفزة',
-            score: 88,
+            score: 0,
             weight: 10,
             category: 'تربوي'
           },
           {
             id: 16,
             title: 'يدعم الأنشطة الطلابية',
-            score: 82,
+            score: 0,
             weight: 10,
             category: 'تربوي'
           },
           {
             id: 17,
             title: 'يتابع تطبيق السياسات التربوية',
-            score: 80,
+            score: 0,
             weight: 10,
             category: 'تربوي'
           }
@@ -847,77 +847,77 @@ export default function InteractiveReportScreen() {
           {
             id: 1,
             title: 'أداء الواجبات الوظيفية',
-            score: 85,
+            score: 0,
             weight: 10,
             category: 'وظيفي'
           },
           {
             id: 2,
             title: 'التفاعل مع المجتمع المهني',
-            score: 78,
+            score: 0,
             weight: 10,
             category: 'وظيفي'
           },
           {
             id: 3,
             title: 'التفاعل مع أولياء الأمور',
-            score: 92,
+            score: 0,
             weight: 10,
             category: 'وظيفي'
           },
           {
             id: 4,
             title: 'التنويع في استراتيجيات التدريس',
-            score: 88,
+            score: 0,
             weight: 10,
             category: 'تعليمي'
           },
           {
             id: 5,
             title: 'تحسين نتائج المتعلمين',
-            score: 75,
+            score: 0,
             weight: 10,
             category: 'تعليمي'
           },
           {
             id: 6,
             title: 'إعداد خطة وتنفيذ التعلم',
-            score: 82,
+            score: 0,
             weight: 10,
             category: 'تخطيطي'
           },
           {
             id: 7,
             title: 'توظيف تقنيات ووسائل التعلم',
-            score: 90,
+            score: 0,
             weight: 10,
             category: 'تخطيطي'
           },
           {
             id: 8,
             title: 'تهيئة البيئة التعليمية',
-            score: 85,
+            score: 0,
             weight: 10,
             category: 'إداري'
           },
           {
             id: 9,
             title: 'الإدارة الصفية',
-            score: 88,
+            score: 0,
             weight: 10,
             category: 'إداري'
           },
           {
             id: 10,
             title: 'تحليل نتائج المتعلمين وتشخيص مستوياتهم',
-            score: 80,
+            score: 0,
             weight: 5,
             category: 'تقويمي'
           },
           {
             id: 11,
             title: 'تنوع أساليب التقويم',
-            score: 85,
+            score: 0,
             weight: 5,
             category: 'تقويمي'
           }
@@ -1262,18 +1262,20 @@ export default function InteractiveReportScreen() {
     const goodCount = scores.filter(score => score >= 80 && score < 90).length;
     const needsImprovementCount = scores.filter(score => score < 70).length;
 
-    // تحميل شعار الوزارة للتقرير المصدر (PDF)
+    // تحميل شعار الوزارة للتقرير المصدر (PDF) — على الويب لا نستخدم expo-asset/FileSystem
     let logoDataUri = 'https://i.ibb.co/7XqJqK7/moe-logo.png';
-    try {
-      const Asset = require('expo-asset').Asset;
-      const asset = Asset.fromModule(require('@/assets/images/moe_logo.png'));
-      await asset.downloadAsync();
-      if (asset.localUri) {
-        const base64 = await FileSystem.readAsStringAsync(asset.localUri, { encoding: FileSystem.EncodingType.Base64 });
-        if (base64) logoDataUri = `data:image/png;base64,${base64}`;
+    if (Platform.OS !== 'web') {
+      try {
+        const Asset = require('expo-asset').Asset;
+        const asset = Asset.fromModule(require('@/assets/images/moe_logo.png'));
+        await asset.downloadAsync();
+        if (asset.localUri) {
+          const base64 = await FileSystem.readAsStringAsync(asset.localUri, { encoding: FileSystem.EncodingType.Base64 });
+          if (base64) logoDataUri = `data:image/png;base64,${base64}`;
+        }
+      } catch (_) {
+        // الإبقاء على الرابط الافتراضي إن فشل تحميل الأصل المحلي
       }
-    } catch (_) {
-      // الإبقاء على الرابط الافتراضي إن فشل تحميل الأصل المحلي
     }
 
     // تحميل البيانات الشخصية والمهنية
@@ -1852,29 +1854,70 @@ export default function InteractiveReportScreen() {
   };
 
   const exportToPDF = async () => {
+    let htmlContent: string;
     try {
-      const htmlContent = await generateReportHTML();
+      htmlContent = await generateReportHTML();
+    } catch (genError) {
+      console.error('Error generating report HTML:', genError);
+      const msg = genError instanceof Error ? genError.message : String(genError);
+      Alert.alert(
+        formatRTLText('خطأ في إنشاء التقرير'),
+        formatRTLText('تعذر إنشاء محتوى التقرير. يرجى المحاولة مرة أخرى أو التأكد من وجود بيانات الأداء.')
+      );
+      return;
+    }
 
+    try {
       if (Platform.OS === 'web') {
-        const printWindow = typeof window !== 'undefined' && window.open('', '_blank');
-        if (!printWindow) {
-          Alert.alert('تنبيه', 'السماح بالنافذة المنبثقة لتصدير التقرير، ثم أعد المحاولة.');
+        if (typeof window === 'undefined') {
+          Alert.alert('تنبيه', 'تصدير PDF غير متاح في هذا السياق.');
           return;
         }
-        printWindow.document.write(htmlContent);
-        printWindow.document.close();
-        printWindow.focus();
-        setTimeout(() => {
-          printWindow.print();
-        }, 300);
-        Alert.alert('تم بنجاح', 'تم فتح نافذة التقرير. اختر «حفظ كـ PDF» أو «Save as PDF» في نافذة الطباعة لحفظ الملف.');
+        const blob = new Blob([htmlContent], { type: 'text/html; charset=utf-8' });
+        const url = URL.createObjectURL(blob);
+        const printWindow = window.open(url, '_blank', 'noopener,noreferrer');
+        if (!printWindow) {
+          Alert.alert(
+            formatRTLText('تنبيه'),
+            formatRTLText('السماح بالنوافذ المنبثقة لمتصفحك ثم اضغط «تصدير التقرير» مرة أخرى. أو استخدم «طباعة» من المتصفح واختر «حفظ كـ PDF».')
+          );
+          URL.revokeObjectURL(url);
+          return;
+        }
+        printWindow.onload = () => {
+          try {
+            printWindow.print();
+            URL.revokeObjectURL(url);
+          } catch (e) {
+            console.error('Print error:', e);
+          }
+        };
+        printWindow.onerror = () => {
+          URL.revokeObjectURL(url);
+          Alert.alert('خطأ', 'فشل تحميل نافذة التقرير.');
+        };
+        Alert.alert(
+          formatRTLText('تم فتح نافذة التقرير'),
+          formatRTLText('اختر «حفظ كـ PDF» أو «Save as PDF» في نافذة الطباعة لحفظ الملف.')
+        );
         return;
       }
 
       const { uri } = await Print.printToFileAsync({
         html: htmlContent,
-        base64: false
+        base64: false,
+        width: 595,
+        height: 842,
       });
+
+      const canShare = await Sharing.isAvailableAsync();
+      if (!canShare) {
+        Alert.alert(
+          formatRTLText('تم إنشاء الملف'),
+          formatRTLText('تم إنشاء ملف PDF. المسار: ') + uri
+        );
+        return;
+      }
 
       if (Platform.OS === 'ios') {
         await Sharing.shareAsync(uri, {
@@ -1888,13 +1931,20 @@ export default function InteractiveReportScreen() {
           from: uri,
           to: pdfUri
         });
-        await Sharing.shareAsync(pdfUri);
+        await Sharing.shareAsync(pdfUri, {
+          mimeType: 'application/pdf',
+          dialogTitle: formatRTLText('حفظ التقرير كـ PDF'),
+        });
       }
 
-      Alert.alert('تم بنجاح', 'تم تصدير التقرير كملف PDF');
+      Alert.alert(formatRTLText('تم بنجاح'), formatRTLText('تم تصدير التقرير كملف PDF'));
     } catch (error) {
       console.error('Error exporting PDF:', error);
-      Alert.alert('خطأ', 'فشل في تصدير التقرير كملف PDF');
+      const msg = error instanceof Error ? error.message : String(error);
+      Alert.alert(
+        formatRTLText('فشل التصدير'),
+        formatRTLText('فشل في تصدير التقرير كملف PDF. يرجى المحاولة مرة أخرى.') + (msg ? ` (${msg})` : '')
+      );
     }
   };
 

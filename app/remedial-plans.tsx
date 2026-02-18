@@ -816,10 +816,10 @@ export default function RemedialPlansScreen() {
                   <IconSymbol size={60} name="doc.text.fill" color="#1c1f33" />
                 </ThemedView>
                 <ThemedText type="title" style={[styles.title, getTextDirection()]}> 
-                  {formatRTLText('إدارة الخطط العلاجية')}
+                  {formatRTLText('إدارة الخطط العلاجية والإثرائية')}
                 </ThemedText>
                 <ThemedText style={[styles.subtitle, getTextDirection()]}> 
-                  {formatRTLText('متابعة وإدارة الخطط العلاجية للمتعلمين')}
+                  {formatRTLText('متابعة وإدارة الخطط العلاجية والإثرائية للمتعلمين')}
                 </ThemedText>
                         </ThemedView>
 

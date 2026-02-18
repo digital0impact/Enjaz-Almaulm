@@ -377,7 +377,7 @@ export default function StudentTrackingScreen() {
                 onPress={() => router.push('/remedial-plans')}
               >
                 <IconSymbol size={20} name="doc.text.fill" color="#1c1f33" />
-                <ThemedText style={styles.addButtonText}>إدارة الخطط العلاجية</ThemedText>
+                <ThemedText style={styles.addButtonText}>إدارة الخطط العلاجية والإثرائية</ThemedText>
               </TouchableOpacity>
             </ThemedView>
 
