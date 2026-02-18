@@ -115,9 +115,8 @@ export default function LoginScreen() {
 
       await AsyncStorage.setItem('basicData', JSON.stringify(basicData));
 
-      // بعد تسجيل الدخول نوجّه إلى الجذر، ونقطة الدخول (`app/index.tsx`)
-      // تتكفّل بإرسال المستخدم إلى تبويب الرئيسية.
-      router.replace('/');
+      // بعد تسجيل الدخول نوجّه مباشرة إلى صفحة خيارات الاشتراك.
+      router.replace('/subscription');
     } catch (error) {
       console.error('Login error:', error);
       const message = error instanceof Error ? error.message : '';
