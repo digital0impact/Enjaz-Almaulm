@@ -61,19 +61,16 @@ export class StorageService {
         throw error;
       }
 
-      // حفظ معلومات الملف في قاعدة البيانات
+      // حفظ معلومات الملف في قاعدة البيانات (أعمدة جدول file_attachments في Supabase)
       const { error: dbError } = await supabase
         .from('file_attachments')
         .insert({
-          userid: userId,
+          user_id: userId,
           file_name: fileName,
           file_path: filePath,
           file_size: file instanceof File ? file.size : undefined,
-          file_type: fileType,
+          mime_type: fileType,
           bucket_name: bucket,
-          related_table: relatedTable,
-          related_id: relatedId,
-          description
         });
 
       if (dbError) {
@@ -150,35 +147,57 @@ export class StorageService {
       const { data, error } = await supabase
         .from('file_attachments')
         .select('*')
-        .eq('userid', currentUserId)
+        .eq('user_id', currentUserId)
         .order('created_at', { ascending: false });
 
       if (error) {
         throw error;
       }
 
-      return data || [];
+      return (data || []).map((row: Record<string, unknown>) => ({
+        id: row.id,
+        userid: row.user_id,
+        file_name: row.file_name,
+        file_path: row.file_path,
+        file_size: row.file_size,
+        file_type: row.mime_type,
+        bucket_name: row.bucket_name,
+        created_at: row.created_at,
+        updated_at: row.updated_at,
+      })) as FileAttachment[];
     } catch (error) {
       logError('خطأ في الحصول على ملفات المستخدم', 'StorageService', error);
       return [];
     }
   }
 
-  // الحصول على ملفات مرتبطة بسجل معين
+  // الحصول على ملفات مرتبطة بسجل معين (جدول file_attachments لا يحتوي related_table/related_id؛ نرجع ملفات المستخدم حسب مسار الملف)
   static async getRelatedFiles(relatedTable: string, relatedId: string): Promise<FileAttachment[]> {
     try {
+      const currentUserId = (await supabase.auth.getUser()).data.user?.id;
+      if (!currentUserId) return [];
       const { data, error } = await supabase
         .from('file_attachments')
         .select('*')
-        .eq('related_table', relatedTable)
-        .eq('related_id', relatedId)
+        .eq('user_id', currentUserId)
+        .like('file_path', `%${relatedId}%`)
         .order('created_at', { ascending: false });
 
       if (error) {
         throw error;
       }
 
-      return data || [];
+      return (data || []).map((row: Record<string, unknown>) => ({
+        id: row.id,
+        userid: row.user_id,
+        file_name: row.file_name,
+        file_path: row.file_path,
+        file_size: row.file_size,
+        file_type: row.mime_type,
+        bucket_name: row.bucket_name,
+        created_at: row.created_at,
+        updated_at: row.updated_at,
+      })) as FileAttachment[];
     } catch (error) {
       logError('خطأ في الحصول على الملفات المرتبطة', 'StorageService', error);
       return [];

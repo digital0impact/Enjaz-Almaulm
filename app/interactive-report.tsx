@@ -1824,12 +1824,14 @@ export default function InteractiveReportScreen() {
     try {
       const htmlContent = await generateReportHTML();
       if (isWeb && w) {
-        w.document.write(htmlContent);
-        w.document.close();
-        w.focus();
+        const blob = new Blob([htmlContent], { type: 'text/html; charset=utf-8' });
+        const url = URL.createObjectURL(blob);
         const doPrint = () => { try { w.print(); } catch (_) {} };
-        setTimeout(doPrint, 600);
-        setTimeout(doPrint, 2000);
+        w.onload = () => { setTimeout(doPrint, 400); };
+        w.location.href = url;
+        w.focus();
+        setTimeout(doPrint, 2500);
+        setTimeout(() => URL.revokeObjectURL(url), 15000);
         Alert.alert(formatRTLText('تم فتح نافذة التقرير'), formatRTLText('اختر «حفظ كـ PDF» أو «Save as PDF» في نافذة الطباعة.'));
       } else {
         await exportToPDF();
@@ -1882,12 +1884,14 @@ export default function InteractiveReportScreen() {
       }
       if (isWeb && printWindowRef) {
         const htmlContent = await generateReportHTML();
-        printWindowRef.document.write(htmlContent);
-        printWindowRef.document.close();
-        printWindowRef.focus();
+        const blob = new Blob([htmlContent], { type: 'text/html; charset=utf-8' });
+        const url = URL.createObjectURL(blob);
         const doPrint = () => { try { printWindowRef.print(); } catch (_) {} };
-        setTimeout(doPrint, 600);
-        setTimeout(doPrint, 2000);
+        printWindowRef.onload = () => { setTimeout(doPrint, 400); };
+        printWindowRef.location.href = url;
+        printWindowRef.focus();
+        setTimeout(doPrint, 2500);
+        setTimeout(() => URL.revokeObjectURL(url), 15000);
         Alert.alert(formatRTLText('تم فتح نافذة التقرير'), formatRTLText('اختر «حفظ كـ PDF» أو «Save as PDF» في نافذة الطباعة.'));
       } else {
         await exportToPDF();

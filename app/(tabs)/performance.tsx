@@ -10,7 +10,6 @@ import { useRouter } from 'expo-router';
 import * as ImagePicker from 'expo-image-picker';
 import * as DocumentPicker from 'expo-document-picker';
 import { getTextDirection, formatRTLText } from '@/utils/rtl-utils';
-import { calculateOverallAverageFivePoint } from '@/utils/performance-five-point';
 
 const { width, height } = Dimensions.get('window');
 
@@ -208,31 +207,9 @@ export default function PerformanceScreen() {
     }
   }, [userProfession]);
 
-  // إضافة مستمع للتركيز على الصفحة باستخدام useFocusEffect
   useFocusEffect(
     React.useCallback(() => {
-      console.log('Performance screen focused - checking profession...');
-      // إعادة تحميل البيانات عند العودة إلى الصفحة
       loadUserProfession();
-      
-      // فحص دوري للتأكد من التحديث (كل ثانيتين لمدة 10 ثوانٍ)
-      let checkCount = 0;
-      const maxChecks = 5;
-      const checkInterval = setInterval(() => {
-        checkCount++;
-        console.log(`Periodic check ${checkCount}/${maxChecks} - loading profession...`);
-        loadUserProfession();
-        
-        if (checkCount >= maxChecks) {
-          clearInterval(checkInterval);
-          console.log('Periodic profession checks completed');
-        }
-      }, 2000);
-
-      // تنظيف المؤقت عند الخروج من الصفحة
-      return () => {
-        clearInterval(checkInterval);
-      };
     }, [])
   );
 
@@ -243,28 +220,12 @@ export default function PerformanceScreen() {
         const parsedData = JSON.parse(basicData);
         const newProfession = parsedData.profession || 'معلم/ة';
         
-        console.log('Current profession:', userProfession, 'New profession:', newProfession);
-        
-        // تحديث المهنة والبطاقات حتى لو كانت نفس المهنة (للتأكد من التحديث)
         if (newProfession !== userProfession) {
           console.log('Profession changed from', userProfession, 'to', newProfession);
           setUserProfession(newProfession);
-        }
-        
-        // تحديث البطاقات بناءً على المهنة الحالية أو الجديدة
-        const currentProfessionData = getPerformanceDataByProfession(newProfession);
-        
-        // فحص ما إذا كانت البطاقات الحالية تختلف عن المطلوبة
-        const shouldUpdate = performanceData.length !== currentProfessionData.length ||
-          !performanceData.every((item, index) => 
-            item.title === currentProfessionData[index]?.title
-          );
-          
-        if (shouldUpdate) {
-          console.log('Cards need update - forcing update for profession:', newProfession);
           await forceUpdateCardsForProfession(newProfession);
         } else {
-          console.log('Performance data already matches profession:', newProfession);
+          await loadPerformanceData();
         }
       }
     } catch (error) {
@@ -272,21 +233,28 @@ export default function PerformanceScreen() {
     }
   };
 
-  // دالة للتحقق من سلامة بيانات الشواهد
+  // دالة للتحقق من سلامة بيانات الشواهد (تقبل available غير معرف كـ false)
   const validateEvidenceData = (data: any[]) => {
     if (!Array.isArray(data)) return false;
     
     return data.every(item => {
-      // التحقق من وجود الحقول المطلوبة
       if (!item.id || !item.title || !Array.isArray(item.evidence)) return false;
-      
-      // التحقق من صحة بيانات الشواهد
       return item.evidence.every((evidence: any) => 
-        evidence && 
-        typeof evidence.name === 'string' && 
-        typeof evidence.available === 'boolean'
+        evidence && typeof evidence.name === 'string'
       );
     });
+  };
+
+  // تطبيع الشواهد: التأكد من أن available دائماً boolean (لتفادي فقدان الحفظ)
+  const normalizeEvidenceAvailable = (data: any[]) => {
+    return data.map(item => ({
+      ...item,
+      evidence: (item.evidence || []).map((ev: any) => ({
+        ...ev,
+        name: ev?.name ?? '',
+        available: ev && typeof ev.available === 'boolean' ? ev.available : false,
+      })),
+    }));
   };
 
   // دالة لإعادة تعيين البطاقات بقوة حسب المهنة
@@ -1803,10 +1771,14 @@ export default function PerformanceScreen() {
       const currentProfessionData = getPerformanceDataByProfession(userProfession);
       
       if (storedData) {
-        const parsedData = JSON.parse(storedData);
+        let parsedData: any[];
+        try {
+          parsedData = JSON.parse(storedData);
+        } catch {
+          parsedData = [];
+        }
         console.log('Found stored data with', parsedData.length, 'performance items');
         
-        // التحقق من سلامة بيانات الشواهد
         const isDataValid = validateEvidenceData(parsedData);
         if (!isDataValid) {
           console.log('Stored data validation failed - corrupted evidence data detected');
@@ -1815,15 +1787,15 @@ export default function PerformanceScreen() {
           return;
         }
         
-        // التحقق من أن البيانات المحفوظة تتطابق مع المهنة الحالية
-        // مقارنة أعمق - فحص العناوين والأطوال
         const isDataMatching = parsedData.length === currentProfessionData.length && 
           parsedData.every((item, index) => 
             item.title === currentProfessionData[index]?.title
           );
           
         if (isDataMatching) {
-          setPerformanceData(parsedData);
+          const normalized = normalizeEvidenceAvailable(parsedData);
+          setPerformanceData(normalized);
+          await AsyncStorage.setItem('performanceData', JSON.stringify(normalized));
           console.log('Loaded existing performance data for profession:', userProfession);
           
           // عد الشواهد المحفوظة
@@ -1886,11 +1858,16 @@ export default function PerformanceScreen() {
     return Math.round((availableEvidence / evidence.length) * 100);
   };
 
+  /** المعدل الحقيقي: المتوسط المرجح للنسب الفعلية (مجموع (الدرجة × الوزن) ÷ مجموع الأوزان) */
   const calculateOverallAverage = () => {
     if (!performanceData || performanceData.length === 0) return 0;
-    return calculateOverallAverageFivePoint(
-      performanceData.map(p => ({ score: p.score, weight: p.weight }))
+    const totalWeight = performanceData.reduce((acc, p) => acc + (p.weight ?? 0), 0);
+    if (totalWeight === 0) return 0;
+    const weightedSum = performanceData.reduce(
+      (acc, p) => acc + (p.score ?? 0) * (p.weight ?? 0),
+      0
     );
+    return Math.round(weightedSum / totalWeight);
   };
 
   const updatePerformanceData = async (newData: any[]) => {
