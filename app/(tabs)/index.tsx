@@ -383,13 +383,13 @@ export default function HomeScreen() {
 
                   <TouchableOpacity 
                     style={styles.toolCard}
-                    onPress={() => router.push('/password-tracker')}
+                    onPress={() => router.push('/idp')}
                   >
                     <ThemedView style={styles.toolIconWrapper}>
-                      <IconSymbol size={28} name="lock.shield.fill" color="#1c1f33" />
+                      <IconSymbol size={28} name="list.bullet" color="#1c1f33" />
                     </ThemedView>
-                    <ThemedText style={[styles.toolTitle, getTextDirection()]}>متتبع المواقع وكلمات المرور</ThemedText>
-                    <ThemedText style={[styles.toolDescription, getTextDirection()]}>إدارة كلمات المرور والمواقع المهمة</ThemedText>
+                    <ThemedText style={[styles.toolTitle, getTextDirection()]}>خطة التطوير الفردية (IDP)</ThemedText>
+                    <ThemedText style={[styles.toolDescription, getTextDirection()]}>نموذج خطة التطوير الفردية ومجالات التطوير المهني 70-20-10</ThemedText>
                   </TouchableOpacity>
 
                 </ThemedView>
