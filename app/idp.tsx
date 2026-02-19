@@ -7,6 +7,8 @@ import {
   Platform,
   TextInput,
   View,
+  Alert,
+  ActivityIndicator,
 } from 'react-native';
 
 import { ThemedText } from '@/components/ThemedText';
@@ -15,6 +17,9 @@ import { IconSymbol } from '@/components/ui/IconSymbol';
 import { useRouter } from 'expo-router';
 import { BottomNavigationBar } from '@/components/BottomNavigationBar';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import * as Print from 'expo-print';
+import * as Sharing from 'expo-sharing';
+import * as FileSystem from 'expo-file-system';
 import { getTextDirection, formatRTLText } from '@/utils/rtl-utils';
 
 const TEAL = '#0d9488';
@@ -91,6 +96,194 @@ export default function IDPScreen() {
     const next = [...priorityObjectives];
     next[row] = { ...next[row], [field]: value };
     setPriorityObjectives(next);
+  };
+
+  const [isExporting, setIsExporting] = useState(false);
+
+  const escapeHtml = (s: string) => {
+    return String(s ?? '')
+      .replace(/&/g, '&amp;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;')
+      .replace(/"/g, '&quot;');
+  };
+
+  const generateIDPHtml = (): string => {
+    const teal = '#0d9488';
+    const tealLight = '#14b8a6';
+    const green = '#059669';
+    const tableBorder = '1px solid #e5e7eb';
+    const cellPad = '8px';
+    const h = `
+<!DOCTYPE html>
+<html dir="rtl" lang="ar">
+<head>
+  <meta charset="utf-8"/>
+  <title>خطة التطوير الفردية (IDP)</title>
+  <style>
+    body { font-family: 'Segoe UI', Tahoma, Arial, sans-serif; padding: 20px; color: #1c1f33; }
+    h1 { color: #1c1f33; font-size: 22px; margin-bottom: 24px; text-align: center; }
+    .section { margin-bottom: 24px; border: ${tableBorder}; border-radius: 8px; overflow: hidden; }
+    .section-header { background: ${teal}; color: #fff; padding: 12px 16px; font-weight: 700; font-size: 16px; }
+    .form-row { display: flex; flex-wrap: wrap; gap: 12px; padding: 12px; }
+    .field { flex: 1; min-width: 180px; }
+    .field-label { font-size: 13px; font-weight: 600; color: #374151; margin-bottom: 4px; }
+    .field-value { font-size: 14px; padding: 8px; background: #f9fafb; border: ${tableBorder}; border-radius: 6px; }
+    table { width: 100%; border-collapse: collapse; font-size: 12px; }
+    th, td { border: ${tableBorder}; padding: ${cellPad}; text-align: right; }
+    th { background: ${tealLight}; color: #fff; font-weight: 700; }
+    .obj-cell { background: #dcfce7; color: ${green}; font-weight: 600; }
+    .priority-num { background: #dcfce7; color: ${green}; font-weight: 700; text-align: center; }
+  </style>
+</head>
+<body>
+  <h1>خطة التطوير الفردية (IDP)</h1>
+
+  <div class="section">
+    <div class="section-header">نموذج خطة التطوير الفردية</div>
+    <div class="form-row">
+      <div class="field"><div class="field-label">الإسم</div><div class="field-value">${escapeHtml(name)}</div></div>
+      <div class="field"><div class="field-label">الجهة</div><div class="field-value">${escapeHtml(entity)}</div></div>
+    </div>
+    <div class="form-row">
+      <div class="field"><div class="field-label">تاريخ بداية الخطة</div><div class="field-value">${escapeHtml(startDate)}</div></div>
+      <div class="field"><div class="field-label">تاريخ نهاية الخطة</div><div class="field-value">${escapeHtml(endDate)}</div></div>
+    </div>
+  </div>
+
+  <div class="section">
+    <div class="section-header">مجالات التطوير المهني</div>
+    <table>
+      <tr>
+        <th style="width:80px">المنهجية / الأهداف</th>
+        <th>التعلم من خلال التجارب والخبرات (70%)<br/><small>مثال: مجتمعات التعلم المهنية</small></th>
+        <th>التعلم من خلال الآخرين (20%)<br/><small>مثال: دورات وندوات تعليمية</small></th>
+        <th>التعلم المباشر (10%)<br/><small>مثال: تعلم نظامي - التعلم الذاتي - الاطلاع والقراءة</small></th>
+      </tr>
+      <tr><td class="obj-cell">الهدف الأول</td><td>${escapeHtml(objectives70[0])}</td><td>${escapeHtml(objectives20[0])}</td><td>${escapeHtml(objectives10[0])}</td></tr>
+      <tr><td class="obj-cell">الهدف الثاني</td><td>${escapeHtml(objectives70[1])}</td><td>${escapeHtml(objectives20[1])}</td><td>${escapeHtml(objectives10[1])}</td></tr>
+      <tr><td class="obj-cell">الهدف الثالث</td><td>${escapeHtml(objectives70[2])}</td><td>${escapeHtml(objectives20[2])}</td><td>${escapeHtml(objectives10[2])}</td></tr>
+    </table>
+  </div>
+
+  <div class="section">
+    <div class="section-header">الأهداف التطورية بحسب الأولوية</div>
+    <table>
+      <tr>
+        <th style="width:40px">#</th>
+        <th>الأهداف التطويرية</th>
+        <th>الأنشطة بناء على 10-20-70</th>
+        <th>تاريخ الانتهاء من الهدف</th>
+        <th>الداعم الرئيسي</th>
+        <th>الإجراءات التفصيلية</th>
+        <th>معايير النجاح</th>
+      </tr>
+      ${[0, 1, 2].map((i) => {
+        const p = priorityObjectives[i];
+        return `<tr>
+          <td class="priority-num">${i + 1}</td>
+          <td>${escapeHtml(p.objective)}</td>
+          <td>${escapeHtml(p.activities)}</td>
+          <td>${escapeHtml(p.endDate)}</td>
+          <td>${escapeHtml(p.supporter)}</td>
+          <td>${escapeHtml(p.procedures)}</td>
+          <td>${escapeHtml(p.successCriteria)}</td>
+        </tr>`;
+      }).join('')}
+    </table>
+  </div>
+</body>
+</html>`;
+    return h;
+  };
+
+  const exportToPDF = async () => {
+    setIsExporting(true);
+    try {
+      const htmlContent = generateIDPHtml();
+      if (Platform.OS === 'web') {
+        if (typeof window === 'undefined') {
+          Alert.alert(formatRTLText('تنبيه'), formatRTLText('تصدير PDF غير متاح في هذا السياق.'));
+          return;
+        }
+        const blob = new Blob([htmlContent], { type: 'text/html; charset=utf-8' });
+        const url = URL.createObjectURL(blob);
+        const w = window.open(url, '_blank', 'noopener,noreferrer');
+        if (w) {
+          w.onload = () => setTimeout(() => { try { w.print(); } catch (_) {} }, 500);
+          Alert.alert(formatRTLText('تم فتح نافذة الخطة'), formatRTLText('اختر «حفظ كـ PDF» في نافذة الطباعة.'));
+        } else {
+          Alert.alert(formatRTLText('تنبيه'), formatRTLText('السماح بالنوافذ المنبثقة ثم حاول مرة أخرى.'));
+        }
+        URL.revokeObjectURL(url);
+        return;
+      }
+      const { uri } = await Print.printToFileAsync({
+        html: htmlContent,
+        base64: false,
+        width: 595,
+        height: 842,
+      });
+      const canShare = await Sharing.isAvailableAsync();
+      if (!canShare) {
+        Alert.alert(formatRTLText('تم إنشاء الملف'), uri);
+        return;
+      }
+      if (Platform.OS === 'ios') {
+        await Sharing.shareAsync(uri, { UTI: '.pdf', mimeType: 'application/pdf' });
+      } else {
+        const name = `خطة_التطوير_الفردية_${new Date().toISOString().split('T')[0]}.pdf`;
+        const dest = `${FileSystem.documentDirectory}${name}`;
+        await FileSystem.moveAsync({ from: uri, to: dest });
+        await Sharing.shareAsync(dest, { mimeType: 'application/pdf', dialogTitle: formatRTLText('تصدير الخطة PDF') });
+      }
+      Alert.alert(formatRTLText('تم بنجاح'), formatRTLText('تم تصدير الخطة كملف PDF.'));
+    } catch (e) {
+      const msg = e instanceof Error ? e.message : String(e);
+      Alert.alert(formatRTLText('فشل التصدير'), formatRTLText('تعذر تصدير PDF.') + (msg ? ` (${msg})` : ''));
+    } finally {
+      setIsExporting(false);
+    }
+  };
+
+  const exportToWord = async () => {
+    setIsExporting(true);
+    try {
+      const htmlContent = generateIDPHtml();
+      const fileName = `خطة_التطوير_الفردية_${new Date().toISOString().split('T')[0]}.doc`;
+      if (Platform.OS === 'web') {
+        if (typeof window === 'undefined') {
+          Alert.alert(formatRTLText('تنبيه'), formatRTLText('تصدير Word غير متاح في هذا السياق.'));
+          return;
+        }
+        const blob = new Blob(['\ufeff' + htmlContent], { type: 'application/msword; charset=utf-8' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = fileName;
+        a.click();
+        URL.revokeObjectURL(url);
+        Alert.alert(formatRTLText('تم بنجاح'), formatRTLText('تم تحميل ملف Word.'));
+        return;
+      }
+      const filePath = `${FileSystem.documentDirectory}${fileName}`;
+      await FileSystem.writeAsStringAsync(filePath, '\ufeff' + htmlContent, { encoding: FileSystem.EncodingType.UTF8 });
+      const canShare = await Sharing.isAvailableAsync();
+      if (!canShare) {
+        Alert.alert(formatRTLText('تم إنشاء الملف'), filePath);
+        return;
+      }
+      await Sharing.shareAsync(filePath, {
+        mimeType: 'application/msword',
+        dialogTitle: formatRTLText('تصدير الخطة Word'),
+      });
+      Alert.alert(formatRTLText('تم بنجاح'), formatRTLText('تم تصدير الخطة كملف Word.'));
+    } catch (e) {
+      const msg = e instanceof Error ? e.message : String(e);
+      Alert.alert(formatRTLText('فشل التصدير'), formatRTLText('تعذر تصدير Word.') + (msg ? ` (${msg})` : ''));
+    } finally {
+      setIsExporting(false);
+    }
   };
 
   return (
@@ -349,6 +542,46 @@ export default function IDPScreen() {
             </View>
           </ThemedView>
 
+          <ThemedView style={styles.exportSection}>
+            <ThemedText style={[styles.exportSectionTitle, getTextDirection()]}>
+              {formatRTLText('تصدير الخطة')}
+            </ThemedText>
+            <View style={styles.exportButtonsRow}>
+              <TouchableOpacity
+                style={[styles.exportButton, isExporting && styles.exportButtonDisabled]}
+                onPress={exportToPDF}
+                disabled={isExporting}
+              >
+                {isExporting ? (
+                  <ActivityIndicator size="small" color="#fff" />
+                ) : (
+                  <>
+                    <IconSymbol size={22} name="doc.pdf" color="#fff" />
+                    <ThemedText style={[styles.exportButtonText, getTextDirection()]}>
+                      {formatRTLText('تصدير PDF')}
+                    </ThemedText>
+                  </>
+                )}
+              </TouchableOpacity>
+              <TouchableOpacity
+                style={[styles.exportButton, styles.exportButtonWord, isExporting && styles.exportButtonDisabled]}
+                onPress={exportToWord}
+                disabled={isExporting}
+              >
+                {isExporting ? (
+                  <ActivityIndicator size="small" color="#fff" />
+                ) : (
+                  <>
+                    <IconSymbol size={22} name="doc.text.fill" color="#fff" />
+                    <ThemedText style={[styles.exportButtonText, getTextDirection()]}>
+                      {formatRTLText('تصدير Word')}
+                    </ThemedText>
+                  </>
+                )}
+              </TouchableOpacity>
+            </View>
+          </ThemedView>
+
           <ThemedView style={{ height: 100 }} />
         </ScrollView>
         <BottomNavigationBar />
@@ -514,5 +747,49 @@ const styles = StyleSheet.create({
     fontSize: 11,
     color: '#1c1f33',
     textAlignVertical: 'top',
+  },
+  exportSection: {
+    marginTop: 8,
+    marginBottom: 16,
+    padding: 16,
+    backgroundColor: '#fff',
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: '#e5e7eb',
+  },
+  exportSectionTitle: {
+    fontSize: 15,
+    fontWeight: '700',
+    color: '#1c1f33',
+    marginBottom: 12,
+    textAlign: 'center',
+  },
+  exportButtonsRow: {
+    flexDirection: 'row-reverse',
+    justifyContent: 'center',
+    gap: 12,
+    flexWrap: 'wrap',
+  },
+  exportButton: {
+    flexDirection: 'row-reverse',
+    alignItems: 'center',
+    gap: 8,
+    backgroundColor: TEAL,
+    paddingVertical: 12,
+    paddingHorizontal: 20,
+    borderRadius: 10,
+    minWidth: 140,
+    justifyContent: 'center',
+  },
+  exportButtonWord: {
+    backgroundColor: '#2563eb',
+  },
+  exportButtonText: {
+    fontSize: 15,
+    fontWeight: '600',
+    color: '#fff',
+  },
+  exportButtonDisabled: {
+    opacity: 0.7,
   },
 });
