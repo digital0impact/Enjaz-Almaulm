@@ -16,6 +16,8 @@ import { ThemedView } from '@/components/ThemedView';
 import { IconSymbol } from '@/components/ui/IconSymbol';
 import { useRouter } from 'expo-router';
 import { BottomNavigationBar } from '@/components/BottomNavigationBar';
+import AuthService from '@/services/AuthService';
+import { SubscriptionService } from '@/services/SubscriptionService';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import * as Print from 'expo-print';
 import * as Sharing from 'expo-sharing';
@@ -99,6 +101,33 @@ export default function IDPScreen() {
   };
 
   const [isExporting, setIsExporting] = useState(false);
+
+  /** التحقق من أن المستخدم مسجل الدخول وأن اشتراكه يسمح بالتصدير (سنوي أو نصف سنوي فقط) */
+  const checkCanExport = async (): Promise<boolean> => {
+    let user = await AuthService.getCurrentUser();
+    if (!user) user = await AuthService.checkAuthStatus();
+    if (!user) {
+      Alert.alert(
+        formatRTLText('تسجيل الدخول مطلوب'),
+        formatRTLText('يرجى تسجيل الدخول للسماح بتصدير الخطة.'),
+        [{ text: formatRTLText('حسناً'), style: 'cancel' as const }]
+      );
+      return false;
+    }
+    const status = await SubscriptionService.checkSubscriptionStatus(user.id);
+    if (!status?.features?.canExport) {
+      Alert.alert(
+        formatRTLText('ترقية الاشتراك مطلوبة'),
+        formatRTLText('الاشتراك المجاني يسمح فقط بالاستعراض بدون طباعة أو تصدير. تصدير الخطة (PDF و Word) متاح للاشتراك السنوي ونصف السنوي فقط.'),
+        [
+          { text: formatRTLText('حسناً'), style: 'cancel' as const },
+          { text: formatRTLText('عرض الخطط'), onPress: () => router.push('/subscription') },
+        ]
+      );
+      return false;
+    }
+    return true;
+  };
 
   const escapeHtml = (s: string) => {
     return String(s ?? '')
@@ -198,6 +227,8 @@ export default function IDPScreen() {
   };
 
   const exportToPDF = async () => {
+    const canExport = await checkCanExport();
+    if (!canExport) return;
     setIsExporting(true);
     try {
       const htmlContent = generateIDPHtml();
@@ -247,6 +278,8 @@ export default function IDPScreen() {
   };
 
   const exportToWord = async () => {
+    const canExport = await checkCanExport();
+    if (!canExport) return;
     setIsExporting(true);
     try {
       const htmlContent = generateIDPHtml();

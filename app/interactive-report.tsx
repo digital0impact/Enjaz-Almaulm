@@ -1254,15 +1254,6 @@ export default function InteractiveReportScreen() {
   };
 
   const generateReportHTML = async () => {
-    const averageScore = calculateOverallAverage();
-    const categories = getCategories();
-    const scores = performanceData.map((item: PerformanceItem) => item.score);
-    const maxScore = Math.max(...scores, 0);
-    const minScore = Math.min(...scores, 0);
-    const excellentCount = scores.filter(score => score >= 90).length;
-    const goodCount = scores.filter(score => score >= 80 && score < 90).length;
-    const needsImprovementCount = scores.filter(score => score < 70).length;
-
     // تحميل شعار الوزارة للتقرير المصدر (PDF) — على الويب لا نستخدم expo-asset/FileSystem
     let logoDataUri = 'https://i.ibb.co/7XqJqK7/moe-logo.png';
     if (Platform.OS !== 'web') {
@@ -1319,6 +1310,34 @@ export default function InteractiveReportScreen() {
     } catch (error) {
       console.log('Error loading data for report:', error);
     }
+
+    // استخدام البيانات المحفوظة فعلياً للإحصائيات والتوصيات في التقرير المصدر
+    const reportData = Array.isArray(performanceDataWithEvidence) && performanceDataWithEvidence.length > 0
+      ? performanceDataWithEvidence
+      : performanceData;
+    const reportScores = reportData.map((item: { score?: number }) => Number(item?.score ?? 0));
+    const reportItems = reportData.map((item: ReportItem) => ({
+      ...item,
+      score: Number(item?.score ?? 0),
+    }));
+    const hasAnyScore = reportItems.some(item => item.score > 0);
+    const reportAverageScore = hasAnyScore
+      ? calculateOverallAverageFivePoint(reportItems.map(item => ({ score: item.score, weight: item?.weight ?? 0 })))
+      : 0;
+    const reportCategories = reportItems.map(item => ({
+      name: item?.title || 'غير محدد',
+      average: item.score,
+      count: 1,
+    })).filter(cat => cat && cat.name);
+    const maxScore = Math.max(...reportScores, 0);
+    const minScore = reportScores.length ? Math.min(...reportScores) : 0;
+    const excellentCount = reportScores.filter(s => s >= 90).length;
+    const goodCount = reportScores.filter(s => s >= 80 && s < 90).length;
+    const needsImprovementCount = reportScores.filter(s => s < 70).length;
+    const needsImprovementItems = reportItems
+      .filter(item => item.score < 85)
+      .sort((a, b) => a.score - b.score)
+      .slice(0, 3);
 
     return `
     <!DOCTYPE html>
@@ -1444,7 +1463,7 @@ export default function InteractiveReportScreen() {
         .summary-value {
           font-size: 32px;
           font-weight: bold;
-          color: ${getScoreColor(averageScore)};
+          color: ${getScoreColor(reportAverageScore)};
           margin-bottom: 5px;
         }
         .summary-label {
@@ -1485,7 +1504,7 @@ export default function InteractiveReportScreen() {
           margin-bottom: 10px;
           background: #f8f9fa;
           border-radius: 10px;
-          border-right: 5px solid ${getScoreColor(averageScore)};
+          border-right: 5px solid ${getScoreColor(reportAverageScore)};
         }
         .category-name {
           font-weight: bold;
@@ -1688,11 +1707,11 @@ export default function InteractiveReportScreen() {
           <h2>ملخص الأداء العام - ${userData.profession}</h2>
           <div class="summary-row">
             <div class="summary-item">
-              <div class="summary-value">${averageScore}%</div>
+              <div class="summary-value">${reportAverageScore}%</div>
               <div class="summary-label">المتوسط العام</div>
             </div>
             <div class="summary-item">
-              <div class="summary-value">${getScoreLevel(averageScore)}</div>
+              <div class="summary-value">${getScoreLevel(reportAverageScore)}</div>
               <div class="summary-label">مستوى الأداء</div>
             </div>
           </div>
@@ -1723,7 +1742,7 @@ export default function InteractiveReportScreen() {
 
         <div class="categories-section">
           <h3>متوسط الدرجات حسب الفئة - ${userData.profession}</h3>
-          ${categories.map(category => `
+          ${reportCategories.map(category => `
             <div class="category-item">
               <span class="category-name">${category.name}</span>
               <span class="category-score" style="color: ${getScoreColor(category.average)}">${category.average}%</span>
@@ -1735,7 +1754,7 @@ export default function InteractiveReportScreen() {
 
         <div class="performance-list">
           <h3>تفاصيل جميع المحاور - ${userData.profession}</h3>
-          ${performanceData
+          ${reportItems
             .sort((a, b) => b.score - a.score)
             .map((item, index) => `
               <div class="performance-item">
@@ -1747,16 +1766,13 @@ export default function InteractiveReportScreen() {
 
         <div class="recommendations">
           <h3>🔍 توصيات للتحسين - ${userData.profession}</h3>
-          ${performanceData
-            .filter(item => item.score < 85)
-            .sort((a, b) => a.score - b.score)
-            .slice(0, 3)
+          ${needsImprovementItems
             .map(item => `
               <div class="recommendation-item">
                 • ركز على تحسين "${item.title}" (الدرجة الحالية: ${item.score}%)
               </div>
             `).join('')}
-          ${performanceData.filter(item => item.score < 85).length === 0 ? 
+          ${needsImprovementItems.length === 0 ?
             '<div class="recommendation-item">• ممتاز! جميع المحاور تحصل على درجات عالية. استمر في الأداء المتميز.</div>' : ''}
         </div>
 
@@ -1814,31 +1830,35 @@ export default function InteractiveReportScreen() {
     `;
   };
 
+  /** على الويب: تحميل التقرير كملف HTML دون الاعتماد على النوافذ المنبثقة */
+  const webDownloadReport = (htmlContent: string) => {
+    if (typeof document === 'undefined') return;
+    const blob = new Blob([htmlContent], { type: 'text/html; charset=utf-8' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `تقرير_الأداء_${new Date().toISOString().slice(0, 10)}.html`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    setTimeout(() => URL.revokeObjectURL(url), 20000);
+  };
+
   const openReportForPrint = async () => {
     const isWeb = Platform.OS === 'web' && typeof window !== 'undefined';
-    const w = isWeb ? window.open('', '_blank', 'noopener,noreferrer') : null;
-    if (isWeb && !w) {
-      Alert.alert(formatRTLText('تنبيه'), formatRTLText('السماح بالنوافذ المنبثقة ثم أعد المحاولة.'));
-      return;
-    }
     try {
       const htmlContent = await generateReportHTML();
-      if (isWeb && w) {
-        const blob = new Blob([htmlContent], { type: 'text/html; charset=utf-8' });
-        const url = URL.createObjectURL(blob);
-        const doPrint = () => { try { w.print(); } catch (_) {} };
-        w.onload = () => { setTimeout(doPrint, 400); };
-        w.location.href = url;
-        w.focus();
-        setTimeout(doPrint, 2500);
-        setTimeout(() => URL.revokeObjectURL(url), 15000);
-        Alert.alert(formatRTLText('تم فتح نافذة التقرير'), formatRTLText('اختر «حفظ كـ PDF» أو «Save as PDF» في نافذة الطباعة.'));
+      if (isWeb) {
+        webDownloadReport(htmlContent);
+        Alert.alert(
+          formatRTLText('تم تحميل التقرير'),
+          formatRTLText('تم تحميل ملف التقرير. افتح الملف من مجلد التحميلات واختر من المتصفح «طباعة» ثم «حفظ كـ PDF» أو «Print to PDF».')
+        );
       } else {
         await exportToPDF();
       }
     } catch (e) {
       console.error('Open report for print:', e);
-      if (w) try { w.close(); } catch (_) {}
       Alert.alert(formatRTLText('خطأ'), formatRTLText('تعذر فتح التقرير.'));
     }
   };
@@ -1847,20 +1867,10 @@ export default function InteractiveReportScreen() {
     if (isExporting) return;
     setIsExporting(true);
     const isWeb = Platform.OS === 'web' && typeof window !== 'undefined';
-    const printWindowRef = isWeb ? window.open('', '_blank', 'noopener,noreferrer') : null;
-    if (isWeb && !printWindowRef) {
-      setIsExporting(false);
-      Alert.alert(
-        formatRTLText('تنبيه'),
-        formatRTLText('السماح بالنوافذ المنبثقة لهذا الموقع ثم اضغط «تصدير التقرير» مرة أخرى.')
-      );
-      return;
-    }
     try {
       let user = await AuthService.getCurrentUser();
       if (!user) user = await AuthService.checkAuthStatus();
       if (!user) {
-        if (printWindowRef) printWindowRef.close();
         Alert.alert(
           formatRTLText('تسجيل الدخول مطلوب'),
           formatRTLText('يرجى تسجيل الدخول مرة أخرى للسماح بتصدير التقرير.'),
@@ -1870,41 +1880,35 @@ export default function InteractiveReportScreen() {
       }
       const status = await SubscriptionService.checkSubscriptionStatus(user.id);
       if (!status?.features?.canExport) {
-        if (printWindowRef) printWindowRef.close();
         Alert.alert(
           formatRTLText('ترقية الاشتراك مطلوبة'),
-          formatRTLText('تصدير التقرير (PDF) متاح للاشتراك المدفوع. يمكنك معاينة التقرير وطباعته أو حفظه كـ PDF من نافذة الطباعة.'),
+          formatRTLText('تصدير التقرير (PDF) متاح للاشتراك المدفوع. يمكنك تحميل التقرير كملف وفتحه ثم طباعته أو حفظه كـ PDF.'),
           [
             { text: formatRTLText('حسناً'), style: 'cancel' as const },
             { text: formatRTLText('عرض الخطط'), onPress: () => router.push('/subscription') },
-            { text: formatRTLText('معاينة وطباعة'), onPress: () => openReportForPrint() }
+            { text: formatRTLText('تحميل التقرير'), onPress: () => openReportForPrint() }
           ]
         );
         return;
       }
-      if (isWeb && printWindowRef) {
+      if (isWeb) {
         const htmlContent = await generateReportHTML();
-        const blob = new Blob([htmlContent], { type: 'text/html; charset=utf-8' });
-        const url = URL.createObjectURL(blob);
-        const doPrint = () => { try { printWindowRef.print(); } catch (_) {} };
-        printWindowRef.onload = () => { setTimeout(doPrint, 400); };
-        printWindowRef.location.href = url;
-        printWindowRef.focus();
-        setTimeout(doPrint, 2500);
-        setTimeout(() => URL.revokeObjectURL(url), 15000);
-        Alert.alert(formatRTLText('تم فتح نافذة التقرير'), formatRTLText('اختر «حفظ كـ PDF» أو «Save as PDF» في نافذة الطباعة.'));
+        webDownloadReport(htmlContent);
+        Alert.alert(
+          formatRTLText('تم تحميل التقرير'),
+          formatRTLText('تم تحميل ملف التقرير. افتح الملف من مجلد التحميلات واختر «طباعة» ثم «حفظ كـ PDF» إن رغبت.')
+        );
       } else {
         await exportToPDF();
       }
     } catch (err) {
       console.error('Export report error:', err);
-      if (printWindowRef) try { printWindowRef.close(); } catch (_) {}
       Alert.alert(
         formatRTLText('خطأ'),
         formatRTLText('حدث خطأ أثناء التصدير. يرجى المحاولة مرة أخرى أو التحقق من الاتصال.'),
         [
           { text: formatRTLText('حسناً'), style: 'cancel' as const },
-          { text: formatRTLText('معاينة وطباعة'), onPress: () => openReportForPrint() }
+          { text: formatRTLText('تحميل التقرير'), onPress: () => openReportForPrint() }
         ]
       );
     } finally {
@@ -2116,17 +2120,18 @@ export default function InteractiveReportScreen() {
                 </ThemedText>
               <ThemedView style={styles.recommendationsList}>
                 {performanceData
-                  .filter(item => item.score < 85)
-                  .sort((a, b) => a.score - b.score)
+                  .map(item => ({ ...item, scoreNum: Number(item?.score ?? 0) }))
+                  .filter(item => item.scoreNum < 85)
+                  .sort((a, b) => a.scoreNum - b.scoreNum)
                   .slice(0, 3)
-                  .map((item, index) => (
+                  .map((item) => (
                     <ThemedView key={item.id} style={styles.recommendationItem}>
-                                          <ThemedText style={styles.recommendationText}>
-                      {`• ركز على تحسين "${item.title}" (الدرجة الحالية: ${item.score}%)`}
-                    </ThemedText>
+                      <ThemedText style={styles.recommendationText}>
+                        {`• ركز على تحسين "${item.title}" (الدرجة الحالية: ${item.scoreNum}%)`}
+                      </ThemedText>
                     </ThemedView>
                   ))}
-                {performanceData.filter(item => item.score < 85).length === 0 && (
+                {performanceData.filter(item => Number(item?.score ?? 0) < 85).length === 0 && (
                   <ThemedView key="no-improvements-needed" style={styles.recommendationItem}>
                                         <ThemedText style={styles.recommendationText}>
                       • ممتاز! جميع المحاور تحصل على درجات عالية. استمر في الأداء المتميز.

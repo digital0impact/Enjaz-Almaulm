@@ -325,6 +325,9 @@ export default function BasicDataScreen() {
               ) : (
                 <ThemedText style={[styles.value, getTextDirection(), { color: colors.text }]}>{userData.phone}</ThemedText>
               )}
+              <ThemedText style={[styles.phoneHint, getTextDirection(), { color: colors.textSecondary }]}>
+                {formatRTLText('يُستخدم لربط اشتراكك تلقائياً عند الشراء من متجرنا؛ استخدم نفس الرقم عند إتمام الطلب في المتجر.')}
+              </ThemedText>
             </ThemedView>
 
             <ThemedView style={[styles.dataItem, styles.gridItem, { backgroundColor: colors.card }]}>
@@ -837,6 +840,13 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.1,
     shadowRadius: 4,
     elevation: 2,
+  },
+  phoneHint: {
+    fontSize: 12,
+    textAlign: 'right',
+    writingDirection: 'rtl',
+    marginTop: 6,
+    opacity: 0.85,
   },
   textArea: {
     minHeight: 80,

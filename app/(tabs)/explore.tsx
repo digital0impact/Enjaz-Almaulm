@@ -66,6 +66,17 @@ export default function ExploreScreen() {
 
                 <TouchableOpacity 
                   style={styles.toolCard}
+                  onPress={() => router.push('/password-tracker')}
+                >
+                  <ThemedView style={styles.toolIconWrapper}>
+                    <IconSymbol size={28} name="lock.shield.fill" color="#1c1f33" />
+                  </ThemedView>
+                  <ThemedText style={[styles.toolTitle, getTextDirection()]}>متتبع المواقع وكلمات المرور</ThemedText>
+                  <ThemedText style={[styles.toolDescription, getTextDirection()]}>إدارة كلمات المرور والمواقع المهمة</ThemedText>
+                </TouchableOpacity>
+
+                <TouchableOpacity 
+                  style={styles.toolCard}
                   onPress={() => router.push('/absence-management')}
                 >
                   <ThemedView style={styles.toolIconWrapper}>

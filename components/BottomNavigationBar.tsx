@@ -3,11 +3,13 @@ import { StyleSheet, TouchableOpacity, View, Platform, Text } from 'react-native
 import { useRouter, usePathname } from 'expo-router';
 import { BlurView } from 'expo-blur';
 import * as Haptics from 'expo-haptics';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { IconSymbol } from '@/components/ui/IconSymbol';
 import { TabRoute } from '@/types';
 import { getRTLTextStyle } from '@/utils/rtl-utils';
 
-// نفس ألوان شريط التبويبات في الصفحة الرئيسية (app/(tabs)/_layout.tsx)
+// مطابق لشريط التبويبات الرئيسية: @react-navigation/bottom-tabs (TABBAR_HEIGHT_UIKIT = 49 + safe area، labelBeneath fontSize 10)
+const TAB_BAR_HEIGHT_UIKIT = 49;
 const TAB_BAR_BG = '#E8F5F4';
 const TAB_BAR_TINT_COLOR = '#595b59';
 const TAB_BAR_BORDER = '#E5E5EA';
@@ -42,6 +44,7 @@ const tabs: TabRoute[] = [
 export const BottomNavigationBar: React.FC = () => {
   const router = useRouter();
   const pathname = usePathname();
+  const insets = useSafeAreaInsets();
 
   const isActive = (route: string): boolean => {
     if (route === '/(tabs)' && pathname === '/') {
@@ -59,9 +62,11 @@ export const BottomNavigationBar: React.FC = () => {
     }
   };
 
+  const tabBarHeight = TAB_BAR_HEIGHT_UIKIT + insets.bottom;
+
   return (
     <View style={styles.container}>
-      <View style={styles.tabBar}>
+      <View style={[styles.tabBar, { height: tabBarHeight, paddingBottom: insets.bottom }]}>
         {Platform.OS === 'ios' && (
           <BlurView
             tint="systemChromeMaterial"
@@ -98,39 +103,23 @@ const styles = StyleSheet.create({
   container: {
     backgroundColor: 'transparent',
   },
-  // مطابق لـ tabBarStyle في app/(tabs)/_layout.tsx
+  // مطابق لشريط التبويبات الرئيسية (ارتفاع 49 + safe area، padding العنصر 5، نص 10)
   tabBar: {
+    position: 'absolute',
+    bottom: 0,
+    left: 0,
+    right: 0,
     borderTopWidth: 1,
     borderTopColor: TAB_BAR_BORDER,
+    paddingTop: 0,
     paddingHorizontal: 10,
-    paddingVertical: 8,
     shadowColor: '#000',
     shadowOffset: { width: 0, height: -2 },
     shadowOpacity: 0.1,
     shadowRadius: 4,
     elevation: 8,
     overflow: 'hidden',
-    ...Platform.select({
-      ios: {
-        position: 'absolute',
-        bottom: 0,
-        left: 0,
-        right: 0,
-        height: 88,
-        paddingBottom: 20,
-        paddingTop: 8,
-        backgroundColor: TAB_BAR_BG,
-      },
-      default: {
-        position: 'absolute',
-        bottom: 0,
-        left: 0,
-        right: 0,
-        height: 68,
-        paddingTop: 8,
-        backgroundColor: TAB_BAR_BG,
-      },
-    }),
+    backgroundColor: TAB_BAR_BG,
   },
   tabBarContent: {
     flexDirection: 'row',
@@ -140,18 +129,16 @@ const styles = StyleSheet.create({
     flex: 1,
     alignItems: 'center',
     justifyContent: 'center',
-    paddingVertical: 8,
-    borderRadius: 12,
+    padding: 5,
+    borderRadius: 10,
     minHeight: 44,
-    paddingHorizontal: 4,
   },
   tabIcon: {
-    marginBottom: 4,
+    marginBottom: 2,
   },
   tabText: {
     fontSize: 10,
     color: TAB_BAR_TINT_COLOR,
-    marginTop: 2,
     textAlign: 'center',
     fontWeight: '500',
   },

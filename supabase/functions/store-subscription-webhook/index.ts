@@ -1,0 +1,146 @@
+import "jsr:@supabase/functions-js/edge-runtime.d.ts";
+import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+
+const SUBSCRIPTION_DAYS = { yearly: 365, half_yearly: 180 } as const;
+const SUBSCRIPTION_PRICES = { yearly: 49.99, half_yearly: 29.99 } as const;
+
+type PlanType = 'yearly' | 'half_yearly';
+
+/** Normalize phone for comparison (digits only, Saudi format 966xxxxxxxxx) */
+function normalizePhone(phone: string): string {
+  const digits = (phone || '').replace(/\D/g, '');
+  if (digits.length >= 12 && digits.startsWith('966')) return digits.slice(0, 12);
+  if (digits.length >= 9 && digits.startsWith('966')) return digits;
+  if (digits.length >= 10 && digits.startsWith('0')) return '966' + digits.slice(1);
+  if (digits.length === 9 && digits.startsWith('5')) return '966' + digits;
+  return digits;
+}
+
+/** Infer plan from Salla order items (edit product names/IDs for your store) */
+function getPlanFromSallaItems(items: Array<{ product?: { id?: number; name?: string; sku?: string }; name?: string }>): PlanType | null {
+  if (!items?.length) return null;
+  const name = (items[0].product?.name ?? items[0].name ?? '').toLowerCase();
+  const sku = (items[0].product?.sku ?? '').toLowerCase();
+  if (name.includes('سنوي') && !name.includes('نصف')) return 'yearly';
+  if (name.includes('نصف') || name.includes('half') || sku.includes('half')) return 'half_yearly';
+  if (name.includes('yearly') || sku.includes('yearly')) return 'yearly';
+  return 'yearly';
+}
+
+Deno.serve(async (req: Request) => {
+  if (req.method === 'OPTIONS') {
+    return new Response(null, { headers: { 'Access-Control-Allow-Origin': '*', 'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type, x-webhook-secret' } });
+  }
+  if (req.method !== 'POST') {
+    return new Response(JSON.stringify({ error: 'Method not allowed' }), { status: 405, headers: { 'Content-Type': 'application/json' } });
+  }
+
+  const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
+  const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
+  const webhookSecret = Deno.env.get('WEBHOOK_STORE_SECRET') || '';
+
+  const authHeader = req.headers.get('x-webhook-secret') || req.headers.get('authorization')?.replace('Bearer ', '') || '';
+  if (webhookSecret && authHeader !== webhookSecret) {
+    return new Response(JSON.stringify({ error: 'Unauthorized' }), { status: 401, headers: { 'Content-Type': 'application/json' } });
+  }
+
+  let email: string;
+  let phone: string | null = null;
+  let plan: PlanType;
+  let transactionId: string;
+
+  try {
+    const body = await req.json();
+
+    if (body.email && (body.plan === 'yearly' || body.plan === 'half_yearly')) {
+      email = body.email.trim().toLowerCase();
+      phone = (body.phone && String(body.phone).trim()) ? String(body.phone).trim() : null;
+      plan = body.plan;
+      transactionId = body.transaction_id || `direct-${Date.now()}`;
+    } else if (body.event && body.data) {
+      const event = body.event;
+      const data = body.data;
+      // سلة قد ترسل الطلب داخل data أو data.order
+      const order = data.order || data;
+      const customer = data.customer || order.customer || data.shipping?.receiver || order.shipping?.receiver || order.receiver;
+      const shippingReceiver = data.shipping?.receiver || order.shipping?.receiver;
+      email = (customer?.email || shippingReceiver?.email || order.email || data.email || '').trim().toLowerCase();
+      const rawPhone =
+        customer?.mobile ?? customer?.phone ?? customer?.mobile_number
+        ?? shippingReceiver?.phone ?? shippingReceiver?.mobile ?? shippingReceiver?.mobile_number
+        ?? data.receiver?.phone ?? data.receiver?.mobile
+        ?? order.shipping_address?.phone ?? order.billing_address?.phone
+        ?? data.phone ?? order.phone ?? '';
+      phone = (rawPhone && String(rawPhone).trim()) ? String(rawPhone).trim() : null;
+      if (!email && !phone) {
+        return new Response(JSON.stringify({ error: 'No customer email or phone in webhook' }), { status: 400, headers: { 'Content-Type': 'application/json' } });
+      }
+      const items = data.items || order.items || [];
+      const inferredPlan = getPlanFromSallaItems(items);
+      if (!inferredPlan) {
+        return new Response(JSON.stringify({ error: 'Could not determine plan from order items' }), { status: 400, headers: { 'Content-Type': 'application/json' } });
+      }
+      plan = inferredPlan;
+      transactionId = `salla-${data.id ?? order.id ?? data.reference_id ?? order.reference_id ?? Date.now()}`;
+      const statusSlug = (data.order ?? data).status?.slug ?? data.status?.slug ?? order.status?.slug ?? '';
+      if (event === 'order.status.updated' && statusSlug && statusSlug !== 'completed' && statusSlug !== 'delivered') {
+        return new Response(JSON.stringify({ message: 'Order not completed, subscription not created' }), { status: 200, headers: { 'Content-Type': 'application/json' } });
+      }
+    } else {
+      return new Response(JSON.stringify({ error: 'Invalid body: need { email, plan } or Salla webhook { event, data }' }), { status: 400, headers: { 'Content-Type': 'application/json' } });
+    }
+  } catch (_e) {
+    return new Response(JSON.stringify({ error: 'Invalid JSON' }), { status: 400, headers: { 'Content-Type': 'application/json' } });
+  }
+
+  const supabase = createClient(supabaseUrl, supabaseServiceKey);
+  let userId: string | null = null;
+
+  if (email) {
+    const { data: list } = await supabase.auth.admin.listUsers({ page: 1, perPage: 1000 });
+    const all = (list as { users?: Array<{ id: string; email?: string }> })?.users ?? [];
+    const found = all.find((u: { email?: string }) => (u.email || '').toLowerCase() === email);
+    if (found) userId = found.id;
+  }
+  if (!userId && phone) {
+    const normalized = normalizePhone(phone);
+    if (normalized.length >= 9) {
+      const { data: profiles } = await supabase.from('user_profiles').select('id, phone_number').not('phone_number', 'is', null).neq('phone_number', '');
+      const profilesList = (profiles || []) as Array<{ id: string; phone_number: string }>;
+      let found = profilesList.find((p) => normalizePhone(p.phone_number || '') === normalized);
+      if (found) userId = found.id;
+      if (!userId) {
+        const { data: usersRows } = await supabase.from('users').select('id, phone_number').not('phone_number', 'is', null).neq('phone_number', '');
+        const usersList = (usersRows || []) as Array<{ id: string; phone_number: string }>;
+        found = usersList.find((u) => normalizePhone(u.phone_number || '') === normalized);
+        if (found) userId = found.id;
+      }
+    }
+  }
+  if (!userId) {
+    return new Response(JSON.stringify({ error: `No user found with this email or phone. Use the same email or mobile number in the app as in the store.` }), { status: 404, headers: { 'Content-Type': 'application/json' } });
+  }
+
+  const startDate = new Date();
+  const endDate = new Date();
+  endDate.setDate(endDate.getDate() + SUBSCRIPTION_DAYS[plan]);
+
+  const { error: insertError } = await supabase.from('subscriptions').insert({
+    user_id: userId,
+    plan_type: plan,
+    start_date: startDate.toISOString(),
+    end_date: endDate.toISOString(),
+    status: 'active',
+    price: SUBSCRIPTION_PRICES[plan],
+    transaction_id: transactionId,
+    purchase_verified: true,
+  });
+
+  if (insertError) {
+    return new Response(JSON.stringify({ error: insertError.message }), { status: 500, headers: { 'Content-Type': 'application/json' } });
+  }
+
+  return new Response(JSON.stringify({ success: true, user_id: userId, plan, end_date: endDate.toISOString() }), { status: 200, headers: { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*' } });
+});
+
+

@@ -421,6 +421,14 @@ const SubscriptionScreen = () => {
                   </ThemedText>
                 </Animated.View>
               ) : null}
+              {hasWebStore ? (
+                <Animated.View style={[styles.webStoreNote, styles.webStorePhoneAlert, { opacity: fadeAnim }]}>
+                  <IconSymbol size={20} name="info.circle.fill" color="#FF9800" />
+                  <ThemedText style={[styles.webStoreNoteText, styles.webStorePhoneAlertText, getTextDirection()]}>
+                    {formatRTLText('لتفعيل الاشتراك تلقائياً بعد الشراء: استخدم نفس رقم الجوال المسجّل في التطبيق (الإعدادات → البيانات الأساسية) عند إتمام الطلب في المتجر.')}
+                  </ThemedText>
+                </Animated.View>
+              ) : null}
               <Animated.View style={[styles.plansSection, { opacity: fadeAnim, transform: [{ translateX: slideAnim }] }]}>
               <ThemedText style={[styles.sectionTitle, getTextDirection()]}>
               {formatRTLText('الخطط المتاحة')}
@@ -610,6 +618,13 @@ const styles = StyleSheet.create({
     borderRadius: 12,
     borderWidth: 1,
     borderColor: 'rgba(33, 150, 243, 0.3)',
+  },
+  webStorePhoneAlert: {
+    backgroundColor: 'rgba(255, 152, 0, 0.12)',
+    borderColor: 'rgba(255, 152, 0, 0.35)',
+  },
+  webStorePhoneAlertText: {
+    color: '#E65100',
   },
   webStoreNoteText: {
     fontSize: 14,
