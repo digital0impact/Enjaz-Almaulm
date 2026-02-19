@@ -60,7 +60,25 @@ export default function RemedialPlansScreen() {
   const [expandedCategory, setExpandedCategory] = useState<string | null>(null);
   const [exportModalVisible, setExportModalVisible] = useState(false);
   const [exportModalData, setExportModalData] = useState<any>(null);
+  const [excelDownloadReady, setExcelDownloadReady] = useState<{ url: string; name: string } | null>(null);
   const [teacherName, setTeacherName] = useState<string>('');
+
+  /** على الويب عرض التنبيهات في المتصفح لأن Alert.alert لا يظهر */
+  const showAlert = (
+    title: string,
+    message: string,
+    buttons?: Array<{ text: string; style?: 'default' | 'cancel'; onPress?: () => void }>
+  ) => {
+    if (Platform.OS === 'web' && typeof window !== 'undefined') {
+      window.alert([title, message].filter(Boolean).join('\n\n'));
+      const action = buttons?.find((b) => b.onPress);
+      if (action && action.text !== formatRTLText('حسناً')) {
+        if (window.confirm(formatRTLText('هل تريد عرض خطط الاشتراك؟'))) action.onPress?.();
+      }
+      return;
+    }
+    Alert.alert(title, message, buttons);
+  };
 
   const categories = [
     { key: 'ضعف', label: 'الضعف', color: '#9C27B0', icon: 'minus.circle.fill' },
@@ -114,7 +132,7 @@ export default function RemedialPlansScreen() {
       }
     } catch (error) {
       console.error('Error loading students with plans:', error);
-      Alert.alert('خطأ', 'حدث خطأ أثناء تحميل البيانات');
+      showAlert(formatRTLText('خطأ'), formatRTLText('حدث خطأ أثناء تحميل البيانات'));
     }
   };
 
@@ -388,7 +406,7 @@ export default function RemedialPlansScreen() {
       let user = await AuthService.getCurrentUser();
       if (!user) user = await AuthService.checkAuthStatus();
       if (!user) {
-        Alert.alert(
+        showAlert(
           formatRTLText('تسجيل الدخول مطلوب'),
           formatRTLText('يرجى تسجيل الدخول للسماح بتحميل الجداول.')
         );
@@ -396,7 +414,7 @@ export default function RemedialPlansScreen() {
       }
       const status = await SubscriptionService.checkSubscriptionStatus(user.id);
       if (!status?.features?.canExport) {
-        Alert.alert(
+        showAlert(
           formatRTLText('ترقية الاشتراك مطلوبة'),
           formatRTLText('تصدير الجدول (Excel/PDF) متاح للاشتراك المدفوع. يرجى ترقية اشتراكك.'),
           [
@@ -408,7 +426,7 @@ export default function RemedialPlansScreen() {
       }
     } catch (err) {
       console.error('Export table check error:', err);
-      Alert.alert(
+      showAlert(
         formatRTLText('خطأ'),
         formatRTLText('تعذر التحقق من الصلاحية. يرجى المحاولة مرة أخرى.')
       );
@@ -431,10 +449,11 @@ export default function RemedialPlansScreen() {
       }));
       const result = await generateExcelFile(data);
 
-      if (Platform.OS === 'web') {
+      if (Platform.OS === 'web' && typeof document !== 'undefined') {
         const base64 = typeof result === 'string' ? result : '';
         if (!base64) {
-          Alert.alert('خطأ', 'لم يتم إنشاء بيانات الملف. تأكد من وجود بيانات للتصدير.');
+          showAlert(formatRTLText('خطأ'), formatRTLText('لم يتم إنشاء بيانات الملف. تأكد من وجود بيانات للتصدير.'));
+          setExportModalData(null);
           return;
         }
         const binary = atob(base64);
@@ -442,14 +461,8 @@ export default function RemedialPlansScreen() {
         for (let i = 0; i < binary.length; i++) bytes[i] = binary.charCodeAt(i);
         const blob = new Blob([bytes], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
         const url = URL.createObjectURL(blob);
-        const a = document.createElement('a');
-        a.href = url;
-        a.download = `الخطط_العلاجية_${new Date().toISOString().slice(0, 10)}.xlsx`;
-        document.body.appendChild(a);
-        a.click();
-        document.body.removeChild(a);
-        setTimeout(() => URL.revokeObjectURL(url), 15000);
-        Alert.alert('تم بنجاح', 'تم تحميل ملف Excel');
+        const name = `الخطط_العلاجية_${new Date().toISOString().slice(0, 10)}.xlsx`;
+        setExcelDownloadReady({ url, name });
       } else {
         const filePath = result as string;
         if (await Sharing.isAvailableAsync()) {
@@ -459,11 +472,11 @@ export default function RemedialPlansScreen() {
             UTI: 'com.microsoft.excel.xlsx'
           });
         }
-        Alert.alert('تم بنجاح', 'تم إنشاء ملف Excel');
+        showAlert(formatRTLText('تم بنجاح'), formatRTLText('تم إنشاء ملف Excel'));
       }
     } catch (error) {
       console.error('خطأ في تحميل Excel:', error);
-      Alert.alert('خطأ', 'حدث خطأ أثناء إنشاء ملف Excel');
+      showAlert(formatRTLText('خطأ'), formatRTLText('حدث خطأ أثناء إنشاء ملف Excel'));
     }
     setExportModalData(null);
   };
@@ -480,23 +493,33 @@ export default function RemedialPlansScreen() {
     }));
     setExportModalData(null);
 
-    if (Platform.OS === 'web' && typeof window !== 'undefined') {
-      const printWindow = window.open('', '_blank', 'noopener,noreferrer');
-      if (!printWindow) {
-        Alert.alert('تنبيه', 'الرجاء السماح بالنوافذ المنبثقة ثم إعادة المحاولة.');
-        return;
-      }
+    if (Platform.OS === 'web' && typeof window !== 'undefined' && typeof document !== 'undefined') {
       try {
         const htmlContent = getRemedialPlansReportHTML(data);
-        printWindow.document.write(htmlContent);
-        printWindow.document.close();
-        printWindow.focus();
-        setTimeout(() => { printWindow.print(); }, 500);
-        Alert.alert('تم بنجاح', 'استخدم "حفظ كـ PDF" أو "Save as PDF" في نافذة الطباعة لحفظ التقرير.');
+        const iframe = document.createElement('iframe');
+        iframe.setAttribute('style', 'position:fixed;right:0;bottom:0;width:0;height:0;border:none;visibility:hidden');
+        document.body.appendChild(iframe);
+        const blob = new Blob([htmlContent], { type: 'text/html; charset=utf-8' });
+        const url = URL.createObjectURL(blob);
+        const doPrint = () => {
+          try {
+            if (iframe.contentWindow) iframe.contentWindow.print();
+          } catch (_) {}
+          setTimeout(() => {
+            if (document.body.contains(iframe)) document.body.removeChild(iframe);
+            URL.revokeObjectURL(url);
+          }, 1000);
+        };
+        iframe.src = url;
+        iframe.onload = () => setTimeout(doPrint, 400);
+        setTimeout(() => { if (document.body.contains(iframe)) doPrint(); }, 3000);
+        showAlert(
+          formatRTLText('تم فتح نافذة الطباعة'),
+          formatRTLText('اختر «حفظ كـ PDF» أو «Save as PDF» في نافذة الطباعة لحفظ التقرير.')
+        );
       } catch (error) {
         console.error('خطأ في تحميل PDF:', error);
-        try { printWindow.close(); } catch (_) {}
-        Alert.alert('خطأ', 'حدث خطأ أثناء فتح معاينة الطباعة');
+        showAlert(formatRTLText('خطأ'), formatRTLText('حدث خطأ أثناء فتح معاينة الطباعة'));
       }
       return;
     }
@@ -510,10 +533,17 @@ export default function RemedialPlansScreen() {
           UTI: 'com.adobe.pdf'
         });
       }
-      Alert.alert('تم بنجاح', 'تم إنشاء ملف PDF');
+      showAlert(formatRTLText('تم بنجاح'), formatRTLText('تم إنشاء ملف PDF'));
     } catch (error) {
       console.error('خطأ في تحميل PDF:', error);
-      Alert.alert('خطأ', 'حدث خطأ أثناء إنشاء ملف PDF');
+      showAlert(formatRTLText('خطأ'), formatRTLText('حدث خطأ أثناء إنشاء ملف PDF'));
+    }
+  };
+
+  const closeExcelDownload = () => {
+    if (excelDownloadReady) {
+      URL.revokeObjectURL(excelDownloadReady.url);
+      setExcelDownloadReady(null);
     }
   };
 
@@ -793,7 +823,7 @@ export default function RemedialPlansScreen() {
                                   .then(() => router.push('/student-tracking'))
                                   .catch(error => {
                                     console.error('Error saving selected student:', error);
-                                    Alert.alert('خطأ', 'حدث خطأ أثناء فتح بطاقة المتعلم');
+                                    showAlert(formatRTLText('خطأ'), formatRTLText('حدث خطأ أثناء فتح بطاقة المتعلم'));
                                   });
                               }}
                             >
@@ -912,6 +942,34 @@ export default function RemedialPlansScreen() {
             </TouchableOpacity>
             <TouchableOpacity style={[styles.exportOptionButton, styles.exportOptionCancel]} onPress={() => { setExportModalVisible(false); setExportModalData(null); }}>
               <ThemedText style={styles.exportOptionCancelText}>إلغاء</ThemedText>
+            </TouchableOpacity>
+          </View>
+        </View>
+      </Modal>
+
+      <Modal visible={!!excelDownloadReady} transparent animationType="fade" onRequestClose={closeExcelDownload}>
+        <View style={styles.exportModalOverlay}>
+          <TouchableOpacity style={StyleSheet.absoluteFill} activeOpacity={1} onPress={closeExcelDownload} />
+          <View style={styles.exportModalBox}>
+            <ThemedText style={styles.exportModalTitle}>{formatRTLText('تحميل ملف Excel')}</ThemedText>
+            <ThemedText style={styles.exportModalMessage}>{formatRTLText('اضغط الزر أدناه لتحميل الملف.')}</ThemedText>
+            <TouchableOpacity
+              style={styles.exportOptionButton}
+              onPress={() => {
+                if (!excelDownloadReady) return;
+                if (Platform.OS === 'web' && typeof document !== 'undefined') {
+                  const a = document.createElement('a');
+                  a.href = excelDownloadReady.url;
+                  a.download = excelDownloadReady.name;
+                  a.click();
+                }
+                closeExcelDownload();
+              }}
+            >
+              <ThemedText style={styles.exportOptionText}>{formatRTLText('تحميل الملف')}</ThemedText>
+            </TouchableOpacity>
+            <TouchableOpacity style={[styles.exportOptionButton, styles.exportOptionCancel]} onPress={closeExcelDownload}>
+              <ThemedText style={styles.exportOptionCancelText}>{formatRTLText('إلغاء')}</ThemedText>
             </TouchableOpacity>
           </View>
         </View>

@@ -104,6 +104,7 @@ const MAPPING = {
   'xmark.circle': 'cancel',
   'chevron.up': 'keyboard-arrow-up',
   'chevron.down': 'keyboard-arrow-down',
+  'minus.circle.fill': 'remove-circle',
   'heart.text.square': 'favorite',
   'person.text.rectangle': 'person',
   

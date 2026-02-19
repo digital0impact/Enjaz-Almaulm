@@ -9,6 +9,7 @@ import {
   View,
   Alert,
   ActivityIndicator,
+  Modal,
 } from 'react-native';
 
 import { ThemedText } from '@/components/ThemedText';
@@ -101,13 +102,31 @@ export default function IDPScreen() {
   };
 
   const [isExporting, setIsExporting] = useState(false);
+  /** على الويب عرض تنبيه بالمتصفح لأن Alert.alert لا يظهر */
+  const [wordDownload, setWordDownload] = useState<{ url: string; name: string } | null>(null);
+
+  const showAlert = (
+    title: string,
+    message: string,
+    buttons?: Array<{ text: string; style?: 'default' | 'cancel'; onPress?: () => void }>
+  ) => {
+    if (Platform.OS === 'web' && typeof window !== 'undefined') {
+      window.alert([title, message].filter(Boolean).join('\n\n'));
+      const action = buttons?.find((b) => b.onPress);
+      if (action && action.text !== formatRTLText('حسناً')) {
+        if (window.confirm(formatRTLText('هل تريد عرض خطط الاشتراك؟'))) action.onPress?.();
+      }
+      return;
+    }
+    Alert.alert(title, message, buttons);
+  };
 
   /** التحقق من أن المستخدم مسجل الدخول وأن اشتراكه يسمح بالتصدير (سنوي أو نصف سنوي فقط) */
   const checkCanExport = async (): Promise<boolean> => {
     let user = await AuthService.getCurrentUser();
     if (!user) user = await AuthService.checkAuthStatus();
     if (!user) {
-      Alert.alert(
+      showAlert(
         formatRTLText('تسجيل الدخول مطلوب'),
         formatRTLText('يرجى تسجيل الدخول للسماح بتصدير الخطة.'),
         [{ text: formatRTLText('حسناً'), style: 'cancel' as const }]
@@ -116,7 +135,7 @@ export default function IDPScreen() {
     }
     const status = await SubscriptionService.checkSubscriptionStatus(user.id);
     if (!status?.features?.canExport) {
-      Alert.alert(
+      showAlert(
         formatRTLText('ترقية الاشتراك مطلوبة'),
         formatRTLText('الاشتراك المجاني يسمح فقط بالاستعراض بدون طباعة أو تصدير. تصدير الخطة (PDF و Word) متاح للاشتراك السنوي ونصف السنوي فقط.'),
         [
@@ -233,20 +252,31 @@ export default function IDPScreen() {
     try {
       const htmlContent = generateIDPHtml();
       if (Platform.OS === 'web') {
-        if (typeof window === 'undefined') {
-          Alert.alert(formatRTLText('تنبيه'), formatRTLText('تصدير PDF غير متاح في هذا السياق.'));
+        if (typeof window === 'undefined' || typeof document === 'undefined') {
+          showAlert(formatRTLText('تنبيه'), formatRTLText('تصدير PDF غير متاح في هذا السياق.'));
           return;
         }
+        const iframe = document.createElement('iframe');
+        iframe.setAttribute('style', 'position:fixed;right:0;bottom:0;width:0;height:0;border:none;visibility:hidden');
+        document.body.appendChild(iframe);
         const blob = new Blob([htmlContent], { type: 'text/html; charset=utf-8' });
         const url = URL.createObjectURL(blob);
-        const w = window.open(url, '_blank', 'noopener,noreferrer');
-        if (w) {
-          w.onload = () => setTimeout(() => { try { w.print(); } catch (_) {} }, 500);
-          Alert.alert(formatRTLText('تم فتح نافذة الخطة'), formatRTLText('اختر «حفظ كـ PDF» في نافذة الطباعة.'));
-        } else {
-          Alert.alert(formatRTLText('تنبيه'), formatRTLText('السماح بالنوافذ المنبثقة ثم حاول مرة أخرى.'));
-        }
-        URL.revokeObjectURL(url);
+        const doPrint = () => {
+          try {
+            if (iframe.contentWindow) iframe.contentWindow.print();
+          } catch (_) {}
+          setTimeout(() => {
+            if (document.body.contains(iframe)) document.body.removeChild(iframe);
+            URL.revokeObjectURL(url);
+          }, 1000);
+        };
+        iframe.src = url;
+        iframe.onload = () => setTimeout(doPrint, 400);
+        setTimeout(() => { if (document.body.contains(iframe)) doPrint(); }, 3000);
+        showAlert(
+          formatRTLText('تم فتح نافذة الطباعة'),
+          formatRTLText('اختر «حفظ كـ PDF» أو «Save as PDF» في نافذة الطباعة لحفظ الملف.')
+        );
         return;
       }
       const { uri } = await Print.printToFileAsync({
@@ -257,21 +287,21 @@ export default function IDPScreen() {
       });
       const canShare = await Sharing.isAvailableAsync();
       if (!canShare) {
-        Alert.alert(formatRTLText('تم إنشاء الملف'), uri);
+        showAlert(formatRTLText('تم إنشاء الملف'), uri);
         return;
       }
       if (Platform.OS === 'ios') {
         await Sharing.shareAsync(uri, { UTI: '.pdf', mimeType: 'application/pdf' });
       } else {
-        const name = `خطة_التطوير_الفردية_${new Date().toISOString().split('T')[0]}.pdf`;
-        const dest = `${FileSystem.documentDirectory}${name}`;
+        const pdfName = `خطة_التطوير_الفردية_${new Date().toISOString().split('T')[0]}.pdf`;
+        const dest = `${FileSystem.documentDirectory}${pdfName}`;
         await FileSystem.moveAsync({ from: uri, to: dest });
         await Sharing.shareAsync(dest, { mimeType: 'application/pdf', dialogTitle: formatRTLText('تصدير الخطة PDF') });
       }
-      Alert.alert(formatRTLText('تم بنجاح'), formatRTLText('تم تصدير الخطة كملف PDF.'));
+      showAlert(formatRTLText('تم بنجاح'), formatRTLText('تم تصدير الخطة كملف PDF.'));
     } catch (e) {
       const msg = e instanceof Error ? e.message : String(e);
-      Alert.alert(formatRTLText('فشل التصدير'), formatRTLText('تعذر تصدير PDF.') + (msg ? ` (${msg})` : ''));
+      showAlert(formatRTLText('فشل التصدير'), formatRTLText('تعذر تصدير PDF.') + (msg ? ` (${msg})` : ''));
     } finally {
       setIsExporting(false);
     }
@@ -285,37 +315,39 @@ export default function IDPScreen() {
       const htmlContent = generateIDPHtml();
       const fileName = `خطة_التطوير_الفردية_${new Date().toISOString().split('T')[0]}.doc`;
       if (Platform.OS === 'web') {
-        if (typeof window === 'undefined') {
-          Alert.alert(formatRTLText('تنبيه'), formatRTLText('تصدير Word غير متاح في هذا السياق.'));
+        if (typeof window === 'undefined' || typeof document === 'undefined') {
+          showAlert(formatRTLText('تنبيه'), formatRTLText('تصدير Word غير متاح في هذا السياق.'));
           return;
         }
         const blob = new Blob(['\ufeff' + htmlContent], { type: 'application/msword; charset=utf-8' });
         const url = URL.createObjectURL(blob);
-        const a = document.createElement('a');
-        a.href = url;
-        a.download = fileName;
-        a.click();
-        URL.revokeObjectURL(url);
-        Alert.alert(formatRTLText('تم بنجاح'), formatRTLText('تم تحميل ملف Word.'));
+        setWordDownload({ url, name: fileName });
         return;
       }
       const filePath = `${FileSystem.documentDirectory}${fileName}`;
       await FileSystem.writeAsStringAsync(filePath, '\ufeff' + htmlContent, { encoding: FileSystem.EncodingType.UTF8 });
       const canShare = await Sharing.isAvailableAsync();
       if (!canShare) {
-        Alert.alert(formatRTLText('تم إنشاء الملف'), filePath);
+        showAlert(formatRTLText('تم إنشاء الملف'), filePath);
         return;
       }
       await Sharing.shareAsync(filePath, {
         mimeType: 'application/msword',
         dialogTitle: formatRTLText('تصدير الخطة Word'),
       });
-      Alert.alert(formatRTLText('تم بنجاح'), formatRTLText('تم تصدير الخطة كملف Word.'));
+      showAlert(formatRTLText('تم بنجاح'), formatRTLText('تم تصدير الخطة كملف Word.'));
     } catch (e) {
       const msg = e instanceof Error ? e.message : String(e);
-      Alert.alert(formatRTLText('فشل التصدير'), formatRTLText('تعذر تصدير Word.') + (msg ? ` (${msg})` : ''));
+      showAlert(formatRTLText('فشل التصدير'), formatRTLText('تعذر تصدير Word.') + (msg ? ` (${msg})` : ''));
     } finally {
       setIsExporting(false);
+    }
+  };
+
+  const closeWordDownload = () => {
+    if (wordDownload) {
+      URL.revokeObjectURL(wordDownload.url);
+      setWordDownload(null);
     }
   };
 
@@ -618,6 +650,46 @@ export default function IDPScreen() {
           <ThemedView style={{ height: 100 }} />
         </ScrollView>
         <BottomNavigationBar />
+
+        {/* نافذة تحميل Word على الويب — الزر يفعّل التحميل بضغطة المستخدم المباشرة */}
+        <Modal
+          visible={!!wordDownload}
+          transparent
+          animationType="fade"
+          onRequestClose={closeWordDownload}
+        >
+          <View style={styles.wordDownloadOverlay}>
+            <TouchableOpacity style={StyleSheet.absoluteFill} activeOpacity={1} onPress={closeWordDownload} />
+            <View style={styles.wordDownloadBox}>
+              <ThemedText style={[styles.wordDownloadTitle, getTextDirection()]}>
+                {formatRTLText('تحميل ملف Word')}
+              </ThemedText>
+              <ThemedText style={[styles.wordDownloadHint, getTextDirection()]}>
+                {formatRTLText('اضغط الزر أدناه لتحميل الملف.')}
+              </ThemedText>
+              <TouchableOpacity
+                style={styles.wordDownloadButton}
+                onPress={() => {
+                  if (!wordDownload) return;
+                  if (Platform.OS === 'web' && typeof document !== 'undefined') {
+                    const a = document.createElement('a');
+                    a.href = wordDownload.url;
+                    a.download = wordDownload.name;
+                    a.click();
+                  }
+                  closeWordDownload();
+                }}
+              >
+                <ThemedText style={styles.wordDownloadButtonText}>
+                  {formatRTLText('تحميل الملف')}
+                </ThemedText>
+              </TouchableOpacity>
+              <TouchableOpacity style={styles.wordDownloadCancel} onPress={closeWordDownload}>
+                <ThemedText style={styles.wordDownloadCancelText}>{formatRTLText('إلغاء')}</ThemedText>
+              </TouchableOpacity>
+            </View>
+          </View>
+        </Modal>
       </ImageBackground>
     </ThemedView>
   );
@@ -824,5 +896,53 @@ const styles = StyleSheet.create({
   },
   exportButtonDisabled: {
     opacity: 0.7,
+  },
+  wordDownloadOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0,0,0,0.5)',
+    justifyContent: 'center',
+    alignItems: 'center',
+    padding: 24,
+  },
+  wordDownloadBox: {
+    backgroundColor: '#fff',
+    borderRadius: 12,
+    padding: 24,
+    minWidth: 280,
+    maxWidth: 360,
+  },
+  wordDownloadTitle: {
+    fontSize: 18,
+    fontWeight: '700',
+    color: '#1c1f33',
+    marginBottom: 8,
+    textAlign: 'center',
+  },
+  wordDownloadHint: {
+    fontSize: 14,
+    color: '#6b7280',
+    marginBottom: 20,
+    textAlign: 'center',
+  },
+  wordDownloadButton: {
+    backgroundColor: '#2563eb',
+    paddingVertical: 12,
+    paddingHorizontal: 20,
+    borderRadius: 10,
+    alignItems: 'center',
+    marginBottom: 12,
+  },
+  wordDownloadButtonText: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: '#fff',
+  },
+  wordDownloadCancel: {
+    alignItems: 'center',
+    paddingVertical: 8,
+  },
+  wordDownloadCancelText: {
+    fontSize: 15,
+    color: '#6b7280',
   },
 });
