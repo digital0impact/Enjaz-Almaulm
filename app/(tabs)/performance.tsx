@@ -1854,7 +1854,7 @@ export default function PerformanceScreen() {
   const calculateScoreBasedOnEvidence = (evidence: any[]) => {
     if (!evidence || evidence.length === 0) return 0;
     const availableEvidence = evidence.filter(e => e.available).length;
-    if (availableEvidence >= 3) return 100;
+    if (availableEvidence >= 5) return 100;
     return Math.round((availableEvidence / evidence.length) * 100);
   };
 

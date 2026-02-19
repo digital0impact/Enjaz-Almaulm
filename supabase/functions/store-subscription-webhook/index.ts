@@ -6,14 +6,29 @@ const SUBSCRIPTION_PRICES = { yearly: 49.99, half_yearly: 29.99 } as const;
 
 type PlanType = 'yearly' | 'half_yearly';
 
-/** Normalize phone for comparison (digits only, Saudi format 966xxxxxxxxx) */
+/** Normalize phone for comparison (digits only). Saudi canonical: 966 + 9 digits = 12 chars. */
 function normalizePhone(phone: string): string {
-  const digits = (phone || '').replace(/\D/g, '');
-  if (digits.length >= 12 && digits.startsWith('966')) return digits.slice(0, 12);
-  if (digits.length >= 9 && digits.startsWith('966')) return digits;
-  if (digits.length >= 10 && digits.startsWith('0')) return '966' + digits.slice(1);
+  let digits = (phone || '').replace(/\D/g, '');
+  // إزالة أصفار البداية (00966, 0966) حتى نصل لـ 966 أو 5
+  digits = digits.replace(/^0+/, '') || digits;
+  if (digits.startsWith('966')) {
+    const rest = digits.slice(3);
+    if (rest.length >= 9) return '966' + rest.slice(0, 9);
+    if (rest.length > 0) return '966' + rest;
+    return digits.slice(0, 12);
+  }
+  if (digits.length >= 10 && digits.startsWith('0')) return '966' + digits.slice(1).slice(0, 9);
   if (digits.length === 9 && digits.startsWith('5')) return '966' + digits;
+  if (digits.length > 9 && digits.startsWith('5')) return '966' + digits.slice(0, 9);
   return digits;
+}
+
+/** Saudi mobile: last 9 digits (5xxxxxxxx) - for fallback matching */
+function saudiLast9(phone: string): string {
+  const n = normalizePhone(phone);
+  if (n.startsWith('966') && n.length >= 12) return n.slice(3, 12);
+  if (n.length >= 9) return n.slice(-9);
+  return n;
 }
 
 /** Infer plan from Salla order items (edit product names/IDs for your store) */
@@ -104,21 +119,33 @@ Deno.serve(async (req: Request) => {
   }
   if (!userId && phone) {
     const normalized = normalizePhone(phone);
-    if (normalized.length >= 9) {
+    const last9 = saudiLast9(phone);
+    if (normalized.length >= 9 || last9.length >= 9) {
       const { data: profiles } = await supabase.from('user_profiles').select('id, phone_number').not('phone_number', 'is', null).neq('phone_number', '');
       const profilesList = (profiles || []) as Array<{ id: string; phone_number: string }>;
-      let found = profilesList.find((p) => normalizePhone(p.phone_number || '') === normalized);
+      let found = profilesList.find((p) => {
+        const pn = normalizePhone(p.phone_number || '');
+        const p9 = saudiLast9(p.phone_number || '');
+        return pn === normalized || (last9.length >= 9 && p9 === last9);
+      });
       if (found) userId = found.id;
       if (!userId) {
         const { data: usersRows } = await supabase.from('users').select('id, phone_number').not('phone_number', 'is', null).neq('phone_number', '');
         const usersList = (usersRows || []) as Array<{ id: string; phone_number: string }>;
-        found = usersList.find((u) => normalizePhone(u.phone_number || '') === normalized);
+        found = usersList.find((u) => {
+          const un = normalizePhone(u.phone_number || '');
+          const u9 = saudiLast9(u.phone_number || '');
+          return un === normalized || (last9.length >= 9 && u9 === last9);
+        });
         if (found) userId = found.id;
       }
     }
   }
   if (!userId) {
-    return new Response(JSON.stringify({ error: `No user found with this email or phone. Use the same email or mobile number in the app as in the store.` }), { status: 404, headers: { 'Content-Type': 'application/json' } });
+    return new Response(JSON.stringify({
+      error: 'No user found with this email or phone.',
+      hint_ar: 'تأكد من استخدام نفس رقم الجوال المسجّل في التطبيق (الإعدادات → البيانات الأساسية) عند الشراء من متجر سلة، أو سجّل الدخول ثم احفظ رقم الجوال في البيانات الأساسية وأعد المحاولة.',
+    }), { status: 404, headers: { 'Content-Type': 'application/json' } });
   }
 
   const startDate = new Date();

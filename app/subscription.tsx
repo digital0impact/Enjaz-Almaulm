@@ -1,6 +1,7 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useCallback } from 'react';
 import { View, StyleSheet, ScrollView, TouchableOpacity, Platform, StatusBar, Animated, ImageBackground, Linking } from 'react-native';
 import { useRouter } from 'expo-router';
+import { useFocusEffect } from '@react-navigation/native';
 import Constants from 'expo-constants';
 import { InAppPurchaseService, SubscriptionProduct } from '@/services/InAppPurchaseService';
 import { SubscriptionService } from '@/services/SubscriptionService';
@@ -87,8 +88,22 @@ const SubscriptionScreen = () => {
   const [products, setProducts] = useState<SubscriptionProduct[]>([]);
   const [error, setError] = useState<string | null>(null);
   const [currentSubscription, setCurrentSubscription] = useState<any>(null);
+  const [refreshing, setRefreshing] = useState(false);
   const [fadeAnim] = useState(new Animated.Value(0));
   const [slideAnim] = useState(new Animated.Value(50));
+
+  /** تحديث حالة الاشتراك (مفيد بعد الشراء من متجر سلة) */
+  const onRefreshSubscription = useCallback(async () => {
+    setRefreshing(true);
+    await loadCurrentSubscription();
+    setRefreshing(false);
+  }, []);
+
+  useFocusEffect(
+    useCallback(() => {
+      loadCurrentSubscription();
+    }, [])
+  );
 
   useEffect(() => {
     loadProducts();
@@ -353,10 +368,21 @@ const SubscriptionScreen = () => {
           {/* Current Subscription */}
           {currentSubscription && (
             <Animated.View style={[styles.currentSubscriptionSection, { opacity: fadeAnim, transform: [{ translateY: slideAnim }] }]}>
-              <ThemedText style={[styles.sectionTitle, getTextDirection()]}>
-                {formatRTLText('الاشتراك الحالي')}
-              </ThemedText>
-              
+              <View style={[styles.currentSubscriptionSectionHeader, getFlexDirection()]}>
+                <ThemedText style={[styles.sectionTitle, getTextDirection()]}>
+                  {formatRTLText('الاشتراك الحالي')}
+                </ThemedText>
+                <TouchableOpacity
+                  onPress={onRefreshSubscription}
+                  disabled={refreshing}
+                  style={styles.refreshSubscriptionButton}
+                >
+                  <IconSymbol size={18} name="arrow.clockwise" color={refreshing ? '#999' : '#1c1f33'} />
+                  <ThemedText style={[styles.refreshSubscriptionText, getTextDirection()]}>
+                    {formatRTLText(refreshing ? 'جاري التحديث...' : 'تحديث')}
+                  </ThemedText>
+                </TouchableOpacity>
+              </View>
               <ThemedView style={styles.currentSubscriptionCard}>
                 <ThemedView style={styles.currentSubscriptionHeader}>
                   <ThemedView style={styles.currentSubscriptionIcon}>
@@ -750,6 +776,25 @@ const styles = StyleSheet.create({
   currentSubscriptionSection: {
     marginBottom: 20,
     backgroundColor: 'transparent',
+  },
+  currentSubscriptionSectionHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    marginBottom: 8,
+    paddingHorizontal: 4,
+  },
+  refreshSubscriptionButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    paddingVertical: 6,
+    paddingHorizontal: 12,
+  },
+  refreshSubscriptionText: {
+    fontSize: 14,
+    color: '#1c1f33',
+    fontWeight: '500',
   },
   currentSubscriptionCard: {
     backgroundColor: '#FFFFFF',

@@ -19,7 +19,7 @@ if (!hasEnv && isWeb) {
   supabaseAnonKey = 'placeholder-key';
   if (typeof console !== 'undefined') {
     console.warn(
-      '[Supabase] EXPO_PUBLIC_SUPABASE_URL و EXPO_PUBLIC_SUPABASE_ANON_KEY غير معرّفة. أضفها في Vercel → Settings → Environment Variables ثم أعد النشر.'
+      '[Supabase] EXPO_PUBLIC_SUPABASE_URL و EXPO_PUBLIC_SUPABASE_ANON_KEY غير معرّفة. للتشغيل المحلي: أنشئ ملف .env من .env.example وضَع القيم ثم أعد تشغيل التطبيق.'
     );
   }
 }
@@ -27,11 +27,15 @@ if (!hasEnv && isWeb) {
 /** true إذا تم تعيين متغيرات Supabase الحقيقية (غير الوضع المؤقت على الويب) */
 export const isSupabaseConfigured = hasEnv;
 
+// على الويب نترك التخزين الافتراضي (localStorage) حتى تثبت الجلسة وتعمل بشكل صحيح
+// استخدام AsyncStorage على الويب قد يسبب فشل تسجيل الدخول أو فقدان الجلسة
+const authStorage = isWeb ? undefined : AsyncStorage;
+
 export const supabase: SupabaseClient = createClient(supabaseUrl, supabaseAnonKey, {
   auth: {
-    storage: AsyncStorage,
+    ...(authStorage ? { storage: authStorage } : {}),
     autoRefreshToken: true,
     persistSession: true,
-    detectSessionInUrl: false,
+    detectSessionInUrl: isWeb,
   },
 });

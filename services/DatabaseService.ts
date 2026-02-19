@@ -103,7 +103,7 @@ class DatabaseService {
         throw error;
       }
       const now = new Date().toISOString();
-      await supabase
+      const { error: usersError } = await supabase
         .from('users')
         .upsert(
           {
@@ -115,10 +115,37 @@ class DatabaseService {
           },
           { onConflict: 'id' }
         );
+      if (usersError) {
+        logError('Error syncing to users table', 'DatabaseService', usersError);
+        throw usersError;
+      }
       return data;
     } catch (error) {
       logError('Error adding user', 'DatabaseService', error);
       throw error;
+    }
+  }
+
+  /** مزامنة صف المستخدم في جدول users (يُستدعى عند تسجيل الدخول لضمان حفظ البريد ورقم الهاتف) */
+  async ensureUsersRow(
+    userId: string,
+    data: { name: string; email: string; phoneNumber?: string }
+  ): Promise<void> {
+    try {
+      const now = new Date().toISOString();
+      const row = {
+        id: userId,
+        name: data.name || '',
+        email: data.email || '',
+        phone_number: data.phoneNumber ?? '',
+        updatedAt: now,
+      };
+      const { error } = await supabase
+        .from('users')
+        .upsert(row, { onConflict: 'id' });
+      if (error) logError('Error ensuring users row', 'DatabaseService', error);
+    } catch (e) {
+      logError('ensureUsersRow', 'DatabaseService', e);
     }
   }
 

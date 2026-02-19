@@ -6,7 +6,8 @@ import { ThemedView } from '@/components/ThemedView';
 import { IconSymbol } from '@/components/ui/IconSymbol';
 import { useRouter } from 'expo-router';
 import AuthService from '@/services/AuthService';
-import { isSupabaseConfigured } from '@/config/supabase';
+import DatabaseService from '@/services/DatabaseService';
+import { supabase, isSupabaseConfigured } from '@/config/supabase';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { rtlStyles } from '@/styles/rtl-styles';
 import { 
@@ -93,6 +94,21 @@ export default function LoginScreen() {
 
       const user = await AuthService.signInWithEmail(email, password);
 
+      // مزامنة جدول users (بما فيها رقم الهاتف) من الملف الشخصي أو من بيانات التسجيل
+      try {
+        const { data: { user: authUser } } = await supabase.auth.getUser();
+        const metaPhone = (authUser?.user_metadata as Record<string, unknown> | undefined)?.phone_number as string | undefined;
+        const profile = await DatabaseService.getUserProfile(user.id);
+        const phone = profile?.phoneNumber?.trim() || metaPhone?.trim() || '';
+        await DatabaseService.ensureUsersRow(user.id, {
+          name: user.name || (user.email?.split('@')[0] ?? 'المعلم'),
+          email: user.email,
+          phoneNumber: phone || undefined,
+        });
+      } catch (e) {
+        console.warn('Could not sync user to users table:', e);
+      }
+
       // تحديث البيانات الأساسية بشكل لطيف (بدون كسر بيانات موجودة مثل المهنة)
       const existingBasicData = await AsyncStorage.getItem('basicData');
       let basicData: any = {
@@ -121,13 +137,18 @@ export default function LoginScreen() {
     } catch (error) {
       console.error('Login error:', error);
       const message = error instanceof Error ? error.message : '';
+      const isWeb = Platform.OS === 'web' && typeof window !== 'undefined';
+      const showError = (title: string, body: string) => {
+        if (isWeb) window.alert([title, body].join('\n\n'));
+        else Alert.alert(title, body);
+      };
       if (!isSupabaseConfigured) {
-        Alert.alert(
+        showError(
           'تسجيل الدخول غير متاح',
-          'لم يتم إعداد الاتصال بقاعدة البيانات. إذا كنت تفتح التطبيق من الويب، أضف EXPO_PUBLIC_SUPABASE_URL و EXPO_PUBLIC_SUPABASE_ANON_KEY في Vercel → Settings → Environment Variables ثم أعد النشر.'
+          'لم يتم إعداد الاتصال بقاعدة البيانات.\n\n• للتشغيل المحلي (localhost): أنشئ ملف .env في جذر المشروع وضَع فيه EXPO_PUBLIC_SUPABASE_URL و EXPO_PUBLIC_SUPABASE_ANON_KEY (انسخ القيم من .env.example ثم استبدلها بقيم مشروعك من لوحة Supabase)، ثم أعد تشغيل التطبيق (expo start --web).\n\n• للنشر على الويب: أضف نفس المتغيرات في Vercel → Settings → Environment Variables ثم أعد النشر.'
         );
       } else {
-        Alert.alert(
+        showError(
           'خطأ في تسجيل الدخول',
           message || 'تأكد من صحة البريد الإلكتروني وكلمة المرور'
         );
@@ -141,9 +162,17 @@ export default function LoginScreen() {
 
 
 
+  const showAlert = (title: string, message: string) => {
+    if (Platform.OS === 'web' && typeof window !== 'undefined') {
+      window.alert([title, message].join('\n\n'));
+    } else {
+      Alert.alert(title, message);
+    }
+  };
+
   const handleForgotPassword = async () => {
     if (!email) {
-      Alert.alert('تنبيه', 'يرجى إدخال البريد الإلكتروني أولاً');
+      showAlert('تنبيه', 'يرجى إدخال البريد الإلكتروني أولاً');
       return;
     }
 
@@ -153,12 +182,12 @@ export default function LoginScreen() {
 
     try {
       await AuthService.resetPassword(email);
-      Alert.alert(
+      showAlert(
         'تم إرسال رابط إعادة التعيين',
         'يرجى التحقق من بريدك الإلكتروني لإعادة تعيين كلمة المرور'
       );
     } catch (error) {
-      Alert.alert(
+      showAlert(
         'خطأ',
         'حدث خطأ أثناء إرسال رابط إعادة التعيين. يرجى المحاولة مرة أخرى'
       );

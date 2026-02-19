@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { StyleSheet, ScrollView, TouchableOpacity, Alert, ImageBackground, KeyboardAvoidingView, Platform, StatusBar, Dimensions, View, ActivityIndicator } from 'react-native';
+import { StyleSheet, ScrollView, TouchableOpacity, Alert, ImageBackground, KeyboardAvoidingView, Platform, StatusBar, Dimensions, View, ActivityIndicator, Linking } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { BarChart } from 'react-native-chart-kit';
 import { useFocusEffect } from '@react-navigation/native';
@@ -1844,13 +1844,28 @@ export default function InteractiveReportScreen() {
     setTimeout(() => URL.revokeObjectURL(url), 20000);
   };
 
+  // على الويب Alert.alert غير مدعوم — نستخدم window.alert/confirm حتى تظهر التنبيهات ونافذة الطباعة
+  const showAlert = (
+    title: string,
+    message: string,
+    buttons?: Array<{ text: string; onPress?: () => void; style?: string }>
+  ) => {
+    if (Platform.OS === 'web' && typeof window !== 'undefined') {
+      window.alert([title, message].filter(Boolean).join('\n\n'));
+      const action = buttons?.find((b) => b.onPress);
+      if (action && window.confirm(action.text + '؟')) action.onPress?.();
+      return;
+    }
+    Alert.alert(title, message, buttons);
+  };
+
   const openReportForPrint = async () => {
     const isWeb = Platform.OS === 'web' && typeof window !== 'undefined';
     try {
       const htmlContent = await generateReportHTML();
       if (isWeb) {
         webDownloadReport(htmlContent);
-        Alert.alert(
+        showAlert(
           formatRTLText('تم تحميل التقرير'),
           formatRTLText('تم تحميل ملف التقرير. افتح الملف من مجلد التحميلات واختر من المتصفح «طباعة» ثم «حفظ كـ PDF» أو «Print to PDF».')
         );
@@ -1859,7 +1874,7 @@ export default function InteractiveReportScreen() {
       }
     } catch (e) {
       console.error('Open report for print:', e);
-      Alert.alert(formatRTLText('خطأ'), formatRTLText('تعذر فتح التقرير.'));
+      showAlert(formatRTLText('خطأ'), formatRTLText('تعذر فتح التقرير.'));
     }
   };
 
@@ -1871,7 +1886,7 @@ export default function InteractiveReportScreen() {
       let user = await AuthService.getCurrentUser();
       if (!user) user = await AuthService.checkAuthStatus();
       if (!user) {
-        Alert.alert(
+        showAlert(
           formatRTLText('تسجيل الدخول مطلوب'),
           formatRTLText('يرجى تسجيل الدخول مرة أخرى للسماح بتصدير التقرير.'),
           [{ text: formatRTLText('حسناً'), style: 'cancel' as const }]
@@ -1880,13 +1895,12 @@ export default function InteractiveReportScreen() {
       }
       const status = await SubscriptionService.checkSubscriptionStatus(user.id);
       if (!status?.features?.canExport) {
-        Alert.alert(
-          formatRTLText('ترقية الاشتراك مطلوبة'),
-          formatRTLText('تصدير التقرير (PDF) متاح للاشتراك المدفوع. يمكنك تحميل التقرير كملف وفتحه ثم طباعته أو حفظه كـ PDF.'),
+        showAlert(
+          formatRTLText('تنبيه'),
+          formatRTLText('لا يمكنك طباعة أو تصدير التقرير إلا بعد الانضمام لإحدى الخطط المدفوعة (الاشتراك السنوي أو النصف سنوي). يرجى ترقية اشتراكك للاستفادة من التصدير والطباعة.'),
           [
             { text: formatRTLText('حسناً'), style: 'cancel' as const },
             { text: formatRTLText('عرض الخطط'), onPress: () => router.push('/subscription') },
-            { text: formatRTLText('تحميل التقرير'), onPress: () => openReportForPrint() }
           ]
         );
         return;
@@ -1894,7 +1908,7 @@ export default function InteractiveReportScreen() {
       if (isWeb) {
         const htmlContent = await generateReportHTML();
         webDownloadReport(htmlContent);
-        Alert.alert(
+        showAlert(
           formatRTLText('تم تحميل التقرير'),
           formatRTLText('تم تحميل ملف التقرير. افتح الملف من مجلد التحميلات واختر «طباعة» ثم «حفظ كـ PDF» إن رغبت.')
         );
@@ -1903,12 +1917,12 @@ export default function InteractiveReportScreen() {
       }
     } catch (err) {
       console.error('Export report error:', err);
-      Alert.alert(
+      showAlert(
         formatRTLText('خطأ'),
         formatRTLText('حدث خطأ أثناء التصدير. يرجى المحاولة مرة أخرى أو التحقق من الاتصال.'),
         [
           { text: formatRTLText('حسناً'), style: 'cancel' as const },
-          { text: formatRTLText('تحميل التقرير'), onPress: () => openReportForPrint() }
+          { text: formatRTLText('تحميل التقرير'), onPress: () => openReportForPrint() },
         ]
       );
     } finally {
@@ -1922,8 +1936,7 @@ export default function InteractiveReportScreen() {
       htmlContent = await generateReportHTML();
     } catch (genError) {
       console.error('Error generating report HTML:', genError);
-      const msg = genError instanceof Error ? genError.message : String(genError);
-      Alert.alert(
+      showAlert(
         formatRTLText('خطأ في إنشاء التقرير'),
         formatRTLText('تعذر إنشاء محتوى التقرير. يرجى المحاولة مرة أخرى أو التأكد من وجود بيانات الأداء.')
       );
@@ -1932,27 +1945,43 @@ export default function InteractiveReportScreen() {
 
     try {
       if (Platform.OS === 'web') {
-        if (typeof window === 'undefined') {
-          Alert.alert('تنبيه', 'تصدير PDF غير متاح في هذا السياق.');
+        if (typeof window === 'undefined' || typeof document === 'undefined') {
+          showAlert('تنبيه', 'تصدير PDF غير متاح في هذا السياق.');
           return;
         }
+        // استخدام iframe في نفس الصفحة بدلاً من نافذة منبثقة لتجنب حظر المتصفح — نافذة الطباعة تفتح مباشرة
+        const iframe = document.createElement('iframe');
+        iframe.style.position = 'fixed';
+        iframe.style.right = '0';
+        iframe.style.bottom = '0';
+        iframe.style.width = '0';
+        iframe.style.height = '0';
+        iframe.style.border = 'none';
+        iframe.style.visibility = 'hidden';
+        document.body.appendChild(iframe);
         const blob = new Blob([htmlContent], { type: 'text/html; charset=utf-8' });
         const url = URL.createObjectURL(blob);
-        const printWindow = window.open(url, '_blank', 'noopener,noreferrer');
-        if (!printWindow) {
-          Alert.alert(
-            formatRTLText('تنبيه'),
-            formatRTLText('السماح بالنوافذ المنبثقة لمتصفحك ثم اضغط «تصدير التقرير» مرة أخرى. أو استخدم «معاينة وطباعة» واختر حفظ كـ PDF.')
-          );
-          URL.revokeObjectURL(url);
-          return;
-        }
-        const doPrint = () => { try { printWindow.print(); } catch (e) { console.error('Print error:', e); } };
-        printWindow.onload = () => setTimeout(doPrint, 500);
-        setTimeout(doPrint, 2000);
-        setTimeout(() => URL.revokeObjectURL(url), 6000);
-        Alert.alert(
-          formatRTLText('تم فتح نافذة التقرير'),
+        const doPrint = () => {
+          try {
+            if (iframe.contentWindow) iframe.contentWindow.print();
+          } catch (e) {
+            console.error('Print error:', e);
+          }
+          setTimeout(() => {
+            if (document.body.contains(iframe)) document.body.removeChild(iframe);
+            URL.revokeObjectURL(url);
+          }, 1000);
+        };
+        iframe.src = url;
+        iframe.onload = () => setTimeout(doPrint, 400);
+        // احتياطاً إذا تأخر التحميل
+        setTimeout(() => {
+          if (document.body.contains(iframe)) {
+            doPrint();
+          }
+        }, 3000);
+        showAlert(
+          formatRTLText('تم فتح نافذة الطباعة'),
           formatRTLText('اختر «حفظ كـ PDF» أو «Save as PDF» في نافذة الطباعة لحفظ الملف.')
         );
         return;
@@ -1965,9 +1994,17 @@ export default function InteractiveReportScreen() {
         height: 842,
       });
 
+      // محاولة فتح الملف في عارض PDF الافتراضي (إن وُجد)
+      try {
+        const fileUri = uri.startsWith('file://') ? uri : `file://${uri}`;
+        await Linking.openURL(fileUri);
+      } catch (_) {
+        // تجاهل الفشل — نعرض مشاركة الملف أدناه
+      }
+
       const canShare = await Sharing.isAvailableAsync();
       if (!canShare) {
-        Alert.alert(
+        showAlert(
           formatRTLText('تم إنشاء الملف'),
           formatRTLText('تم إنشاء ملف PDF. المسار: ') + uri
         );
@@ -1992,11 +2029,11 @@ export default function InteractiveReportScreen() {
         });
       }
 
-      Alert.alert(formatRTLText('تم بنجاح'), formatRTLText('تم تصدير التقرير كملف PDF'));
+      showAlert(formatRTLText('تم بنجاح'), formatRTLText('تم تصدير التقرير كملف PDF'));
     } catch (error) {
       console.error('Error exporting PDF:', error);
       const msg = error instanceof Error ? error.message : String(error);
-      Alert.alert(
+      showAlert(
         formatRTLText('فشل التصدير'),
         formatRTLText('فشل في تصدير التقرير كملف PDF. يرجى المحاولة مرة أخرى.') + (msg ? ` (${msg})` : '')
       );
