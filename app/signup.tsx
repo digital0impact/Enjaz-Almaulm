@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { StyleSheet, TouchableOpacity, I18nManager, ImageBackground, KeyboardAvoidingView, ScrollView, Platform, StatusBar, TextInput, Alert, Linking } from 'react-native';
+import { StyleSheet, TouchableOpacity, ImageBackground, KeyboardAvoidingView, ScrollView, Platform, StatusBar, TextInput, Linking } from 'react-native';
 
 import { ThemedText } from '@/components/ThemedText';
 import { ThemedView } from '@/components/ThemedView';
@@ -9,9 +9,11 @@ import AuthService from '@/services/AuthService';
 import { DatabaseService } from '@/services/DatabaseService';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { getTextDirection, formatRTLText } from '@/utils/rtl-utils';
+import { useAppAlert } from '@/contexts/AppAlertContext';
 
 export default function SignupScreen() {
   const router = useRouter();
+  const appAlert = useAppAlert();
   const [fullName, setFullName] = useState('');
   const [email, setEmail] = useState('');
   const [phone, setPhone] = useState('');
@@ -25,23 +27,23 @@ export default function SignupScreen() {
 
   const validateForm = () => {
     if (!fullName.trim()) {
-      Alert.alert('خطأ', 'يرجى إدخال الاسم الكامل');
+      appAlert.alert('خطأ', 'يرجى إدخال الاسم الكامل');
       return false;
     }
     if (!email.trim()) {
-      Alert.alert('خطأ', 'يرجى إدخال البريد الإلكتروني');
+      appAlert.alert('خطأ', 'يرجى إدخال البريد الإلكتروني');
       return false;
     }
     if (!email.includes('@')) {
-      Alert.alert('خطأ', 'يرجى إدخال بريد إلكتروني صحيح');
+      appAlert.alert('خطأ', 'يرجى إدخال بريد إلكتروني صحيح');
       return false;
     }
     if (password.length < 6) {
-      Alert.alert('خطأ', 'كلمة المرور يجب أن تكون 6 أحرف على الأقل');
+      appAlert.alert('خطأ', 'كلمة المرور يجب أن تكون 6 أحرف على الأقل');
       return false;
     }
     if (password !== confirmPassword) {
-      Alert.alert('خطأ', 'كلمة المرور غير متطابقة');
+      appAlert.alert('خطأ', 'كلمة المرور غير متطابقة');
       return false;
     }
     if (!acceptTerms) {
@@ -71,19 +73,14 @@ export default function SignupScreen() {
         console.warn('Could not sync profile (phone):', e);
       }
 
-      Alert.alert(
+      appAlert.alert(
         formatRTLText('تم إنشاء الحساب بنجاح'),
         formatRTLText('يجب توثيق حسابك عبر البريد الإلكتروني. تم إرسال رابط التوثيق إلى بريدك، يرجى فتح الرسالة والنقر على الرابط لتفعيل الحساب. إن لم تجد الرسالة فتحقق من مجلد البريد العشوائي.'),
-        [
-          {
-            text: formatRTLText('حسناً'),
-            onPress: () => router.replace('/')
-          }
-        ]
+        [{ text: formatRTLText('حسناً'), onPress: () => router.replace('/') }]
       );
     } catch (error) {
       console.error('Signup error:', error);
-      Alert.alert('خطأ في إنشاء الحساب', error instanceof Error ? error.message : 'حدث خطأ غير متوقع');
+      appAlert.alert('خطأ في إنشاء الحساب', error instanceof Error ? error.message : 'حدث خطأ غير متوقع');
     } finally {
       setIsLoading(false);
     }

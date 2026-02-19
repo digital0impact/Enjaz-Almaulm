@@ -3,6 +3,7 @@ import { Stack } from 'expo-router';
 import { initializeRTL } from '../utils/rtl-utils';
 import { View } from 'react-native';
 import { ThemeProvider } from '../contexts/ThemeContext';
+import { AppAlertProvider } from '../contexts/AppAlertContext';
 import { UserProvider } from '../contexts/UserContext';
 import { AppLayoutWrapper } from '@/components/AppLayoutWrapper';
 
@@ -19,17 +20,19 @@ export default function Layout() {
 
   return (
     <ThemeProvider>
-      <UserProvider>
-        <View style={{ flex: 1 }}>
-          <AppLayoutWrapper>
+      <AppAlertProvider>
+        <UserProvider>
+          <View style={{ flex: 1 }}>
+            <AppLayoutWrapper>
             <Stack
               screenOptions={{
                 headerShown: false,
               }}
             />
           </AppLayoutWrapper>
-        </View>
-      </UserProvider>
+          </View>
+        </UserProvider>
+      </AppAlertProvider>
     </ThemeProvider>
   );
 }
