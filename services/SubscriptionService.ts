@@ -66,14 +66,14 @@ export class SubscriptionService {
       .eq('status', 'active')
       .order('created_at', { ascending: false })
       .limit(1)
-      .single();
+      .maybeSingle();
 
     if (error) {
       logError('Error fetching subscription', 'SubscriptionService', error);
       return null;
     }
 
-    return data || {
+    return data ?? {
       id: 'free',
       user_id: userId,
       plan_type: 'free',

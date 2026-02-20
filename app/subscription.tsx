@@ -80,6 +80,24 @@ function hasWebStoreUrl(): boolean {
   return false;
 }
 
+/** على الويب: الحصول على رابط التطبيق الأساسي لاستخدامه كرابط عودة بعد الدفع */
+function getAppReturnBaseUrl(): string {
+  if (typeof window !== 'undefined' && window.location?.origin) return window.location.origin;
+  const env = typeof process !== 'undefined' ? process.env : undefined;
+  const url = (env?.EXPO_PUBLIC_APP_URL ?? '').trim();
+  return url ? url.replace(/\/$/, '') : '';
+}
+
+/** إضافة رابط العودة للتطبيق بعد الدفع إلى رابط المتجر (يدعمه بعض المتاجر مثل سلة عند ضبطه في الإعدادات) */
+function appendReturnUrl(storeUrl: string): string {
+  const base = getAppReturnBaseUrl();
+  if (!base) return storeUrl;
+  const returnPath = '/subscription?purchase=success';
+  const returnUrl = encodeURIComponent(base + returnPath);
+  const sep = storeUrl.includes('?') ? '&' : '?';
+  return `${storeUrl}${sep}return_url=${returnUrl}`;
+}
+
 const SubscriptionScreen = () => {
   const router = useRouter();
   const isWeb = Platform.OS === 'web';
@@ -89,6 +107,7 @@ const SubscriptionScreen = () => {
   const [error, setError] = useState<string | null>(null);
   const [currentSubscription, setCurrentSubscription] = useState<any>(null);
   const [refreshing, setRefreshing] = useState(false);
+  const [checkingAfterPurchase, setCheckingAfterPurchase] = useState(false);
   const [fadeAnim] = useState(new Animated.Value(0));
   const [slideAnim] = useState(new Animated.Value(50));
 
@@ -104,6 +123,55 @@ const SubscriptionScreen = () => {
       loadCurrentSubscription();
     }, [])
   );
+
+  // على الويب: عند فتح الصفحة برابط العودة بعد الدفع (?purchase=success) نحدّث الاشتراك مع إعادة محاولة (ويب هوك المتجر قد يتأخر)
+  useEffect(() => {
+    if (!isWeb || typeof window === 'undefined' || typeof window.location?.search !== 'string') return;
+    const params = new URLSearchParams(window.location.search);
+    if (params.get('purchase') !== 'success') return;
+
+    const cleanUrl = window.location.pathname || '/subscription';
+    window.history.replaceState({}, '', cleanUrl);
+    setCheckingAfterPurchase(true);
+
+    const delays = [0, 2000, 5000, 10000];
+    const timeouts: ReturnType<typeof setTimeout>[] = [];
+    delays.forEach((delay) => {
+      const t = setTimeout(() => {
+        loadCurrentSubscription();
+      }, delay);
+      timeouts.push(t);
+    });
+    const clearChecking = setTimeout(() => setCheckingAfterPurchase(false), 12000);
+    return () => {
+      timeouts.forEach((t) => clearTimeout(t));
+      clearTimeout(clearChecking);
+    };
+  }, [isWeb]);
+
+  // إيقاف مؤشر "جاري التحقق" عند ظهور اشتراك مدفوع
+  useEffect(() => {
+    if (checkingAfterPurchase && currentSubscription?.plan_type && currentSubscription.plan_type !== 'free') {
+      setCheckingAfterPurchase(false);
+    }
+  }, [checkingAfterPurchase, currentSubscription?.plan_type]);
+
+  // على الويب: عند عودة المستخدم لتبويب التطبيق بعد الشراء، نحدّث حالة الاشتراك (مع محاولة متأخرة لالتقاط ويب هوك المتجر)
+  useEffect(() => {
+    if (!isWeb || typeof document === 'undefined') return;
+    let delayedRefetch: ReturnType<typeof setTimeout> | null = null;
+    const onVisibilityChange = () => {
+      if (document.visibilityState === 'visible') {
+        loadCurrentSubscription();
+        delayedRefetch = setTimeout(() => loadCurrentSubscription(), 3000);
+      }
+    };
+    document.addEventListener('visibilitychange', onVisibilityChange);
+    return () => {
+      document.removeEventListener('visibilitychange', onVisibilityChange);
+      if (delayedRefetch) clearTimeout(delayedRefetch);
+    };
+  }, [isWeb]);
 
   useEffect(() => {
     loadProducts();
@@ -193,10 +261,17 @@ const SubscriptionScreen = () => {
         return;
       }
       if (planType) {
-        const productUrl = getWebStoreProductUrl(planType);
+        let productUrl = getWebStoreProductUrl(planType);
         if (productUrl) {
           try {
-            await Linking.openURL(productUrl);
+            if (typeof window !== 'undefined') {
+              // إضافة رابط العودة للتطبيق (يدعمه بعض المتاجر للعودة تلقائياً بعد الدفع)
+              productUrl = appendReturnUrl(productUrl);
+              // فتح المتجر في نفس التبويب حتى إذا وجّه المتجر للمستخدم إلى return_url يعود مباشرة للتطبيق
+              window.location.href = productUrl;
+            } else {
+              await Linking.openURL(productUrl);
+            }
           } catch (e) {
             console.error('Error opening product page:', e);
             setError('تعذر فتح صفحة المنتج');
@@ -431,6 +506,16 @@ const SubscriptionScreen = () => {
             </Animated.View>
         )}
 
+          {/* بعد الدفع: جاري التحقق من الاشتراك */}
+          {checkingAfterPurchase && !loading && (
+            <Animated.View style={[styles.webStoreNote, { opacity: fadeAnim, marginVertical: 8 }]}>
+              <IconSymbol size={20} name="arrow.clockwise" color="#2196F3" />
+              <ThemedText style={[styles.webStoreNoteText, getTextDirection()]}>
+                {formatRTLText('جاري التحقق من اشتراكك… إن لم يظهر خلال ثوانٍ، اضغط "تحديث" أو حدّث الصفحة.')}
+              </ThemedText>
+            </Animated.View>
+          )}
+
           {/* Loading State */}
         {loading ? (
             <Animated.View style={[styles.loadingContainer, { opacity: fadeAnim }]}>
@@ -443,7 +528,7 @@ const SubscriptionScreen = () => {
                 <Animated.View style={[styles.webStoreNote, { opacity: fadeAnim }]}>
                   <IconSymbol size={20} name="link" color="#2196F3" />
                   <ThemedText style={[styles.webStoreNoteText, getTextDirection()]}>
-                    {formatRTLText('الاشتراك من المتصفح يتم عبر صفحة المنتج في متجرنا على الويب.')}
+                    {formatRTLText('الاشتراك من المتصفح يتم عبر صفحة المنتج في متجرنا. بعد الدفع إن كان المتجر يدعم رابط العودة سيُعاد توجيهك تلقائياً للتطبيق؛ وإلا ارجع لهذا الرابط أو حدّث الصفحة لتحديث اشتراكك.')}
                   </ThemedText>
                 </Animated.View>
               ) : null}
