@@ -11,6 +11,7 @@ import { useFocusEffect } from '@react-navigation/native';
 
 import { getTextDirection, formatRTLText } from '@/utils/rtl-utils';
 import AuthService from '@/services/AuthService';
+import { PermissionService } from '@/services/PermissionService';
 
 const isWeb = Platform.OS === 'web';
 const WELCOME_MAX_CONTENT_WIDTH = 420;
@@ -147,6 +148,10 @@ export default function HomeScreen() {
           setUserInfo(user as any);
           setIsLoggedIn(true);
           setCurrentScreen('dashboard');
+        }
+        const userId = (user as { id?: string })?.id;
+        if (userId) {
+          PermissionService.getInstance().initialize(userId).catch(() => {});
         }
       } else {
         // لا توجد جلسة ولا مستخدم محلي -> نبقي على شاشة الترحيب

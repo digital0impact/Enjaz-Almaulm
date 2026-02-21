@@ -17,6 +17,12 @@ export class PermissionService {
 
   public async initialize(userId: string): Promise<void> {
     this.userId = userId;
+    await this.refreshSubscription(userId);
+  }
+
+  /** حدّث حالة الاشتراك من السيرفر (يُستدعى بعد تحميل صفحة الاشتراكات أو بعد ويب هوك الدفع) */
+  public async refreshSubscription(userId: string): Promise<void> {
+    this.userId = userId;
     const subscription = await SubscriptionService.getCurrentSubscription(userId);
     this.subscriptionType = subscription?.plan_type || 'free';
   }

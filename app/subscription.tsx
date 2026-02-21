@@ -109,6 +109,7 @@ const SubscriptionScreen = () => {
   const [currentSubscription, setCurrentSubscription] = useState<any>(null);
   const [refreshing, setRefreshing] = useState(false);
   const [syncingAfterPurchase, setSyncingAfterPurchase] = useState(false);
+  const [subscriptionLoadError, setSubscriptionLoadError] = useState<string | null>(null);
   const [fadeAnim] = useState(new Animated.Value(0));
   const [slideAnim] = useState(new Animated.Value(50));
   const lastSubscriptionRef = useRef<any>(null);
@@ -116,20 +117,27 @@ const SubscriptionScreen = () => {
   /** تحميل اشتراك المستخدم الحالي من Supabase (مستقر للاستدعاء من Realtime والتركيز) */
   const loadCurrentSubscription = useCallback(async () => {
     try {
+      setSubscriptionLoadError(null);
       const user = await AuthService.getCurrentUser();
       if (!user) return;
 
-      const subscription = await SubscriptionService.getCurrentSubscription(user.id);
+      const { subscription, error: loadError } = await SubscriptionService.getCurrentSubscriptionWithError(user.id);
       const resolved = subscription && typeof subscription === 'object' ? subscription : { plan_type: 'free', status: 'active', end_date: null };
       lastSubscriptionRef.current = resolved;
 
+      if (loadError) setSubscriptionLoadError(loadError);
       if (subscription && typeof subscription === 'object') {
         setCurrentSubscription(subscription);
       } else {
         setCurrentSubscription(resolved);
       }
+      // تحديث صلاحيات التطبيق (تصدير، نسخ احتياطي، إلخ) لتعكس الاشتراك الحالي
+      const perm = (await import('@/services/PermissionService')).PermissionService.getInstance();
+      perm.refreshSubscription(user.id);
     } catch (err) {
       console.error('Error loading current subscription:', err);
+      const msg = err instanceof Error ? err.message : 'تعذر تحميل الاشتراك';
+      setSubscriptionLoadError(msg);
       const fallback = { plan_type: 'free', status: 'active', end_date: null };
       lastSubscriptionRef.current = fallback;
       setCurrentSubscription(fallback);
@@ -571,6 +579,7 @@ const SubscriptionScreen = () => {
               style={[styles.verifyButton, { opacity: fadeAnim }]}
               onPress={async () => {
                 setRefreshing(true);
+                setSubscriptionLoadError(null);
                 await loadCurrentSubscription();
                 setRefreshing(false);
                 if (syncingAfterPurchase) setSyncingAfterPurchase(false);
@@ -582,6 +591,29 @@ const SubscriptionScreen = () => {
                 {formatRTLText(refreshing ? 'جاري التحقق...' : 'تحقق من اشتراكي')}
               </ThemedText>
             </TouchableOpacity>
+        )}
+
+          {/* خطأ تحميل الاشتراك (صلاحيات أو جدول أو شبكة) */}
+        {subscriptionLoadError && (
+            <Animated.View style={[styles.webStoreNote, { opacity: fadeAnim, backgroundColor: '#FFEBEE', marginVertical: 8 }]}>
+              <IconSymbol size={20} name="exclamationmark.triangle" color="#C62828" />
+              <ThemedText style={[styles.webStoreNoteText, getTextDirection()]}>
+                {formatRTLText(subscriptionLoadError)}
+              </ThemedText>
+              <ThemedText style={[styles.webStoreNoteText, { marginTop: 6, fontSize: 13 }, getTextDirection()]}>
+                {formatRTLText('تحقق من: جدول subscriptions في Supabase، سياسات RLS، وأن التطبيق يستخدم نفس مشروع Supabase.')}
+              </ThemedText>
+            </Animated.View>
+        )}
+
+          {/* تذكير عند بقاء الاشتراك مجانياً مع متجر ويب (بعد الدفع) */}
+        {hasWebStore && currentSubscription?.plan_type === 'free' && !loading && !refreshing && (
+            <Animated.View style={[styles.webStoreNote, { opacity: fadeAnim, backgroundColor: '#FFF3E0', marginVertical: 6 }]}>
+              <IconSymbol size={20} name="info.circle" color="#E65100" />
+              <ThemedText style={[styles.webStoreNoteText, getTextDirection()]}>
+                {formatRTLText('إن كنت قد أتممت الدفع ولم يظهر الاشتراك: استخدم نفس البريد أو رقم الجوال في المتجر كما في التطبيق (الإعدادات → البيانات الأساسية). تأكد من ربط ويب هوك المتجر بدالة store-subscription-webhook في Supabase وتحقق من وجود سجل في جدول subscriptions.')}
+              </ThemedText>
+            </Animated.View>
         )}
 
           {/* Loading State */}

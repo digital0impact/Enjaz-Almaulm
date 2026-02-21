@@ -19,20 +19,23 @@ CREATE INDEX IF NOT EXISTS idx_subscriptions_end_date ON public.subscriptions(en
 
 ALTER TABLE public.subscriptions ENABLE ROW LEVEL SECURITY;
 
--- المستخدم المصادق يقرأ اشتراكاته فقط
+DROP POLICY IF EXISTS "Users can read own subscriptions" ON public.subscriptions;
 CREATE POLICY "Users can read own subscriptions"
   ON public.subscriptions FOR SELECT
   USING (auth.uid() = user_id);
 
--- المستخدم المصادق يمكنه إدراج اشتراك لحسابه (مثل الخطة المجانية من التطبيق)
+DROP POLICY IF EXISTS "Users can insert own subscriptions" ON public.subscriptions;
 CREATE POLICY "Users can insert own subscriptions"
   ON public.subscriptions FOR INSERT
   WITH CHECK (auth.uid() = user_id);
 
--- المستخدم المصادق يمكنه تحديث اشتراكاته فقط (مثل إلغاء)
+DROP POLICY IF EXISTS "Users can update own subscriptions" ON public.subscriptions;
 CREATE POLICY "Users can update own subscriptions"
   ON public.subscriptions FOR UPDATE
   USING (auth.uid() = user_id);
+
+GRANT SELECT, INSERT, UPDATE ON public.subscriptions TO authenticated;
+GRANT ALL ON public.subscriptions TO service_role;
 
 -- إدراج جدول subscriptions في منشور Realtime حتى يصل التحديث فوراً للتطبيق بعد ويب هوك الدفع
 ALTER PUBLICATION supabase_realtime ADD TABLE public.subscriptions;

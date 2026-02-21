@@ -57,8 +57,23 @@ const SUBSCRIPTION_FEATURES: Record<Subscription['plan_type'], SubscriptionFeatu
   }
 };
 
+const FREE_FALLBACK = (userId: string): Subscription => ({
+  id: 'free',
+  user_id: userId,
+  plan_type: 'free',
+  start_date: new Date(),
+  end_date: new Date(),
+  status: 'active',
+  price: 0,
+  purchase_verified: true
+});
+
 export class SubscriptionService {
-  static async getCurrentSubscription(userId: string): Promise<Subscription | null> {
+  /** يُستخدم في صفحة الاشتراكات لعرض خطأ التحميل إن وُجد */
+  static async getCurrentSubscriptionWithError(userId: string): Promise<{
+    subscription: Subscription;
+    error: string | null;
+  }> {
     const { data, error } = await supabase
       .from('subscriptions')
       .select('*')
@@ -70,21 +85,34 @@ export class SubscriptionService {
 
     if (error) {
       logError('Error fetching subscription', 'SubscriptionService', error);
-      return null;
+      return {
+        subscription: FREE_FALLBACK(userId),
+        error: error.message || 'تعذر تحميل الاشتراك'
+      };
     }
 
-    if (data) return data as Subscription;
+    if (data) {
+      const row = data as Record<string, unknown>;
+      const subscription: Subscription = {
+        id: String(row.id ?? ''),
+        user_id: String(row.user_id ?? userId),
+        plan_type: (row.plan_type as Subscription['plan_type']) || 'free',
+        start_date: row.start_date ? new Date(row.start_date as string) : new Date(),
+        end_date: row.end_date ? new Date(row.end_date as string) : new Date(),
+        status: (row.status as Subscription['status']) || 'active',
+        price: Number(row.price ?? 0),
+        transaction_id: row.transaction_id != null ? String(row.transaction_id) : undefined,
+        purchase_verified: row.purchase_verified === true || (row.plan_type && row.plan_type !== 'free' && row.purchase_verified !== false),
+      };
+      return { subscription, error: null };
+    }
 
-    return {
-      id: 'free',
-      user_id: userId,
-      plan_type: 'free',
-      start_date: new Date(),
-      end_date: new Date(),
-      status: 'active',
-      price: 0,
-      purchase_verified: true
-    };
+    return { subscription: FREE_FALLBACK(userId), error: null };
+  }
+
+  static async getCurrentSubscription(userId: string): Promise<Subscription | null> {
+    const { subscription, error } = await this.getCurrentSubscriptionWithError(userId);
+    return error ? null : subscription;
   }
 
   // دالة جديدة لإنشاء اشتراك بعد التحقق من الدفع

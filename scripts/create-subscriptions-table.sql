@@ -35,4 +35,7 @@ CREATE POLICY "Users can update own subscriptions"
   ON public.subscriptions FOR UPDATE
   USING (auth.uid() = user_id);
 
+GRANT SELECT, INSERT, UPDATE ON public.subscriptions TO authenticated;
+GRANT ALL ON public.subscriptions TO service_role;
+
 ALTER PUBLICATION supabase_realtime ADD TABLE public.subscriptions;
