@@ -33,6 +33,22 @@
 
 ---
 
+## المستخدمون يظهرون في Authentication فقط ولا يظهرون في الجداول
+
+**السبب:** جدولا `user_profiles` و `users` يُملآن إما بالـ Trigger عند تسجيل مستخدم **جديد**، أو من التطبيق. المستخدمون الذين سجّلوا قبل تطبيق الهجرة أو قبل وجود الـ Trigger لا يظهرون في الجداول.
+
+**الحل:**
+
+1. **ملء الجداول للمستخدمين الحاليين (مرة واحدة):**  
+   شغّل في Supabase → **SQL Editor** السكربت:  
+   **`scripts/backfill-users-from-auth.sql`**  
+   سيُنشئ سجلاً في `user_profiles` و `users` لكل مستخدم موجود في **Authentication → Users**.
+
+2. **المستخدمون الجدد:**  
+   هجرة **`20260221120000_trigger_sync_users_table.sql`** تحدّث الـ Trigger بحيث عند أي تسجيل جديد في Auth يُملأ جدولا `user_profiles` و `users` تلقائياً. طبّق هذه الهجرة (أو انسخ محتواها في SQL Editor وشغّلها) ثم كل مستخدم جديد سيظهر في الجداول فوراً.
+
+---
+
 ## ملخص الجداول
 
 | الجدول | مُعرّف في المستودع | الملف | مستخدم في الكود |
@@ -66,6 +82,7 @@
 - **الهجرة:** `supabase/migrations/20260221110000_create_core_tables.sql`
 - **الأعمدة:** id (UUID = auth.users.id), name, email, phone_number, job_title, work_location, created_at, updated_at
 - **Trigger:** `on_auth_user_created` ينشئ سجلاً في user_profiles تلقائياً عند تسجيل مستخدم جديد في Auth.
+- **ملاحظة:** الاشتراكات **لا تُخزَّن** في user_profiles؛ هي في جدول **subscriptions** (مرتبط بـ user_id). لعرض الملف الشخصي مع اشتراكه الحالي في مكان واحد استخدم العرض **user_profiles_with_subscription** (هجرة `20260221130000_view_user_profiles_with_subscription.sql`).
 
 ### 3) users ✅
 - **الهجرة:** `supabase/migrations/20260221110000_create_core_tables.sql`
@@ -139,10 +156,22 @@
    `supabase/migrations/20260221110000_create_core_tables.sql`  
    (user_profiles، users، performance_data، alerts، comments، account_deletion_requests + Trigger لإنشاء الملف الشخصي عند التسجيل)
 
-5. **النسخ الاحتياطية:**  
+5. **تحديث Trigger لملء جدول users أيضاً:**  
+   `supabase/migrations/20260221120000_trigger_sync_users_table.sql`  
+   (حتى يظهر كل مستخدم جديد في الجداول فوراً)
+
+6. **ملء الجداول للمستخدمين الموجودين مسبقاً في Auth (مرة واحدة):**  
+   `scripts/backfill-users-from-auth.sql`  
+   في SQL Editor — لإنشاء سجلات في user_profiles و users لكل من هم في Authentication فقط.
+
+7. **عرض الملف الشخصي مع الاشتراك (اختياري):**  
+   `supabase/migrations/20260221130000_view_user_profiles_with_subscription.sql`  
+   لإنشاء View ترى فيه في Table Editor كل مستخدم مع آخر اشتراك فعّال له (الاشتراكات نفسها في جدول subscriptions).
+
+8. **النسخ الاحتياطية:**  
    `scripts/create-backup-table.sql`
 
-6. **أسعار الاشتراكات (اختياري):**  
+9. **أسعار الاشتراكات (اختياري):**  
    `scripts/setup-subscription-prices.sql`  
    (إن لم يكن الجدول موجوداً؛ وتأكد من تطابق الأعمدة مع PriceManagementService)
 

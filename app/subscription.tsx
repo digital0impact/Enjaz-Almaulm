@@ -610,8 +610,17 @@ const SubscriptionScreen = () => {
         {hasWebStore && currentSubscription?.plan_type === 'free' && !loading && !refreshing && (
             <Animated.View style={[styles.webStoreNote, { opacity: fadeAnim, backgroundColor: '#FFF3E0', marginVertical: 6 }]}>
               <IconSymbol size={20} name="info.circle" color="#E65100" />
-              <ThemedText style={[styles.webStoreNoteText, getTextDirection()]}>
-                {formatRTLText('إن كنت قد أتممت الدفع ولم يظهر الاشتراك: استخدم نفس البريد أو رقم الجوال في المتجر كما في التطبيق (الإعدادات → البيانات الأساسية). تأكد من ربط ويب هوك المتجر بدالة store-subscription-webhook في Supabase وتحقق من وجود سجل في جدول subscriptions.')}
+              <ThemedText style={[styles.webStoreNoteText, { fontWeight: '600' }, getTextDirection()]}>
+                {formatRTLText('أتممت الدفع ولم يظهر الاشتراك؟')}
+              </ThemedText>
+              <ThemedText style={[styles.webStoreNoteText, { marginTop: 6, fontSize: 13 }, getTextDirection()]}>
+                {formatRTLText('١) استخدم نفس البريد أو رقم الجوال في المتجر كما في التطبيق (الإعدادات ← البيانات الأساسية).')}
+              </ThemedText>
+              <ThemedText style={[styles.webStoreNoteText, { marginTop: 4, fontSize: 13 }, getTextDirection()]}>
+                {formatRTLText('٢) تأكد من ربط ويب هوك المتجر بدالة store-subscription-webhook في Supabase.')}
+              </ThemedText>
+              <ThemedText style={[styles.webStoreNoteText, { marginTop: 4, fontSize: 13 }, getTextDirection()]}>
+                {formatRTLText('٣) تحقق من وجود سجل في جدول subscriptions (Table Editor).')}
               </ThemedText>
             </Animated.View>
         )}
