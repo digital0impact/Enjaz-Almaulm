@@ -4,6 +4,9 @@ import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 const SUBSCRIPTION_DAYS = { yearly: 365, half_yearly: 180 } as const;
 const SUBSCRIPTION_PRICES = { yearly: 49.99, half_yearly: 29.99 } as const;
 
+/** ترتيب الباقات: الترقية مسموحة فقط للأعلى (yearly > half_yearly) */
+const PLAN_LEVEL: Record<PlanType, number> = { half_yearly: 1, yearly: 2 };
+
 type PlanType = 'yearly' | 'half_yearly';
 
 /** Normalize phone for comparison (digits only). Saudi canonical: 966 + 9 digits = 12 chars. */
@@ -110,12 +113,22 @@ Deno.serve(async (req: Request) => {
 
   const supabase = createClient(supabaseUrl, supabaseServiceKey);
   let userId: string | null = null;
+  const emailLower = email ? email.trim().toLowerCase() : '';
 
-  if (email) {
+  if (emailLower) {
     const { data: list } = await supabase.auth.admin.listUsers({ page: 1, perPage: 1000 });
-    const all = (list as { users?: Array<{ id: string; email?: string }> })?.users ?? [];
-    const found = all.find((u: { email?: string }) => (u.email || '').toLowerCase() === email);
+    const listData = list as { users?: Array<{ id: string; email?: string }>; data?: { users?: Array<{ id: string; email?: string }> } } | null;
+    const all = listData?.users ?? (listData as { data?: { users?: Array<{ id: string; email?: string }> } })?.data?.users ?? [];
+    let found = all.find((u: { email?: string }) => (u.email || '').toLowerCase() === emailLower);
     if (found) userId = found.id;
+    if (!userId) {
+      const { data: profileRow } = await supabase.from('user_profiles').select('id').ilike('email', emailLower).limit(1).maybeSingle();
+      if (profileRow && (profileRow as { id?: string }).id) userId = (profileRow as { id: string }).id;
+    }
+    if (!userId) {
+      const { data: userRow } = await supabase.from('users').select('id').ilike('email', emailLower).limit(1).maybeSingle();
+      if (userRow && (userRow as { id?: string }).id) userId = (userRow as { id: string }).id;
+    }
   }
   if (!userId && phone) {
     const normalized = normalizePhone(phone);
@@ -146,6 +159,38 @@ Deno.serve(async (req: Request) => {
       error: 'No user found with this email or phone.',
       hint_ar: 'تأكد من استخدام نفس رقم الجوال المسجّل في التطبيق (الإعدادات → البيانات الأساسية) عند الشراء من متجر سلة، أو سجّل الدخول ثم احفظ رقم الجوال في البيانات الأساسية وأعد المحاولة.',
     }), { status: 404, headers: { 'Content-Type': 'application/json' } });
+  }
+
+  // التحقق: لا اشتراك مكرر في نفس الباقة، والترقية إلى الأعلى فقط
+  const { data: activeSubs } = await supabase
+    .from('subscriptions')
+    .select('plan_type')
+    .eq('user_id', userId)
+    .eq('status', 'active');
+  const activeList = (activeSubs || []) as Array<{ plan_type: PlanType }>;
+  const hasSamePlan = activeList.some((s) => s.plan_type === plan);
+  const maxActiveLevel = activeList.length
+    ? Math.max(...activeList.map((s) => PLAN_LEVEL[s.plan_type]))
+    : 0;
+  const newLevel = PLAN_LEVEL[plan];
+
+  if (hasSamePlan) {
+    return new Response(
+      JSON.stringify({
+        error: 'Same plan already active.',
+        hint_ar: 'لا يمكن الاشتراك في نفس الباقة لنفس الهاتف أو البريد الإلكتروني إلا مرة واحدة فقط.',
+      }),
+      { status: 409, headers: { 'Content-Type': 'application/json' } }
+    );
+  }
+  if (maxActiveLevel > 0 && newLevel <= maxActiveLevel) {
+    return new Response(
+      JSON.stringify({
+        error: 'Upgrade only.',
+        hint_ar: 'يمكن الترقية إلى الباقة الأعلى فقط. لديك بالفعل باقة مساوية أو أعلى.',
+      }),
+      { status: 409, headers: { 'Content-Type': 'application/json' } }
+    );
   }
 
   const startDate = new Date();
