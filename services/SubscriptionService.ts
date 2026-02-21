@@ -73,7 +73,9 @@ export class SubscriptionService {
       return null;
     }
 
-    return data ?? {
+    if (data) return data as Subscription;
+
+    return {
       id: 'free',
       user_id: userId,
       plan_type: 'free',
@@ -81,7 +83,7 @@ export class SubscriptionService {
       end_date: new Date(),
       status: 'active',
       price: 0,
-      purchase_verified: true // الاشتراك المجاني موثق دائماً
+      purchase_verified: true
     };
   }
 

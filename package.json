@@ -7,6 +7,7 @@
   },
   "scripts": {
     "start": "expo start",
+    "dev": "expo start",
     "cleanup": "node ./scripts/cleanup-project.js",
     "update-version": "node ./scripts/update-version.js",
     "supabase:verify": "node ./scripts/verify-supabase-connection.js",

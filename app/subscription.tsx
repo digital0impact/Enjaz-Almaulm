@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useCallback } from 'react';
+import React, { useEffect, useState, useCallback, useRef } from 'react';
 import { View, StyleSheet, ScrollView, TouchableOpacity, Platform, StatusBar, Animated, ImageBackground, Linking } from 'react-native';
 import { useRouter } from 'expo-router';
 import { useFocusEffect } from '@react-navigation/native';
@@ -10,6 +10,7 @@ import { ThemedText } from '@/components/ThemedText';
 import { IconSymbol } from '@/components/ui/IconSymbol';
 import { BottomNavigationBar } from '@/components/BottomNavigationBar';
 import AuthService from '@/services/AuthService';
+import { supabase } from '@/config/supabase';
 import { 
   getTextDirection, 
   getFlexDirection, 
@@ -107,9 +108,10 @@ const SubscriptionScreen = () => {
   const [error, setError] = useState<string | null>(null);
   const [currentSubscription, setCurrentSubscription] = useState<any>(null);
   const [refreshing, setRefreshing] = useState(false);
-  const [checkingAfterPurchase, setCheckingAfterPurchase] = useState(false);
+  const [syncingAfterPurchase, setSyncingAfterPurchase] = useState(false);
   const [fadeAnim] = useState(new Animated.Value(0));
   const [slideAnim] = useState(new Animated.Value(50));
+  const lastSubscriptionRef = useRef<any>(null);
 
   /** تحديث حالة الاشتراك (مفيد بعد الشراء من متجر سلة) */
   const onRefreshSubscription = useCallback(async () => {
@@ -124,54 +126,73 @@ const SubscriptionScreen = () => {
     }, [])
   );
 
-  // على الويب: عند فتح الصفحة برابط العودة بعد الدفع (?purchase=success) نحدّث الاشتراك مع إعادة محاولة (ويب هوك المتجر قد يتأخر)
+  // على الويب: عند فتح الصفحة برابط العودة بعد الدفع (?purchase=success) نحدّث الاشتراك مع إعادة المحاولة (ويب هوك المتجر قد يتأخر)
   useEffect(() => {
     if (!isWeb || typeof window === 'undefined' || typeof window.location?.search !== 'string') return;
     const params = new URLSearchParams(window.location.search);
     if (params.get('purchase') !== 'success') return;
-
     const cleanUrl = window.location.pathname || '/subscription';
     window.history.replaceState({}, '', cleanUrl);
-    setCheckingAfterPurchase(true);
-
-    const delays = [0, 2000, 5000, 10000];
-    const timeouts: ReturnType<typeof setTimeout>[] = [];
-    delays.forEach((delay) => {
-      const t = setTimeout(() => {
-        loadCurrentSubscription();
-      }, delay);
-      timeouts.push(t);
-    });
-    const clearChecking = setTimeout(() => setCheckingAfterPurchase(false), 12000);
-    return () => {
-      timeouts.forEach((t) => clearTimeout(t));
-      clearTimeout(clearChecking);
+    setSyncingAfterPurchase(true);
+    let cancelled = false;
+    let attempts = 0;
+    const maxAttempts = 6;
+    const delayMs = 2000;
+    const run = async () => {
+      if (cancelled) return;
+      await loadCurrentSubscription();
+      attempts += 1;
+      const sub = lastSubscriptionRef.current;
+      const isPaid = sub && sub.plan_type !== 'free' && sub.purchase_verified;
+      if (isPaid || attempts >= maxAttempts) {
+        setSyncingAfterPurchase(false);
+        return;
+      }
+      setTimeout(run, delayMs);
     };
+    run();
+    return () => { cancelled = true; };
   }, [isWeb]);
 
-  // إيقاف مؤشر "جاري التحقق" عند ظهور اشتراك مدفوع
-  useEffect(() => {
-    if (checkingAfterPurchase && currentSubscription?.plan_type && currentSubscription.plan_type !== 'free') {
-      setCheckingAfterPurchase(false);
-    }
-  }, [checkingAfterPurchase, currentSubscription?.plan_type]);
-
-  // على الويب: عند عودة المستخدم لتبويب التطبيق بعد الشراء، نحدّث حالة الاشتراك (مع محاولة متأخرة لالتقاط ويب هوك المتجر)
+  // على الويب: عند عودة المستخدم لتبويب التطبيق بعد الشراء، نحدّث حالة الاشتراك
   useEffect(() => {
     if (!isWeb || typeof document === 'undefined') return;
-    let delayedRefetch: ReturnType<typeof setTimeout> | null = null;
     const onVisibilityChange = () => {
       if (document.visibilityState === 'visible') {
         loadCurrentSubscription();
-        delayedRefetch = setTimeout(() => loadCurrentSubscription(), 3000);
       }
     };
     document.addEventListener('visibilitychange', onVisibilityChange);
-    return () => {
-      document.removeEventListener('visibilitychange', onVisibilityChange);
-      if (delayedRefetch) clearTimeout(delayedRefetch);
-    };
+    return () => document.removeEventListener('visibilitychange', onVisibilityChange);
   }, [isWeb]);
+
+  // الاشتراك في Realtime: عند إضافة أو تحديث اشتراك المستخدم في قاعدة البيانات (مثلاً بعد ويب هوك الدفع) يصل التحديث فوراً
+  useEffect(() => {
+    let channel: ReturnType<typeof supabase.channel> | null = null;
+    let mounted = true;
+    AuthService.getCurrentUser().then((user) => {
+      if (!mounted || !user?.id) return;
+      channel = supabase
+        .channel(`subscriptions:${user.id}`)
+        .on(
+          'postgres_changes',
+          {
+            event: '*',
+            schema: 'public',
+            table: 'subscriptions',
+            filter: `user_id=eq.${user.id}`,
+          },
+          () => {
+            loadCurrentSubscription();
+          }
+        )
+        .subscribe();
+    });
+    return () => {
+      mounted = false;
+      channel?.unsubscribe();
+    };
+  }, []);
 
   useEffect(() => {
     loadProducts();
@@ -218,27 +239,19 @@ const SubscriptionScreen = () => {
       if (!user) return;
 
       const subscription = await SubscriptionService.getCurrentSubscription(user.id);
-      
-      // التأكد من أن البيانات صحيحة
+      const resolved = subscription && typeof subscription === 'object' ? subscription : { plan_type: 'free', status: 'active', end_date: null };
+      lastSubscriptionRef.current = resolved;
+
       if (subscription && typeof subscription === 'object') {
-        console.log('Current subscription loaded:', subscription);
         setCurrentSubscription(subscription);
       } else {
-        console.log('No valid subscription found, using default');
-        setCurrentSubscription({
-          plan_type: 'free',
-          status: 'active',
-          end_date: null
-        });
+        setCurrentSubscription(resolved);
       }
     } catch (err) {
       console.error('Error loading current subscription:', err);
-      // في حالة الخطأ، نضع اشتراك مجاني افتراضي
-      setCurrentSubscription({
-        plan_type: 'free',
-        status: 'active',
-        end_date: null
-      });
+      const fallback = { plan_type: 'free', status: 'active', end_date: null };
+      lastSubscriptionRef.current = fallback;
+      setCurrentSubscription(fallback);
     }
   };
 
@@ -506,15 +519,33 @@ const SubscriptionScreen = () => {
             </Animated.View>
         )}
 
-          {/* بعد الدفع: جاري التحقق من الاشتراك */}
-          {checkingAfterPurchase && !loading && (
-            <Animated.View style={[styles.webStoreNote, { opacity: fadeAnim, marginVertical: 8 }]}>
-              <IconSymbol size={20} name="arrow.clockwise" color="#2196F3" />
+          {/* بعد الدفع: جاري مزامنة الاشتراك + زر تحقق */}
+        {syncingAfterPurchase && (
+            <Animated.View style={[styles.webStoreNote, { opacity: fadeAnim, backgroundColor: '#E3F2FD', marginVertical: 8 }]}>
+              <IconSymbol size={20} name="arrow.clockwise" color="#1976D2" />
               <ThemedText style={[styles.webStoreNoteText, getTextDirection()]}>
-                {formatRTLText('جاري التحقق من اشتراكك… إن لم يظهر خلال ثوانٍ، اضغط "تحديث" أو حدّث الصفحة.')}
+                {formatRTLText('جاري تحديث الاشتراك... إن لم يظهر خلال لحظات اضغط «تحقق من اشتراكي» أو تأكد من استخدام نفس رقم الجوال في المتجر.')}
               </ThemedText>
             </Animated.View>
-          )}
+        )}
+          {/* زر تحقق من الاشتراك (مفيد بعد الدفع من المتجر) */}
+        {hasWebStore && (
+            <TouchableOpacity
+              style={[styles.verifyButton, { opacity: fadeAnim }]}
+              onPress={async () => {
+                setRefreshing(true);
+                await loadCurrentSubscription();
+                setRefreshing(false);
+                if (syncingAfterPurchase) setSyncingAfterPurchase(false);
+              }}
+              disabled={refreshing}
+            >
+              <IconSymbol size={18} name="checkmark.circle" color="#1976D2" />
+              <ThemedText style={[styles.verifyButtonText, getTextDirection()]}>
+                {formatRTLText(refreshing ? 'جاري التحقق...' : 'تحقق من اشتراكي')}
+              </ThemedText>
+            </TouchableOpacity>
+        )}
 
           {/* Loading State */}
         {loading ? (
@@ -740,6 +771,26 @@ const styles = StyleSheet.create({
   webStoreNoteText: {
     fontSize: 14,
     color: '#1976D2',
+    ...getRTLTextStyle(),
+  },
+  verifyButton: {
+    flexDirection: 'row-reverse',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 8,
+    marginHorizontal: 20,
+    marginBottom: 12,
+    paddingVertical: 12,
+    paddingHorizontal: 20,
+    backgroundColor: '#E3F2FD',
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: '#90CAF9',
+  },
+  verifyButtonText: {
+    fontSize: 15,
+    color: '#1565C0',
+    fontWeight: '600',
     ...getRTLTextStyle(),
   },
   plansSection: {

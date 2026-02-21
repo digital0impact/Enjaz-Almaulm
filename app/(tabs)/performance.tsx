@@ -13,6 +13,20 @@ import { getTextDirection, formatRTLText } from '@/utils/rtl-utils';
 
 const { width, height } = Dimensions.get('window');
 
+/** المهن التي تعرض بطاقة "الأهداف" (نموذج تقييم أداء التشكيلات الإشرافية) */
+const PROFESSIONS_WITH_OBJECTIVES = ['الجدارات الوظيفية العامة (المشتركة)', 'الجدارات الوظيفية القيادية'];
+
+const getDefaultObjectivesData = () =>
+  Array.from({ length: 6 }, (_, i) => ({
+    id: i + 1,
+    objective: '',
+    measurementStandard: '',
+    relativeWeight: '',
+    targetedOutcome: '',
+    actualOutcome: '',
+    weightedRating: '',
+  }));
+
 export default function PerformanceScreen() {
   const router = useRouter();
   const [userProfession, setUserProfession] = useState('معلم/ة');
@@ -193,6 +207,9 @@ export default function PerformanceScreen() {
   const [uploadModalVisible, setUploadModalVisible] = useState(false);
   const [uploadPerformanceId, setUploadPerformanceId] = useState<number>(0);
   const [uploadEvidenceIndex, setUploadEvidenceIndex] = useState<number>(0);
+  const [objectivesData, setObjectivesData] = useState<Array<{ id: number; objective: string; measurementStandard: string; relativeWeight: string; targetedOutcome: string; actualOutcome: string; weightedRating: string }>>(getDefaultObjectivesData());
+
+  const showObjectivesCard = PROFESSIONS_WITH_OBJECTIVES.includes(userProfession);
 
   useEffect(() => {
     loadUserProfession();
@@ -1435,6 +1452,168 @@ export default function PerformanceScreen() {
           ],
         },
       ];
+    } else if (profession === 'الجدارات الوظيفية العامة (المشتركة)') {
+      return [
+        {
+          id: 1,
+          title: 'المسؤولية',
+          score: 0,
+          weight: 20,
+          description: 'القدرة على تحمل المسؤولية الفردية لتحقيق الأهداف بالجودة المطلوبة وفي الوقت المحدد.',
+          details: 'القدرة على تحمل المسؤولية الفردية لتحقيق الأهداف بالجودة المطلوبة وفي الوقت المحدد.',
+          evidence: [
+            { name: 'تحقيق الأهداف بالجودة المطلوبة', available: false },
+            { name: 'الالتزام بالوقت المحدد', available: false },
+            { name: 'مستوى الإتقان في الجدارة', available: false }
+          ],
+        },
+        {
+          id: 2,
+          title: 'العمل الجماعي',
+          score: 0,
+          weight: 25,
+          description: 'القدرة على العمل بشكل جماعي وبروح الفريق الواحد والمحافظة على علاقات جيدة داخل الوحدة التنظيمية وخارجها من أجل تحقيق الأهداف المشتركة.',
+          details: 'القدرة على العمل بشكل جماعي وبروح الفريق الواحد والمحافظة على علاقات جيدة داخل الوحدة التنظيمية وخارجها من أجل تحقيق الأهداف المشتركة.',
+          evidence: [
+            { name: 'العمل بروح الفريق', available: false },
+            { name: 'المحافظة على العلاقات الجيدة', available: false },
+            { name: 'مستوى الإتقان في الجدارة', available: false }
+          ],
+        },
+        {
+          id: 3,
+          title: 'المرونة للتغيير',
+          score: 0,
+          weight: 30,
+          description: 'القدرة على التكيف والعمل بشكل فعال في مختلف الظروف وفهم وجهات النظر المختلفة وقبول التغيير في متطلبات العمل.',
+          details: 'القدرة على التكيف والعمل بشكل فعال في مختلف الظروف وفهم وجهات النظر المختلفة وقبول التغيير في متطلبات العمل.',
+          evidence: [
+            { name: 'التكيف مع الظروف المختلفة', available: false },
+            { name: 'قبول التغيير في متطلبات العمل', available: false },
+            { name: 'مستوى الإتقان في الجدارة', available: false }
+          ],
+        },
+        {
+          id: 4,
+          title: 'المبادرة',
+          score: 0,
+          weight: 25,
+          description: 'القدرة على إظهار الحرص الكافي لتحقيق أهداف العمل والرغبة في إنجاز مهام إضافية تخدم مصلحة العمل دون أن يطالب بذلك، وتقديم أفكار ومقترحات جديدة نابعة من الرغبة في التحسن والتطوير.',
+          details: 'القدرة على إظهار الحرص الكافي لتحقيق أهداف العمل والرغبة في إنجاز مهام إضافية تخدم مصلحة العمل دون أن يطالب بذلك، وتقديم أفكار ومقترحات جديدة نابعة من الرغبة في التحسن والتطوير.',
+          evidence: [
+            { name: 'إنجاز مهام إضافية تخدم العمل', available: false },
+            { name: 'تقديم أفكار ومقترحات جديدة', available: false },
+            { name: 'مستوى الإتقان في الجدارة', available: false }
+          ],
+        },
+      ];
+    } else if (profession === 'الجدارات الوظيفية القيادية') {
+      return [
+        {
+          id: 1,
+          title: 'المسؤولية',
+          score: 0,
+          weight: 15,
+          description: 'القدرة على تحمل المسؤولية الفردية لتحقيق الأهداف بالجودة المطلوبة وفي الوقت المحدد.',
+          details: 'القدرة على تحمل المسؤولية الفردية لتحقيق الأهداف بالجودة المطلوبة وفي الوقت المحدد.',
+          evidence: [
+            { name: 'تحقيق الأهداف بالجودة المطلوبة', available: false },
+            { name: 'الالتزام بالوقت المحدد', available: false },
+            { name: 'مستوى الإتقان في الجدارة', available: false }
+          ],
+        },
+        {
+          id: 2,
+          title: 'العمل الجماعي',
+          score: 0,
+          weight: 10,
+          description: 'القدرة على العمل بشكل جماعي وبروح الفريق الواحد والمحافظة على علاقات جيدة داخل الوحدة التنظيمية وخارجها من أجل تحقيق الأهداف المشتركة.',
+          details: 'القدرة على العمل بشكل جماعي وبروح الفريق الواحد والمحافظة على علاقات جيدة داخل الوحدة التنظيمية وخارجها من أجل تحقيق الأهداف المشتركة.',
+          evidence: [
+            { name: 'العمل بروح الفريق', available: false },
+            { name: 'المحافظة على العلاقات الجيدة', available: false },
+            { name: 'مستوى الإتقان في الجدارة', available: false }
+          ],
+        },
+        {
+          id: 3,
+          title: 'المرونة للتغيير',
+          score: 0,
+          weight: 10,
+          description: 'القدرة على التكيف والعمل بشكل فعال في مختلف الظروف وفهم وجهات النظر المختلفة وقبول التغيير في متطلبات العمل.',
+          details: 'القدرة على التكيف والعمل بشكل فعال في مختلف الظروف وفهم وجهات النظر المختلفة وقبول التغيير في متطلبات العمل.',
+          evidence: [
+            { name: 'التكيف مع الظروف المختلفة', available: false },
+            { name: 'قبول التغيير في متطلبات العمل', available: false },
+            { name: 'مستوى الإتقان في الجدارة', available: false }
+          ],
+        },
+        {
+          id: 4,
+          title: 'المبادرة',
+          score: 0,
+          weight: 10,
+          description: 'القدرة على إظهار الحرص الكافي لتحقيق أهداف العمل والرغبة في إنجاز مهام إضافية تخدم مصلحة العمل دون أن يطالب بذلك، وتقديم أفكار ومقترحات جديدة نابعة من الرغبة في التحسن والتطوير.',
+          details: 'القدرة على إظهار الحرص الكافي لتحقيق أهداف العمل والرغبة في إنجاز مهام إضافية تخدم مصلحة العمل دون أن يطالب بذلك، وتقديم أفكار ومقترحات جديدة نابعة من الرغبة في التحسن والتطوير.',
+          evidence: [
+            { name: 'إنجاز مهام إضافية تخدم العمل', available: false },
+            { name: 'تقديم أفكار ومقترحات جديدة', available: false },
+            { name: 'مستوى الإتقان في الجدارة', available: false }
+          ],
+        },
+        {
+          id: 5,
+          title: 'قيادة التغيير',
+          score: 0,
+          weight: 20,
+          description: 'القدرة على حث الموظفين لتقبل التغيير المترتب على التطوير ومواجهة التحديات الداخلية والخارجية لتحقيق الأهداف بما ينسجم مع الرؤية والأهداف الاستراتيجية.',
+          details: 'القدرة على حث الموظفين لتقبل التغيير المترتب على التطوير ومواجهة التحديات الداخلية والخارجية لتحقيق الأهداف بما ينسجم مع الرؤية والأهداف الاستراتيجية.',
+          evidence: [
+            { name: 'حث الموظفين على تقبل التغيير', available: false },
+            { name: 'مواجهة التحديات لتحقيق الأهداف', available: false },
+            { name: 'مستوى الإتقان في الجدارة', available: false }
+          ],
+        },
+        {
+          id: 6,
+          title: 'تطوير وتمكين الموظفين',
+          score: 0,
+          weight: 10,
+          description: 'تأهيل الموظفين وإعدادهم ومنحهم فرص التطوير والنمو من خلال برامج التطوير وتفويض بعض الصلاحيات والمسؤوليات إليهم وإشراكهم في صنع القرار.',
+          details: 'تأهيل الموظفين وإعدادهم ومنحهم فرص التطوير والنمو من خلال برامج التطوير وتفويض بعض الصلاحيات والمسؤوليات إليهم وإشراكهم في صنع القرار.',
+          evidence: [
+            { name: 'برامج التطوير والنمو', available: false },
+            { name: 'تفويض الصلاحيات وإشراكهم في القرار', available: false },
+            { name: 'مستوى الإتقان في الجدارة', available: false }
+          ],
+        },
+        {
+          id: 7,
+          title: 'التوجه الاستراتيجي',
+          score: 0,
+          weight: 10,
+          description: 'القدرة على تحليل المعطيات من منظور استراتيجي شامل مع تحديد الحالات المحتملة ووضع خطة بعيدة المدى وربطها بأنشطة ومهام العمل اليومي بحيث تكون مرتبطة بالرسالة والأهداف الاستراتيجية.',
+          details: 'القدرة على تحليل المعطيات من منظور استراتيجي شامل مع تحديد الحالات المحتملة ووضع خطة بعيدة المدى وربطها بأنشطة ومهام العمل اليومي بحيث تكون مرتبطة بالرسالة والأهداف الاستراتيجية.',
+          evidence: [
+            { name: 'تحليل المعطيات من منظور استراتيجي', available: false },
+            { name: 'وضع خطة بعيدة المدى وربطها بالعمل اليومي', available: false },
+            { name: 'مستوى الإتقان في الجدارة', available: false }
+          ],
+        },
+        {
+          id: 8,
+          title: 'اتخاذ القرارات',
+          score: 0,
+          weight: 15,
+          description: 'القدرة على جمع البيانات والمعلومات وتحليلها والوصول إلى حلول فاعلة للمشكلات واتخاذ القرارات المناسبة.',
+          details: 'القدرة على جمع البيانات والمعلومات وتحليلها والوصول إلى حلول فاعلة للمشكلات واتخاذ القرارات المناسبة.',
+          evidence: [
+            { name: 'جمع وتحليل البيانات والمعلومات', available: false },
+            { name: 'الوصول إلى حلول فاعلة واتخاذ القرارات', available: false },
+            { name: 'مستوى الإتقان في الجدارة', available: false }
+          ],
+        },
+      ];
     } else {
       // البيانات الأصلية للمعلم العادي
       return [
@@ -1824,6 +2003,32 @@ export default function PerformanceScreen() {
         setUploadedFiles(JSON.parse(storedFiles));
         console.log('Loaded uploaded files data');
       }
+
+      if (PROFESSIONS_WITH_OBJECTIVES.includes(userProfession)) {
+        const storedObjectives = await AsyncStorage.getItem('performanceObjectivesData');
+        if (storedObjectives) {
+          try {
+            const parsed = JSON.parse(storedObjectives);
+            if (Array.isArray(parsed) && parsed.length >= 6) {
+              setObjectivesData(parsed.slice(0, 6).map((r: any, i: number) => ({
+                id: i + 1,
+                objective: String(r.objective ?? ''),
+                measurementStandard: String(r.measurementStandard ?? ''),
+                relativeWeight: String(r.relativeWeight ?? ''),
+                targetedOutcome: String(r.targetedOutcome ?? ''),
+                actualOutcome: String(r.actualOutcome ?? ''),
+                weightedRating: String(r.weightedRating ?? ''),
+              })));
+            } else {
+              setObjectivesData(getDefaultObjectivesData());
+            }
+          } catch {
+            setObjectivesData(getDefaultObjectivesData());
+          }
+        } else {
+          setObjectivesData(getDefaultObjectivesData());
+        }
+      }
     } catch (error) {
       console.log('Error loading performance data:', error);
       // في حالة الخطأ، استخدم البيانات الافتراضية
@@ -1878,6 +2083,19 @@ export default function PerformanceScreen() {
       console.error('Error updating performance data:', error);
       Alert.alert('خطأ', 'حدث خطأ أثناء حفظ البيانات');
       throw error;
+    }
+  };
+
+  const updateObjectiveRow = async (index: number, field: string, value: string) => {
+    if (!showObjectivesCard || index < 0 || index >= objectivesData.length) return;
+    const newData = objectivesData.map((row, i) =>
+      i === index ? { ...row, [field]: value } : row
+    );
+    setObjectivesData(newData);
+    try {
+      await AsyncStorage.setItem('performanceObjectivesData', JSON.stringify(newData));
+    } catch (e) {
+      console.warn('Error saving objectives:', e);
     }
   };
 
@@ -2461,6 +2679,77 @@ export default function PerformanceScreen() {
             </ThemedView>
                           </ThemedView>
 
+          {/* بطاقة الأهداف (نموذج تقييم أداء التشكيلات الإشرافية) - للجدارات المشتركة والقيادية فقط */}
+          {showObjectivesCard && (
+            <ThemedView style={styles.objectivesCard}>
+              <ThemedText style={[styles.objectivesCardTitle, getTextDirection()]}>
+                {formatRTLText(
+                  userProfession === 'الجدارات الوظيفية القيادية'
+                    ? 'نموذج تقييم أداء التشكيلات الإشرافية - الأهداف'
+                    : 'نموذج تقييم أداء التشكيلات الإشرافية (المشتركة) - الأهداف'
+                )}
+              </ThemedText>
+              <ThemedView style={styles.objectivesTableHeader}>
+                <ThemedText style={[styles.objectivesTh, getTextDirection(), styles.objectivesColM]}>م</ThemedText>
+                <ThemedText style={[styles.objectivesTh, getTextDirection(), styles.objectivesColObjective]}>الهدف</ThemedText>
+                <ThemedText style={[styles.objectivesTh, getTextDirection(), styles.objectivesColStandard]}>معيار القياس</ThemedText>
+                <ThemedText style={[styles.objectivesTh, getTextDirection(), styles.objectivesColWeight]}>الوزن النسبي</ThemedText>
+                <ThemedText style={[styles.objectivesTh, getTextDirection(), styles.objectivesColTarget]}>الناتج المستهدف</ThemedText>
+                <ThemedText style={[styles.objectivesTh, getTextDirection(), styles.objectivesColActual]}>الناتج الفعلي</ThemedText>
+                <ThemedText style={[styles.objectivesTh, getTextDirection(), styles.objectivesColRating]}>التقدير الموزون</ThemedText>
+              </ThemedView>
+              {objectivesData.map((row, index) => (
+                <ThemedView key={row.id} style={styles.objectivesRow}>
+                  <ThemedText style={[styles.objectivesTdM, getTextDirection()]}>{row.id}</ThemedText>
+                  <TextInput
+                    style={[styles.objectivesInput, getTextDirection(), styles.objectivesColObjective]}
+                    value={row.objective}
+                    onChangeText={(v) => updateObjectiveRow(index, 'objective', v)}
+                    placeholder="الهدف"
+                    placeholderTextColor="#999"
+                  />
+                  <TextInput
+                    style={[styles.objectivesInput, getTextDirection(), styles.objectivesColStandard]}
+                    value={row.measurementStandard}
+                    onChangeText={(v) => updateObjectiveRow(index, 'measurementStandard', v)}
+                    placeholder="معيار القياس"
+                    placeholderTextColor="#999"
+                  />
+                  <TextInput
+                    style={[styles.objectivesInput, getTextDirection(), styles.objectivesColWeight]}
+                    value={row.relativeWeight}
+                    onChangeText={(v) => updateObjectiveRow(index, 'relativeWeight', v)}
+                    placeholder="الوزن"
+                    placeholderTextColor="#999"
+                    keyboardType="numeric"
+                  />
+                  <TextInput
+                    style={[styles.objectivesInput, getTextDirection(), styles.objectivesColTarget]}
+                    value={row.targetedOutcome}
+                    onChangeText={(v) => updateObjectiveRow(index, 'targetedOutcome', v)}
+                    placeholder="الناتج المستهدف"
+                    placeholderTextColor="#999"
+                  />
+                  <TextInput
+                    style={[styles.objectivesInput, getTextDirection(), styles.objectivesColActual]}
+                    value={row.actualOutcome}
+                    onChangeText={(v) => updateObjectiveRow(index, 'actualOutcome', v)}
+                    placeholder="الناتج الفعلي"
+                    placeholderTextColor="#999"
+                  />
+                  <TextInput
+                    style={[styles.objectivesInput, getTextDirection(), styles.objectivesColRating]}
+                    value={row.weightedRating}
+                    onChangeText={(v) => updateObjectiveRow(index, 'weightedRating', v)}
+                    placeholder="التقدير"
+                    placeholderTextColor="#999"
+                    keyboardType="numeric"
+                  />
+                </ThemedView>
+              ))}
+            </ThemedView>
+          )}
+
           {/* Performance Cards */}
           {performanceData.map((performance, idx) => (
             <React.Fragment key={performance.id}>
@@ -2999,4 +3288,77 @@ const styles = StyleSheet.create({
     fontWeight: '500',
     textAlign: 'center',
   },
+  objectivesCard: {
+    backgroundColor: '#fff',
+    borderRadius: 16,
+    padding: 16,
+    marginHorizontal: 16,
+    marginBottom: 20,
+    borderWidth: 1,
+    borderColor: '#E5E5EA',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.06,
+    shadowRadius: 8,
+    elevation: 3,
+  },
+  objectivesCardTitle: {
+    fontSize: 17,
+    fontWeight: '700',
+    color: '#1c1f33',
+    marginBottom: 12,
+    textAlign: 'right',
+    writingDirection: 'rtl',
+  },
+  objectivesTableHeader: {
+    flexDirection: 'row-reverse',
+    alignItems: 'center',
+    paddingVertical: 10,
+    paddingHorizontal: 8,
+    backgroundColor: '#F5F5F7',
+    borderRadius: 10,
+    marginBottom: 8,
+  },
+  objectivesTh: {
+    fontSize: 12,
+    fontWeight: '700',
+    color: '#1c1f33',
+    textAlign: 'right',
+    writingDirection: 'rtl',
+  },
+  objectivesRow: {
+    flexDirection: 'row-reverse',
+    alignItems: 'center',
+    paddingVertical: 6,
+    paddingHorizontal: 8,
+    borderBottomWidth: 1,
+    borderBottomColor: '#EEEEEE',
+  },
+  objectivesTdM: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: '#666',
+    textAlign: 'center',
+    writingDirection: 'rtl',
+  },
+  objectivesInput: {
+    borderWidth: 1,
+    borderColor: '#E5E5EA',
+    borderRadius: 8,
+    paddingHorizontal: 10,
+    paddingVertical: 8,
+    fontSize: 13,
+    color: '#1c1f33',
+    textAlign: 'right',
+    writingDirection: 'rtl',
+    flex: 1,
+    marginHorizontal: 4,
+  },
+  objectivesColM: { width: 28, minWidth: 28, maxWidth: 28, flex: 0 },
+  objectivesColObjective: { flex: 1.2, minWidth: 70 },
+  objectivesColStandard: { flex: 1.2, minWidth: 70 },
+  objectivesColWeight: { flex: 0.5, minWidth: 48 },
+  objectivesColTarget: { flex: 1, minWidth: 60 },
+  objectivesColActual: { flex: 1, minWidth: 60 },
+  objectivesColRating: { flex: 0.5, minWidth: 48 },
 });

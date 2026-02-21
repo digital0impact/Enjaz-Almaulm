@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { StyleSheet, ScrollView, TouchableOpacity, Alert, ImageBackground, KeyboardAvoidingView, Platform, StatusBar, Dimensions, View, ActivityIndicator, Linking } from 'react-native';
+import { StyleSheet, ScrollView, TouchableOpacity, Alert, ImageBackground, KeyboardAvoidingView, Platform, StatusBar, Dimensions, View, ActivityIndicator, Linking, Modal, Image } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { BarChart } from 'react-native-chart-kit';
 import { useFocusEffect } from '@react-navigation/native';
@@ -37,10 +37,15 @@ type PerformanceItem = {
 export default function InteractiveReportScreen() {
   const router = useRouter();
   const insets = useSafeAreaInsets();
-  const [selectedChart, setSelectedChart] = useState('overall');
+  const [selectedChart, setSelectedChart] = useState('evidence');
   const [performanceData, setPerformanceData] = useState<PerformanceItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [isExporting, setIsExporting] = useState(false);
+  /** الملفات المرفقة للشواهد (مفتاح: محور-رقم_شاهد) لمعاينة الشاهد */
+  const [uploadedFilesMap, setUploadedFilesMap] = useState<Record<string, { name: string; size: string; date: string; type: string; uri?: string }>>({});
+  /** معاينة الصورة: URI المعروض وحالة ظهور الـ Modal */
+  const [previewVisible, setPreviewVisible] = useState(false);
+  const [previewImageUri, setPreviewImageUri] = useState<string | null>(null);
   // إضافة مستمع للتركيز على الصفحة باستخدام useFocusEffect
   useFocusEffect(
     React.useCallback(() => {
@@ -120,11 +125,26 @@ export default function InteractiveReportScreen() {
         // حفظ البيانات الجديدة
         await AsyncStorage.setItem('performanceData', JSON.stringify(currentProfessionData));
       }
+
+      // تحميل الملفات المرفقة للشواهد (للمعاينة)
+      const storedFiles = await AsyncStorage.getItem('uploadedFiles');
+      if (storedFiles) {
+        try {
+          const parsed = JSON.parse(storedFiles) as Record<string, { name: string; size: string; date: string; type: string; uri?: string }>;
+          setUploadedFilesMap(typeof parsed === 'object' && parsed !== null ? parsed : {});
+        } catch (_) {
+          setUploadedFilesMap({});
+        }
+      } else {
+        setUploadedFilesMap({});
+      }
+
       setLoading(false);
     } catch (error) {
       console.log('Error loading performance data:', error);
       const fallbackData = getDefaultPerformanceData('معلم/ة');
       setPerformanceData(fallbackData);
+      setUploadedFilesMap({});
       // حفظ البيانات الافتراضية في حالة الخطأ
       try {
         await AsyncStorage.setItem('performanceData', JSON.stringify(fallbackData));
@@ -255,6 +275,16 @@ export default function InteractiveReportScreen() {
           return 'تربوي';
         }
         break;
+
+      case 'الجدارات الوظيفية العامة (المشتركة)':
+        return 'جدارات مشتركة';
+
+      case 'الجدارات الوظيفية القيادية':
+        if (title.includes('قيادة التغيير') || title.includes('تطوير وتمكين الموظفين') || 
+            title.includes('التوجه الاستراتيجي') || title.includes('اتخاذ القرارات')) {
+          return 'جدارات قيادية';
+        }
+        return 'جدارات مشتركة';
 
       default: // معلم/ة عادي
         // المحاور الوظيفية
@@ -842,6 +872,26 @@ export default function InteractiveReportScreen() {
           }
         ];
 
+      case 'الجدارات الوظيفية العامة (المشتركة)':
+        return [
+          { id: 1, title: 'المسؤولية', score: 0, weight: 20, category: 'جدارات مشتركة' },
+          { id: 2, title: 'العمل الجماعي', score: 0, weight: 25, category: 'جدارات مشتركة' },
+          { id: 3, title: 'المرونة للتغيير', score: 0, weight: 30, category: 'جدارات مشتركة' },
+          { id: 4, title: 'المبادرة', score: 0, weight: 25, category: 'جدارات مشتركة' },
+        ];
+
+      case 'الجدارات الوظيفية القيادية':
+        return [
+          { id: 1, title: 'المسؤولية', score: 0, weight: 15, category: 'جدارات مشتركة' },
+          { id: 2, title: 'العمل الجماعي', score: 0, weight: 10, category: 'جدارات مشتركة' },
+          { id: 3, title: 'المرونة للتغيير', score: 0, weight: 10, category: 'جدارات مشتركة' },
+          { id: 4, title: 'المبادرة', score: 0, weight: 10, category: 'جدارات مشتركة' },
+          { id: 5, title: 'قيادة التغيير', score: 0, weight: 20, category: 'جدارات قيادية' },
+          { id: 6, title: 'تطوير وتمكين الموظفين', score: 0, weight: 10, category: 'جدارات قيادية' },
+          { id: 7, title: 'التوجه الاستراتيجي', score: 0, weight: 10, category: 'جدارات قيادية' },
+          { id: 8, title: 'اتخاذ القرارات', score: 0, weight: 15, category: 'جدارات قيادية' },
+        ];
+
       default: // معلم/ة عادي
         return [
           {
@@ -1017,43 +1067,92 @@ export default function InteractiveReportScreen() {
     );
   };
 
-  const renderStatistics = () => {
-    const overallAverage = calculateOverallAverage();
-    const categories = getCategories();
+  const renderEvidence = () => {
+    const itemsWithEvidence = performanceData.filter(
+      (item) => item.evidence && item.evidence.length > 0
+    );
 
-    return (
-      <ThemedView style={styles.statisticsContainer}>
-        <ThemedText style={styles.sectionTitle}>الإحصائيات العامة</ThemedText>
-        
-        <ThemedView style={styles.statsGrid}>
-          <ThemedView style={styles.statCard}>
-            <ThemedText style={[styles.statValue, { color: getScoreColor(overallAverage) }]}>
-              {overallAverage}%
+    if (itemsWithEvidence.length === 0) {
+      return (
+        <ThemedView style={styles.evidenceContainer}>
+          <ThemedText style={styles.sectionTitle}>الشواهد - محاور الأداء المهني</ThemedText>
+          <ThemedView style={styles.emptyState}>
+            <ThemedText style={styles.emptyStateText}>
+              لا توجد شواهد مُدخلة في محاور الأداء المهني. أضف الشواهد من تبويب محاور الأداء المهني.
             </ThemedText>
-            <ThemedText style={styles.statLabel}>المعدل العام</ThemedText>
-          </ThemedView>
-          
-          <ThemedView style={styles.statCard}>
-            <ThemedText style={styles.statValue}>
-              {performanceData.length}
-            </ThemedText>
-            <ThemedText style={styles.statLabel}>عدد المحاور</ThemedText>
-          </ThemedView>
-          
-          <ThemedView style={styles.statCard}>
-            <ThemedText style={styles.statValue}>
-              {categories.length}
-            </ThemedText>
-            <ThemedText style={styles.statLabel}>عدد الفئات</ThemedText>
-          </ThemedView>
-          
-          <ThemedView style={styles.statCard}>
-            <ThemedText style={styles.statValue}>
-              {getScoreLevel(overallAverage)}
-            </ThemedText>
-            <ThemedText style={styles.statLabel}>المستوى</ThemedText>
           </ThemedView>
         </ThemedView>
+      );
+    }
+
+    return (
+      <ThemedView style={styles.evidenceContainer}>
+        <ThemedText style={styles.sectionTitle}>الشواهد - محاور الأداء المهني</ThemedText>
+        <ThemedText style={styles.evidenceIntro}>
+          الشواهد المُدخلة في كل محور من محاور الأداء المهني:
+        </ThemedText>
+        <ScrollView
+          style={styles.evidenceScroll}
+          showsVerticalScrollIndicator={false}
+          nestedScrollEnabled
+        >
+          {itemsWithEvidence.map((item) => (
+            <ThemedView key={String(item.id)} style={styles.evidenceAxisCard}>
+              <ThemedText style={styles.evidenceAxisTitle}>{item.title}</ThemedText>
+              <ThemedView style={styles.evidenceList}>
+                {(item.evidence || []).map((ev, idx) => {
+                  const fileKey = `${item.id}-${idx}`;
+                  const file = uploadedFilesMap[fileKey];
+                  const canPreview = ev.available && file?.uri;
+                  const isImage = file?.type === 'صورة';
+                  return (
+                    <ThemedView key={idx} style={styles.evidenceRow}>
+                      <ThemedView style={styles.evidenceRowContent}>
+                        <ThemedText style={styles.evidenceName}>{ev.name}</ThemedText>
+                      </ThemedView>
+                      <ThemedView style={styles.evidenceRowBadge}>
+                        <ThemedView
+                          style={[
+                            styles.evidenceBadge,
+                            ev.available ? styles.evidenceBadgeAvailable : styles.evidenceBadgeUnavailable,
+                          ]}
+                        >
+                          <ThemedText
+                            style={[
+                              styles.evidenceBadgeText,
+                              ev.available ? styles.evidenceBadgeTextAvailable : styles.evidenceBadgeTextUnavailable,
+                            ]}
+                          >
+                            {ev.available ? 'متوفر' : 'غير متوفر'}
+                          </ThemedText>
+                        </ThemedView>
+                        {canPreview && (
+                          <TouchableOpacity
+                            style={styles.evidencePreviewButton}
+                            onPress={() => {
+                              if (isImage) {
+                                setPreviewImageUri(file.uri!);
+                                setPreviewVisible(true);
+                              } else {
+                                Linking.openURL(file.uri!).catch(() =>
+                                  Alert.alert('لا يمكن فتح الملف', 'المعاينة غير متاحة لهذا النوع على هذا الجهاز.')
+                                );
+                              }
+                            }}
+                            activeOpacity={0.7}
+                          >
+                            <IconSymbol size={16} name="eye.fill" color="#1c1f33" />
+                            <ThemedText style={styles.evidencePreviewButtonText}>معاينة</ThemedText>
+                          </TouchableOpacity>
+                        )}
+                      </ThemedView>
+                    </ThemedView>
+                  );
+                })}
+              </ThemedView>
+            </ThemedView>
+          ))}
+        </ScrollView>
       </ThemedView>
     );
   };
@@ -1227,14 +1326,14 @@ export default function InteractiveReportScreen() {
 
   const renderChart = () => {
     switch (selectedChart) {
-      case 'statistics':
-        return renderStatistics();
+      case 'evidence':
+        return renderEvidence();
       case 'overall':
         return renderProgressChart();
       case 'categories':
         return renderCategoriesChart();
       default:
-        return renderStatistics();
+        return renderEvidence();
     }
   };
 
@@ -2118,12 +2217,12 @@ export default function InteractiveReportScreen() {
                 </ThemedText>
               <ThemedView style={styles.selectorButtons}>
                 <TouchableOpacity
-                  style={[styles.selectorButton, selectedChart === 'statistics' && styles.activeSelectorButton]}
-                  onPress={() => setSelectedChart('statistics')}
+                  style={[styles.selectorButton, selectedChart === 'evidence' && styles.activeSelectorButton]}
+                  onPress={() => setSelectedChart('evidence')}
                 >
-                  <IconSymbol size={16} name="chart.pie.fill" color={selectedChart === 'statistics' ? '#fff' : '#666'} />
-                                    <ThemedText style={[styles.selectorButtonText, selectedChart === 'statistics' && styles.activeSelectorButtonText]}>
-                    الإحصائيات
+                  <IconSymbol size={16} name="doc.text.fill" color={selectedChart === 'evidence' ? '#fff' : '#666'} />
+                  <ThemedText style={[styles.selectorButtonText, selectedChart === 'evidence' && styles.activeSelectorButtonText]}>
+                    الشواهد
                   </ThemedText>
                 </TouchableOpacity>
 
@@ -2180,6 +2279,16 @@ export default function InteractiveReportScreen() {
 
             <ThemedView style={styles.actionButtons}>
               <TouchableOpacity 
+                style={styles.exportButton}
+                onPress={() => router.push('/share-achievements')}
+                activeOpacity={0.7}
+              >
+                <IconSymbol size={20} name="square.and.arrow.up" color="#1c1f33" />
+                <ThemedText style={styles.buttonText}>
+                  {formatRTLText('مشاركة الإنجازات')}
+                </ThemedText>
+              </TouchableOpacity>
+              <TouchableOpacity 
                 style={[styles.exportButton, isExporting && styles.exportButtonDisabled]}
                 onPress={handleExportReport}
                 disabled={isExporting}
@@ -2191,7 +2300,7 @@ export default function InteractiveReportScreen() {
                   <IconSymbol size={20} name="square.and.arrow.up.fill" color="#1c1f33" />
                 )}
                 <ThemedText style={styles.buttonText}>
-                  {isExporting ? formatRTLText('جاري التصدير...') : formatRTLText('تصدير التقرير')}
+                  {isExporting ? formatRTLText('جاري التصدير...') : formatRTLText('تصدير التقرير التفاعلي')}
                 </ThemedText>
               </TouchableOpacity>
             </ThemedView>
@@ -2199,6 +2308,33 @@ export default function InteractiveReportScreen() {
           </ScrollView>
         </KeyboardAvoidingView>
       </ImageBackground>
+
+      <Modal
+        visible={previewVisible}
+        transparent
+        animationType="fade"
+        onRequestClose={() => setPreviewVisible(false)}
+      >
+        <TouchableOpacity
+          style={styles.previewOverlay}
+          activeOpacity={1}
+          onPress={() => setPreviewVisible(false)}
+        >
+          <View style={styles.previewContent} pointerEvents="box-none">
+            {previewImageUri ? (
+              <Image source={{ uri: previewImageUri }} style={styles.previewImage} resizeMode="contain" />
+            ) : null}
+            <TouchableOpacity
+              style={styles.previewCloseButton}
+              onPress={() => setPreviewVisible(false)}
+              activeOpacity={0.8}
+            >
+              <ThemedText style={styles.previewCloseText}>إغلاق</ThemedText>
+            </TouchableOpacity>
+          </View>
+        </TouchableOpacity>
+      </Modal>
+
       <BottomNavigationBar />
     </ThemedView>
   );
@@ -2648,8 +2784,8 @@ const styles = StyleSheet.create<any>({
     lineHeight: 20,
   },
   actionButtons: {
-    flexDirection: 'row',
-    gap: 10,
+    flexDirection: 'column',
+    gap: 12,
     marginBottom: 20,
   },
   exportButton: {
@@ -2685,6 +2821,136 @@ const styles = StyleSheet.create<any>({
     borderRadius: 16,
     borderWidth: 1,
     borderColor: 'rgba(229, 229, 234, 0.5)',
+  },
+  evidenceContainer: {
+    marginBottom: 20,
+    padding: 20,
+    backgroundColor: 'rgba(255, 255, 255, 0.9)',
+    borderRadius: 16,
+    borderWidth: 1,
+    borderColor: 'rgba(229, 229, 234, 0.5)',
+  },
+  evidenceIntro: {
+    fontSize: 14,
+    color: '#555',
+    textAlign: 'right',
+    writingDirection: 'rtl',
+    textDirection: 'rtl',
+    marginBottom: 12,
+  },
+  evidenceScroll: {
+    maxHeight: 380,
+  },
+  evidenceAxisCard: {
+    marginBottom: 16,
+    padding: 14,
+    backgroundColor: 'rgba(245, 245, 247, 0.9)',
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: 'rgba(229, 229, 234, 0.5)',
+  },
+  evidenceAxisTitle: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: '#1c1f33',
+    textAlign: 'right',
+    writingDirection: 'rtl',
+    textDirection: 'rtl',
+    marginBottom: 10,
+  },
+  evidenceList: {
+    gap: 8,
+  },
+  evidenceRow: {
+    flexDirection: 'row-reverse',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingVertical: 6,
+    paddingHorizontal: 10,
+    backgroundColor: '#fff',
+    borderRadius: 8,
+    borderWidth: 1,
+    borderColor: 'rgba(229, 229, 234, 0.4)',
+  },
+  evidenceName: {
+    flex: 1,
+    fontSize: 13,
+    color: '#333',
+    textAlign: 'right',
+    writingDirection: 'rtl',
+    textDirection: 'rtl',
+  },
+  evidenceBadge: {
+    paddingHorizontal: 10,
+    paddingVertical: 4,
+    borderRadius: 8,
+    marginLeft: 8,
+  },
+  evidenceBadgeAvailable: {
+    backgroundColor: 'rgba(76, 175, 80, 0.2)',
+  },
+  evidenceBadgeUnavailable: {
+    backgroundColor: 'rgba(158, 158, 158, 0.2)',
+  },
+  evidenceBadgeText: {
+    fontSize: 12,
+    fontWeight: '600',
+  },
+  evidenceBadgeTextAvailable: {
+    color: '#2e7d32',
+  },
+  evidenceBadgeTextUnavailable: {
+    color: '#616161',
+  },
+  evidenceRowContent: {
+    flex: 1,
+  },
+  evidenceRowBadge: {
+    flexDirection: 'row-reverse',
+    alignItems: 'center',
+    gap: 10,
+  },
+  evidencePreviewButton: {
+    flexDirection: 'row-reverse',
+    alignItems: 'center',
+    gap: 6,
+    paddingVertical: 6,
+    paddingHorizontal: 12,
+    backgroundColor: 'rgba(28, 31, 51, 0.08)',
+    borderRadius: 8,
+  },
+  evidencePreviewButtonText: {
+    fontSize: 13,
+    fontWeight: '600',
+    color: '#1c1f33',
+  },
+  previewOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0,0,0,0.85)',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  previewContent: {
+    width: '90%',
+    maxWidth: 400,
+    alignItems: 'center',
+  },
+  previewImage: {
+    width: '100%',
+    height: 360,
+    borderRadius: 12,
+  },
+  previewCloseButton: {
+    marginTop: 16,
+    paddingVertical: 12,
+    paddingHorizontal: 24,
+    backgroundColor: 'rgba(255,255,255,0.2)',
+    borderRadius: 12,
+  },
+  previewCloseText: {
+    color: '#fff',
+    fontSize: 16,
+    fontWeight: '600',
   },
   sectionTitle: {
     fontSize: 18,

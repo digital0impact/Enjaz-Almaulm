@@ -322,7 +322,7 @@ export default function HomeScreen() {
                     onPress={() => router.push('/subscription')}
                   >
                     <IconSymbol size={20} name="creditcard.fill" color="#1c1f33" />
-                    <ThemedText style={[styles.headerButtonText, getTextDirection()]}>إدارة الاشتراك</ThemedText>
+                    <ThemedText style={[styles.headerButtonText, getTextDirection()]}>خطط الاشتراك</ThemedText>
                   </TouchableOpacity>
                   
                   <TouchableOpacity 
@@ -627,9 +627,11 @@ const styles = StyleSheet.create({
     backgroundColor: 'transparent',
   },
   headerButtons: {
-    flexDirection: 'row',
-    gap: 10,
+    flexDirection: 'column',
+    alignItems: 'stretch',
+    gap: 0,
     backgroundColor: 'transparent',
+    marginTop: 4,
   },
   settingsButton: {
     padding: 15,
