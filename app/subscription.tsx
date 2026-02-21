@@ -113,20 +113,43 @@ const SubscriptionScreen = () => {
   const [slideAnim] = useState(new Animated.Value(50));
   const lastSubscriptionRef = useRef<any>(null);
 
+  /** تحميل اشتراك المستخدم الحالي من Supabase (مستقر للاستدعاء من Realtime والتركيز) */
+  const loadCurrentSubscription = useCallback(async () => {
+    try {
+      const user = await AuthService.getCurrentUser();
+      if (!user) return;
+
+      const subscription = await SubscriptionService.getCurrentSubscription(user.id);
+      const resolved = subscription && typeof subscription === 'object' ? subscription : { plan_type: 'free', status: 'active', end_date: null };
+      lastSubscriptionRef.current = resolved;
+
+      if (subscription && typeof subscription === 'object') {
+        setCurrentSubscription(subscription);
+      } else {
+        setCurrentSubscription(resolved);
+      }
+    } catch (err) {
+      console.error('Error loading current subscription:', err);
+      const fallback = { plan_type: 'free', status: 'active', end_date: null };
+      lastSubscriptionRef.current = fallback;
+      setCurrentSubscription(fallback);
+    }
+  }, []);
+
   /** تحديث حالة الاشتراك (مفيد بعد الشراء من متجر سلة) */
   const onRefreshSubscription = useCallback(async () => {
     setRefreshing(true);
     await loadCurrentSubscription();
     setRefreshing(false);
-  }, []);
+  }, [loadCurrentSubscription]);
 
   useFocusEffect(
     useCallback(() => {
       loadCurrentSubscription();
-    }, [])
+    }, [loadCurrentSubscription])
   );
 
-  // على الويب: عند فتح الصفحة برابط العودة بعد الدفع (?purchase=success) نحدّث الاشتراك مع إعادة المحاولة (ويب هوك المتجر قد يتأخر)
+  // على الويب: عند فتح الصفحة برابط العودة بعد الدفع (?purchase=success) ننتظر جاهزية الجلسة ثم نحدّث الاشتراك مع إعادة المحاولة (ويب هوك المتجر قد يتأخر)
   useEffect(() => {
     if (!isWeb || typeof window === 'undefined' || typeof window.location?.search !== 'string') return;
     const params = new URLSearchParams(window.location.search);
@@ -135,24 +158,60 @@ const SubscriptionScreen = () => {
     window.history.replaceState({}, '', cleanUrl);
     setSyncingAfterPurchase(true);
     let cancelled = false;
-    let attempts = 0;
     const maxAttempts = 6;
     const delayMs = 2000;
+    const authWaitMs = 400;
+    const authWaitMax = 3000;
+
+    const waitForAuth = (): Promise<boolean> => {
+      return new Promise((resolve) => {
+        let elapsed = 0;
+        const check = async () => {
+          if (cancelled) {
+            resolve(false);
+            return;
+          }
+          const user = await AuthService.getCurrentUser();
+          if (user?.id) {
+            resolve(true);
+            return;
+          }
+          elapsed += authWaitMs;
+          if (elapsed >= authWaitMax) {
+            resolve(false);
+            return;
+          }
+          setTimeout(check, authWaitMs);
+        };
+        check();
+      });
+    };
+
     const run = async () => {
       if (cancelled) return;
-      await loadCurrentSubscription();
-      attempts += 1;
-      const sub = lastSubscriptionRef.current;
-      const isPaid = sub && sub.plan_type !== 'free' && sub.purchase_verified;
-      if (isPaid || attempts >= maxAttempts) {
+      const ready = await waitForAuth();
+      if (!ready || cancelled) {
         setSyncingAfterPurchase(false);
         return;
       }
-      setTimeout(run, delayMs);
+      let attempts = 0;
+      const doSync = async () => {
+        if (cancelled) return;
+        await loadCurrentSubscription();
+        attempts += 1;
+        const sub = lastSubscriptionRef.current;
+        const isPaid = sub && sub.plan_type !== 'free' && sub.purchase_verified;
+        if (isPaid || attempts >= maxAttempts) {
+          setSyncingAfterPurchase(false);
+          return;
+        }
+        setTimeout(doSync, delayMs);
+      };
+      doSync();
     };
     run();
     return () => { cancelled = true; };
-  }, [isWeb]);
+  }, [isWeb, loadCurrentSubscription]);
 
   // على الويب: عند عودة المستخدم لتبويب التطبيق بعد الشراء، نحدّث حالة الاشتراك
   useEffect(() => {
@@ -164,7 +223,7 @@ const SubscriptionScreen = () => {
     };
     document.addEventListener('visibilitychange', onVisibilityChange);
     return () => document.removeEventListener('visibilitychange', onVisibilityChange);
-  }, [isWeb]);
+  }, [isWeb, loadCurrentSubscription]);
 
   // الاشتراك في Realtime: عند إضافة أو تحديث اشتراك المستخدم في قاعدة البيانات (مثلاً بعد ويب هوك الدفع) يصل التحديث فوراً
   useEffect(() => {
@@ -192,12 +251,12 @@ const SubscriptionScreen = () => {
       mounted = false;
       channel?.unsubscribe();
     };
-  }, []);
+  }, [loadCurrentSubscription]);
 
   useEffect(() => {
     loadProducts();
     loadCurrentSubscription();
-    
+
     // تحريك الصفحة عند التحميل
     Animated.parallel([
       Animated.timing(fadeAnim, {
@@ -211,7 +270,7 @@ const SubscriptionScreen = () => {
         useNativeDriver: true,
       }),
     ]).start();
-  }, []);
+  }, [loadCurrentSubscription]);
 
   const loadProducts = async () => {
     try {
@@ -230,28 +289,6 @@ const SubscriptionScreen = () => {
       setError(null);
     } finally {
       setLoading(false);
-    }
-  };
-
-  const loadCurrentSubscription = async () => {
-    try {
-      const user = await AuthService.getCurrentUser();
-      if (!user) return;
-
-      const subscription = await SubscriptionService.getCurrentSubscription(user.id);
-      const resolved = subscription && typeof subscription === 'object' ? subscription : { plan_type: 'free', status: 'active', end_date: null };
-      lastSubscriptionRef.current = resolved;
-
-      if (subscription && typeof subscription === 'object') {
-        setCurrentSubscription(subscription);
-      } else {
-        setCurrentSubscription(resolved);
-      }
-    } catch (err) {
-      console.error('Error loading current subscription:', err);
-      const fallback = { plan_type: 'free', status: 'active', end_date: null };
-      lastSubscriptionRef.current = fallback;
-      setCurrentSubscription(fallback);
     }
   };
 

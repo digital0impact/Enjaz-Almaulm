@@ -1,0 +1,40 @@
+-- جدول اشتراكات المستخدمين (متوافق مع التطبيق وويب هوك المتجر)
+CREATE TABLE IF NOT EXISTS public.subscriptions (
+  id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
+  user_id UUID NOT NULL REFERENCES auth.users(id) ON DELETE CASCADE,
+  plan_type TEXT NOT NULL CHECK (plan_type IN ('yearly', 'half_yearly', 'free')),
+  start_date TIMESTAMPTZ NOT NULL,
+  end_date TIMESTAMPTZ NOT NULL,
+  status TEXT NOT NULL DEFAULT 'active' CHECK (status IN ('active', 'expired', 'cancelled')),
+  price NUMERIC NOT NULL DEFAULT 0,
+  transaction_id TEXT,
+  purchase_verified BOOLEAN NOT NULL DEFAULT false,
+  created_at TIMESTAMPTZ DEFAULT NOW(),
+  updated_at TIMESTAMPTZ DEFAULT NOW()
+);
+
+CREATE INDEX IF NOT EXISTS idx_subscriptions_user_id ON public.subscriptions(user_id);
+CREATE INDEX IF NOT EXISTS idx_subscriptions_status ON public.subscriptions(status);
+CREATE INDEX IF NOT EXISTS idx_subscriptions_end_date ON public.subscriptions(end_date);
+
+ALTER TABLE public.subscriptions ENABLE ROW LEVEL SECURITY;
+
+-- المستخدم المصادق يقرأ اشتراكاته فقط
+CREATE POLICY "Users can read own subscriptions"
+  ON public.subscriptions FOR SELECT
+  USING (auth.uid() = user_id);
+
+-- المستخدم المصادق يمكنه إدراج اشتراك لحسابه (مثل الخطة المجانية من التطبيق)
+CREATE POLICY "Users can insert own subscriptions"
+  ON public.subscriptions FOR INSERT
+  WITH CHECK (auth.uid() = user_id);
+
+-- المستخدم المصادق يمكنه تحديث اشتراكاته فقط (مثل إلغاء)
+CREATE POLICY "Users can update own subscriptions"
+  ON public.subscriptions FOR UPDATE
+  USING (auth.uid() = user_id);
+
+-- إدراج جدول subscriptions في منشور Realtime حتى يصل التحديث فوراً للتطبيق بعد ويب هوك الدفع
+ALTER PUBLICATION supabase_realtime ADD TABLE public.subscriptions;
+
+COMMENT ON TABLE public.subscriptions IS 'اشتراكات المستخدمين (سنوي/نصف سنوي/مجاني)؛ يُملأ من التطبيق أو من ويب هوك متجر سلة';

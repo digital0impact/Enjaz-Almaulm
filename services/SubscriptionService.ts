@@ -64,7 +64,7 @@ export class SubscriptionService {
       .select('*')
       .eq('user_id', userId)
       .eq('status', 'active')
-      .order('created_at', { ascending: false })
+      .order('end_date', { ascending: false })
       .limit(1)
       .maybeSingle();
 
