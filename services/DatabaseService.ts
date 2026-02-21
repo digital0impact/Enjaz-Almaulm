@@ -222,19 +222,18 @@ class DatabaseService {
         .upsert(row, { onConflict: 'id' });
       if (profileError) throw profileError;
 
-      if (updates.phoneNumber !== undefined) {
-        const usersRow: Record<string, unknown> = {
-          id: userId,
-          name: current?.name ?? updates.name ?? '',
-          email: current?.email ?? updates.email ?? '',
-          phone_number: updates.phoneNumber,
-          updatedAt: now,
-        };
-        const { error: usersError } = await supabase
-          .from('users')
-          .upsert(usersRow, { onConflict: 'id' });
-        if (usersError) logError('Error syncing phone to users table', 'DatabaseService', usersError);
-      }
+      const finalPhone = (row.phone_number as string) ?? '';
+      const usersRow: Record<string, unknown> = {
+        id: userId,
+        name: current?.name ?? updates.name ?? '',
+        email: current?.email ?? updates.email ?? '',
+        phone_number: finalPhone,
+        updatedAt: now,
+      };
+      const { error: usersError } = await supabase
+        .from('users')
+        .upsert(usersRow, { onConflict: 'id' });
+      if (usersError) logError('Error syncing phone to users table', 'DatabaseService', usersError);
     } catch (error) {
       logError('Error updating user profile', 'DatabaseService', error);
       throw error;

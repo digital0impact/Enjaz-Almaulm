@@ -109,10 +109,16 @@ export default function BasicDataScreen() {
           await DatabaseService.updateUserProfile(user.id, {
             name: userData.fullName,
             email: userData.email,
-            phoneNumber: userData.phone || undefined,
+            phoneNumber: (userData.phone || '').trim() || undefined,
           });
         } catch (e) {
           console.warn('Could not sync profile to Supabase:', e);
+          setIsEditing(false);
+          Alert.alert(
+            formatRTLText('فشلت المزامنة'),
+            formatRTLText('تم حفظ البيانات على الجهاز لكن لم يتم رفعها إلى السيرفر (بما فيها رقم الجوال). تحقق من الاتصال بالإنترنت وحاول مرة أخرى.')
+          );
+          return;
         }
       }
       setIsEditing(false);
