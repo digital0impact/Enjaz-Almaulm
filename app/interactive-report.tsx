@@ -276,10 +276,10 @@ export default function InteractiveReportScreen() {
         }
         break;
 
-      case 'الجدارات الوظيفية العامة (المشتركة)':
+      case 'التشكيلات الإشرافية المشتركة':
         return 'جدارات مشتركة';
 
-      case 'الجدارات الوظيفية القيادية':
+      case 'التشكيلات الإشرافية':
         if (title.includes('قيادة التغيير') || title.includes('تطوير وتمكين الموظفين') || 
             title.includes('التوجه الاستراتيجي') || title.includes('اتخاذ القرارات')) {
           return 'جدارات قيادية';
@@ -872,7 +872,7 @@ export default function InteractiveReportScreen() {
           }
         ];
 
-      case 'الجدارات الوظيفية العامة (المشتركة)':
+      case 'التشكيلات الإشرافية المشتركة':
         return [
           { id: 1, title: 'المسؤولية', score: 0, weight: 20, category: 'جدارات مشتركة' },
           { id: 2, title: 'العمل الجماعي', score: 0, weight: 25, category: 'جدارات مشتركة' },
@@ -880,7 +880,7 @@ export default function InteractiveReportScreen() {
           { id: 4, title: 'المبادرة', score: 0, weight: 25, category: 'جدارات مشتركة' },
         ];
 
-      case 'الجدارات الوظيفية القيادية':
+      case 'التشكيلات الإشرافية':
         return [
           { id: 1, title: 'المسؤولية', score: 0, weight: 15, category: 'جدارات مشتركة' },
           { id: 2, title: 'العمل الجماعي', score: 0, weight: 10, category: 'جدارات مشتركة' },
@@ -1353,20 +1353,36 @@ export default function InteractiveReportScreen() {
   };
 
   const generateReportHTML = async () => {
-    // تحميل شعار الوزارة للتقرير المصدر (PDF) — على الويب لا نستخدم expo-asset/FileSystem
-    let logoDataUri = 'https://i.ibb.co/7XqJqK7/moe-logo.png';
-    if (Platform.OS !== 'web') {
-      try {
-        const Asset = require('expo-asset').Asset;
-        const asset = Asset.fromModule(require('@/assets/images/moe_logo.png'));
-        await asset.downloadAsync();
+    // تحميل شعار الوزارة للتقرير المصدر (PDF/HTML) فقط — من ملف moe_logo.png المحلي
+    let logoDataUri = '';
+    try {
+      const Asset = require('expo-asset').Asset;
+      const asset = Asset.fromModule(require('@/assets/images/moe_logo.png'));
+      await asset.downloadAsync();
+
+      if (Platform.OS === 'web') {
+        // على الويب: asset.uri يكون رابط الصورة المُضمّنة، نحمّلها ونحوّلها إلى data URI
+        const uri = asset.uri ?? (asset as any).localUri;
+        if (uri) {
+          const url = typeof uri === 'string' && uri.startsWith('/') ? `${typeof window !== 'undefined' ? window.location.origin : ''}${uri}` : uri;
+          const res = await fetch(url);
+          const blob = await res.blob();
+          logoDataUri = await new Promise<string>((resolve, reject) => {
+            const reader = new FileReader();
+            reader.onload = () => resolve(reader.result as string);
+            reader.onerror = reject;
+            reader.readAsDataURL(blob);
+          });
+        }
+      } else {
         if (asset.localUri) {
           const base64 = await FileSystem.readAsStringAsync(asset.localUri, { encoding: FileSystem.EncodingType.Base64 });
           if (base64) logoDataUri = `data:image/png;base64,${base64}`;
         }
-      } catch (_) {
-        // الإبقاء على الرابط الافتراضي إن فشل تحميل الأصل المحلي
       }
+    } catch (e) {
+      // إن لم يوجد الملف أو فشل التحميل، يُترك الشعار فارغاً في التقرير المصدر
+      if (__DEV__ && typeof console !== 'undefined') console.warn('تحميل شعار الوزارة للتقرير:', e);
     }
 
     // تحميل البيانات الشخصية والمهنية
@@ -1742,7 +1758,7 @@ export default function InteractiveReportScreen() {
       <div class="container">
         <div class="header">
           <div class="logo-section">
-            <img src="${logoDataUri}" alt="شعار وزارة التعليم" class="logo">
+            ${logoDataUri ? `<img src="${logoDataUri}" alt="شعار وزارة التعليم" class="logo">` : ''}
             <div class="ministry-info">
               <h2 class="ministry-title">المملكة العربية السعودية</h2>
               <p class="ministry-subtitle">وزارة التعليم</p>

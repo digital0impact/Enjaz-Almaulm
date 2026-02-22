@@ -1,20 +1,46 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, Component } from 'react';
 import {
   StyleSheet,
   ScrollView,
   View,
   ActivityIndicator,
-  useLocalSearchParams,
   Platform,
+  Text,
   TextInput,
   TouchableOpacity,
   Alert,
 } from 'react-native';
-import { useRouter } from 'expo-router';
+import { useRouter, useLocalSearchParams, usePathname } from 'expo-router';
 import { ThemedText } from '@/components/ThemedText';
 import { ThemedView } from '@/components/ThemedView';
 import { supabase } from '@/config/supabase';
 import { getTextDirection, formatRTLText } from '@/utils/rtl-utils';
+
+// حد أخطاء لتفادي صفحة بيضاء عند أي خطأ غير متوقع
+class SharePageErrorBoundary extends Component<
+  { children: React.ReactNode },
+  { hasError: boolean }
+> {
+  state = { hasError: false };
+  static getDerivedStateFromError() {
+    return { hasError: true };
+  }
+  componentDidCatch() {
+    // يمكن تسجيل الخطأ هنا
+  }
+  render() {
+    if (this.state.hasError) {
+      return (
+        <View style={[styles.centered, { padding: 24 }]}>
+          <Text style={{ fontSize: 16, color: '#c62828', textAlign: 'center', writingDirection: 'rtl' }}>
+            حدث خطأ غير متوقع. يرجى المحاولة لاحقاً أو التحقق من الرابط.
+          </Text>
+        </View>
+      );
+    }
+    return this.props.children;
+  }
+}
 
 type ReportSnapshot = {
   performanceData?: Array<{ title: string; score: number; weight: number }>;
@@ -30,8 +56,20 @@ type CommentRow = {
   created_at: string;
 };
 
-export default function SharedAchievementsViewScreen() {
-  const { token } = useLocalSearchParams<{ token: string }>();
+// استخراج التوكن من المسار عند التحميل المباشر للرابط (ويب) حيث useLocalSearchParams قد يكون فارغاً
+function getTokenFromPathname(pathname: string | undefined): string | undefined {
+  if (typeof pathname !== 'string' || !pathname.startsWith('/share/')) return undefined;
+  const segment = pathname.replace(/^\/share\/?/, '').split('/')[0]?.trim();
+  return segment || undefined;
+}
+
+function SharedAchievementsViewScreenInner() {
+  const params = useLocalSearchParams<{ token?: string }>();
+  const pathname = usePathname();
+  const tokenFromParams = params?.token;
+  const tokenFromPath = getTokenFromPathname(pathname);
+  const token = tokenFromParams ?? tokenFromPath;
+
   const router = useRouter();
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -54,10 +92,16 @@ export default function SharedAchievementsViewScreen() {
 
   useEffect(() => {
     if (!token) {
-      setError('رابط غير صالح');
-      setLoading(false);
-      return;
+      // على الويب قد يتأخر وصول المعامل من الراوتر؛ نعطي فرصة قصيرة قبل عرض "رابط غير صالح"
+      const t = setTimeout(() => {
+        setError('رابط غير صالح');
+        setLoading(false);
+      }, 400);
+      return () => clearTimeout(t);
     }
+    setError(null);
+    setLoading(true);
+    let cancelled = false;
     (async () => {
       try {
         const { data: row, error: e } = await supabase
@@ -65,6 +109,7 @@ export default function SharedAchievementsViewScreen() {
           .select('report_data')
           .eq('token', token)
           .single();
+        if (cancelled) return;
         if (e || !row?.report_data) {
           setError('لم يتم العثور على التقرير أو انتهت صلاحية الرابط.');
           setLoading(false);
@@ -73,11 +118,12 @@ export default function SharedAchievementsViewScreen() {
         setData(row.report_data as ReportSnapshot);
         await loadComments(token);
       } catch (err) {
-        setError('حدث خطأ أثناء تحميل التقرير.');
+        if (!cancelled) setError('حدث خطأ أثناء تحميل التقرير.');
       } finally {
-        setLoading(false);
+        if (!cancelled) setLoading(false);
       }
     })();
+    return () => { cancelled = true; };
   }, [token, loadComments]);
 
   const submitComment = async () => {
@@ -253,6 +299,14 @@ export default function SharedAchievementsViewScreen() {
         </View>
       </ThemedView>
     </ScrollView>
+  );
+}
+
+export default function SharedAchievementsViewScreen() {
+  return (
+    <SharePageErrorBoundary>
+      <SharedAchievementsViewScreenInner />
+    </SharePageErrorBoundary>
   );
 }
 

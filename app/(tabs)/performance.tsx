@@ -14,7 +14,7 @@ import { getTextDirection, formatRTLText } from '@/utils/rtl-utils';
 const { width, height } = Dimensions.get('window');
 
 /** المهن التي تعرض بطاقة "الأهداف" (نموذج تقييم أداء التشكيلات الإشرافية) */
-const PROFESSIONS_WITH_OBJECTIVES = ['الجدارات الوظيفية العامة (المشتركة)', 'الجدارات الوظيفية القيادية'];
+const PROFESSIONS_WITH_OBJECTIVES = ['التشكيلات الإشرافية المشتركة', 'التشكيلات الإشرافية'];
 
 const getDefaultObjectivesData = () =>
   Array.from({ length: 6 }, (_, i) => ({
@@ -1452,7 +1452,7 @@ export default function PerformanceScreen() {
           ],
         },
       ];
-    } else if (profession === 'الجدارات الوظيفية العامة (المشتركة)') {
+    } else if (profession === 'التشكيلات الإشرافية المشتركة') {
       return [
         {
           id: 1,
@@ -1507,7 +1507,7 @@ export default function PerformanceScreen() {
           ],
         },
       ];
-    } else if (profession === 'الجدارات الوظيفية القيادية') {
+    } else if (profession === 'التشكيلات الإشرافية') {
       return [
         {
           id: 1,
@@ -2684,7 +2684,7 @@ export default function PerformanceScreen() {
             <ThemedView style={styles.objectivesCard}>
               <ThemedText style={[styles.objectivesCardTitle, getTextDirection()]}>
                 {formatRTLText(
-                  userProfession === 'الجدارات الوظيفية القيادية'
+                  userProfession === 'التشكيلات الإشرافية'
                     ? 'نموذج تقييم أداء التشكيلات الإشرافية - الأهداف'
                     : 'نموذج تقييم أداء التشكيلات الإشرافية (المشتركة) - الأهداف'
                 )}
