@@ -416,6 +416,23 @@ const SubscriptionScreen = () => {
     return '#2196F3';
   };
 
+  /** هل هذه الخطة (حسب productId) هي اشتراك المستخدم الحالي؟ */
+  const isCurrentPlan = (productId: string): boolean => {
+    const plan = currentSubscription?.plan_type;
+    if (!plan || plan === 'free') return productId.includes('free') || productId.includes('subscription');
+    const productPlan = getPlanTypeForWebStore(productId);
+    return productPlan === plan;
+  };
+
+  /** نص الزر حسب حالة الاشتراك: مشترك أو مشترك - سنوي / نصف سنوي أو اشترك الآن */
+  const getSubscribeButtonLabel = (productId: string): string => {
+    if (!isCurrentPlan(productId)) return 'اشترك الآن';
+    if (productId.includes('free') || productId.includes('subscription')) return 'مشترك';
+    if (productId.includes('yearly') && !productId.includes('half')) return 'مشترك - سنوي';
+    if (productId.includes('half') || productId.includes('Half')) return 'مشترك - نصف سنوي';
+    return 'مشترك';
+  };
+
   const formatExpiryDate = (date: Date | string | undefined) => {
     if (!date) return 'غير محدد';
     
@@ -617,7 +634,7 @@ const SubscriptionScreen = () => {
                 {formatRTLText('١) استخدم نفس البريد أو رقم الجوال في المتجر كما في التطبيق (الإعدادات ← البيانات الأساسية).')}
               </ThemedText>
               <ThemedText style={[styles.webStoreNoteText, { marginTop: 4, fontSize: 13 }, getTextDirection()]}>
-                {formatRTLText('٢) تأكد من ربط ويب هوك المتجر بدالة store-subscription-webhook في Supabase.')}
+                {formatRTLText('٢) تأكد من ربط ويب هوك المتجر بدالة salla-webhook أو store-subscription-webhook في Supabase، وراجع سجلات الدالة (Logs).')}
               </ThemedText>
               <ThemedText style={[styles.webStoreNoteText, { marginTop: 4, fontSize: 13 }, getTextDirection()]}>
                 {formatRTLText('٣) تحقق من وجود سجل في جدول subscriptions (Table Editor).')}
@@ -704,13 +721,13 @@ const SubscriptionScreen = () => {
                 <TouchableOpacity
                     style={[
                       styles.subscribeButton,
-                      { backgroundColor: getPlanColor(product.productId) }
+                      { backgroundColor: isCurrentPlan(product.productId) ? '#1976D2' : getPlanColor(product.productId) }
                     ]}
                   onPress={() => handleSubscribePress(product.productId)}
                     activeOpacity={0.8}
                 >
                     <ThemedText style={[styles.buttonText, getTextDirection()]}>
-                      {formatRTLText(product.productId.includes('free') || product.productId.includes('subscription') ? 'مشترك' : 'اشترك الآن')}
+                      {formatRTLText(getSubscribeButtonLabel(product.productId))}
                     </ThemedText>
                 </TouchableOpacity>
                 </Animated.View>

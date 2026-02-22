@@ -92,6 +92,7 @@ Deno.serve(async (req: Request) => {
     } else {
       // طلب اختبار أو تنسيق غير معروف — نرجع 200 حتى لا تعيد سلة المحاولة، مع توضيح
       const receivedKeys = typeof body === "object" && body !== null ? Object.keys(body).join(", ") : "empty";
+      console.log("[salla-webhook] لا يوجد event أو data — طلب اختبار؟ received_keys:", receivedKeys);
       return new Response(
         JSON.stringify({
           message: "Webhook URL is reachable. For subscription activation, Salla must send a real order event (e.g. order.created or order.status.updated) with { event, data }.",
@@ -114,6 +115,7 @@ Deno.serve(async (req: Request) => {
     phone = rawPhone && String(rawPhone).trim() ? String(rawPhone).trim() : null;
 
     if (!email && !phone) {
+      console.log("[salla-webhook] تخطي: لا بريد ولا جوال في الطلب. order_id:", data.id ?? order.id);
       return new Response(
         JSON.stringify({ error: "No customer email or phone in webhook" }),
         { status: 400, headers: { "Content-Type": "application/json" } }
@@ -123,6 +125,8 @@ Deno.serve(async (req: Request) => {
     const items = ((data.items || order.items) as Array<{ product?: { id?: number; name?: string; sku?: string }; name?: string }>) || [];
     const inferredPlan = getPlanFromSallaItems(items);
     if (!inferredPlan) {
+      const firstItemName = items[0]?.product?.name ?? items[0]?.name ?? "(empty)";
+      console.log("[salla-webhook] تخطي: تعذر تحديد الخطة من المنتجات. أول منتج:", firstItemName, "عدد items:", items.length);
       return new Response(
         JSON.stringify({ error: "Could not determine plan from order items" }),
         { status: 400, headers: { "Content-Type": "application/json" } }
@@ -133,14 +137,12 @@ Deno.serve(async (req: Request) => {
 
     const statusObj = (data.order ?? data) as Record<string, unknown>;
     const statusSlug = String((statusObj?.status as { slug?: string })?.slug ?? (data.status as { slug?: string })?.slug ?? (order.status as { slug?: string })?.slug ?? "");
-    if (
-      event === "order.status.updated" &&
-      statusSlug &&
-      statusSlug !== "completed" &&
-      statusSlug !== "delivered"
-    ) {
+    const completedSlugs = ["completed", "delivered", "done", "تم التوصيل", "مكتمل"];
+    const isOrderComplete = !statusSlug || completedSlugs.some((s) => statusSlug.toLowerCase().includes(s.toLowerCase()));
+    if (event === "order.status.updated" && statusSlug && !isOrderComplete) {
+      console.log("[salla-webhook] تخطي: الطلب غير مكتمل. status_slug:", statusSlug, "order_id:", data.id ?? order.id);
       return new Response(
-        JSON.stringify({ message: "Order not completed, subscription not created" }),
+        JSON.stringify({ message: "Order not completed, subscription not created", status_slug: statusSlug }),
         { status: 200, headers: { "Content-Type": "application/json" } }
       );
     }
@@ -215,13 +217,15 @@ Deno.serve(async (req: Request) => {
   }
 
   if (!userId) {
+    console.log("[salla-webhook] تخطي: لم يُعثر على مستخدم. email:", email || "(empty)", "phone:", phone || "(empty)", "transaction_id:", transactionId);
     return new Response(
       JSON.stringify({
         error: "No user found with this email or phone.",
         hint_ar:
           "تأكد من استخدام نفس رقم الجوال المسجّل في التطبيق (الإعدادات → البيانات الأساسية) عند الشراء من متجر سلة.",
+        debug: { email: email || null, phone: phone ? "***" + phone.slice(-4) : null },
       }),
-      { status: 404, headers: { "Content-Type": "application/json" } }
+      { status: 404, headers: { "Content-Type": "application/json", "Access-Control-Allow-Origin": "*" } }
     );
   }
 
@@ -236,21 +240,23 @@ Deno.serve(async (req: Request) => {
   const newLevel = PLAN_LEVEL[plan];
 
   if (hasSamePlan) {
+    console.log("[salla-webhook] تخطي: نفس الباقة نشطة. user_id:", userId, "plan:", plan);
     return new Response(
       JSON.stringify({
         error: "Same plan already active.",
         hint_ar: "لا يمكن الاشتراك في نفس الباقة لنفس الهاتف أو البريد إلا مرة واحدة فقط.",
       }),
-      { status: 409, headers: { "Content-Type": "application/json" } }
+      { status: 409, headers: { "Content-Type": "application/json", "Access-Control-Allow-Origin": "*" } }
     );
   }
   if (maxActiveLevel > 0 && newLevel <= maxActiveLevel) {
+    console.log("[salla-webhook] تخطي: الترقية للأعلى فقط. user_id:", userId, "plan:", plan, "maxActiveLevel:", maxActiveLevel);
     return new Response(
       JSON.stringify({
         error: "Upgrade only.",
         hint_ar: "يمكن الترقية إلى الباقة الأعلى فقط.",
       }),
-      { status: 409, headers: { "Content-Type": "application/json" } }
+      { status: 409, headers: { "Content-Type": "application/json", "Access-Control-Allow-Origin": "*" } }
     );
   }
 
@@ -270,12 +276,14 @@ Deno.serve(async (req: Request) => {
   });
 
   if (insertError) {
+    console.log("[salla-webhook] خطأ إدراج subscriptions:", insertError.message, "user_id:", userId, "plan:", plan);
     return new Response(JSON.stringify({ error: insertError.message }), {
       status: 500,
-      headers: { "Content-Type": "application/json" },
+      headers: { "Content-Type": "application/json", "Access-Control-Allow-Origin": "*" },
     });
   }
 
+  console.log("[salla-webhook] تم إدراج اشتراك. user_id:", userId, "plan:", plan, "transaction_id:", transactionId);
   return new Response(
     JSON.stringify({ success: true, user_id: userId, plan, end_date: endDate.toISOString() }),
     { status: 200, headers: { "Content-Type": "application/json", "Access-Control-Allow-Origin": "*" } }
