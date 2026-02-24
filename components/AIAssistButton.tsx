@@ -4,16 +4,16 @@ import {
   View,
   StyleSheet,
   Modal,
+  ActivityIndicator,
+  Alert,
+  Platform,
+  ScrollView,
 } from 'react-native';
 import { ThemedText } from '@/components/ThemedText';
 import { ThemedView } from '@/components/ThemedView';
 import { IconSymbol } from '@/components/ui/IconSymbol';
-import { type AISuggestType } from '@/services/AIAssistantService';
+import { suggestWithAI, type AISuggestType } from '@/services/AIAssistantService';
 import { getTextDirection, formatRTLText } from '@/utils/rtl-utils';
-
-/** حالياً معطّل مع إظهار "قريباً" — لتفعيل المساعد أعد استدعاء suggestWithAI في handlePress */
-const AI_ASSIST_DISABLED = true;
-const COMING_SOON_MESSAGE = 'سيتم تفعيل مساعد الذكاء الاصطناعي قريباً.';
 
 interface AIAssistButtonProps {
   type: AISuggestType;
@@ -30,31 +30,65 @@ export function AIAssistButton({
   label,
   compact = true,
 }: AIAssistButtonProps) {
+  const [loading, setLoading] = useState(false);
   const [modalVisible, setModalVisible] = useState(false);
+  const [suggestedText, setSuggestedText] = useState('');
+  const [error, setError] = useState<string | null>(null);
 
-  const handlePress = () => {
-    if (AI_ASSIST_DISABLED) {
+  const handlePress = async () => {
+    setLoading(true);
+    setError(null);
+    setSuggestedText('');
+    try {
+      const text = await suggestWithAI(type, currentText);
+      setSuggestedText(text);
       setModalVisible(true);
-      return;
+    } catch (e) {
+      const msg = e instanceof Error ? e.message : String(e);
+      if (Platform.OS === 'web') {
+        setError(msg);
+        setModalVisible(true);
+      } else {
+        Alert.alert(formatRTLText('مساعد الذكاء الاصطناعي'), msg);
+      }
+    } finally {
+      setLoading(false);
     }
-    // عند إعادة التفعيل: استدعِ suggestWithAI هنا وافتح المودال بالاقتراح
+  };
+
+  const handleApply = () => {
+    if (suggestedText) onApply(suggestedText);
+    setModalVisible(false);
+    setSuggestedText('');
+    setError(null);
   };
 
   const handleClose = () => {
     setModalVisible(false);
+    setSuggestedText('');
+    setError(null);
   };
 
   return (
     <>
       <TouchableOpacity
         onPress={handlePress}
-        style={[styles.button, compact && styles.buttonCompact, AI_ASSIST_DISABLED && styles.buttonDisabled]}
+        disabled={loading}
+        style={[styles.button, compact && styles.buttonCompact]}
         activeOpacity={0.7}
       >
-        <IconSymbol name="stars" size={compact ? 18 : 20} color={AI_ASSIST_DISABLED ? '#999' : '#6366f1'} />
-        <ThemedText style={[styles.label, getTextDirection(), AI_ASSIST_DISABLED && styles.labelDisabled]} numberOfLines={1}>
-          {formatRTLText(AI_ASSIST_DISABLED ? 'قريباً' : (label ?? ''))}
-        </ThemedText>
+        {loading ? (
+          <ActivityIndicator size="small" color="#6366f1" />
+        ) : (
+          <>
+            <IconSymbol name="stars" size={compact ? 18 : 20} color="#6366f1" />
+            {label ? (
+              <ThemedText style={[styles.label, getTextDirection()]} numberOfLines={1}>
+                {label}
+              </ThemedText>
+            ) : null}
+          </>
+        )}
       </TouchableOpacity>
 
       <Modal
@@ -71,20 +105,37 @@ export function AIAssistButton({
           <ThemedView style={styles.modalContent} onStartShouldSetResponder={() => true}>
             <View style={styles.modalHeader}>
               <ThemedText style={[styles.modalTitle, getTextDirection()]}>
-                {formatRTLText('مساعد الذكاء الاصطناعي')}
+                {formatRTLText('اقتراح المساعد')}
               </ThemedText>
               <TouchableOpacity onPress={handleClose} style={styles.closeBtn}>
                 <IconSymbol name="xmark" size={22} color="#666" />
               </TouchableOpacity>
             </View>
-            <ThemedText style={[styles.comingSoonText, getTextDirection()]}>
-              {formatRTLText(COMING_SOON_MESSAGE)}
-            </ThemedText>
-            <TouchableOpacity style={styles.closeButton} onPress={handleClose} activeOpacity={0.8}>
-              <ThemedText style={styles.closeButtonText}>
-                {formatRTLText('حسناً')}
+            {error ? (
+              <ThemedText style={[styles.errorText, getTextDirection()]}>
+                {formatRTLText(error)}
               </ThemedText>
-            </TouchableOpacity>
+            ) : (
+              <ScrollView style={styles.suggestionScroll}>
+                <ThemedText style={[styles.suggestionText, getTextDirection()]}>
+                  {formatRTLText(suggestedText)}
+                </ThemedText>
+              </ScrollView>
+            )}
+            {suggestedText ? (
+              <View style={styles.actions}>
+                <TouchableOpacity style={styles.applyButton} onPress={handleApply} activeOpacity={0.8}>
+                  <ThemedText style={styles.applyButtonText}>
+                    {formatRTLText('تطبيق الاقتراح')}
+                  </ThemedText>
+                </TouchableOpacity>
+                <TouchableOpacity style={styles.cancelButton} onPress={handleClose} activeOpacity={0.8}>
+                  <ThemedText style={[styles.cancelButtonText, getTextDirection()]}>
+                    {formatRTLText('إلغاء')}
+                  </ThemedText>
+                </TouchableOpacity>
+              </View>
+            ) : null}
           </ThemedView>
         </TouchableOpacity>
       </Modal>
@@ -110,17 +161,10 @@ const styles = StyleSheet.create({
     paddingHorizontal: 8,
     minWidth: 36,
   },
-  buttonDisabled: {
-    backgroundColor: 'rgba(0,0,0,0.06)',
-    borderColor: 'rgba(0,0,0,0.12)',
-  },
   label: {
     fontSize: 13,
     color: '#6366f1',
     maxWidth: 140,
-  },
-  labelDisabled: {
-    color: '#999',
   },
   modalOverlay: {
     flex: 1,
@@ -151,26 +195,6 @@ const styles = StyleSheet.create({
   },
   closeBtn: {
     padding: 4,
-  },
-  comingSoonText: {
-    fontSize: 16,
-    lineHeight: 24,
-    color: '#333',
-    textAlign: 'center',
-    writingDirection: 'rtl',
-    marginBottom: 20,
-  },
-  closeButton: {
-    alignSelf: 'center',
-    backgroundColor: '#6366f1',
-    paddingVertical: 10,
-    paddingHorizontal: 24,
-    borderRadius: 10,
-  },
-  closeButtonText: {
-    color: '#fff',
-    fontSize: 15,
-    fontWeight: '600',
   },
   suggestionScroll: {
     maxHeight: 200,
