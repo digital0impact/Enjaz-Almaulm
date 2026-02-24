@@ -20,8 +20,11 @@ export const VersionTracker: React.FC<VersionTrackerProps> = ({
 
   return (
     <ThemedView style={[styles.container, style]}>
-      <ThemedText style={[styles.versionText, getTextDirection()]}> 
-        {formatRTLText(`الإصدار ${appVersion} • تطوير: أ. أمل بنت علي الشامان`)}
+      <ThemedText style={[styles.versionText, getTextDirection()]}>
+        {formatRTLText(`الإصدار ${appVersion}`)}
+      </ThemedText>
+      <ThemedText style={[styles.creditText, getTextDirection()]}>
+        {formatRTLText('تصميم وتطوير: أ. أمل بنت علي الشامان')}
       </ThemedText>
       {showBuildInfo && (
         <>
@@ -47,6 +50,13 @@ const styles = StyleSheet.create({
     fontSize: 14,
     color: '#1c1f33',
     textAlign: 'center',
+    writingDirection: 'rtl',
+  },
+  creditText: {
+    fontSize: 13,
+    color: '#1c1f33',
+    textAlign: 'center',
+    marginTop: 4,
     writingDirection: 'rtl',
   },
   buildText: {
