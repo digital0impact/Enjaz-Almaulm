@@ -11,6 +11,7 @@ import {
   Platform,
   StatusBar,
   Modal,
+  View,
 } from 'react-native';
 
 import { ThemedText } from '@/components/ThemedText';
@@ -22,6 +23,7 @@ import { useTheme } from '@/contexts/ThemeContext';
 import AuthService from '@/services/AuthService';
 import { DatabaseService } from '@/services/DatabaseService';
 import { getTextDirection, formatRTLText } from '@/utils/rtl-utils';
+import { AIAssistButton } from '@/components/AIAssistButton';
 
 export default function BasicDataScreen() {
   const [isEditing, setIsEditing] = useState(false);
@@ -543,7 +545,20 @@ export default function BasicDataScreen() {
           </ThemedText>
 
           <ThemedView style={[styles.dataItem, { backgroundColor: colors.card }]}>
-            <ThemedText style={[styles.label, getTextDirection(), { color: colors.textSecondary }]}>الرؤية</ThemedText>
+            {isEditing ? (
+              <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 6 }}>
+                <AIAssistButton
+                  type="vision"
+                  currentText={userData.vision}
+                  onApply={(text) => updateField('vision', text)}
+                  label={formatRTLText('اقتراح بالذكاء الاصطناعي')}
+                  compact={false}
+                />
+                <ThemedText style={[styles.label, getTextDirection(), { color: colors.textSecondary }]}>الرؤية</ThemedText>
+              </View>
+            ) : (
+              <ThemedText style={[styles.label, getTextDirection(), { color: colors.textSecondary }]}>الرؤية</ThemedText>
+            )}
             {isEditing ? (
               <TextInput
                 style={[styles.inputMain, styles.textArea, getTextDirection(), { backgroundColor: colors.inputBackground, color: colors.inputText }]}
@@ -560,7 +575,20 @@ export default function BasicDataScreen() {
           </ThemedView>
 
           <ThemedView style={[styles.dataItem, { backgroundColor: colors.card }]}>
-            <ThemedText style={[styles.label, getTextDirection(), { color: colors.textSecondary }]}>الرسالة</ThemedText>
+            {isEditing ? (
+              <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 6 }}>
+                <AIAssistButton
+                  type="mission"
+                  currentText={userData.mission}
+                  onApply={(text) => updateField('mission', text)}
+                  label={formatRTLText('اقتراح بالذكاء الاصطناعي')}
+                  compact={false}
+                />
+                <ThemedText style={[styles.label, getTextDirection(), { color: colors.textSecondary }]}>الرسالة</ThemedText>
+              </View>
+            ) : (
+              <ThemedText style={[styles.label, getTextDirection(), { color: colors.textSecondary }]}>الرسالة</ThemedText>
+            )}
             {isEditing ? (
               <TextInput
                 style={[styles.inputMain, styles.textArea, getTextDirection(), { backgroundColor: colors.inputBackground, color: colors.inputText }]}

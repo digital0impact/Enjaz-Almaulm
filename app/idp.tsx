@@ -24,6 +24,7 @@ import * as Print from 'expo-print';
 import * as Sharing from 'expo-sharing';
 import * as FileSystem from 'expo-file-system';
 import { getTextDirection, formatRTLText } from '@/utils/rtl-utils';
+import { AIAssistButton } from '@/components/AIAssistButton';
 
 const TEAL = '#0d9488';
 const TEAL_LIGHT = '#14b8a6';
@@ -104,6 +105,32 @@ export default function IDPScreen() {
   const [isExporting, setIsExporting] = useState(false);
   /** على الويب عرض تنبيه بالمتصفح لأن Alert.alert لا يظهر */
   const [wordDownload, setWordDownload] = useState<{ url: string; name: string } | null>(null);
+  /** مساعد الذكاء الاصطناعي في صفحة التطوير الفردية متاح للاشتراكات المدفوعة فقط */
+  const [canUseAIOnIDP, setCanUseAIOnIDP] = useState(false);
+
+  useEffect(() => {
+    (async () => {
+      const user = await AuthService.getCurrentUser() ?? await AuthService.checkAuthStatus();
+      if (!user) {
+        setCanUseAIOnIDP(false);
+        return;
+      }
+      const sub = await SubscriptionService.getCurrentSubscription(user.id);
+      const plan = sub?.plan_type ?? 'free';
+      setCanUseAIOnIDP(plan === 'yearly' || plan === 'half_yearly');
+    })();
+  }, []);
+
+  const showUpgradeForAI = () => {
+    showAlert(
+      formatRTLText('ترقية الاشتراك مطلوبة'),
+      formatRTLText('اقتراحات الذكاء الاصطناعي في خطة التطوير الفردية متاحة للاشتراك السنوي أو النصف سنوي فقط. يرجى ترقية اشتراكك للاستفادة من هذه الميزة.'),
+      [
+        { text: formatRTLText('حسناً'), style: 'cancel' as const },
+        { text: formatRTLText('عرض الخطط'), onPress: () => router.push('/subscription') },
+      ]
+    );
+  };
 
   const showAlert = (
     title: string,
@@ -474,6 +501,22 @@ export default function IDPScreen() {
                     </ThemedText>
                   </View>
                   <View style={styles.cellWide}>
+                    {i === 0 && (
+                      <View style={{ marginBottom: 4 }}>
+                        {canUseAIOnIDP ? (
+                          <AIAssistButton
+                            type="idp_objective_70"
+                            currentText={objectives70[0]}
+                            onApply={(t) => updateObjective70(0, t)}
+                            compact
+                          />
+                        ) : (
+                          <TouchableOpacity onPress={showUpgradeForAI} style={styles.aiLockButton} activeOpacity={0.7}>
+                            <IconSymbol name="lock.fill" size={18} color="#999" />
+                          </TouchableOpacity>
+                        )}
+                      </View>
+                    )}
                     <TextInput
                       style={[styles.cellInput, getTextDirection()]}
                       value={objectives70[i]}
@@ -484,6 +527,22 @@ export default function IDPScreen() {
                     />
                   </View>
                   <View style={styles.cellWide}>
+                    {i === 0 && (
+                      <View style={{ marginBottom: 4 }}>
+                        {canUseAIOnIDP ? (
+                          <AIAssistButton
+                            type="idp_objective_20"
+                            currentText={objectives20[0]}
+                            onApply={(t) => updateObjective20(0, t)}
+                            compact
+                          />
+                        ) : (
+                          <TouchableOpacity onPress={showUpgradeForAI} style={styles.aiLockButton} activeOpacity={0.7}>
+                            <IconSymbol name="lock.fill" size={18} color="#999" />
+                          </TouchableOpacity>
+                        )}
+                      </View>
+                    )}
                     <TextInput
                       style={[styles.cellInput, getTextDirection()]}
                       value={objectives20[i]}
@@ -494,6 +553,22 @@ export default function IDPScreen() {
                     />
                   </View>
                   <View style={styles.cellWide}>
+                    {i === 0 && (
+                      <View style={{ marginBottom: 4 }}>
+                        {canUseAIOnIDP ? (
+                          <AIAssistButton
+                            type="idp_objective_10"
+                            currentText={objectives10[0]}
+                            onApply={(t) => updateObjective10(0, t)}
+                            compact
+                          />
+                        ) : (
+                          <TouchableOpacity onPress={showUpgradeForAI} style={styles.aiLockButton} activeOpacity={0.7}>
+                            <IconSymbol name="lock.fill" size={18} color="#999" />
+                          </TouchableOpacity>
+                        )}
+                      </View>
+                    )}
                     <TextInput
                       style={[styles.cellInput, getTextDirection()]}
                       value={objectives10[i]}
@@ -545,6 +620,22 @@ export default function IDPScreen() {
                     <ThemedText style={styles.priorityNumText}>{row + 1}</ThemedText>
                   </ThemedView>
                   <ThemedView style={styles.priorityCell}>
+                    {row === 0 && (
+                      <View style={{ marginBottom: 4 }}>
+                        {canUseAIOnIDP ? (
+                          <AIAssistButton
+                            type="idp_priority_objective"
+                            currentText={priorityObjectives[0].objective}
+                            onApply={(t) => updatePriority(0, 'objective', t)}
+                            compact
+                          />
+                        ) : (
+                          <TouchableOpacity onPress={showUpgradeForAI} style={styles.aiLockButton} activeOpacity={0.7}>
+                            <IconSymbol name="lock.fill" size={18} color="#999" />
+                          </TouchableOpacity>
+                        )}
+                      </View>
+                    )}
                     <TextInput
                       style={[styles.priorityInput, getTextDirection()]}
                       value={priorityObjectives[row].objective}
@@ -555,6 +646,22 @@ export default function IDPScreen() {
                     />
                   </ThemedView>
                   <ThemedView style={styles.priorityCell}>
+                    {row === 0 && (
+                      <View style={{ marginBottom: 4 }}>
+                        {canUseAIOnIDP ? (
+                          <AIAssistButton
+                            type="idp_priority_activities"
+                            currentText={priorityObjectives[0].activities}
+                            onApply={(t) => updatePriority(0, 'activities', t)}
+                            compact
+                          />
+                        ) : (
+                          <TouchableOpacity onPress={showUpgradeForAI} style={styles.aiLockButton} activeOpacity={0.7}>
+                            <IconSymbol name="lock.fill" size={18} color="#999" />
+                          </TouchableOpacity>
+                        )}
+                      </View>
+                    )}
                     <TextInput
                       style={[styles.priorityInput, getTextDirection()]}
                       value={priorityObjectives[row].activities}
@@ -583,6 +690,22 @@ export default function IDPScreen() {
                     />
                   </ThemedView>
                   <ThemedView style={styles.priorityCell}>
+                    {row === 0 && (
+                      <View style={{ marginBottom: 4 }}>
+                        {canUseAIOnIDP ? (
+                          <AIAssistButton
+                            type="idp_priority_procedures"
+                            currentText={priorityObjectives[0].procedures}
+                            onApply={(t) => updatePriority(0, 'procedures', t)}
+                            compact
+                          />
+                        ) : (
+                          <TouchableOpacity onPress={showUpgradeForAI} style={styles.aiLockButton} activeOpacity={0.7}>
+                            <IconSymbol name="lock.fill" size={18} color="#999" />
+                          </TouchableOpacity>
+                        )}
+                      </View>
+                    )}
                     <TextInput
                       style={[styles.priorityInput, getTextDirection()]}
                       value={priorityObjectives[row].procedures}
@@ -593,6 +716,22 @@ export default function IDPScreen() {
                     />
                   </ThemedView>
                   <ThemedView style={styles.priorityCell}>
+                    {row === 0 && (
+                      <View style={{ marginBottom: 4 }}>
+                        {canUseAIOnIDP ? (
+                          <AIAssistButton
+                            type="idp_priority_success"
+                            currentText={priorityObjectives[0].successCriteria}
+                            onApply={(t) => updatePriority(0, 'successCriteria', t)}
+                            compact
+                          />
+                        ) : (
+                          <TouchableOpacity onPress={showUpgradeForAI} style={styles.aiLockButton} activeOpacity={0.7}>
+                            <IconSymbol name="lock.fill" size={18} color="#999" />
+                          </TouchableOpacity>
+                        )}
+                      </View>
+                    )}
                     <TextInput
                       style={[styles.priorityInput, getTextDirection()]}
                       value={priorityObjectives[row].successCriteria}
@@ -697,6 +836,18 @@ export default function IDPScreen() {
 
 const styles = StyleSheet.create({
   container: { flex: 1 },
+  aiLockButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingVertical: 6,
+    paddingHorizontal: 8,
+    minWidth: 36,
+    borderRadius: 10,
+    backgroundColor: 'rgba(0,0,0,0.06)',
+    borderWidth: 1,
+    borderColor: 'rgba(0,0,0,0.1)',
+  },
   backgroundImage: { flex: 1, width: '100%', height: '100%' },
   scroll: { flex: 1 },
   scrollContent: { paddingHorizontal: 16, paddingTop: Platform.OS === 'ios' ? 56 : 40 },

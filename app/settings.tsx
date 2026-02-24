@@ -614,7 +614,7 @@ export default function SettingsScreen() {
                     
                     <ThemedView style={styles.versionRow}>
                       <ThemedText style={[styles.versionLabel, getTextDirection()]}>التطوير:</ThemedText>
-                      <ThemedText style={[styles.versionValue, getTextDirection()]}>الأثر الرقمي</ThemedText>
+                      <ThemedText style={[styles.versionValue, getTextDirection()]}>أ. أمل بنت علي الشامان</ThemedText>
                     </ThemedView>
                     
                     <ThemedView style={styles.versionRow}>

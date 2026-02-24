@@ -21,7 +21,7 @@ export const VersionTracker: React.FC<VersionTrackerProps> = ({
   return (
     <ThemedView style={[styles.container, style]}>
       <ThemedText style={[styles.versionText, getTextDirection()]}> 
-        {formatRTLText(`الإصدار ${appVersion} • تطوير الأثر الرقمي`)}
+        {formatRTLText(`الإصدار ${appVersion} • تطوير: أ. أمل بنت علي الشامان`)}
       </ThemedText>
       {showBuildInfo && (
         <>

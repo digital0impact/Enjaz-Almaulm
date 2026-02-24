@@ -397,3 +397,11 @@ entrypoint = "./functions/salla-webhook/index.ts"
 # Specifies static files to be bundled with the function. Supports glob patterns.
 # For example, if you want to serve static HTML pages in your function:
 # static_files = [ "./functions/salla-webhook/*.html" ]
+
+# مساعد الذكاء الاصطناعي (اقتراح نصوص الرؤية والرسالة وخطة التطوير الفردية)
+# الاسم يجب أن يطابق: مجلد الدالة (ai-assistant) واستدعاء التطبيق (ai-assistant)
+# verify_jwt = false حتى يعمل الاستدعاء من التطبيق بدون اشتراط تسجيل الدخول
+[functions.ai-assistant]
+enabled = true
+verify_jwt = false
+entrypoint = "./functions/ai-assistant/index.ts"
