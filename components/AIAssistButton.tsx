@@ -13,6 +13,10 @@ import { ThemedText } from '@/components/ThemedText';
 import { ThemedView } from '@/components/ThemedView';
 import { IconSymbol } from '@/components/ui/IconSymbol';
 import { suggestWithAI, type AISuggestType } from '@/services/AIAssistantService';
+/** حالياً معطّل مع إظهار "قريباً" — لتفعيل المساعد أعد استدعاء suggestWithAI في handlePress */
+const AI_ASSIST_DISABLED = true;
+const COMING_SOON_MESSAGE = 'سيتم تفعيل مساعد الذكاء الاصطناعي قريباً.';
+
 import { getTextDirection, formatRTLText } from '@/utils/rtl-utils';
 
 interface AIAssistButtonProps {
@@ -49,6 +53,7 @@ export function AIAssistButton({
         setError(msg);
         setModalVisible(true);
       } else {
+    // عند إعادة التفعيل: استدعِ suggestWithAI هنا وافتح المودال بالاقتراح
         Alert.alert(formatRTLText('مساعد الذكاء الاصطناعي'), msg);
       }
     } finally {
@@ -153,7 +158,14 @@ const styles = StyleSheet.create({
     paddingHorizontal: 12,
     borderRadius: 10,
     backgroundColor: 'rgba(99, 102, 241, 0.12)',
+  buttonDisabled: {
+    backgroundColor: 'rgba(0,0,0,0.06)',
+    borderColor: 'rgba(0,0,0,0.12)',
+  },
     borderWidth: 1,
+  labelDisabled: {
+    color: '#999',
+  },
     borderColor: 'rgba(99, 102, 241, 0.3)',
   },
   buttonCompact: {
@@ -181,6 +193,26 @@ const styles = StyleSheet.create({
     padding: 20,
     borderWidth: 1,
     borderColor: '#E5E5EA',
+  comingSoonText: {
+    fontSize: 16,
+    lineHeight: 24,
+    color: '#333',
+    textAlign: 'center',
+    writingDirection: 'rtl',
+    marginBottom: 20,
+  },
+  closeButton: {
+    alignSelf: 'center',
+    backgroundColor: '#6366f1',
+    paddingVertical: 10,
+    paddingHorizontal: 24,
+    borderRadius: 10,
+  },
+  closeButtonText: {
+    color: '#fff',
+    fontSize: 15,
+    fontWeight: '600',
+  },
   },
   modalHeader: {
     flexDirection: 'row',

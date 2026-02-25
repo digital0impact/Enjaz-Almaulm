@@ -73,6 +73,38 @@ npx supabase secrets set OPENAI_API_KEY=sk-...
 
 ---
 
+## لماذا لا يعمل؟ — قائمة تحقق سريعة
+
+| السبب المحتمل | ماذا تفعل |
+|----------------|-----------|
+| **لم تُعد تشغيل التطبيق بعد تعديل `.env`** | أوقف السيرفر (Ctrl+C) ثم شغّل من جديد: `npm run web` أو `npx expo start` أو `npx expo start --web`. |
+| **الدالة غير منشورة أو نُشرت بدون `--no-verify-jwt`** | نفّذ: `npx supabase functions deploy ai-assistant --no-verify-jwt` من جذر المشروع. |
+| **مفتاح OpenAI غير مضبوط في Supabase** | Project Settings → Edge Functions → **Secrets** → أضف `OPENAI_API_KEY` وقيمته مفتاحك من [platform.openai.com/api-keys](https://platform.openai.com/api-keys). |
+| **الزر لا يظهر** | في **البيانات الأساسية** الزر يظهر فقط في **وضع التعديل** — اضغط "تعديل" (أيقونة القلم) أولاً. |
+| **مشروع مختلف** | تأكد أن `EXPO_PUBLIC_SUPABASE_URL` في `.env` يطابق **نفس المشروع** الذي نشرت عليه دالة `ai-assistant`. |
+
+---
+
+## المساعد لا يعمل في التطبيق — تحقق من التالي
+
+1. **في البيانات الأساسية:** الزر يظهر فقط في **وضع التعديل**. اضغط أولاً على **تعديل** (أيقونة القلم) ثم ابحث عن زر «اقتراح بالذكاء الاصطناعي» بجانب الرؤية أو الرسالة.
+
+2. **ملف `.env` في جذر المشروع** يجب أن يحتوي على:
+   - `EXPO_PUBLIC_SUPABASE_URL=https://xxxxx.supabase.co` (رابط مشروعك)
+   - `EXPO_PUBLIC_SUPABASE_ANON_KEY=eyJ...` (المفتاح العام من Supabase)
+   إذا كان أحدهما ناقصاً أو خاطئاً، يظهر تنبيه مثل «الاتصال بـ Supabase غير مضبوط».
+
+3. **نشر الدالة بالأمر الصحيح:**
+   ```bash
+   npx supabase functions deploy ai-assistant --no-verify-jwt
+   ```
+
+4. **مفتاح OpenAI في Supabase:** من **Project Settings** → **Edge Functions** → **Secrets** يجب وجود **`OPENAI_API_KEY`** وقيمته مفتاحك من [platform.openai.com/api-keys](https://platform.openai.com/api-keys). إن لم يكن مضبوطاً ستظهر رسالة مثل «OpenAI request failed» أو «لم يتم استلام اقتراح».
+
+5. **بعد أي تعديل على `.env` أو Secrets:** أعد تشغيل التطبيق (أو أعد تحميل الصفحة على الويب).
+
+---
+
 ## إذا ظهر خطأ "تعذر الاتصال بدالة المساعد"
 
 1. **نشر الدالة مع تعطيل التحقق من JWT** (غالباً هذا سبب الخطأ):

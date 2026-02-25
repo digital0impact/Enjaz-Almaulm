@@ -43,15 +43,32 @@ export async function suggestWithAI(
 
   if (error) {
     const msg = error.message || '';
+    const errWithBody = error as { context?: { body?: { message?: string; error?: string } }; status?: number };
+    const status = errWithBody?.status;
+    const bodyMsg = errWithBody?.context?.body?.message ?? errWithBody?.context?.body?.error;
+
+    if (status === 503 || (bodyMsg && /OPENAI_API_KEY|not configured/i.test(String(bodyMsg)))) {
+      throw new Error(
+        'لم يتم ضبط مفتاح OpenAI. في لوحة Supabase: Project Settings → Edge Functions → Secrets أضف OPENAI_API_KEY ثم أعد نشر الدالة أو انتظر دقيقة وحاول مرة أخرى.'
+      );
+    }
     if (msg.includes('Failed to send') || msg.includes('Edge Function')) {
       throw new Error(
-        'تعذر الاتصال بدالة المساعد. تأكد من: 1) نشر الدالة ai-assistant على Supabase، 2) ضبط رابط ومفتاح Supabase في .env، 3) الاتصال بالإنترنت.'
+        'تعذر الاتصال بدالة المساعد. تأكد من: 1) نشر الدالة ai-assistant على Supabase (npx supabase functions deploy ai-assistant --no-verify-jwt)، 2) ضبط رابط ومفتاح Supabase في .env (EXPO_PUBLIC_SUPABASE_URL و EXPO_PUBLIC_SUPABASE_ANON_KEY)، 3) إعادة تشغيل التطبيق بعد تعديل .env، 4) أن التطبيق يستخدم نفس مشروع Supabase الذي نُشرت عليه الدالة، 5) الاتصال بالإنترنت.'
       );
+    }
+    if (bodyMsg) {
+      throw new Error(String(bodyMsg));
     }
     throw new Error(msg || 'فشل الاتصال بمساعد الذكاء الاصطناعي');
   }
   if (!data?.text) {
-    throw new Error('لم يتم استلام اقتراح من المساعد');
+    const errPayload = data as { error?: string; message?: string } | undefined;
+    const errMsg = errPayload?.error ?? errPayload?.message;
+    if (errMsg) {
+      throw new Error(String(errMsg));
+    }
+    throw new Error('لم يتم استلام اقتراح من المساعد. تحقق من ضبط OPENAI_API_KEY في Supabase → Edge Functions → Secrets.');
   }
   return data.text;
 }

@@ -48,7 +48,7 @@ function getPrompt(type: SuggestionType, currentText: string): { system: string;
 const CORS_HEADERS = {
   "Access-Control-Allow-Origin": "*",
   "Access-Control-Allow-Methods": "POST, OPTIONS",
-  "Access-Control-Allow-Headers": "authorization, apikey, content-type",
+  "Access-Control-Allow-Headers": "authorization, apikey, content-type, x-client-info",
 };
 
 function jsonResponse(body: object, status: number, extraHeaders?: Record<string, string>) {
@@ -115,7 +115,17 @@ Deno.serve(async (req: Request) => {
         : (body.body as Record<string, unknown> | undefined) ?? {};
     const typeRaw =
       body.type ?? bodyInner.type ?? (body.payload as Record<string, unknown> | undefined)?.type ?? (body.data as Record<string, unknown> | undefined)?.type;
-    const receivedType = typeof typeRaw === "string" ? typeRaw.trim() : String(typeRaw ?? "").trim();
+    let receivedType = typeof typeRaw === "string" ? typeRaw.trim() : String(typeRaw ?? "").trim();
+    if (!receivedType || !allowed.includes(receivedType as SuggestionType)) {
+      const findIn = (o: Record<string, unknown>) => {
+        for (const v of Object.values(o)) {
+          const s = typeof v === "string" ? v.trim() : "";
+          if (s && allowed.includes(s as SuggestionType)) return s;
+        }
+        return "";
+      };
+      receivedType = findIn(body) || findIn(bodyInner) || receivedType;
+    }
     if (!receivedType || !allowed.includes(receivedType as SuggestionType)) {
       return jsonResponse(
         {
