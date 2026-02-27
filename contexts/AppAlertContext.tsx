@@ -6,7 +6,7 @@
  *   { text: 'حذف', style: 'destructive', onPress: () => deleteItem() }
  * ])
  */
-import React, { createContext, useCallback, useContext, useState, ReactNode } from 'react';
+import React, { createContext, useCallback, useContext, useState, useEffect, ReactNode } from 'react';
 import {
   Modal,
   View,
@@ -18,6 +18,7 @@ import {
 import { ThemedText } from '@/components/ThemedText';
 import { useTheme } from '@/contexts/ThemeContext';
 import { getTextDirection } from '@/utils/rtl-utils';
+import { AlertService } from '@/services/AlertService';
 
 export type AppAlertButtonStyle = 'default' | 'cancel' | 'destructive';
 
@@ -65,6 +66,11 @@ export function AppAlertProvider({ children }: { children: ReactNode }) {
     });
   }, []);
 
+  useEffect(() => {
+    AlertService.setHandler(alert);
+    return () => AlertService.setHandler(null);
+  }, [alert]);
+
   const value: AppAlertContextType = { alert, hide };
 
   return (
@@ -98,8 +104,9 @@ function AppAlertRenderer({
 
   const handleButtonPress = useCallback(
     (button: AppAlertButton) => {
-      button.onPress?.();
       onHide();
+      const fn = button.onPress;
+      if (fn) setTimeout(() => { fn(); }, 0);
     },
     [onHide]
   );
@@ -109,7 +116,7 @@ function AppAlertRenderer({
   const buttonBg = (style?: AppAlertButtonStyle) => {
     if (style === 'destructive') return colors.error;
     if (style === 'cancel') return colors.surface;
-    return colors.secondary;
+    return colors.primary;
   };
   const buttonFg = (style?: AppAlertButtonStyle) => {
     if (style === 'cancel') return colors.text;
@@ -126,16 +133,18 @@ function AppAlertRenderer({
     >
       <TouchableWithoutFeedback onPress={onHide}>
         <View style={[styles.overlay, { backgroundColor: 'rgba(0,0,0,0.5)' }]}>
-          <TouchableWithoutFeedback>
-            <View
-              style={[
-                styles.box,
-                {
-                  backgroundColor: colors.background,
-                  borderColor: colors.border,
-                },
-              ]}
-            >
+          <View
+            style={[
+              styles.box,
+              {
+                backgroundColor: colors.background,
+                borderColor: colors.border,
+                borderTopWidth: 4,
+                borderTopColor: colors.primary,
+              },
+            ]}
+            onStartShouldSetResponder={() => true}
+          >
               <ThemedText
                 style={[styles.title, getTextDirection()]}
                 lightColor={colors.text}
@@ -173,7 +182,6 @@ function AppAlertRenderer({
                 ))}
               </View>
             </View>
-          </TouchableWithoutFeedback>
         </View>
       </TouchableWithoutFeedback>
     </Modal>
@@ -226,6 +234,7 @@ const styles = StyleSheet.create({
     borderRadius: 12,
     minWidth: 80,
     alignItems: 'center',
+    ...(Platform.OS === 'web' && { cursor: 'pointer' as any }),
   },
   buttonFlex: {
     flex: 1,

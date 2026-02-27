@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { StyleSheet, ScrollView, TouchableOpacity, Alert, I18nManager, ImageBackground, Dimensions, Platform, Share } from 'react-native';
+import { StyleSheet, ScrollView, TouchableOpacity, I18nManager, ImageBackground, Dimensions, Platform, Share } from 'react-native';
+import { AlertService } from '@/services/AlertService';
 
 import { ThemedText } from '@/components/ThemedText';
 import { ThemedView } from '@/components/ThemedView';
@@ -596,7 +597,7 @@ ${axis.title}: ${axis.score}%
         title: 'التقرير التفصيلي للأداء المهني'
       });
     } catch (error) {
-      Alert.alert('خطأ', 'فشل في تصدير التقرير');
+      AlertService.alert('خطأ', 'فشل في تصدير التقرير');
     }
   };
 

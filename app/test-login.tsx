@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
-import { StyleSheet, TouchableOpacity, ImageBackground, KeyboardAvoidingView, ScrollView, Platform, StatusBar, TextInput, Alert, ActivityIndicator } from 'react-native';
+import { StyleSheet, TouchableOpacity, ImageBackground, KeyboardAvoidingView, ScrollView, Platform, StatusBar, TextInput, ActivityIndicator } from 'react-native';
+import { AlertService } from '@/services/AlertService';
 
 import { ThemedText } from '@/components/ThemedText';
 import { ThemedView } from '@/components/ThemedView';
@@ -16,7 +17,7 @@ export default function TestLoginScreen() {
 
   const handleLogin = async () => {
     if (!email || !password) {
-      Alert.alert('تنبيه', 'يرجى إدخال البريد الإلكتروني وكلمة المرور');
+      AlertService.alert('تنبيه', 'يرجى إدخال البريد الإلكتروني وكلمة المرور');
       return;
     }
 
@@ -38,10 +39,10 @@ export default function TestLoginScreen() {
         email: mockUser.email 
       }));
 
-      Alert.alert('نجح', 'تم تسجيل الدخول بنجاح!');
+      AlertService.alert('نجح', 'تم تسجيل الدخول بنجاح!');
       router.replace('/');
     } catch (error) {
-      Alert.alert('خطأ', 'حدث خطأ أثناء تسجيل الدخول');
+      AlertService.alert('خطأ', 'حدث خطأ أثناء تسجيل الدخول');
     } finally {
       setIsLoading(false);
     }

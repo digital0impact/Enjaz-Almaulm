@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import { StyleSheet, ScrollView, TouchableOpacity, ImageBackground, KeyboardAvoidingView, Platform, Alert, Modal, View } from 'react-native';
+import { StyleSheet, ScrollView, TouchableOpacity, ImageBackground, KeyboardAvoidingView, Platform, Modal, View } from 'react-native';
+import { AlertService } from '@/services/AlertService';
 
 // تطبيق RTL عند بدء الصفحة
 import { ThemedText } from '@/components/ThemedText';
@@ -77,7 +78,7 @@ export default function RemedialPlansScreen() {
       }
       return;
     }
-    Alert.alert(title, message, buttons);
+    AlertService.alert(title, message, buttons);
   };
 
   const categories = [

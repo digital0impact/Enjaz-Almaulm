@@ -1,6 +1,7 @@
 
 import React, { useState, useEffect } from 'react';
-import { StyleSheet, ScrollView, TouchableOpacity, Alert, TextInput, ImageBackground } from 'react-native';
+import { StyleSheet, ScrollView, TouchableOpacity, TextInput, ImageBackground } from 'react-native';
+import { AlertService } from '@/services/AlertService';
 
 import { ThemedText } from '@/components/ThemedText';
 import { ThemedView } from '@/components/ThemedView';
@@ -60,30 +61,30 @@ export default function EditAlertScreen() {
           setActive(foundAlert.active);
           setRepeat(foundAlert.repeat || 'none');
         } else {
-          Alert.alert('خطأ', 'لم يتم العثور على التنبيه');
+          AlertService.alert('خطأ', 'لم يتم العثور على التنبيه');
           router.back();
         }
       }
     } catch (error) {
       console.error('Error loading alert:', error);
-      Alert.alert('خطأ', 'فشل في تحميل التنبيه');
+      AlertService.alert('خطأ', 'فشل في تحميل التنبيه');
       router.back();
     }
   };
 
   const saveAlert = async () => {
     if (!title.trim()) {
-      Alert.alert('خطأ', 'يرجى إدخال عنوان التنبيه');
+      AlertService.alert('خطأ', 'يرجى إدخال عنوان التنبيه');
       return;
     }
 
     if (!date) {
-      Alert.alert('خطأ', 'يرجى اختيار تاريخ التنبيه');
+      AlertService.alert('خطأ', 'يرجى اختيار تاريخ التنبيه');
       return;
     }
 
     if (!time) {
-      Alert.alert('خطأ', 'يرجى اختيار وقت التنبيه');
+      AlertService.alert('خطأ', 'يرجى اختيار وقت التنبيه');
       return;
     }
 
@@ -109,23 +110,23 @@ export default function EditAlertScreen() {
 
           await AsyncStorage.setItem('alerts', JSON.stringify(alerts));
           const isNewAlert = alert?.title === `تنبيه ${alert?.type} جديد`;
-          Alert.alert(
+          AlertService.alert(
             isNewAlert ? 'تم الإنشاء' : 'تم الحفظ', 
             isNewAlert ? 'تم إنشاء التنبيه بنجاح' : 'تم تحديث التنبيه بنجاح', 
             [{ text: 'موافق', onPress: () => router.back() }]
           );
         } else {
-          Alert.alert('خطأ', 'لم يتم العثور على التنبيه');
+          AlertService.alert('خطأ', 'لم يتم العثور على التنبيه');
         }
       }
     } catch (error) {
       console.error('Error saving alert:', error);
-      Alert.alert('خطأ', 'فشل في حفظ التنبيه');
+      AlertService.alert('خطأ', 'فشل في حفظ التنبيه');
     }
   };
 
   const deleteAlert = () => {
-    Alert.alert(
+    AlertService.alert(
       'حذف التنبيه',
       'هل أنت متأكد من رغبتك في حذف هذا التنبيه؟',
       [
@@ -140,13 +141,13 @@ export default function EditAlertScreen() {
                 let alerts: AlertItem[] = JSON.parse(stored);
                 alerts = alerts.filter(a => a.id !== id);
                 await AsyncStorage.setItem('alerts', JSON.stringify(alerts));
-                Alert.alert('تم الحذف', 'تم حذف التنبيه بنجاح', [
+                AlertService.alert('تم الحذف', 'تم حذف التنبيه بنجاح', [
                   { text: 'موافق', onPress: () => router.back() }
                 ]);
               }
             } catch (error) {
               console.error('Error deleting alert:', error);
-              Alert.alert('خطأ', 'فشل في حذف التنبيه');
+              AlertService.alert('خطأ', 'فشل في حذف التنبيه');
             }
           }
         }

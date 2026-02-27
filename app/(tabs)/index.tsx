@@ -26,6 +26,7 @@ export default function HomeScreen() {
   const [teacherName, setTeacherName] = useState('المعلم');
   const [userInfo, setUserInfo] = useState(null);
   const [isLoggedIn, setIsLoggedIn] = useState(false);
+  const [showPostSignupBanner, setShowPostSignupBanner] = useState(false);
   
   // متغير للدوران
   const rotateAnim = useRef(new Animated.Value(0)).current;
@@ -49,6 +50,21 @@ export default function HomeScreen() {
       checkLoginStatus();
     }, [])
   );
+
+  // التحقق من عرض تنبيه "تم التسجيل" مرة واحدة بعد إنشاء الحساب
+  useEffect(() => {
+    if (!isLoggedIn || currentScreen !== 'dashboard') return;
+    let mounted = true;
+    (async () => {
+      try {
+        const value = await AsyncStorage.getItem('showPostSignupBanner');
+        if (mounted && value === '1') setShowPostSignupBanner(true);
+      } catch {
+        // تجاهل
+      }
+    })();
+    return () => { mounted = false; };
+  }, [isLoggedIn, currentScreen]);
 
   // وظيفة الدوران العمودي مع توقف
   useEffect(() => {
@@ -302,6 +318,24 @@ export default function HomeScreen() {
               showsVerticalScrollIndicator={false}
               keyboardShouldPersistTaps="handled"
             >
+              {showPostSignupBanner && (
+                <ThemedView style={styles.postSignupBanner}>
+                  <ThemedText style={[styles.postSignupBannerText, getTextDirection()]}>
+                    {formatRTLText('تم إنشاء حسابك بنجاح. تحقق من بريدك لتفعيل الحساب.')}
+                  </ThemedText>
+                  <TouchableOpacity
+                    style={styles.postSignupBannerButton}
+                    onPress={async () => {
+                      try { await AsyncStorage.removeItem('showPostSignupBanner'); } catch {}
+                      setShowPostSignupBanner(false);
+                    }}
+                  >
+                    <ThemedText style={[styles.postSignupBannerButtonText, getTextDirection()]}>
+                      {formatRTLText('تم')}
+                    </ThemedText>
+                  </TouchableOpacity>
+                </ThemedView>
+              )}
               <ThemedView style={styles.header}>
                 <ThemedView style={styles.iconContainer}>
                   <IconSymbol size={60} name="person.circle.fill" color="#1c1f33" />
@@ -414,8 +448,35 @@ const styles = StyleSheet.create({
   dashboardContainer: {
     flex: 1,
   },
-
-    backgroundImage: {
+  postSignupBanner: {
+    flexDirection: 'row-reverse',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    backgroundColor: '#0d9488',
+    marginHorizontal: 16,
+    marginBottom: 12,
+    paddingVertical: 12,
+    paddingHorizontal: 16,
+    borderRadius: 12,
+  },
+  postSignupBannerText: {
+    color: '#fff',
+    fontSize: 14,
+    flex: 1,
+  },
+  postSignupBannerButton: {
+    backgroundColor: 'rgba(255,255,255,0.3)',
+    paddingVertical: 6,
+    paddingHorizontal: 14,
+    borderRadius: 8,
+    marginLeft: 12,
+  },
+  postSignupBannerButtonText: {
+    color: '#fff',
+    fontWeight: '600',
+    fontSize: 14,
+  },
+  backgroundImage: {
     flex: 1,
     width: '100%',
     height: '100%',

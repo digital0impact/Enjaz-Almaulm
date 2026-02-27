@@ -8,8 +8,8 @@ import {
   Text,
   TextInput,
   TouchableOpacity,
-  Alert,
 } from 'react-native';
+import { AlertService } from '@/services/AlertService';
 import { useRouter, useLocalSearchParams, usePathname } from 'expo-router';
 import { ThemedText } from '@/components/ThemedText';
 import { ThemedView } from '@/components/ThemedView';
@@ -129,7 +129,7 @@ function SharedAchievementsViewScreenInner() {
   const submitComment = async () => {
     const text = (commentText || '').trim();
     if (!text) {
-      Alert.alert('تنبيه', formatRTLText('يرجى كتابة التعليق.'));
+      AlertService.alert('تنبيه', formatRTLText('يرجى كتابة التعليق.'));
       return;
     }
     if (!token) return;
@@ -145,7 +145,7 @@ function SharedAchievementsViewScreenInner() {
       setCommentAuthor('');
       await loadComments(token);
     } catch (err) {
-      Alert.alert('خطأ', formatRTLText('لم يتم إرسال التعليق. حاول مرة أخرى.'));
+      AlertService.alert('خطأ', formatRTLText('لم يتم إرسال التعليق. حاول مرة أخرى.'));
     } finally {
       setCommentSubmitting(false);
     }

@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import { StyleSheet, TouchableOpacity, ImageBackground, KeyboardAvoidingView, ScrollView, Platform, StatusBar, TextInput, Alert, ActivityIndicator, Linking } from 'react-native';
+import { StyleSheet, TouchableOpacity, ImageBackground, KeyboardAvoidingView, ScrollView, Platform, StatusBar, TextInput, ActivityIndicator, Linking } from 'react-native';
+import { AlertService } from '@/services/AlertService';
 
 import { ThemedText } from '@/components/ThemedText';
 import { ThemedView } from '@/components/ThemedView';
@@ -140,7 +141,7 @@ export default function LoginScreen() {
       const isWeb = Platform.OS === 'web' && typeof window !== 'undefined';
       const showError = (title: string, body: string) => {
         if (isWeb) window.alert([title, body].join('\n\n'));
-        else Alert.alert(title, body);
+        else AlertService.alert(title, body);
       };
       if (!isSupabaseConfigured) {
         showError(
@@ -166,7 +167,7 @@ export default function LoginScreen() {
     if (Platform.OS === 'web' && typeof window !== 'undefined') {
       window.alert([title, message].join('\n\n'));
     } else {
-      Alert.alert(title, message);
+      AlertService.alert(title, message);
     }
   };
 

@@ -3,13 +3,13 @@ import {
   StyleSheet,
   ScrollView,
   TouchableOpacity,
-  Alert,
   ImageBackground,
   Platform,
   Share,
   ActivityIndicator,
   StatusBar,
 } from 'react-native';
+import { AlertService } from '@/services/AlertService';
 import { useRouter } from 'expo-router';
 import Constants from 'expo-constants';
 import * as Crypto from 'expo-crypto';
@@ -80,7 +80,7 @@ export default function ShareAchievementsScreen() {
   const handleGenerateLink = async () => {
     const baseUrl = getShareBaseUrl();
     if (!baseUrl) {
-      Alert.alert(
+      AlertService.alert(
         'تنبيه',
         'لم يتم تعيين رابط التطبيق. على الويب يُستخدم عنوان الصفحة تلقائياً. أضف EXPO_PUBLIC_APP_URL في .env للنشر.'
       );
@@ -89,13 +89,13 @@ export default function ShareAchievementsScreen() {
 
     const user = await AuthService.getCurrentUser();
     if (!user) {
-      Alert.alert('تنبيه', 'يجب تسجيل الدخول أولاً');
+      AlertService.alert('تنبيه', 'يجب تسجيل الدخول أولاً');
       return;
     }
     const subscription = await SubscriptionService.getCurrentSubscription(user.id);
     const plan = subscription?.plan_type ?? 'free';
     if (!PAID_PLANS.includes(plan)) {
-      Alert.alert(
+      AlertService.alert(
         formatRTLText('ترقية الاشتراك مطلوبة'),
         formatRTLText('مشاركة الإنجازات متاحة للاشتراك السنوي أو النصف سنوي فقط. يرجى ترقية اشتراكك للاستفادة من هذه الميزة.'),
         [
@@ -133,7 +133,7 @@ export default function ShareAchievementsScreen() {
       setShareLink(`${baseUrl}${path}`);
     } catch (e) {
       console.error(e);
-      Alert.alert('خطأ', 'حدث خطأ أثناء إنشاء الرابط');
+      AlertService.alert('خطأ', 'حدث خطأ أثناء إنشاء الرابط');
     } finally {
       setGenerating(false);
     }
@@ -153,7 +153,7 @@ export default function ShareAchievementsScreen() {
         title: formatRTLText('رابط الإنجازات'),
       });
     } catch {
-      Alert.alert('الرابط', shareLink);
+      AlertService.alert('الرابط', shareLink);
     }
   };
 
@@ -168,7 +168,7 @@ export default function ShareAchievementsScreen() {
       });
     } catch (e) {
       if ((e as any)?.message !== 'User did not share') {
-        Alert.alert('الرابط', shareLink);
+        AlertService.alert('الرابط', shareLink);
       }
     }
   };

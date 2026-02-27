@@ -5,12 +5,12 @@ import {
   View,
   Dimensions,
   TouchableOpacity,
-  Alert,
   Platform,
   ImageBackground,
   Text,
   KeyboardAvoidingView,
 } from 'react-native';
+import { AlertService } from '@/services/AlertService';
 
 import { ThemedText } from '@/components/ThemedText';
 import { ThemedView } from '@/components/ThemedView';
@@ -406,7 +406,7 @@ export default function CalendarScreen() {
   };
 
   const showDateConverterAlert = () => {
-    Alert.alert(
+    AlertService.alert(
       'تحويل التاريخ',
       'سيتم إضافة ميزة تحويل التاريخ قريباً',
       [{ text: 'حسناً', style: 'default' }]
@@ -620,7 +620,7 @@ export default function CalendarScreen() {
                     const currentYear = selectedHijriYear || parseInt(todayInfo.hijri.year);
                     const nextYear = currentYear + 1;
                     setSelectedHijriYear(nextYear);
-                    Alert.alert(
+                    AlertService.alert(
                       'السنة القادمة', 
                       `تم الانتقال للسنة الهجرية ${nextYear} هـ\n\nسيتم عرض تقويم السنة الجديدة`,
                       [{ text: 'حسناً', style: 'default' }]
@@ -642,7 +642,7 @@ export default function CalendarScreen() {
                     <TouchableOpacity 
                       onPress={() => {
                         setSelectedHijriYear(null);
-                        Alert.alert('العودة للسنة الحالية', 'تم العودة للسنة الهجرية الحالية');
+                        AlertService.alert('العودة للسنة الحالية', 'تم العودة للسنة الهجرية الحالية');
                       }}
                       style={styles.resetYearButton}
                     >
@@ -659,7 +659,7 @@ export default function CalendarScreen() {
                     const currentYear = selectedHijriYear || parseInt(todayInfo.hijri.year);
                     const prevYear = currentYear - 1;
                     setSelectedHijriYear(prevYear);
-                    Alert.alert(
+                    AlertService.alert(
                       'السنة السابقة', 
                       `تم الانتقال للسنة الهجرية ${prevYear} هـ\n\nسيتم عرض تقويم السنة السابقة`,
                       [{ text: 'حسناً', style: 'default' }]
@@ -739,7 +739,7 @@ export default function CalendarScreen() {
                                 { backgroundColor: isToday ? '#E67E22' : 'transparent' }
                               ]}
                               onPress={() => {
-                                Alert.alert(
+                                AlertService.alert(
                                   `${day} ${month} ${selectedHijriYear || todayInfo.hijri.year} هـ`,
                                   `📅 التاريخ: ${day}/${monthIndex + 1}/${selectedHijriYear || todayInfo.hijri.year} هـ\n` +
                                   `📊 الشهر: ${month}\n` +

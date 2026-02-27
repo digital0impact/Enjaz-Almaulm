@@ -4,7 +4,6 @@ import {
   TouchableOpacity, 
   ImageBackground, 
   Platform, 
-  Alert, 
   RefreshControl, 
   StatusBar, 
   I18nManager,
@@ -12,6 +11,7 @@ import {
   ActivityIndicator,
   StyleSheet
 } from 'react-native';
+import { AlertService } from '@/services/AlertService';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { ThemedText } from '@/components/ThemedText';
 import { ThemedView } from '@/components/ThemedView';
@@ -126,7 +126,7 @@ export default function StudentTrackingScreen() {
   };
 
   const confirmDeleteStudent = (studentId: string, studentName: string) => {
-    Alert.alert(
+    AlertService.alert(
       'تأكيد الحذف',
       `هل أنت متأكد من حذف بيانات المتعلم "${studentName}"؟\n\nسيتم حذف جميع البيانات والخطط العلاجية المرتبطة بهذا المتعلم نهائياً.`,
       [

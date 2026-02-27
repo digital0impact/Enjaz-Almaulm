@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import { StyleSheet, ScrollView, TouchableOpacity, Alert, I18nManager, ImageBackground, Dimensions, Platform, Modal, TextInput , Vibration } from 'react-native';
+import { StyleSheet, ScrollView, TouchableOpacity, I18nManager, ImageBackground, Dimensions, Platform, Modal, TextInput , Vibration } from 'react-native';
+import { AlertService } from '@/services/AlertService';
 import { Audio } from 'expo-av';
 // import * as Notifications from 'expo-notifications';
 
@@ -124,7 +125,7 @@ export default function AlertsManagementScreen() {
   };
 
   const deleteAlert = (id: string) => {
-    Alert.alert(
+    AlertService.alert(
       'حذف التنبيه',
       'هل أنت متأكد من رغبتك في حذف هذا التنبيه؟',
       [
@@ -208,17 +209,17 @@ export default function AlertsManagementScreen() {
 
   const saveAlertFromModal = async () => {
     if (!editTitle.trim()) {
-      Alert.alert('خطأ', 'يرجى إدخال عنوان التنبيه');
+      AlertService.alert('خطأ', 'يرجى إدخال عنوان التنبيه');
       return;
     }
 
     if (!editDate) {
-      Alert.alert('خطأ', 'يرجى اختيار تاريخ التنبيه');
+      AlertService.alert('خطأ', 'يرجى اختيار تاريخ التنبيه');
       return;
     }
 
     if (!editTime) {
-      Alert.alert('خطأ', 'يرجى اختيار وقت التنبيه');
+      AlertService.alert('خطأ', 'يرجى اختيار وقت التنبيه');
       return;
     }
 
@@ -253,18 +254,18 @@ export default function AlertsManagementScreen() {
       setModalVisible(false);
       
       const isNewAlert = existingIndex === -1;
-      Alert.alert(
+      AlertService.alert(
         isNewAlert ? 'تم الإنشاء' : 'تم الحفظ',
         isNewAlert ? 'تم إنشاء التنبيه بنجاح' : 'تم تحديث التنبيه بنجاح'
       );
     } catch (error) {
       console.error('Error saving alert:', error);
-      Alert.alert('خطأ', 'فشل في حفظ التنبيه');
+      AlertService.alert('خطأ', 'فشل في حفظ التنبيه');
     }
   };
 
   const deleteAlertFromModal = () => {
-    Alert.alert(
+    AlertService.alert(
       'حذف التنبيه',
       'هل أنت متأكد من رغبتك في حذف هذا التنبيه؟',
       [
@@ -278,10 +279,10 @@ export default function AlertsManagementScreen() {
               await AsyncStorage.setItem('alerts', JSON.stringify(updatedAlerts));
               setAlerts(updatedAlerts);
               setModalVisible(false);
-              Alert.alert('تم الحذف', 'تم حذف التنبيه بنجاح');
+              AlertService.alert('تم الحذف', 'تم حذف التنبيه بنجاح');
             } catch (error) {
               console.error('Error deleting alert:', error);
-              Alert.alert('خطأ', 'فشل في حذف التنبيه');
+              AlertService.alert('خطأ', 'فشل في حذف التنبيه');
             }
           }
         }
@@ -547,7 +548,7 @@ export default function AlertsManagementScreen() {
                   <ThemedText type="subtitle" style={[styles.sectionTitle, getTextDirection()]}> 
                     {formatRTLText(`التنبيهات (${filteredAlerts.length})`)}
                   </ThemedText>
-                  <TouchableOpacity onPress={() => Alert.alert('تصدير', 'سيتم تصدير قائمة التنبيهات')}>
+                  <TouchableOpacity onPress={() => AlertService.alert('تصدير', 'سيتم تصدير قائمة التنبيهات')}>
                     <IconSymbol size={20} name="square.and.arrow.up.fill" color="#007AFF" />
                   </TouchableOpacity>
                 </ThemedView>
@@ -652,7 +653,7 @@ export default function AlertsManagementScreen() {
                 <TouchableOpacity 
                   style={styles.settingButton}
                   onPress={() => {
-                    Alert.alert(
+                    AlertService.alert(
                       'إعدادات الصوت والاهتزاز',
                       'اختر نمط التنبيه المفضل لديك',
                       [
@@ -675,14 +676,14 @@ export default function AlertsManagementScreen() {
                 <TouchableOpacity 
                   style={styles.settingButton}
                   onPress={() => {
-                    Alert.alert(
+                    AlertService.alert(
                       'إدارة التنبيهات المتقدمة',
                       'خيارات إضافية لإدارة التنبيهات',
                       [
                         {
                           text: 'حذف جميع التنبيهات',
                           onPress: () => {
-                            Alert.alert(
+                            AlertService.alert(
                               'تأكيد الحذف',
                               'هل أنت متأكد من رغبتك في حذف جميع التنبيهات؟ هذا الإجراء لا يمكن التراجع عنه.',
                               [
@@ -694,9 +695,9 @@ export default function AlertsManagementScreen() {
                                     try {
                                       await AsyncStorage.removeItem('alerts');
                                       setAlerts([]);
-                                      Alert.alert('تم الحذف', 'تم حذف جميع التنبيهات بنجاح');
+                                      AlertService.alert('تم الحذف', 'تم حذف جميع التنبيهات بنجاح');
                                     } catch (error) {
-                                      Alert.alert('خطأ', 'فشل في حذف التنبيهات');
+                                      AlertService.alert('خطأ', 'فشل في حذف التنبيهات');
                                     }
                                   }
                                 }
@@ -707,7 +708,7 @@ export default function AlertsManagementScreen() {
                         {
                           text: 'تفعيل/إيقاف جميع التنبيهات',
                           onPress: () => {
-                            Alert.alert(
+                            AlertService.alert(
                               'تبديل حالة جميع التنبيهات',
                               'اختر الإجراء المطلوب',
                               [
@@ -716,7 +717,7 @@ export default function AlertsManagementScreen() {
                                   onPress: async () => {
                                     const updatedAlerts = alerts.map(alert => ({ ...alert, active: true }));
                                     saveAlerts(updatedAlerts);
-                                    Alert.alert('تم التحديث', 'تم تفعيل جميع التنبيهات');
+                                    AlertService.alert('تم التحديث', 'تم تفعيل جميع التنبيهات');
                                   }
                                 },
                                 {
@@ -724,7 +725,7 @@ export default function AlertsManagementScreen() {
                                   onPress: async () => {
                                     const updatedAlerts = alerts.map(alert => ({ ...alert, active: false }));
                                     saveAlerts(updatedAlerts);
-                                    Alert.alert('تم التحديث', 'تم إيقاف جميع التنبيهات');
+                                    AlertService.alert('تم التحديث', 'تم إيقاف جميع التنبيهات');
                                   }
                                 },
                                 { text: 'إلغاء', style: 'cancel' }
@@ -754,7 +755,7 @@ export default function AlertsManagementScreen() {
 ${Object.entries(stats.byType).map(([type, count]) => `${type}: ${count}`).join('\n')}
                             `;
 
-                            Alert.alert('إحصائيات التنبيهات', statsText);
+                            AlertService.alert('إحصائيات التنبيهات', statsText);
                           }
                         },
                         { text: 'إغلاق', style: 'cancel' }

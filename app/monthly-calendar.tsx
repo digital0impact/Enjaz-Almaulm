@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
-import { StyleSheet, ScrollView, TouchableOpacity, View, Alert, Platform, ImageBackground } from 'react-native';
+import { StyleSheet, ScrollView, TouchableOpacity, View, Platform, ImageBackground } from 'react-native';
+import { AlertService } from '@/services/AlertService';
 import { ThemedText } from '@/components/ThemedText';
 import { ThemedView } from '@/components/ThemedView';
 import { IconSymbol } from '@/components/ui/IconSymbol';
@@ -70,7 +71,7 @@ export default function MonthlyCalendarScreen() {
     const selectedDateObj = new Date(currentDate.getFullYear(), currentDate.getMonth(), day);
     const dateString = selectedDateObj.toLocaleDateString('ar-SA');
     
-    Alert.alert(
+    AlertService.alert(
       `📅 ${day} ${getCalendarData().monthName} ${getCalendarData().year}`,
       `📍 التاريخ المحدد: ${dateString}\n\n` +
       `📋 الأحداث المتاحة لهذا اليوم:\n` +
@@ -79,11 +80,11 @@ export default function MonthlyCalendarScreen() {
       [
         {
           text: '➕ إضافة حدث',
-          onPress: () => Alert.alert('إضافة حدث', `سيتم إضافة حدث جديد ليوم ${day} ${getCalendarData().monthName}`)
+          onPress: () => AlertService.alert('إضافة حدث', `سيتم إضافة حدث جديد ليوم ${day} ${getCalendarData().monthName}`)
         },
         {
           text: '📋 عرض التفاصيل',
-          onPress: () => Alert.alert('تفاصيل اليوم', `تفاصيل يوم ${day} ${getCalendarData().monthName} ${getCalendarData().year}`)
+          onPress: () => AlertService.alert('تفاصيل اليوم', `تفاصيل يوم ${day} ${getCalendarData().monthName} ${getCalendarData().year}`)
         },
         {
           text: 'إغلاق',
@@ -220,7 +221,7 @@ export default function MonthlyCalendarScreen() {
             
             <TouchableOpacity
               style={[styles.actionButton, commonStyles.primaryButton]}
-              onPress={() => Alert.alert('اليوم', 'الانتقال إلى تاريخ اليوم')}
+              onPress={() => AlertService.alert('اليوم', 'الانتقال إلى تاريخ اليوم')}
             >
               <IconSymbol size={20} name="calendar.badge.clock" color="#fff" />
               <ThemedText style={[styles.actionButtonText, getTextDirection(), commonStyles.primaryButtonText]}> 
@@ -230,7 +231,7 @@ export default function MonthlyCalendarScreen() {
 
             <TouchableOpacity
               style={[styles.actionButton, commonStyles.secondaryButton]}
-              onPress={() => Alert.alert('إضافة حدث', 'إضافة حدث جديد للتقويم')}
+              onPress={() => AlertService.alert('إضافة حدث', 'إضافة حدث جديد للتقويم')}
             >
               <IconSymbol size={20} name="plus.circle" color={colors.primary} />
               <ThemedText style={[styles.actionButtonText, getTextDirection(), commonStyles.secondaryButtonText]}> 
@@ -240,7 +241,7 @@ export default function MonthlyCalendarScreen() {
 
             <TouchableOpacity
               style={[styles.actionButton, commonStyles.secondaryButton]}
-              onPress={() => Alert.alert('عرض الأحداث', 'عرض جميع أحداث الشهر')}
+              onPress={() => AlertService.alert('عرض الأحداث', 'عرض جميع أحداث الشهر')}
             >
               <IconSymbol size={20} name="list.bullet" color={colors.primary} />
               <ThemedText style={[styles.actionButtonText, getTextDirection(), commonStyles.secondaryButtonText]}> 

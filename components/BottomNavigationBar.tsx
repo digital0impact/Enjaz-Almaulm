@@ -14,18 +14,13 @@ const TAB_BAR_BG = '#E8F5F4';
 const TAB_BAR_TINT_COLOR = '#595b59';
 const TAB_BAR_BORDER = '#E5E5EA';
 
+// ترتيب التبويبات من اليمين لليسار: الرئيسية أولاً (أقصى اليمين) ثم البيانات ثم الأداء ثم الأدوات المساعدة
 const tabs: TabRoute[] = [
   {
-    key: 'explore',
-    title: 'الأدوات المساعدة',
-    icon: 'gear',
-    route: '/(tabs)/explore'
-  },
-  {
-    key: 'performance',
-    title: 'الأداء المهني',
-    icon: 'chart.bar.fill',
-    route: '/(tabs)/performance'
+    key: 'index',
+    title: 'الرئيسية',
+    icon: 'house.fill',
+    route: '/(tabs)'
   },
   {
     key: 'basicData',
@@ -34,11 +29,17 @@ const tabs: TabRoute[] = [
     route: '/(tabs)/basicData'
   },
   {
-    key: 'index',
-    title: 'الرئيسية',
-    icon: 'house.fill',
-    route: '/(tabs)'
-  }
+    key: 'performance',
+    title: 'الأداء المهني',
+    icon: 'chart.bar.fill',
+    route: '/(tabs)/performance'
+  },
+  {
+    key: 'explore',
+    title: 'الأدوات المساعدة',
+    icon: 'gear',
+    route: '/(tabs)/explore'
+  },
 ];
 
 export const BottomNavigationBar: React.FC = () => {
@@ -120,13 +121,15 @@ const styles = StyleSheet.create({
     elevation: 8,
     overflow: 'hidden',
     backgroundColor: TAB_BAR_BG,
+    direction: 'rtl',
   },
   tabBarContent: {
-    flexDirection: 'row',
+    flexDirection: 'row-reverse',
     flex: 1,
   },
   tab: {
     flex: 1,
+    flexDirection: 'row-reverse',
     alignItems: 'center',
     justifyContent: 'center',
     padding: 5,

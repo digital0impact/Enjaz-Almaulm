@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import { StyleSheet, ScrollView, TouchableOpacity, Pressable, Alert, I18nManager, ImageBackground, KeyboardAvoidingView, Platform, Dimensions, ActivityIndicator, Modal, TextInput, View } from 'react-native';
+import { StyleSheet, ScrollView, TouchableOpacity, Pressable, I18nManager, ImageBackground, KeyboardAvoidingView, Platform, Dimensions, ActivityIndicator, Modal, TextInput, View } from 'react-native';
+import { AlertService } from '@/services/AlertService';
 import { useFocusEffect } from '@react-navigation/native';
 
 import { ThemedText } from '@/components/ThemedText';
@@ -2081,7 +2082,7 @@ export default function PerformanceScreen() {
       setPerformanceData(newData);
     } catch (error) {
       console.error('Error updating performance data:', error);
-      Alert.alert('خطأ', 'حدث خطأ أثناء حفظ البيانات');
+      AlertService.alert('خطأ', 'حدث خطأ أثناء حفظ البيانات');
       throw error;
     }
   };
@@ -2193,7 +2194,7 @@ export default function PerformanceScreen() {
   const handlePromptConfirm = async () => {
     const value = promptValue.trim();
     if (!value) {
-      Alert.alert('تنبيه', 'الرجاء إدخال اسم الشاهد.');
+      AlertService.alert('تنبيه', 'الرجاء إدخال اسم الشاهد.');
       return;
     }
     const performanceId = promptPerformanceId;
@@ -2201,21 +2202,21 @@ export default function PerformanceScreen() {
     try {
       if (promptMode === 'add') {
         await applyAddEvidence(performanceId, value);
-        Alert.alert('نجح', 'تمت إضافة الشاهد بنجاح');
+        AlertService.alert('نجح', 'تمت إضافة الشاهد بنجاح');
       } else {
         await applyEditEvidence(performanceId, evidenceIndex, value);
-        Alert.alert('نجح', 'تم تعديل الشاهد بنجاح');
+        AlertService.alert('نجح', 'تم تعديل الشاهد بنجاح');
       }
       setPromptVisible(false);
       setPromptValue('');
     } catch (err) {
       const msg = err instanceof Error ? err.message : 'حدث خطأ';
-      Alert.alert('خطأ', msg);
+      AlertService.alert('خطأ', msg);
     }
   };
 
   const deleteEvidence = (performanceId: number, evidenceIndex: number) => {
-    Alert.alert(
+    AlertService.alert(
       'تأكيد الحذف',
       'هل أنت متأكد من حذف هذا الشاهد؟',
       [
@@ -2257,7 +2258,7 @@ export default function PerformanceScreen() {
     try {
       const permissionResult = await ImagePicker.requestMediaLibraryPermissionsAsync();
       if (permissionResult.granted === false) {
-        Alert.alert('إذن مطلوب', 'يجب السماح بالوصول إلى معرض الصور لرفع الشواهد.');
+        AlertService.alert('إذن مطلوب', 'يجب السماح بالوصول إلى معرض الصور لرفع الشواهد.');
         return;
       }
 
@@ -2321,11 +2322,11 @@ export default function PerformanceScreen() {
         await AsyncStorage.setItem('performanceData', JSON.stringify(newPerformanceData));
       }
 
-      Alert.alert('نجح', 'تم رفع الصورة بنجاح');
+      AlertService.alert('نجح', 'تم رفع الصورة بنجاح');
     } catch (error) {
       const message = error instanceof Error ? error.message : 'فشل في اختيار الصورة';
       console.log('Error picking image:', error);
-      Alert.alert('خطأ', message);
+      AlertService.alert('خطأ', message);
     } finally {
       setUploadingStates(prev => ({ ...prev, [fileKey]: false }));
     }
@@ -2394,11 +2395,11 @@ export default function PerformanceScreen() {
         await AsyncStorage.setItem('performanceData', JSON.stringify(newPerformanceData));
       }
 
-      Alert.alert('نجح', 'تم رفع الوثيقة بنجاح');
+      AlertService.alert('نجح', 'تم رفع الوثيقة بنجاح');
     } catch (error) {
       const message = error instanceof Error ? error.message : 'فشل في اختيار الوثيقة';
       console.log('Error picking document:', error);
-      Alert.alert('خطأ', message);
+      AlertService.alert('خطأ', message);
     } finally {
       setUploadingStates(prev => ({ ...prev, [fileKey]: false }));
     }
@@ -2411,7 +2412,7 @@ export default function PerformanceScreen() {
     try {
       const permissionResult = await ImagePicker.requestMediaLibraryPermissionsAsync();
       if (permissionResult.granted === false) {
-        Alert.alert('إذن مطلوب', 'يجب السماح بالوصول إلى معرض الصور لرفع الفيديو.');
+        AlertService.alert('إذن مطلوب', 'يجب السماح بالوصول إلى معرض الصور لرفع الفيديو.');
         return;
       }
 
@@ -2474,11 +2475,11 @@ export default function PerformanceScreen() {
         await AsyncStorage.setItem('performanceData', JSON.stringify(newPerformanceData));
       }
 
-      Alert.alert('نجح', 'تم رفع الفيديو بنجاح');
+      AlertService.alert('نجح', 'تم رفع الفيديو بنجاح');
     } catch (error) {
       const message = error instanceof Error ? error.message : 'فشل في اختيار الفيديو';
       console.log('Error picking video:', error);
-      Alert.alert('خطأ', message);
+      AlertService.alert('خطأ', message);
     } finally {
       setUploadingStates(prev => ({ ...prev, [fileKey]: false }));
     }
@@ -2521,21 +2522,21 @@ export default function PerformanceScreen() {
     setPerformanceData(newPerformanceData);
     await AsyncStorage.setItem('performanceData', JSON.stringify(newPerformanceData));
 
-    Alert.alert('نجح', 'تم حذف الملف بنجاح');
+    AlertService.alert('نجح', 'تم حذف الملف بنجاح');
   };
 
   const savePerformanceData = async () => {
     try {
       await AsyncStorage.setItem('performanceData', JSON.stringify(performanceData));
-      Alert.alert('نجح', 'تم حفظ البيانات بنجاح');
+      AlertService.alert('نجح', 'تم حفظ البيانات بنجاح');
     } catch (error) {
       console.log('Error saving performance data:', error);
-      Alert.alert('خطأ', 'فشل في حفظ البيانات');
+      AlertService.alert('خطأ', 'فشل في حفظ البيانات');
     }
   };
 
   const resetPerformanceData = () => {
-    Alert.alert(
+    AlertService.alert(
       'تأكيد إعادة التعيين',
       'هل أنت متأكد من إعادة تعيين جميع البيانات؟',
       [
@@ -2556,7 +2557,7 @@ export default function PerformanceScreen() {
             setUploadedFiles({});
             await AsyncStorage.setItem('performanceData', JSON.stringify(resetData));
             await AsyncStorage.setItem('uploadedFiles', JSON.stringify({}));
-            Alert.alert('نجح', 'تم إعادة تعيين البيانات بنجاح');
+            AlertService.alert('نجح', 'تم إعادة تعيين البيانات بنجاح');
           }
         }
       ]

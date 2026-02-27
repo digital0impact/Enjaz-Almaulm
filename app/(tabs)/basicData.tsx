@@ -4,7 +4,6 @@ import {
   ScrollView,
   TextInput,
   TouchableOpacity,
-  Alert,
   ImageBackground,
   Image,
   KeyboardAvoidingView,
@@ -13,6 +12,7 @@ import {
   Modal,
   View,
 } from 'react-native';
+import { AlertService } from '@/services/AlertService';
 
 import { ThemedText } from '@/components/ThemedText';
 import { ThemedView } from '@/components/ThemedView';
@@ -116,7 +116,7 @@ export default function BasicDataScreen() {
         } catch (e) {
           console.warn('Could not sync profile to Supabase:', e);
           setIsEditing(false);
-          Alert.alert(
+          AlertService.alert(
             formatRTLText('فشلت المزامنة'),
             formatRTLText('تم حفظ البيانات على الجهاز لكن لم يتم رفعها إلى السيرفر (بما فيها رقم الجوال). تحقق من الاتصال بالإنترنت وحاول مرة أخرى.')
           );
@@ -124,9 +124,9 @@ export default function BasicDataScreen() {
         }
       }
       setIsEditing(false);
-      Alert.alert('تم الحفظ', 'تم حفظ البيانات بنجاح');
+      AlertService.alert('تم الحفظ', 'تم حفظ البيانات بنجاح');
     } catch {
-      Alert.alert('خطأ', 'حدث خطأ في حفظ البيانات');
+      AlertService.alert('خطأ', 'حدث خطأ في حفظ البيانات');
     }
   };
 
@@ -146,7 +146,7 @@ export default function BasicDataScreen() {
     // طلب الصلاحيات
     const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
     if (status !== 'granted') {
-      Alert.alert('عذراً', 'نحتاج إلى صلاحية الوصول للصور لتتمكن من رفع صورتك الشخصية');
+      AlertService.alert('عذراً', 'نحتاج إلى صلاحية الوصول للصور لتتمكن من رفع صورتك الشخصية');
       return;
     }
 
@@ -163,7 +163,7 @@ export default function BasicDataScreen() {
   };
 
   const removeImage = () => {
-    Alert.alert(
+    AlertService.alert(
       'حذف الصورة',
       'هل أنت متأكد من حذف الصورة الشخصية؟',
       [

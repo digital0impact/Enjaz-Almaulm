@@ -1,5 +1,6 @@
 import React, { useState, useRef } from 'react';
-import { StyleSheet, ScrollView, TouchableOpacity, TextInput, Alert, ImageBackground, KeyboardAvoidingView, Platform, Modal, View } from 'react-native';
+import { StyleSheet, ScrollView, TouchableOpacity, TextInput, ImageBackground, KeyboardAvoidingView, Platform, Modal, View } from 'react-native';
+import { AlertService } from '@/services/AlertService';
 
 import { ThemedText } from '@/components/ThemedText';
 import { ThemedView } from '@/components/ThemedView';
@@ -98,7 +99,7 @@ export default function AddStudentScreen() {
 
   const addGoal = () => {
     if (!newGoal.title.trim()) {
-      Alert.alert('خطأ', 'يرجى إدخال عنوان الهدف');
+      AlertService.alert('خطأ', 'يرجى إدخال عنوان الهدف');
       return;
     }
 
@@ -126,13 +127,13 @@ export default function AddStudentScreen() {
 
   const addNeed = () => {
     if (!newNeed.trim()) {
-      Alert.alert('خطأ', 'يرجى إدخال الاحتياج');
+      AlertService.alert('خطأ', 'يرجى إدخال الاحتياج');
       return;
     }
 
     // التحقق من عدم تكرار الاحتياج
     if (studentData.needs.includes(newNeed.trim())) {
-      Alert.alert('تنبيه', 'هذا الاحتياج موجود بالفعل');
+      AlertService.alert('تنبيه', 'هذا الاحتياج موجود بالفعل');
       return;
     }
 
@@ -142,7 +143,7 @@ export default function AddStudentScreen() {
     }));
 
     setNewNeed('');
-    Alert.alert('تم بنجاح', 'تم إضافة الاحتياج بنجاح');
+    AlertService.alert('تم بنجاح', 'تم إضافة الاحتياج بنجاح');
   };
 
   const pickDocument = async () => {
@@ -176,13 +177,13 @@ export default function AddStudentScreen() {
           fileType: fileType
         }));
 
-        Alert.alert('تم التحميل بنجاح', `تم تحميل ${fileType}: ${file.name || 'ملف جديد'}`);
+        AlertService.alert('تم التحميل بنجاح', `تم تحميل ${fileType}: ${file.name || 'ملف جديد'}`);
       } else {
         console.log('تم إلغاء اختيار الملف');
       }
     } catch (error) {
       console.error('خطأ في تحميل الملف:', error);
-      Alert.alert('خطأ في التحميل', 'حدث خطأ أثناء تحميل الملف. يرجى المحاولة مرة أخرى.');
+      AlertService.alert('خطأ في التحميل', 'حدث خطأ أثناء تحميل الملف. يرجى المحاولة مرة أخرى.');
     }
   };
 
@@ -192,7 +193,7 @@ export default function AddStudentScreen() {
       const permissionResult = await ImagePicker.requestMediaLibraryPermissionsAsync();
       
       if (permissionResult.granted === false) {
-        Alert.alert('إذن مطلوب', 'يجب السماح بالوصول إلى معرض الصور لتحميل الصور.');
+        AlertService.alert('إذن مطلوب', 'يجب السماح بالوصول إلى معرض الصور لتحميل الصور.');
         return;
       }
 
@@ -215,13 +216,13 @@ export default function AddStudentScreen() {
           fileType: 'صورة'
         }));
 
-        Alert.alert('تم التحميل بنجاح', `تم تحميل الصورة: ${fileName}`);
+        AlertService.alert('تم التحميل بنجاح', `تم تحميل الصورة: ${fileName}`);
       } else {
         console.log('تم إلغاء اختيار الصورة');
       }
     } catch (error) {
       console.error('خطأ في تحميل الصورة:', error);
-      Alert.alert('خطأ في التحميل', 'حدث خطأ أثناء تحميل الصورة. يرجى المحاولة مرة أخرى.');
+      AlertService.alert('خطأ في التحميل', 'حدث خطأ أثناء تحميل الصورة. يرجى المحاولة مرة أخرى.');
     }
   };
 
@@ -231,7 +232,7 @@ export default function AddStudentScreen() {
       const permissionResult = await ImagePicker.requestMediaLibraryPermissionsAsync();
       
       if (permissionResult.granted === false) {
-        Alert.alert('إذن مطلوب', 'يجب السماح بالوصول إلى معرض الصور لتحميل الفيديو.');
+        AlertService.alert('إذن مطلوب', 'يجب السماح بالوصول إلى معرض الصور لتحميل الفيديو.');
         return;
       }
 
@@ -253,19 +254,19 @@ export default function AddStudentScreen() {
           fileType: 'فيديو'
         }));
 
-        Alert.alert('تم التحميل بنجاح', `تم تحميل الفيديو: ${fileName}`);
+        AlertService.alert('تم التحميل بنجاح', `تم تحميل الفيديو: ${fileName}`);
       } else {
         console.log('تم إلغاء اختيار الفيديو');
       }
     } catch (error) {
       console.error('خطأ في تحميل الفيديو:', error);
-      Alert.alert('خطأ في التحميل', 'حدث خطأ أثناء تحميل الفيديو. يرجى المحاولة مرة أخرى.');
+      AlertService.alert('خطأ في التحميل', 'حدث خطأ أثناء تحميل الفيديو. يرجى المحاولة مرة أخرى.');
     }
   };
 
   const addEvidence = () => {
     if (!newEvidence.title?.trim()) {
-      Alert.alert('خطأ', 'يرجى إدخال عنوان الشاهد');
+      AlertService.alert('خطأ', 'يرجى إدخال عنوان الشاهد');
       return;
     }
 
@@ -320,18 +321,18 @@ export default function AddStudentScreen() {
   const saveStudent = async () => {
     // التحقق من البيانات المطلوبة
     if (!studentData.name.trim()) {
-      Alert.alert('خطأ في البيانات', 'يرجى إدخال اسم المتعلم');
+      AlertService.alert('خطأ في البيانات', 'يرجى إدخال اسم المتعلم');
       return;
     }
 
     if (!studentData.grade.trim()) {
-      Alert.alert('خطأ في البيانات', 'يرجى إدخال الصف الدراسي');
+      AlertService.alert('خطأ في البيانات', 'يرجى إدخال الصف الدراسي');
       return;
     }
 
     // التحقق من طول الاسم
     if (studentData.name.trim().length < 2) {
-      Alert.alert('خطأ في البيانات', 'اسم المتعلم يجب أن يكون أكثر من حرف واحد');
+      AlertService.alert('خطأ في البيانات', 'اسم المتعلم يجب أن يكون أكثر من حرف واحد');
       return;
     }
 
@@ -827,7 +828,7 @@ export default function AddStudentScreen() {
                               <ThemedText style={[styles.evidenceDetailText, getTextDirection()]}>الملف: {evidence.fileName}</ThemedText>
                               <TouchableOpacity 
                                 style={styles.viewFileBtn}
-                                onPress={() => Alert.alert('عرض الملف', `فتح: ${evidence.fileName}`)}
+                                onPress={() => AlertService.alert('عرض الملف', `فتح: ${evidence.fileName}`)}
                               >
                                 <IconSymbol size={14} name="eye.fill" color="#2196F3" />
                                 <ThemedText style={[styles.viewFileBtnText, getTextDirection()]}>عرض</ThemedText>
@@ -872,7 +873,7 @@ export default function AddStudentScreen() {
                     <TouchableOpacity 
                       style={styles.cancelButton} 
                       onPress={() => {
-                        Alert.alert(
+                        AlertService.alert(
                           'تأكيد الإلغاء',
                           'هل أنت متأكد من إلغاء إضافة المتعلم؟ سيتم فقدان جميع البيانات المدخلة.',
                           [

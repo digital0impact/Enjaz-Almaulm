@@ -5,10 +5,10 @@ import {
   StyleSheet,
   Modal,
   ActivityIndicator,
-  Alert,
   Platform,
   ScrollView,
 } from 'react-native';
+import { AlertService } from '@/services/AlertService';
 import { ThemedText } from '@/components/ThemedText';
 import { ThemedView } from '@/components/ThemedView';
 import { IconSymbol } from '@/components/ui/IconSymbol';
@@ -54,7 +54,7 @@ export function AIAssistButton({
         setModalVisible(true);
       } else {
     // عند إعادة التفعيل: استدعِ suggestWithAI هنا وافتح المودال بالاقتراح
-        Alert.alert(formatRTLText('مساعد الذكاء الاصطناعي'), msg);
+        AlertService.alert(formatRTLText('مساعد الذكاء الاصطناعي'), msg);
       }
     } finally {
       setLoading(false);

@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import { StyleSheet, ScrollView, TouchableOpacity, Alert, ImageBackground, Platform, RefreshControl } from 'react-native';
+import { StyleSheet, ScrollView, TouchableOpacity, ImageBackground, Platform, RefreshControl } from 'react-native';
+import { AlertService } from '@/services/AlertService';
 import { useFocusEffect } from '@react-navigation/native';
 import { ThemedText } from '@/components/ThemedText';
 import { ThemedView } from '@/components/ThemedView';
@@ -57,7 +58,7 @@ export default function AbsenceManagementScreen() {
       }
     } catch (error) {
       console.error('Error loading absence data:', error);
-      Alert.alert('خطأ', 'حدث خطأ في تحميل البيانات');
+      AlertService.alert('خطأ', 'حدث خطأ في تحميل البيانات');
     } finally {
       setRefreshing(false);
     }
@@ -89,7 +90,7 @@ export default function AbsenceManagementScreen() {
   };
 
   const deleteAbsenceRecord = async (id: string) => {
-    Alert.alert(
+    AlertService.alert(
       'تأكيد الحذف',
       'هل أنت متأكد من حذف هذا السجل؟',
       [
@@ -106,10 +107,10 @@ export default function AbsenceManagementScreen() {
               await AsyncStorage.setItem('absenceRecords', JSON.stringify(updatedRecords));
               setAbsenceRecords(updatedRecords);
               calculateStats(updatedRecords);
-              Alert.alert('تم الحذف', 'تم حذف السجل بنجاح');
+              AlertService.alert('تم الحذف', 'تم حذف السجل بنجاح');
             } catch (error) {
               console.error('Error deleting absence record:', error);
-              Alert.alert('خطأ', 'حدث خطأ في حذف السجل');
+              AlertService.alert('خطأ', 'حدث خطأ في حذف السجل');
             }
           }
         }

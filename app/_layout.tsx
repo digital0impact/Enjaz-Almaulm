@@ -6,16 +6,15 @@ import { ThemeProvider } from '../contexts/ThemeContext';
 import { AppAlertProvider } from '../contexts/AppAlertContext';
 import { UserProvider } from '../contexts/UserContext';
 import { AppLayoutWrapper } from '@/components/AppLayoutWrapper';
+import { AcademicYearService } from '@/services/AcademicYearService';
 
 export default function Layout() {
   useEffect(() => {
-    // تهيئة RTL عند بدء التطبيق
-    const setupRTL = async () => {
-      const rtlConfig = await initializeRTL();
-      console.log('تم تهيئة RTL:', rtlConfig);
+    const setup = async () => {
+      await initializeRTL();
+      await AcademicYearService.migrateToAcademicYearIfNeeded();
     };
-    
-    setupRTL();
+    setup();
   }, []);
 
   return (

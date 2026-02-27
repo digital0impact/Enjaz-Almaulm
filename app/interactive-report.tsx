@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import { StyleSheet, ScrollView, TouchableOpacity, Alert, ImageBackground, KeyboardAvoidingView, Platform, StatusBar, Dimensions, View, ActivityIndicator, Linking, Modal, Image } from 'react-native';
+import { StyleSheet, ScrollView, TouchableOpacity, ImageBackground, KeyboardAvoidingView, Platform, StatusBar, Dimensions, View, ActivityIndicator, Linking, Modal, Image } from 'react-native';
+import { AlertService } from '@/services/AlertService';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { BarChart } from 'react-native-chart-kit';
 import { useFocusEffect } from '@react-navigation/native';
@@ -1135,7 +1136,7 @@ export default function InteractiveReportScreen() {
                                 setPreviewVisible(true);
                               } else {
                                 Linking.openURL(file.uri!).catch(() =>
-                                  Alert.alert('لا يمكن فتح الملف', 'المعاينة غير متاحة لهذا النوع على هذا الجهاز.')
+                                  AlertService.alert('لا يمكن فتح الملف', 'المعاينة غير متاحة لهذا النوع على هذا الجهاز.')
                                 );
                               }
                             }}
@@ -1971,7 +1972,7 @@ export default function InteractiveReportScreen() {
       if (action && window.confirm(action.text + '؟')) action.onPress?.();
       return;
     }
-    Alert.alert(title, message, buttons);
+    AlertService.alert(title, message, buttons);
   };
 
   const openReportForPrint = async () => {

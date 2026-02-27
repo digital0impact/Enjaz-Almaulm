@@ -7,10 +7,10 @@ import {
   Platform,
   TextInput,
   View,
-  Alert,
   ActivityIndicator,
   Modal,
 } from 'react-native';
+import { AlertService } from '@/services/AlertService';
 
 import { ThemedText } from '@/components/ThemedText';
 import { ThemedView } from '@/components/ThemedView';
@@ -145,7 +145,7 @@ export default function IDPScreen() {
       }
       return;
     }
-    Alert.alert(title, message, buttons);
+    AlertService.alert(title, message, buttons);
   };
 
   /** التحقق من أن المستخدم مسجل الدخول وأن اشتراكه يسمح بالتصدير (سنوي أو نصف سنوي فقط) */

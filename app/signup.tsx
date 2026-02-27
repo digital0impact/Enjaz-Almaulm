@@ -10,6 +10,7 @@ import { DatabaseService } from '@/services/DatabaseService';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { getTextDirection, formatRTLText } from '@/utils/rtl-utils';
 import { useAppAlert } from '@/contexts/AppAlertContext';
+import { shouldShowInstallPrompt, promptInstall, isIOSWeb } from '@/utils/pwa-install';
 
 export default function SignupScreen() {
   const router = useRouter();
@@ -73,10 +74,37 @@ export default function SignupScreen() {
         console.warn('Could not sync profile (phone):', e);
       }
 
+      // لعرض تنبيه ترحيبي على الصفحة الرئيسية بعد التوجيه
+      await AsyncStorage.setItem('showPostSignupBanner', '1');
+
+      const onSuccessPress = () => {
+        if (Platform.OS === 'web' && shouldShowInstallPrompt()) {
+          const isIOS = isIOSWeb();
+          appAlert.alert(
+            formatRTLText('إضافة التطبيق إلى الشاشة الرئيسية'),
+            isIOS
+              ? formatRTLText('لإضافة أيقونة على الشاشة الرئيسية: اضغط زر المشاركة في المتصفح ثم اختر "إضافة إلى الشاشة الرئيسية".')
+              : formatRTLText('يمكنك إضافة التطبيق ليعمل مثل البرامج ويظهر بأيقونة على سطح المكتب أو الشاشة الرئيسية.'),
+            [
+              { text: formatRTLText('لاحقاً'), onPress: () => router.replace('/') },
+              {
+                text: formatRTLText('إضافة الآن'),
+                onPress: async () => {
+                  await promptInstall();
+                  router.replace('/');
+                },
+              },
+            ]
+          );
+        } else {
+          router.replace('/');
+        }
+      };
+
       appAlert.alert(
-        formatRTLText('تم إنشاء الحساب بنجاح'),
+        formatRTLText('تنبيه: تم إنشاء الحساب بنجاح'),
         formatRTLText('يجب توثيق حسابك عبر البريد الإلكتروني. تم إرسال رابط التوثيق إلى بريدك، يرجى فتح الرسالة والنقر على الرابط لتفعيل الحساب. إن لم تجد الرسالة فتحقق من مجلد البريد العشوائي.'),
-        [{ text: formatRTLText('حسناً'), onPress: () => router.replace('/') }]
+        [{ text: formatRTLText('حسناً'), onPress: onSuccessPress }]
       );
     } catch (error) {
       console.error('Signup error:', error);

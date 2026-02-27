@@ -14,7 +14,7 @@ const ThemeContext = createContext<ThemeContextType | undefined>(undefined);
 const defaultTheme: Theme = {
   name: 'default',
   colors: {
-    primary: '#add4ce',
+    primary: '#0d9488',
     secondary: '#1c1f33',
     background: '#ffffff',
     surface: '#f8f9fa',

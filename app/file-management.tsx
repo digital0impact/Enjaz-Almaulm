@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
-import { View, StyleSheet, Alert, ImageBackground } from 'react-native';
+import { View, StyleSheet, ImageBackground } from 'react-native';
+import { AlertService } from '@/services/AlertService';
 import { Stack } from 'expo-router';
 import { FileManager } from '../components/FileManager';
 import { ThemedView } from '../components/ThemedView';
@@ -15,7 +16,7 @@ export default function FileManagementScreen() {
 
   const handleFileUploaded = (file: FileAttachment) => {
     console.log('تم رفع ملف جديد:', file);
-    Alert.alert('نجح', `تم رفع الملف "${file.file_name}" بنجاح`);
+    AlertService.alert('نجح', `تم رفع الملف "${file.file_name}" بنجاح`);
   };
 
   const handleFileDeleted = (fileId: string) => {
@@ -141,7 +142,7 @@ export default function FileManagementScreen() {
             onPress={() => {
               const newId = `test-record-${Date.now()}`;
               setRelatedId(newId);
-              Alert.alert('تم التغيير', `تم تغيير معرف السجل إلى: ${newId}`);
+              AlertService.alert('تم التغيير', `تم تغيير معرف السجل إلى: ${newId}`);
             }}
             style={styles.actionButton}
           />

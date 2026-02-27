@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import { StyleSheet, ScrollView, TouchableOpacity, Alert, ImageBackground, Platform, StatusBar, KeyboardAvoidingView, Animated } from 'react-native';
+import { StyleSheet, ScrollView, TouchableOpacity, ImageBackground, Platform, StatusBar, KeyboardAvoidingView, Animated } from 'react-native';
+import { AlertService } from '@/services/AlertService';
 import { useFocusEffect } from '@react-navigation/native';
 
 import { ThemedText } from '@/components/ThemedText';
@@ -14,6 +15,8 @@ import { VERSION_INFO } from '@/constants/Version';
 import { getTextDirection, formatRTLText } from '@/utils/rtl-utils';
 import AuthService from '@/services/AuthService';
 import { SubscriptionService } from '@/services/SubscriptionService';
+import { AcademicYearService } from '@/services/AcademicYearService';
+import { formatAcademicYearLabel } from '@/constants/academicYear';
 
 export default function SettingsScreen() {
   const router = useRouter();
@@ -30,6 +33,10 @@ export default function SettingsScreen() {
   const [isBackupInProgress, setIsBackupInProgress] = useState(false);
   const [lastBackupInfo, setLastBackupInfo] = useState<{date: string, size: string, type: string} | null>(null);
   const [canUseBackup, setCanUseBackup] = useState<boolean | null>(null);
+
+  const [currentAcademicYear, setCurrentAcademicYear] = useState<string>('');
+  const [archivedYearKeys, setArchivedYearKeys] = useState<string[]>([]);
+  const [isEndingYear, setIsEndingYear] = useState(false);
   
   // معلومات الإصدار
   const [versionInfo, setVersionInfo] = useState({
@@ -44,6 +51,8 @@ export default function SettingsScreen() {
     loadLastBackupInfo();
     loadVersionInfo();
     loadBackupPermission();
+    loadAcademicYear();
+    AcademicYearService.migrateToAcademicYearIfNeeded();
     
     // تحريك الصفحة عند التحميل
     Animated.parallel([
@@ -65,8 +74,79 @@ export default function SettingsScreen() {
     React.useCallback(() => {
       loadVersionInfo();
       loadBackupPermission();
+      loadAcademicYear();
     }, [])
   );
+
+  const loadAcademicYear = async () => {
+    try {
+      const [year, keys] = await Promise.all([
+        AcademicYearService.getCurrentAcademicYear(),
+        AcademicYearService.getArchivedYearKeys(),
+      ]);
+      setCurrentAcademicYear(year);
+      setArchivedYearKeys(keys);
+    } catch {
+      setCurrentAcademicYear('');
+      setArchivedYearKeys([]);
+    }
+  };
+
+  const handleEndYearAndStartNew = () => {
+    AlertService.alert(
+      formatRTLText('إنهاء العام الدراسي وبدء عام جديد'),
+      formatRTLText(
+        'سيتم حفظ بيانات العام الحالي (المتعلمين، التقارير، الغياب، الجدول، التنبيهات، وغيرها) وستبدأ بعام دراسي جديد فارغ.\n\nننصح بعمل «نسخة احتياطية» قبل المتابعة إن أردت نسخة على السحابة.'
+      ),
+      [
+        { text: formatRTLText('إلغاء'), style: 'cancel' },
+        {
+          text: formatRTLText('إنهاء العام وبدء جديد'),
+          style: 'destructive',
+          onPress: async () => {
+            setIsEndingYear(true);
+            const result = await AcademicYearService.endYearAndStartNew();
+            setIsEndingYear(false);
+            if (result.success) {
+              await loadAcademicYear();
+              AlertService.alert(
+                formatRTLText('تم بدء عام دراسي جديد'),
+                formatRTLText('تم حفظ بيانات العام السابق وبدء العام ') + formatAcademicYearLabel(result.newYearKey) + formatRTLText('.\n\nيمكنك العودة إلى الأعوام السابقة من هذه الصفحة عند الحاجة.'),
+                [{ text: formatRTLText('حسناً'), onPress: () => router.replace('/') }]
+              );
+            } else {
+              AlertService.alert(formatRTLText('خطأ'), result.error || formatRTLText('حدث خطأ أثناء إنهاء العام.'));
+            }
+          },
+        },
+      ]
+    );
+  };
+
+  const handleSwitchToYear = (yearKey: string) => {
+    if (yearKey === currentAcademicYear) return;
+    AlertService.alert(
+      formatRTLText('التبديل إلى عام آخر'),
+      formatRTLText('التبديل إلى العام ') + formatAcademicYearLabel(yearKey) + formatRTLText(' سيُظهر بيانات ذلك العام. يمكنك العودة للعام الحالي لاحقاً.'),
+      [
+        { text: formatRTLText('إلغاء'), style: 'cancel' },
+        {
+          text: formatRTLText('تبديل'),
+          onPress: async () => {
+            const result = await AcademicYearService.switchToYear(yearKey);
+            if (result.success) {
+              await loadAcademicYear();
+              AlertService.alert(formatRTLText('تم'), formatRTLText('تم التبديل إلى العام ') + formatAcademicYearLabel(yearKey), [
+                { text: formatRTLText('حسناً'), onPress: () => router.replace('/') },
+              ]);
+            } else {
+              AlertService.alert(formatRTLText('خطأ'), result.error || formatRTLText('حدث خطأ أثناء التبديل.'));
+            }
+          },
+        },
+      ]
+    );
+  };
 
   const loadNotificationSettings = async () => {
     try {
@@ -163,14 +243,14 @@ export default function SettingsScreen() {
       }));
       
       // إظهار رسالة تأكيد
-      Alert.alert(
+      AlertService.alert(
         'تم التحديث',
         newState ? 'تم تفعيل الإشعارات بنجاح' : 'تم إيقاف الإشعارات بنجاح',
         [{ text: 'حسناً', style: 'default' }]
       );
     } catch (error) {
       console.log('خطأ في حفظ إعدادات الإشعارات');
-      Alert.alert('خطأ', 'حدث خطأ في حفظ الإعدادات');
+      AlertService.alert('خطأ', 'حدث خطأ في حفظ الإعدادات');
     }
   };
 
@@ -178,11 +258,11 @@ export default function SettingsScreen() {
 
   const handleCreateBackup = async () => {
     if (isBackupInProgress) {
-      Alert.alert('تنبيه', 'هناك عملية نسخ احتياطية قيد التنفيذ حالياً');
+      AlertService.alert('تنبيه', 'هناك عملية نسخ احتياطية قيد التنفيذ حالياً');
       return;
     }
     if (canUseBackup === false) {
-      Alert.alert(
+      AlertService.alert(
         formatRTLText('ترقية الاشتراك مطلوبة'),
         formatRTLText('النسخ الاحتياطي متاح للاشتراك السنوي أو النصف سنوي. يرجى ترقية اشتراكك للاستفادة من هذه الميزة.'),
         [
@@ -193,7 +273,7 @@ export default function SettingsScreen() {
       return;
     }
 
-    Alert.alert(
+    AlertService.alert(
       'عمل نسخة احتياطية',
       'هل تريد إنشاء نسخة احتياطية من جميع بياناتك؟\n\nملاحظة: هذه العملية قد تستغرق بضع دقائق.',
       [
@@ -230,14 +310,14 @@ export default function SettingsScreen() {
         console.log('تم إنشاء النسخة الاحتياطية بنجاح:', result.backupId);
         // تحديث معلومات آخر نسخة احتياطية
         await loadLastBackupInfo();
-        Alert.alert(
+        AlertService.alert(
           'نجح',
           'تم إنشاء النسخة الاحتياطية بنجاح!\n\nيمكنك الوصول إليها من قائمة النسخ الاحتياطية.',
           [{ text: 'حسناً', style: 'default' }]
         );
       } else {
         console.error('فشل في إنشاء النسخة الاحتياطية:', result.error);
-        Alert.alert(
+        AlertService.alert(
           'خطأ',
           result.error || 'حدث خطأ أثناء إنشاء النسخة الاحتياطية',
           [{ text: 'حسناً', style: 'default' }]
@@ -247,7 +327,7 @@ export default function SettingsScreen() {
       console.error('خطأ غير متوقع في النسخ الاحتياطية:', error);
       setShowBackupProgress(false);
       setIsBackupInProgress(false);
-      Alert.alert(
+      AlertService.alert(
         'خطأ',
         `حدث خطأ غير متوقع أثناء إنشاء النسخة الاحتياطية:\n${error instanceof Error ? error.message : 'خطأ غير معروف'}`,
         [{ text: 'حسناً', style: 'default' }]
@@ -257,7 +337,7 @@ export default function SettingsScreen() {
 
   const handleRestoreBackup = async () => {
     if (isBackupInProgress) {
-      Alert.alert('تنبيه', 'هناك عملية نسخ احتياطية قيد التنفيذ حالياً');
+      AlertService.alert('تنبيه', 'هناك عملية نسخ احتياطية قيد التنفيذ حالياً');
       return;
     }
 
@@ -266,7 +346,7 @@ export default function SettingsScreen() {
       const backups = await backupService.getUserBackups();
 
       if (backups.length === 0) {
-        Alert.alert(
+        AlertService.alert(
           'لا توجد نسخ احتياطية',
           'لم يتم العثور على أي نسخ احتياطية. يرجى إنشاء نسخة احتياطية أولاً.',
           [{ text: 'حسناً', style: 'default' }]
@@ -294,7 +374,7 @@ export default function SettingsScreen() {
         };
       });
 
-      Alert.alert(
+      AlertService.alert(
         'اختر النسخة الاحتياطية',
         'اختر النسخة الاحتياطية التي تريد استعادتها:',
         [
@@ -303,7 +383,7 @@ export default function SettingsScreen() {
         ]
       );
     } catch (error) {
-      Alert.alert(
+      AlertService.alert(
         'خطأ',
         'حدث خطأ في تحميل قائمة النسخ الاحتياطية',
         [{ text: 'حسناً', style: 'default' }]
@@ -335,7 +415,7 @@ export default function SettingsScreen() {
         `هل أنت متأكد من المتابعة؟`;
     }
     
-    Alert.alert(
+    AlertService.alert(
       'تأكيد الاستعادة',
       alertMessage,
       [
@@ -366,7 +446,7 @@ export default function SettingsScreen() {
       setIsBackupInProgress(false);
 
       if (result.success) {
-        Alert.alert(
+        AlertService.alert(
           'نجح',
           'تم استعادة النسخة الاحتياطية بنجاح!\n\nسيتم إعادة تشغيل التطبيق لتطبيق التغييرات.',
           [
@@ -380,7 +460,7 @@ export default function SettingsScreen() {
           ]
         );
       } else {
-        Alert.alert(
+        AlertService.alert(
           'خطأ',
           result.error || 'حدث خطأ أثناء استعادة النسخة الاحتياطية',
           [{ text: 'حسناً', style: 'default' }]
@@ -389,7 +469,7 @@ export default function SettingsScreen() {
     } catch (error) {
       setShowBackupProgress(false);
       setIsBackupInProgress(false);
-      Alert.alert(
+      AlertService.alert(
         'خطأ',
         'حدث خطأ غير متوقع أثناء استعادة النسخة الاحتياطية',
         [{ text: 'حسناً', style: 'default' }]
@@ -398,7 +478,7 @@ export default function SettingsScreen() {
   };
 
   const handleDeleteAccount = async () => {
-    Alert.alert(
+    AlertService.alert(
       'حذف الحساب',
       'هل أنت متأكد من حذف حسابك نهائياً؟ هذا الإجراء لا يمكن التراجع عنه.',
       [
@@ -411,15 +491,15 @@ export default function SettingsScreen() {
           style: 'destructive',
           onPress: async () => {
             try {
-              // هنا يمكن إضافة منطق حذف الحساب من قاعدة البيانات
+              await AuthService.signOut();
               await AsyncStorage.removeItem('userToken');
               await AsyncStorage.removeItem('userInfo');
               await AsyncStorage.removeItem('userId');
               await AsyncStorage.removeItem('basicData');
               await AsyncStorage.removeItem('userSettings');
-              router.replace('/login');
+              router.replace('/');
             } catch (error) {
-              Alert.alert('خطأ', 'حدث خطأ أثناء حذف الحساب');
+              AlertService.alert('خطأ', 'حدث خطأ أثناء حذف الحساب');
             }
           }
         }
@@ -525,6 +605,48 @@ export default function SettingsScreen() {
                   </ThemedView>
                   <IconSymbol size={20} name="chevron.left" color="#666" />
                 </TouchableOpacity>
+              </Animated.View>
+
+              <Animated.View style={[styles.settingsSection, { opacity: fadeAnim, transform: [{ translateX: slideAnim }] }]}>
+                <ThemedText style={[styles.sectionTitle, getTextDirection()]}>العام الدراسي</ThemedText>
+                <ThemedView style={styles.backupCard}>
+                  <ThemedView style={styles.backupHeader}>
+                    <IconSymbol size={24} name="calendar" color="#0d9488" />
+                    <ThemedText style={[styles.backupTitle, getTextDirection()]}>العام الحالي: {currentAcademicYear ? formatAcademicYearLabel(currentAcademicYear) : '—'}</ThemedText>
+                  </ThemedView>
+                  <ThemedText style={[styles.backupUpgradeNote, getTextDirection(), { marginTop: 8 }]}>
+                    {formatRTLText('بيانات كل عام (متعلمين، تقارير، غياب، جدول، تنبيهات) تُحفظ منفصلة. يمكنك إنهاء العام وبدء عام جديد أو العودة لعام سابق.')}
+                  </ThemedText>
+                  <TouchableOpacity
+                    style={[styles.backupButton, isEndingYear && styles.disabledButton]}
+                    onPress={handleEndYearAndStartNew}
+                    activeOpacity={0.8}
+                    disabled={isEndingYear}
+                  >
+                    <ThemedText style={[styles.backupButtonText, getTextDirection()]}>
+                      {isEndingYear ? formatRTLText('جاري الحفظ...') : formatRTLText('إنهاء العام وحفظ البيانات وبدء عام جديد')}
+                    </ThemedText>
+                  </TouchableOpacity>
+                  {archivedYearKeys.length > 1 && (
+                    <ThemedView style={{ marginTop: 12 }}>
+                      <ThemedText style={[styles.lastBackupText, getTextDirection(), { marginBottom: 6 }]}>
+                        {formatRTLText('التبديل إلى عام سابق:')}
+                      </ThemedText>
+                      {archivedYearKeys.filter((k) => k !== currentAcademicYear).map((yearKey) => (
+                        <TouchableOpacity
+                          key={yearKey}
+                          style={[styles.restoreButton, { marginTop: 8 }]}
+                          onPress={() => handleSwitchToYear(yearKey)}
+                          activeOpacity={0.8}
+                        >
+                          <ThemedText style={[styles.restoreButtonText, getTextDirection()]}>
+                            {formatAcademicYearLabel(yearKey)}
+                          </ThemedText>
+                        </TouchableOpacity>
+                      ))}
+                    </ThemedView>
+                  )}
+                </ThemedView>
               </Animated.View>
 
               <Animated.View style={[styles.settingsSection, { opacity: fadeAnim, transform: [{ translateX: slideAnim }] }]}>

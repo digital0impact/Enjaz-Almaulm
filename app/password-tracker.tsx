@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import { StyleSheet, ScrollView, TouchableOpacity, Alert, I18nManager, ImageBackground, Dimensions, TextInput, Platform, KeyboardAvoidingView } from 'react-native';
+import { StyleSheet, ScrollView, TouchableOpacity, I18nManager, ImageBackground, Dimensions, TextInput, Platform, KeyboardAvoidingView } from 'react-native';
+import { AlertService } from '@/services/AlertService';
 import NetInfo from '@react-native-community/netinfo';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
@@ -112,7 +113,7 @@ export default function PasswordTrackerScreen() {
         setIsConnected(state.isConnected || false);
         
         if (!state.isConnected) {
-          Alert.alert(
+          AlertService.alert(
             'تنبيه',
             'لا يوجد اتصال بالإنترنت. بعض الميزات قد لا تعمل بشكل صحيح.',
             [{ text: 'حسناً', style: 'default' }]
@@ -136,7 +137,7 @@ export default function PasswordTrackerScreen() {
 
   const handleNetworkError = () => {
     if (!isConnected) {
-      Alert.alert(
+      AlertService.alert(
         'خطأ في الاتصال',
         'يرجى التحقق من اتصال الإنترنت والمحاولة مرة أخرى',
         [{ text: 'حسناً', style: 'default' }]
@@ -173,13 +174,13 @@ export default function PasswordTrackerScreen() {
           notes: ''
         });
         setShowAddForm(false);
-        Alert.alert('تم بنجاح', 'تم إضافة كلمة المرور بنجاح');
+        AlertService.alert('تم بنجاح', 'تم إضافة كلمة المرور بنجاح');
       } else {
-        Alert.alert('خطأ', 'الرجاء ملء جميع الحقول المطلوبة');
+        AlertService.alert('خطأ', 'الرجاء ملء جميع الحقول المطلوبة');
       }
     } catch (error) {
       console.error('خطأ في إضافة كلمة المرور:', error);
-      Alert.alert('خطأ', 'حدث خطأ أثناء إضافة كلمة المرور. يرجى المحاولة مرة أخرى.');
+      AlertService.alert('خطأ', 'حدث خطأ أثناء إضافة كلمة المرور. يرجى المحاولة مرة أخرى.');
     } finally {
       setIsLoading(false);
     }
@@ -228,13 +229,13 @@ export default function PasswordTrackerScreen() {
           notes: ''
         });
         setSelectedView('overview');
-        Alert.alert('تم بنجاح', 'تم تحديث كلمة المرور بنجاح');
+        AlertService.alert('تم بنجاح', 'تم تحديث كلمة المرور بنجاح');
       } else {
-        Alert.alert('خطأ', 'الرجاء ملء جميع الحقول المطلوبة');
+        AlertService.alert('خطأ', 'الرجاء ملء جميع الحقول المطلوبة');
       }
     } catch (error) {
       console.error('خطأ في تحديث كلمة المرور:', error);
-      Alert.alert('خطأ', 'حدث خطأ أثناء تحديث كلمة المرور. يرجى المحاولة مرة أخرى.');
+      AlertService.alert('خطأ', 'حدث خطأ أثناء تحديث كلمة المرور. يرجى المحاولة مرة أخرى.');
     } finally {
       setIsLoading(false);
     }
@@ -296,7 +297,7 @@ export default function PasswordTrackerScreen() {
             <ThemedView style={styles.passwordActions}>
               <TouchableOpacity 
                 style={styles.actionButton}
-                onPress={() => Alert.alert('كلمة المرور', item.password)}
+                onPress={() => AlertService.alert('كلمة المرور', item.password)}
               >
                 <IconSymbol size={16} name="eye.fill" color="#2196F3" />
                 <ThemedText style={styles.actionButtonText}>عرض</ThemedText>
@@ -304,7 +305,7 @@ export default function PasswordTrackerScreen() {
 
               <TouchableOpacity 
                 style={styles.actionButton}
-                onPress={() => Alert.alert('تم النسخ', 'تم نسخ كلمة المرور')}
+                onPress={() => AlertService.alert('تم النسخ', 'تم نسخ كلمة المرور')}
               >
                 <IconSymbol size={16} name="doc.on.doc.fill" color="#4CAF50" />
                 <ThemedText style={styles.actionButtonText}>نسخ</ThemedText>
@@ -658,21 +659,21 @@ export default function PasswordTrackerScreen() {
   };
 
   const handleExportPasswords = () => {
-    Alert.alert(
+    AlertService.alert(
       'تصدير كلمات المرور',
       'اختر تنسيق التصدير:',
       [
         {
           text: 'Excel آمن',
-          onPress: () => Alert.alert('تصدير Excel', 'سيتم تصدير كلمات المرور في ملف Excel محمي بكلمة مرور')
+          onPress: () => AlertService.alert('تصدير Excel', 'سيتم تصدير كلمات المرور في ملف Excel محمي بكلمة مرور')
         },
         {
           text: 'CSV مشفر',
-          onPress: () => Alert.alert('تصدير CSV', 'سيتم إنشاء ملف CSV مشفر')
+          onPress: () => AlertService.alert('تصدير CSV', 'سيتم إنشاء ملف CSV مشفر')
         },
         {
           text: 'نسخة احتياطية آمنة',
-          onPress: () => Alert.alert('نسخة احتياطية', 'سيتم إنشاء نسخة احتياطية مشفرة')
+          onPress: () => AlertService.alert('نسخة احتياطية', 'سيتم إنشاء نسخة احتياطية مشفرة')
         },
         {
           text: 'إلغاء',

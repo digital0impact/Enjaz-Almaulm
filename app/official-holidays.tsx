@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
-import { StyleSheet, ScrollView, TouchableOpacity, Alert, I18nManager, ImageBackground, Modal, TextInput, Platform } from 'react-native';
+import { StyleSheet, ScrollView, TouchableOpacity, I18nManager, ImageBackground, Modal, TextInput, Platform } from 'react-native';
+import { AlertService } from '@/services/AlertService';
 
 import { ThemedText } from '@/components/ThemedText';
 import { ThemedView } from '@/components/ThemedView';
@@ -122,7 +123,7 @@ export default function OfficialHolidaysScreen() {
 
   const addNewHoliday = () => {
     if (!newHoliday.nameAr || !newHoliday.date || !newHoliday.description) {
-      Alert.alert('خطأ', 'يرجى ملء جميع الحقول المطلوبة');
+      AlertService.alert('خطأ', 'يرجى ملء جميع الحقول المطلوبة');
       return;
     }
 
@@ -144,7 +145,7 @@ export default function OfficialHolidaysScreen() {
       isOfficial: true
     });
     setShowAddModal(false);
-    Alert.alert('تم بنجاح', 'تم إضافة الإجازة الجديدة');
+    AlertService.alert('تم بنجاح', 'تم إضافة الإجازة الجديدة');
   };
 
   const filteredHolidays = selectedCategory === 'all' 
@@ -185,21 +186,21 @@ export default function OfficialHolidaysScreen() {
   const nextHoliday = getNextHoliday();
 
   const exportCalendar = () => {
-    Alert.alert(
+    AlertService.alert(
       'تصدير التقويم',
       'اختر صيغة التصدير:',
       [
         {
           text: 'ملف PDF',
-          onPress: () => Alert.alert('PDF', 'سيتم إنشاء ملف PDF للتقويم السنوي')
+          onPress: () => AlertService.alert('PDF', 'سيتم إنشاء ملف PDF للتقويم السنوي')
         },
         {
           text: 'تقويم الهاتف',
-          onPress: () => Alert.alert('التقويم', 'سيتم إضافة جميع الإجازات لتقويم الهاتف')
+          onPress: () => AlertService.alert('التقويم', 'سيتم إضافة جميع الإجازات لتقويم الهاتف')
         },
         {
           text: 'ملف Excel',
-          onPress: () => Alert.alert('Excel', 'سيتم إنشاء جدول Excel بجميع التواريخ')
+          onPress: () => AlertService.alert('Excel', 'سيتم إنشاء جدول Excel بجميع التواريخ')
         },
         { text: 'إلغاء', style: 'cancel' }
       ]
@@ -326,7 +327,7 @@ export default function OfficialHolidaysScreen() {
                       isPast && styles.pastHolidayCard,
                       isToday && styles.todayHolidayCard
                     ]}
-                    onPress={() => Alert.alert(
+                    onPress={() => AlertService.alert(
                       holiday.nameAr,
                       `${holiday.description}\n\nالتاريخ: ${new Date(holiday.date).toLocaleDateString('ar-SA')}\n${holiday.hijriDate ? `الهجري: ${holiday.hijriDate}\n` : ''}المدة: ${holiday.duration} ${holiday.duration === 1 ? 'يوم' : 'أيام'}\nالنوع: ${holiday.type === 'fixed' ? 'ثابت' : 'متغير'}`
                     )}

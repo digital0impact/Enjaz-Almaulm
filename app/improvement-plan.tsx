@@ -1,6 +1,7 @@
 
 import React, { useState, useEffect } from 'react';
-import { StyleSheet, ScrollView, TouchableOpacity, Alert, TextInput, I18nManager, ImageBackground, Dimensions, Platform } from 'react-native';
+import { StyleSheet, ScrollView, TouchableOpacity, TextInput, I18nManager, ImageBackground, Dimensions, Platform } from 'react-native';
+import { AlertService } from '@/services/AlertService';
 
 import { ThemedText } from '@/components/ThemedText';
 import { ThemedView } from '@/components/ThemedView';
@@ -411,7 +412,7 @@ export default function ImprovementPlanScreen() {
               <TouchableOpacity 
                 style={styles.saveButton}
                 onPress={() => {
-                  Alert.alert('تم الحفظ', 'تم حفظ خطة التحسين بنجاح');
+                  AlertService.alert('تم الحفظ', 'تم حفظ خطة التحسين بنجاح');
                 }}
               >
                 <IconSymbol size={20} name="checkmark.circle.fill" color="#1c1f33" />
@@ -421,7 +422,7 @@ export default function ImprovementPlanScreen() {
               <TouchableOpacity 
                 style={styles.exportButton}
                 onPress={() => {
-                  Alert.alert('تصدير', 'سيتم تصدير خطة التحسين قريباً');
+                  AlertService.alert('تصدير', 'سيتم تصدير خطة التحسين قريباً');
                 }}
               >
                 <IconSymbol size={20} name="square.and.arrow.up.fill" color="#1c1f33" />

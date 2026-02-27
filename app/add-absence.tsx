@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
-import { StyleSheet, ScrollView, TouchableOpacity, Alert, ImageBackground, Platform } from 'react-native';
+import { StyleSheet, ScrollView, TouchableOpacity, ImageBackground, Platform } from 'react-native';
+import { AlertService } from '@/services/AlertService';
 
 import { ThemedText } from '@/components/ThemedText';
 import { ThemedView } from '@/components/ThemedView';
@@ -40,7 +41,7 @@ export default function AddAbsenceScreen() {
   const saveAbsence = async () => {
     try {
       if (!formData.date) {
-        Alert.alert('خطأ', 'يرجى تحديد تاريخ الغياب');
+        AlertService.alert('خطأ', 'يرجى تحديد تاريخ الغياب');
         return;
       }
 
@@ -50,7 +51,7 @@ export default function AddAbsenceScreen() {
       
       const existingRecord = records.find((record: AbsenceRecord) => record.date === formData.date);
       if (existingRecord) {
-        Alert.alert(
+        AlertService.alert(
           'تنبيه',
           'يوجد سجل غياب في هذا التاريخ بالفعل. هل تريد المتابعة؟',
           [
@@ -70,7 +71,7 @@ export default function AddAbsenceScreen() {
       await saveAbsenceRecord(records);
     } catch (error) {
       console.error('Error saving absence:', error);
-      Alert.alert('خطأ', 'حدث خطأ في حفظ البيانات');
+      AlertService.alert('خطأ', 'حدث خطأ في حفظ البيانات');
     }
   };
 
@@ -90,7 +91,7 @@ export default function AddAbsenceScreen() {
 
       await AsyncStorage.setItem('absenceRecords', JSON.stringify(existingRecords));
 
-      Alert.alert(
+      AlertService.alert(
         'تم الحفظ',
         'تم حفظ سجل الغياب بنجاح',
         [
@@ -113,7 +114,7 @@ export default function AddAbsenceScreen() {
       );
     } catch (error) {
       console.error('Error saving absence record:', error);
-      Alert.alert('خطأ', 'حدث خطأ في حفظ البيانات');
+      AlertService.alert('خطأ', 'حدث خطأ في حفظ البيانات');
     }
   };
 

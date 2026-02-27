@@ -18,7 +18,6 @@ export default function TabLayout() {
         tabBarBackground: TabBarBackground,
         tabBarStyle: Platform.select({
           ios: {
-            // Use a transparent background on iOS to show the blur effect
             position: 'absolute',
             backgroundColor: '#E8F5F4',
           },
@@ -28,7 +27,7 @@ export default function TabLayout() {
         }),
       }}
       initialRouteName="index">
-      {/* ترتيب التبويبات مطابق لشريط أذكاري: الأدوات المساعدة | الأداء المهني | البيانات الأساسية | الرئيسية */}
+      {/* ترتيب التبويبات الأصلي للصفحات الرئيسية (الرئيسية، الأدوات، الأداء، البيانات) */}
       <Tabs.Screen
         name="explore"
         options={{

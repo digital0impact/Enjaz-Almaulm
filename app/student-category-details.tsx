@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import { StyleSheet, ScrollView, TouchableOpacity, ImageBackground, Platform, Alert, Modal, View } from 'react-native';
+import { StyleSheet, ScrollView, TouchableOpacity, ImageBackground, Platform, Modal, View } from 'react-native';
+import { AlertService } from '@/services/AlertService';
 import { ThemedText } from '@/components/ThemedText';
 import { ThemedView } from '@/components/ThemedView';
 import { IconSymbol } from '@/components/ui/IconSymbol';
@@ -46,7 +47,7 @@ const StudentCategoryDetailsScreen = () => {
       }
     } catch (error) {
       console.error('Error loading students:', error);
-      Alert.alert('خطأ', 'حدث خطأ أثناء تحميل بيانات المتعلمين');
+      AlertService.alert('خطأ', 'حدث خطأ أثناء تحميل بيانات المتعلمين');
     }
   };
 
@@ -73,11 +74,11 @@ const StudentCategoryDetailsScreen = () => {
       if (await Sharing.isAvailableAsync()) {
         await Sharing.shareAsync(fileUri);
       } else {
-        Alert.alert('نجاح', `تم حفظ الملف بنجاح`);
+        AlertService.alert('نجاح', `تم حفظ الملف بنجاح`);
       }
     } catch (error) {
       console.error('Error exporting to Excel:', error);
-      Alert.alert('خطأ', 'حدث خطأ أثناء تصدير الملف');
+      AlertService.alert('خطأ', 'حدث خطأ أثناء تصدير الملف');
     }
   };
 
@@ -133,11 +134,11 @@ const StudentCategoryDetailsScreen = () => {
       if (await Sharing.isAvailableAsync()) {
         await Sharing.shareAsync(uri);
       } else {
-        Alert.alert('نجاح', `تم حفظ الملف بنجاح`);
+        AlertService.alert('نجاح', `تم حفظ الملف بنجاح`);
       }
     } catch (error) {
       console.error('Error exporting to PDF:', error);
-      Alert.alert('خطأ', 'حدث خطأ أثناء تصدير الملف');
+      AlertService.alert('خطأ', 'حدث خطأ أثناء تصدير الملف');
     }
   };
 
@@ -210,7 +211,7 @@ const StudentCategoryDetailsScreen = () => {
                         })
                         .catch(error => {
                           console.error('Error saving selected student:', error);
-                          Alert.alert('خطأ', 'حدث خطأ أثناء فتح بطاقة المتعلم');
+                          AlertService.alert('خطأ', 'حدث خطأ أثناء فتح بطاقة المتعلم');
                         });
                     }}
                   >

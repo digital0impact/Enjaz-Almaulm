@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { StyleSheet, ScrollView, TouchableOpacity, Alert, I18nManager, ImageBackground, Dimensions, TextInput, Platform } from 'react-native';
+import { StyleSheet, ScrollView, TouchableOpacity, I18nManager, ImageBackground, Dimensions, TextInput, Platform } from 'react-native';
+import { AlertService } from '@/services/AlertService';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { ThemedText } from '@/components/ThemedText';
@@ -152,7 +153,7 @@ export default function ScheduleScreen() {
 
   const addOrUpdateEntry = () => {
     if (!formData.time) {
-      Alert.alert('خطأ', 'يرجى اختيار رقم الحصة');
+      AlertService.alert('خطأ', 'يرجى اختيار رقم الحصة');
       return;
     }
 
@@ -181,7 +182,7 @@ export default function ScheduleScreen() {
       );
 
       if (conflict) {
-        Alert.alert('تعارض في الحصة', 'يوجد حصة أخرى في نفس الوقت');
+        AlertService.alert('تعارض في الحصة', 'يوجد حصة أخرى في نفس الوقت');
         return;
       }
 
@@ -197,7 +198,7 @@ export default function ScheduleScreen() {
     resetForm();
     setShowAddForm(false);
     setEditingEntry(null);
-    Alert.alert('تم', editingEntry ? 'تم تحديث الحصة بنجاح' : 'تم إضافة الحصة بنجاح');
+    AlertService.alert('تم', editingEntry ? 'تم تحديث الحصة بنجاح' : 'تم إضافة الحصة بنجاح');
   };
 
   const editEntry = (entry: ScheduleEntry) => {
@@ -213,7 +214,7 @@ export default function ScheduleScreen() {
   };
 
   const deleteEntry = (entryId: string) => {
-    Alert.alert(
+    AlertService.alert(
       'حذف الحصة',
       'هل أنت متأكد من رغبتك في حذف هذه الحصة؟',
       [
@@ -230,7 +231,7 @@ export default function ScheduleScreen() {
                   : e
               );
               saveScheduleData(updatedSchedule);
-              Alert.alert('تم', 'تم حذف الحصة بنجاح');
+              AlertService.alert('تم', 'تم حذف الحصة بنجاح');
             }
           }
         }

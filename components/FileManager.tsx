@@ -3,13 +3,13 @@ import {
   View,
   Text,
   TouchableOpacity,
-  Alert,
   ActivityIndicator,
   ScrollView,
   Image,
   StyleSheet,
   Dimensions
 } from 'react-native';
+import { AlertService } from '@/services/AlertService';
 import * as DocumentPicker from 'expo-document-picker';
 import * as ImagePicker from 'expo-image-picker';
 import { StorageService, FileAttachment } from '../services/StorageService';
@@ -69,7 +69,7 @@ export const FileManager: React.FC<FileManagerProps> = ({
       setFiles(fileList);
     } catch (error) {
       logError('خطأ في تحميل الملفات', 'FileManager', error);
-      Alert.alert('خطأ', 'فشل في تحميل الملفات');
+      AlertService.alert('خطأ', 'فشل في تحميل الملفات');
     } finally {
       setLoading(false);
     }
@@ -86,12 +86,12 @@ export const FileManager: React.FC<FileManagerProps> = ({
 
   const handleFileUpload = async (file: File) => {
     if (!checkFileType(file.name)) {
-      Alert.alert('خطأ', 'نوع الملف غير مسموح به');
+      AlertService.alert('خطأ', 'نوع الملف غير مسموح به');
       return;
     }
 
     if (files.length >= maxFiles) {
-      Alert.alert('خطأ', `يمكن رفع ${maxFiles} ملفات كحد أقصى`);
+      AlertService.alert('خطأ', `يمكن رفع ${maxFiles} ملفات كحد أقصى`);
       return;
     }
 
@@ -106,13 +106,13 @@ export const FileManager: React.FC<FileManagerProps> = ({
       if (result.success) {
         await loadFiles();
         onFileUploaded?.(files[files.length - 1]);
-        Alert.alert('نجح', 'تم رفع الملف بنجاح');
+        AlertService.alert('نجح', 'تم رفع الملف بنجاح');
       } else {
-        Alert.alert('خطأ', result.error || 'فشل في رفع الملف');
+        AlertService.alert('خطأ', result.error || 'فشل في رفع الملف');
       }
     } catch (error) {
       logError('خطأ في رفع الملف', 'FileManager', error);
-      Alert.alert('خطأ', 'فشل في رفع الملف');
+      AlertService.alert('خطأ', 'فشل في رفع الملف');
     } finally {
       setUploading(false);
     }
@@ -134,7 +134,7 @@ export const FileManager: React.FC<FileManagerProps> = ({
       }
     } catch (error) {
       logError('خطأ في اختيار الملف', 'FileManager', error);
-      Alert.alert('خطأ', 'فشل في اختيار الملف');
+      AlertService.alert('خطأ', 'فشل في اختيار الملف');
     }
   };
 
@@ -157,12 +157,12 @@ export const FileManager: React.FC<FileManagerProps> = ({
       }
     } catch (error) {
       logError('خطأ في اختيار الصورة', 'FileManager', error);
-      Alert.alert('خطأ', 'فشل في اختيار الصورة');
+      AlertService.alert('خطأ', 'فشل في اختيار الصورة');
     }
   };
 
   const deleteFile = async (file: FileAttachment) => {
-    Alert.alert(
+    AlertService.alert(
       'تأكيد الحذف',
       `هل أنت متأكد من حذف الملف "${file.file_name}"؟`,
       [
@@ -176,13 +176,13 @@ export const FileManager: React.FC<FileManagerProps> = ({
               if (success) {
                 await loadFiles();
                 onFileDeleted?.(file.id);
-                Alert.alert('نجح', 'تم حذف الملف بنجاح');
+                AlertService.alert('نجح', 'تم حذف الملف بنجاح');
               } else {
-                Alert.alert('خطأ', 'فشل في حذف الملف');
+                AlertService.alert('خطأ', 'فشل في حذف الملف');
               }
             } catch (error) {
               logError('خطأ في حذف الملف', 'FileManager', error);
-              Alert.alert('خطأ', 'فشل في حذف الملف');
+              AlertService.alert('خطأ', 'فشل في حذف الملف');
             }
           }
         }
@@ -194,10 +194,10 @@ export const FileManager: React.FC<FileManagerProps> = ({
     try {
       const url = StorageService.getFileUrl(file.bucket_name, file.file_path);
       // يمكن إضافة منطق لفتح الملف حسب نوعه
-      Alert.alert('فتح الملف', `URL الملف: ${url}`);
+      AlertService.alert('فتح الملف', `URL الملف: ${url}`);
     } catch (error) {
       logError('خطأ في فتح الملف', 'FileManager', error);
-      Alert.alert('خطأ', 'فشل في فتح الملف');
+      AlertService.alert('خطأ', 'فشل في فتح الملف');
     }
   };
 
