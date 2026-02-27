@@ -1,6 +1,7 @@
 /**
  * خدمة تنبيه موحّدة: تعرض جميع التنبيهات بهوية التطبيق (ألوان، RTL).
  * استخدم AlertService.alert() بدلاً من Alert.alert() في كل التطبيق.
+ * تسجّل من AppAlertContext وتُستدعى من كل الشاشات.
  */
 import { Alert } from 'react-native';
 import type { AppAlertButton } from '@/contexts/AppAlertContext';
