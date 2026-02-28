@@ -47,6 +47,8 @@ export default function InteractiveReportScreen() {
   /** معاينة الصورة: URI المعروض وحالة ظهور الـ Modal */
   const [previewVisible, setPreviewVisible] = useState(false);
   const [previewImageUri, setPreviewImageUri] = useState<string | null>(null);
+  /** تحميل Word على الويب: عرض نافذة تحتوي على رابط التحميل */
+  const [wordDownload, setWordDownload] = useState<{ url: string; name: string } | null>(null);
   // إضافة مستمع للتركيز على الصفحة باستخدام useFocusEffect
   useFocusEffect(
     React.useCallback(() => {
@@ -1994,33 +1996,39 @@ export default function InteractiveReportScreen() {
     }
   };
 
-  const handleExportReport = async () => {
+  /** التحقق من تسجيل الدخول والاشتراك قبل التصدير؛ يعيد false مع عرض تنبيه عند الفشل */
+  const checkCanExportReport = async (): Promise<boolean> => {
+    let user = await AuthService.getCurrentUser();
+    if (!user) user = await AuthService.checkAuthStatus();
+    if (!user) {
+      showAlert(
+        formatRTLText('تسجيل الدخول مطلوب'),
+        formatRTLText('يرجى تسجيل الدخول مرة أخرى للسماح بتصدير التقرير.'),
+        [{ text: formatRTLText('حسناً'), style: 'cancel' as const }]
+      );
+      return false;
+    }
+    const status = await SubscriptionService.checkSubscriptionStatus(user.id);
+    if (!status?.features?.canExport) {
+      showAlert(
+        formatRTLText('تنبيه'),
+        formatRTLText('لا يمكنك طباعة أو تصدير التقرير إلا بعد الانضمام لإحدى الخطط المدفوعة (الاشتراك السنوي أو النصف سنوي). يرجى ترقية اشتراكك للاستفادة من التصدير والطباعة.'),
+        [
+          { text: formatRTLText('حسناً'), style: 'cancel' as const },
+          { text: formatRTLText('عرض الخطط'), onPress: () => router.push('/subscription') },
+        ]
+      );
+      return false;
+    }
+    return true;
+  };
+
+  const handleExportPDF = async () => {
     if (isExporting) return;
+    if (!(await checkCanExportReport())) return;
     setIsExporting(true);
     const isWeb = Platform.OS === 'web' && typeof window !== 'undefined';
     try {
-      let user = await AuthService.getCurrentUser();
-      if (!user) user = await AuthService.checkAuthStatus();
-      if (!user) {
-        showAlert(
-          formatRTLText('تسجيل الدخول مطلوب'),
-          formatRTLText('يرجى تسجيل الدخول مرة أخرى للسماح بتصدير التقرير.'),
-          [{ text: formatRTLText('حسناً'), style: 'cancel' as const }]
-        );
-        return;
-      }
-      const status = await SubscriptionService.checkSubscriptionStatus(user.id);
-      if (!status?.features?.canExport) {
-        showAlert(
-          formatRTLText('تنبيه'),
-          formatRTLText('لا يمكنك طباعة أو تصدير التقرير إلا بعد الانضمام لإحدى الخطط المدفوعة (الاشتراك السنوي أو النصف سنوي). يرجى ترقية اشتراكك للاستفادة من التصدير والطباعة.'),
-          [
-            { text: formatRTLText('حسناً'), style: 'cancel' as const },
-            { text: formatRTLText('عرض الخطط'), onPress: () => router.push('/subscription') },
-          ]
-        );
-        return;
-      }
       if (isWeb) {
         const htmlContent = await generateReportHTML();
         webDownloadReport(htmlContent);
@@ -2032,7 +2040,7 @@ export default function InteractiveReportScreen() {
         await exportToPDF();
       }
     } catch (err) {
-      console.error('Export report error:', err);
+      console.error('Export report PDF error:', err);
       showAlert(
         formatRTLText('خطأ'),
         formatRTLText('حدث خطأ أثناء التصدير. يرجى المحاولة مرة أخرى أو التحقق من الاتصال.'),
@@ -2043,6 +2051,75 @@ export default function InteractiveReportScreen() {
       );
     } finally {
       setIsExporting(false);
+    }
+  };
+
+  const handleExportWord = async () => {
+    if (isExporting) return;
+    if (!(await checkCanExportReport())) return;
+    setIsExporting(true);
+    try {
+      await exportToWord();
+    } catch (err) {
+      console.error('Export report Word error:', err);
+      showAlert(
+        formatRTLText('خطأ'),
+        formatRTLText('حدث خطأ أثناء التصدير. يرجى المحاولة مرة أخرى أو التحقق من الاتصال.')
+      );
+    } finally {
+      setIsExporting(false);
+    }
+  };
+
+  const exportToWord = async () => {
+    let htmlContent: string;
+    try {
+      htmlContent = await generateReportHTML();
+    } catch (genError) {
+      console.error('Error generating report HTML for Word:', genError);
+      showAlert(
+        formatRTLText('خطأ في إنشاء التقرير'),
+        formatRTLText('تعذر إنشاء محتوى التقرير. يرجى المحاولة مرة أخرى أو التأكد من وجود بيانات الأداء.')
+      );
+      return;
+    }
+    const fileName = `تقرير_الأداء_${new Date().toISOString().split('T')[0]}.doc`;
+    try {
+      if (Platform.OS === 'web') {
+        if (typeof window === 'undefined' || typeof document === 'undefined') {
+          showAlert(formatRTLText('تنبيه'), formatRTLText('تصدير Word غير متاح في هذا السياق.'));
+          return;
+        }
+        const blob = new Blob(['\ufeff' + htmlContent], { type: 'application/msword; charset=utf-8' });
+        const url = URL.createObjectURL(blob);
+        setWordDownload({ url, name: fileName });
+        return;
+      }
+      const filePath = `${FileSystem.documentDirectory}${fileName}`;
+      await FileSystem.writeAsStringAsync(filePath, '\ufeff' + htmlContent, { encoding: FileSystem.EncodingType.UTF8 });
+      const canShare = await Sharing.isAvailableAsync();
+      if (!canShare) {
+        showAlert(formatRTLText('تم إنشاء الملف'), filePath);
+        return;
+      }
+      await Sharing.shareAsync(filePath, {
+        mimeType: 'application/msword',
+        dialogTitle: formatRTLText('تصدير التقرير Word'),
+      });
+      showAlert(formatRTLText('تم بنجاح'), formatRTLText('تم تصدير التقرير كملف Word.'));
+    } catch (e) {
+      const msg = e instanceof Error ? e.message : String(e);
+      showAlert(
+        formatRTLText('فشل التصدير'),
+        formatRTLText('تعذر تصدير التقرير كملف Word.') + (msg ? ` (${msg})` : '')
+      );
+    }
+  };
+
+  const closeWordDownload = () => {
+    if (wordDownload) {
+      URL.revokeObjectURL(wordDownload.url);
+      setWordDownload(null);
     }
   };
 
@@ -2305,21 +2382,41 @@ export default function InteractiveReportScreen() {
                   {formatRTLText('مشاركة الإنجازات')}
                 </ThemedText>
               </TouchableOpacity>
-              <TouchableOpacity 
-                style={[styles.exportButton, isExporting && styles.exportButtonDisabled]}
-                onPress={handleExportReport}
-                disabled={isExporting}
-                activeOpacity={0.7}
-              >
-                {isExporting ? (
-                  <ActivityIndicator color="#1c1f33" size="small" />
-                ) : (
-                  <IconSymbol size={20} name="square.and.arrow.up.fill" color="#1c1f33" />
-                )}
-                <ThemedText style={styles.buttonText}>
-                  {isExporting ? formatRTLText('جاري التصدير...') : formatRTLText('تصدير التقرير التفاعلي')}
-                </ThemedText>
-              </TouchableOpacity>
+              <ThemedText style={styles.exportSectionTitle}>
+                {formatRTLText('تصدير التقرير')}
+              </ThemedText>
+              <View style={styles.exportButtonsRow}>
+                <TouchableOpacity 
+                  style={[styles.exportButton, styles.exportButtonPdf, isExporting && styles.exportButtonDisabled]}
+                  onPress={handleExportPDF}
+                  disabled={isExporting}
+                  activeOpacity={0.7}
+                >
+                  {isExporting ? (
+                    <ActivityIndicator color="#fff" size="small" />
+                  ) : (
+                    <IconSymbol size={20} name="doc.pdf" color="#fff" />
+                  )}
+                  <ThemedText style={[styles.buttonText, styles.exportOptionButtonText]}>
+                    {isExporting ? formatRTLText('جاري التصدير...') : formatRTLText('تصدير PDF')}
+                  </ThemedText>
+                </TouchableOpacity>
+                <TouchableOpacity 
+                  style={[styles.exportButton, styles.exportButtonWord, isExporting && styles.exportButtonDisabled]}
+                  onPress={handleExportWord}
+                  disabled={isExporting}
+                  activeOpacity={0.7}
+                >
+                  {isExporting ? (
+                    <ActivityIndicator color="#fff" size="small" />
+                  ) : (
+                    <IconSymbol size={20} name="doc.text.fill" color="#fff" />
+                  )}
+                  <ThemedText style={[styles.buttonText, styles.exportOptionButtonText]}>
+                    {formatRTLText('تصدير Word')}
+                  </ThemedText>
+                </TouchableOpacity>
+              </View>
             </ThemedView>
             </ThemedView>
           </ScrollView>
@@ -2350,6 +2447,45 @@ export default function InteractiveReportScreen() {
             </TouchableOpacity>
           </View>
         </TouchableOpacity>
+      </Modal>
+
+      <Modal
+        visible={!!wordDownload}
+        transparent
+        animationType="fade"
+        onRequestClose={closeWordDownload}
+      >
+        <View style={styles.wordDownloadOverlay}>
+          <TouchableOpacity style={StyleSheet.absoluteFill} activeOpacity={1} onPress={closeWordDownload} />
+          <View style={styles.wordDownloadBox}>
+            <ThemedText style={[styles.wordDownloadTitle, getTextDirection()]}>
+              {formatRTLText('تحميل ملف Word')}
+            </ThemedText>
+            <ThemedText style={[styles.wordDownloadHint, getTextDirection()]}>
+              {formatRTLText('اضغط الزر أدناه لتحميل الملف.')}
+            </ThemedText>
+            <TouchableOpacity
+              style={styles.wordDownloadButton}
+              onPress={() => {
+                if (!wordDownload) return;
+                if (Platform.OS === 'web' && typeof document !== 'undefined') {
+                  const a = document.createElement('a');
+                  a.href = wordDownload.url;
+                  a.download = wordDownload.name;
+                  a.click();
+                }
+                closeWordDownload();
+              }}
+            >
+              <ThemedText style={styles.wordDownloadButtonText}>
+                {formatRTLText('تحميل الملف')}
+              </ThemedText>
+            </TouchableOpacity>
+            <TouchableOpacity style={styles.wordDownloadCancel} onPress={closeWordDownload}>
+              <ThemedText style={styles.wordDownloadCancelText}>{formatRTLText('إلغاء')}</ThemedText>
+            </TouchableOpacity>
+          </View>
+        </View>
       </Modal>
 
       <BottomNavigationBar />
@@ -2805,6 +2941,37 @@ const styles = StyleSheet.create<any>({
     gap: 12,
     marginBottom: 20,
   },
+  exportSectionTitle: {
+    fontSize: 15,
+    fontWeight: '700',
+    color: '#1c1f33',
+    marginBottom: 4,
+    textAlign: 'center',
+  },
+  exportButtonsRow: {
+    flexDirection: 'row',
+    justifyContent: 'center',
+    gap: 12,
+    flexWrap: 'wrap',
+  },
+  exportButtonPdf: {
+    backgroundColor: '#0d9488',
+    paddingVertical: 12,
+    paddingHorizontal: 16,
+    borderRadius: 12,
+    minWidth: 120,
+  },
+  exportButtonWord: {
+    backgroundColor: '#2563eb',
+    paddingVertical: 12,
+    paddingHorizontal: 16,
+    borderRadius: 12,
+    minWidth: 120,
+  },
+  exportOptionButtonText: {
+    color: '#fff',
+    fontWeight: '600',
+  },
   exportButton: {
     flex: 1,
     flexDirection: 'row',
@@ -2968,6 +3135,53 @@ const styles = StyleSheet.create<any>({
     color: '#fff',
     fontSize: 16,
     fontWeight: '600',
+  },
+  wordDownloadOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0,0,0,0.5)',
+    justifyContent: 'center',
+    alignItems: 'center',
+    padding: 24,
+  },
+  wordDownloadBox: {
+    backgroundColor: '#fff',
+    borderRadius: 12,
+    padding: 24,
+    width: '100%',
+    maxWidth: 320,
+  },
+  wordDownloadTitle: {
+    fontSize: 18,
+    fontWeight: '700',
+    color: '#1c1f33',
+    marginBottom: 8,
+    textAlign: 'center',
+  },
+  wordDownloadHint: {
+    fontSize: 14,
+    color: '#6b7280',
+    marginBottom: 16,
+    textAlign: 'center',
+  },
+  wordDownloadButton: {
+    backgroundColor: '#2563eb',
+    paddingVertical: 12,
+    borderRadius: 10,
+    alignItems: 'center',
+    marginBottom: 8,
+  },
+  wordDownloadButtonText: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: '#fff',
+  },
+  wordDownloadCancel: {
+    alignItems: 'center',
+    paddingVertical: 8,
+  },
+  wordDownloadCancelText: {
+    fontSize: 15,
+    color: '#6b7280',
   },
   sectionTitle: {
     fontSize: 18,
