@@ -22,10 +22,20 @@ import * as ImagePicker from 'expo-image-picker';
 import { useTheme } from '@/contexts/ThemeContext';
 import AuthService from '@/services/AuthService';
 import { DatabaseService } from '@/services/DatabaseService';
+import {
+  ProfessionalGrowthService,
+  syncItems,
+} from '@/services/ProfessionalGrowthService';
 import { getTextDirection, formatRTLText } from '@/utils/rtl-utils';
 import { AIAssistButton } from '@/components/AIAssistButton';
 
-type ProfessionalGrowthItem = { id: string; type: 'certificate' | 'course'; title: string; imageUri: string };
+type ProfessionalGrowthItem = {
+  id: string;
+  type: 'certificate' | 'course';
+  title: string;
+  imageUri: string;
+  image_path?: string | null;
+};
 
 export default function BasicDataScreen() {
   const [isEditing, setIsEditing] = useState(false);
@@ -83,31 +93,58 @@ export default function BasicDataScreen() {
         setProfileImage(storedImage);
       }
 
-      const storedGrowth = await AsyncStorage.getItem('professionalGrowthItems');
-      if (storedGrowth) {
-        try {
-          setProfessionalGrowthItems(JSON.parse(storedGrowth));
-        } catch {
-          // تجاهل إذا كان التنسيق غير صحيح
-        }
-      }
-
       const user = await AuthService.getCurrentUser();
       if (user?.id) {
         try {
-          const profile = await DatabaseService.getUserProfile(user.id);
+          const [items, profile] = await Promise.all([
+            ProfessionalGrowthService.getItems(user.id),
+            DatabaseService.getUserProfile(user.id),
+          ]);
           if (profile) {
-            setUserData(prev => ({
+            setUserData((prev) => ({
               ...prev,
               fullName: profile.name || prev.fullName,
               email: profile.email || prev.email,
               phone: profile.phoneNumber || prev.phone,
             }));
           }
+          if (items.length > 0) {
+            setProfessionalGrowthItems(
+              items.map((i) => ({
+                id: i.id,
+                type: i.type,
+                title: i.title,
+                imageUri: i.imageUri || '',
+                image_path: i.image_path,
+              }))
+            );
+          } else {
+            const storedGrowth = await AsyncStorage.getItem('professionalGrowthItems');
+            if (storedGrowth) {
+              try {
+                setProfessionalGrowthItems(JSON.parse(storedGrowth));
+              } catch {
+                // تجاهل
+              }
+            }
+          }
         } catch {
-          // يبقى الاعتماد على البيانات المحلية فقط
+          const storedGrowth = await AsyncStorage.getItem('professionalGrowthItems');
+          if (storedGrowth) {
+            try {
+              setProfessionalGrowthItems(JSON.parse(storedGrowth));
+            } catch {}
+          }
+        }
+      } else {
+        const storedGrowth = await AsyncStorage.getItem('professionalGrowthItems');
+        if (storedGrowth) {
+          try {
+            setProfessionalGrowthItems(JSON.parse(storedGrowth));
+          } catch {}
         }
       }
+
     } catch {
       console.log('Error loading user data');
     }
@@ -128,6 +165,10 @@ export default function BasicDataScreen() {
             email: userData.email,
             phoneNumber: (userData.phone || '').trim() || undefined,
           });
+          const syncResult = await syncItems(user.id, professionalGrowthItems);
+          if (!syncResult.success) {
+            console.warn('Professional growth sync failed:', syncResult.error);
+          }
         } catch (e) {
           console.warn('Could not sync profile to Supabase:', e);
           setIsEditing(false);
