@@ -27,6 +27,7 @@ import {
   syncItems,
 } from '@/services/ProfessionalGrowthService';
 import { getTextDirection, formatRTLText } from '@/utils/rtl-utils';
+import { APP_FOCUS_REFRESH_EVENT } from '@/utils/useAppFocusRefresh';
 import { AIAssistButton } from '@/components/AIAssistButton';
 
 type ProfessionalGrowthItem = {
@@ -79,6 +80,14 @@ export default function BasicDataScreen() {
 
   useEffect(() => {
     loadUserData();
+  }, []);
+
+  useEffect(() => {
+    if (Platform.OS === 'web' && typeof window !== 'undefined') {
+      const onRefresh = () => loadUserData();
+      window.addEventListener(APP_FOCUS_REFRESH_EVENT, onRefresh);
+      return () => window.removeEventListener(APP_FOCUS_REFRESH_EVENT, onRefresh);
+    }
   }, []);
 
   const loadUserData = async () => {

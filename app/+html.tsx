@@ -12,8 +12,12 @@ export default function Root({ children }: PropsWithChildren) {
         <meta charSet="utf-8" />
         <meta httpEquiv="X-UA-Compatible" content="IE=edge" />
         <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no" />
+        <meta httpEquiv="Cache-Control" content="no-cache, no-store, must-revalidate" />
+        <meta httpEquiv="Pragma" content="no-cache" />
         <meta name="theme-color" content="#0d9488" />
         <meta name="description" content="تطبيق إنجاز المعلم للتطوير المهني والأداء" />
+        <meta name="mobile-web-app-capable" content="yes" />
+        <meta name="application-name" content="إنجاز المعلم" />
 
         {/* PWA: يسمح بتثبيت التطبيق على سطح المكتب/الرئيسية بأيقونة */}
         <link rel="manifest" href="/manifest.json" />
