@@ -206,10 +206,23 @@ class AuthService {
     }
   }
 
+  /** عنوان إعادة التوجيه بعد النقر على رابط إعادة التعيين في البريد */
+  private getPasswordResetRedirectUrl(): string {
+    const isWeb = typeof window !== 'undefined';
+    if (isWeb) {
+      const origin = typeof window?.location?.origin === 'string' ? window.location.origin : '';
+      const appUrl = (process.env.EXPO_PUBLIC_APP_URL ?? '').trim();
+      const base = origin || appUrl || 'https://www.enjaz-almaulm.com';
+      return `${base.replace(/\/$/, '')}/auth/reset-password`;
+    }
+    return 'enjazalmualm://auth/reset-password';
+  }
+
   async resetPassword(email: string): Promise<void> {
     try {
+      const redirectTo = this.getPasswordResetRedirectUrl();
       const { error } = await supabase.auth.resetPasswordForEmail(email, {
-        redirectTo: 'enjazalmualm://auth/reset-password',
+        redirectTo,
       });
 
       if (error) {
