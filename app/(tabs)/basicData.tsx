@@ -25,6 +25,8 @@ import { DatabaseService } from '@/services/DatabaseService';
 import { getTextDirection, formatRTLText } from '@/utils/rtl-utils';
 import { AIAssistButton } from '@/components/AIAssistButton';
 
+type ProfessionalGrowthItem = { id: string; type: 'certificate' | 'course'; title: string; imageUri: string };
+
 export default function BasicDataScreen() {
   const [isEditing, setIsEditing] = useState(false);
   const [profileImage, setProfileImage] = useState<string | null>(null);
@@ -48,6 +50,9 @@ export default function BasicDataScreen() {
     profession: 'معلم/ة',
     experiences: 'تدريس الرياضيات للمرحلة الثانوية، تدريب المعلمين الجدد، إعداد المناهج الدراسية',
   });
+
+  const [professionalGrowthItems, setProfessionalGrowthItems] = useState<ProfessionalGrowthItem[]>([]);
+  const [growthSectionExpanded, setGrowthSectionExpanded] = useState(true);
 
   const { colors } = useTheme(); // Use the useTheme hook to get the current theme
 
@@ -78,6 +83,15 @@ export default function BasicDataScreen() {
         setProfileImage(storedImage);
       }
 
+      const storedGrowth = await AsyncStorage.getItem('professionalGrowthItems');
+      if (storedGrowth) {
+        try {
+          setProfessionalGrowthItems(JSON.parse(storedGrowth));
+        } catch {
+          // تجاهل إذا كان التنسيق غير صحيح
+        }
+      }
+
       const user = await AuthService.getCurrentUser();
       if (user?.id) {
         try {
@@ -105,6 +119,7 @@ export default function BasicDataScreen() {
       if (profileImage) {
         await AsyncStorage.setItem('profileImage', profileImage);
       }
+      await AsyncStorage.setItem('professionalGrowthItems', JSON.stringify(professionalGrowthItems));
       const user = await AuthService.getCurrentUser();
       if (user?.id) {
         try {
@@ -178,6 +193,56 @@ export default function BasicDataScreen() {
         }
       ]
     );
+  };
+
+  const addGrowthItem = (type: 'certificate' | 'course') => {
+    setProfessionalGrowthItems(prev => [
+      ...prev,
+      {
+        id: Date.now().toString(),
+        type,
+        title: '',
+        imageUri: '',
+      },
+    ]);
+  };
+
+  const removeGrowthItem = (id: string) => {
+    AlertService.alert(
+      formatRTLText('حذف'),
+      formatRTLText('هل أنت متأكد من حذف هذا السجل؟'),
+      [
+        { text: formatRTLText('إلغاء'), style: 'cancel' },
+        {
+          text: formatRTLText('حذف'),
+          style: 'destructive',
+          onPress: () => setProfessionalGrowthItems(prev => prev.filter(i => i.id !== id)),
+        },
+      ]
+    );
+  };
+
+  const updateGrowthItem = (id: string, updates: Partial<ProfessionalGrowthItem>) => {
+    setProfessionalGrowthItems(prev =>
+      prev.map(i => (i.id === id ? { ...i, ...updates } : i))
+    );
+  };
+
+  const pickImageForGrowth = async (id: string) => {
+    const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
+    if (status !== 'granted') {
+      AlertService.alert('عذراً', 'نحتاج إلى صلاحية الوصول للصور لإضافة الشهادات والدورات');
+      return;
+    }
+    const result = await ImagePicker.launchImageLibraryAsync({
+      mediaTypes: ImagePicker.MediaTypeOptions.Images,
+      allowsEditing: true,
+      aspect: [4, 3],
+      quality: 0.8,
+    });
+    if (!result.canceled) {
+      updateGrowthItem(id, { imageUri: result.assets[0].uri });
+    }
   };
 
   return (
@@ -536,6 +601,128 @@ export default function BasicDataScreen() {
                 <ThemedText style={[styles.value, getTextDirection(), { color: colors.text }]}>{userData.gradeLevel}</ThemedText>
               )}
             </ThemedView>
+          </ThemedView>
+
+          {/* بطاقة النمو المهني: الشهادات والدورات التدريبية (قابلة للطي/الفتح) */}
+          <ThemedView style={[styles.dataItem, styles.fullWidth, { backgroundColor: colors.card, marginTop: 0 }]}>
+            <TouchableOpacity
+              style={styles.growthSectionHeader}
+              onPress={() => setGrowthSectionExpanded(prev => !prev)}
+              activeOpacity={0.7}
+            >
+              <ThemedText style={[styles.label, getTextDirection(), { color: colors.textSecondary, flex: 1, textAlign: 'right' }]}>
+                {formatRTLText('النمو المهني')}
+              </ThemedText>
+              {professionalGrowthItems.length > 0 && (
+                <ThemedText style={[styles.growthSectionCount, getTextDirection(), { color: colors.textSecondary }]}>
+                  ({professionalGrowthItems.length})
+                </ThemedText>
+              )}
+              <IconSymbol
+                size={22}
+                name={growthSectionExpanded ? 'chevron.down' : 'chevron.left'}
+                color={colors.textSecondary}
+              />
+            </TouchableOpacity>
+
+            {growthSectionExpanded && (
+              <>
+                {isEditing && (
+                  <ThemedView style={{ flexDirection: 'row-reverse', flexWrap: 'wrap', gap: 8, marginBottom: 12 }}>
+                    <TouchableOpacity
+                      style={[styles.addGrowthButton, { backgroundColor: colors.inputBackground }]}
+                      onPress={() => addGrowthItem('certificate')}
+                    >
+                      <IconSymbol size={18} name="plus.circle.fill" color={colors.text} />
+                      <ThemedText style={[styles.addGrowthButtonText, getTextDirection(), { color: colors.text }]}>
+                        {formatRTLText('شهادة')}
+                      </ThemedText>
+                    </TouchableOpacity>
+                    <TouchableOpacity
+                      style={[styles.addGrowthButton, { backgroundColor: colors.inputBackground }]}
+                      onPress={() => addGrowthItem('course')}
+                    >
+                      <IconSymbol size={18} name="plus.circle.fill" color={colors.text} />
+                      <ThemedText style={[styles.addGrowthButtonText, getTextDirection(), { color: colors.text }]}>
+                        {formatRTLText('دورة تدريبية')}
+                      </ThemedText>
+                    </TouchableOpacity>
+                  </ThemedView>
+                )}
+                <ThemedText style={[styles.phoneHint, getTextDirection(), { color: colors.textSecondary, marginBottom: 12 }]}>
+                  {formatRTLText('أضف صور الشهادات والدورات التدريبية مرتبة حسب الجدول')}
+                </ThemedText>
+                {professionalGrowthItems.length === 0 && !isEditing ? (
+                  <ThemedText style={[styles.value, getTextDirection(), { color: colors.textSecondary, fontStyle: 'italic' }]}>
+                    {formatRTLText('لا توجد سجلات. اضغط تعديل لإضافة الشهادات والدورات.')}
+                  </ThemedText>
+                ) : (
+                  professionalGrowthItems.map((item, index) => (
+                <ThemedView
+                  key={item.id}
+                  style={[
+                    styles.growthItemRow,
+                    {
+                      backgroundColor: colors.inputBackground,
+                      borderColor: colors.card,
+                    },
+                  ]}
+                >
+                  <ThemedView style={styles.growthItemNumber}>
+                    <ThemedText style={[styles.growthItemNumberText, { color: colors.text }]}>{index + 1}</ThemedText>
+                  </ThemedView>
+                  <TouchableOpacity
+                    style={styles.growthItemImage}
+                    onPress={() => isEditing && pickImageForGrowth(item.id)}
+                  >
+                    {item.imageUri ? (
+                      <Image source={{ uri: item.imageUri }} style={styles.growthItemImageInner} />
+                    ) : (
+                      <ThemedView style={[styles.growthItemImagePlaceholder, { borderColor: colors.textSecondary }]}>
+                        <IconSymbol size={32} name="photo" color={colors.textSecondary} />
+                        <ThemedText style={[styles.growthItemPlaceholderText, { color: colors.textSecondary }]}>
+                          {isEditing ? formatRTLText('اضغط لإضافة صورة') : '—'}
+                        </ThemedText>
+                      </ThemedView>
+                    )}
+                  </TouchableOpacity>
+                  <ThemedView style={styles.growthItemContent}>
+                    {isEditing ? (
+                      <TextInput
+                        style={[styles.inputMain, getTextDirection(), { backgroundColor: colors.card, color: colors.inputText }]}
+                        value={item.title}
+                        onChangeText={(text) => updateGrowthItem(item.id, { title: text })}
+                        placeholder={
+                          item.type === 'certificate'
+                            ? formatRTLText('اسم الشهادة')
+                            : formatRTLText('اسم الدورة التدريبية')
+                        }
+                        placeholderTextColor={colors.inputPlaceholder}
+                      />
+                    ) : (
+                      <ThemedText style={[styles.value, getTextDirection(), { color: colors.text }]} numberOfLines={2}>
+                        {item.title || '—'}
+                      </ThemedText>
+                    )}
+                    <ThemedView style={[styles.growthItemBadge, { backgroundColor: item.type === 'certificate' ? '#add4ce' : '#e8f5e9' }]}>
+                      <ThemedText style={[styles.growthItemBadgeText, getTextDirection()]}>
+                        {item.type === 'certificate' ? formatRTLText('شهادة') : formatRTLText('دورة تدريبية')}
+                      </ThemedText>
+                    </ThemedView>
+                  </ThemedView>
+                  {isEditing && (
+                    <TouchableOpacity
+                      style={styles.growthItemDelete}
+                      onPress={() => removeGrowthItem(item.id)}
+                    >
+                      <IconSymbol size={22} name="trash" color="#c00" />
+                    </TouchableOpacity>
+                  )}
+                </ThemedView>
+              ))
+            )}
+              </>
+            )}
           </ThemedView>
         </ThemedView>
 
@@ -1041,5 +1228,92 @@ const styles = StyleSheet.create({
   selectedOptionText: {
     color: '#4ECDC4',
     fontWeight: '600',
+  },
+  growthSectionHeader: {
+    flexDirection: 'row-reverse',
+    alignItems: 'center',
+    paddingVertical: 4,
+    marginBottom: 4,
+  },
+  growthSectionCount: {
+    fontSize: 14,
+    marginRight: 8,
+  },
+  addGrowthButton: {
+    flexDirection: 'row-reverse',
+    alignItems: 'center',
+    paddingVertical: 8,
+    paddingHorizontal: 12,
+    borderRadius: 10,
+    gap: 6,
+  },
+  addGrowthButtonText: {
+    fontSize: 14,
+    fontWeight: '600',
+  },
+  growthItemRow: {
+    flexDirection: 'row-reverse',
+    alignItems: 'center',
+    padding: 12,
+    borderRadius: 12,
+    marginBottom: 10,
+    borderWidth: 1,
+    gap: 12,
+  },
+  growthItemNumber: {
+    width: 28,
+    height: 28,
+    borderRadius: 14,
+    backgroundColor: '#4ECDC4',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  growthItemNumberText: {
+    fontSize: 14,
+    fontWeight: '700',
+    color: '#1c1f33',
+  },
+  growthItemImage: {
+    width: 72,
+    height: 72,
+    borderRadius: 10,
+    overflow: 'hidden',
+  },
+  growthItemImageInner: {
+    width: '100%',
+    height: '100%',
+    resizeMode: 'cover',
+  },
+  growthItemImagePlaceholder: {
+    width: '100%',
+    height: '100%',
+    borderWidth: 2,
+    borderStyle: 'dashed',
+    borderRadius: 10,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  growthItemPlaceholderText: {
+    fontSize: 10,
+    marginTop: 4,
+  },
+  growthItemContent: {
+    flex: 1,
+    minWidth: 0,
+  },
+  growthItemBadge: {
+    alignSelf: 'flex-start',
+    paddingHorizontal: 8,
+    paddingVertical: 4,
+    borderRadius: 12,
+    marginTop: 6,
+  },
+  growthItemBadgeText: {
+    fontSize: 12,
+    fontWeight: '600',
+    color: '#1c1f33',
+  },
+  growthItemDelete: {
+    padding: 6,
   },
 });
