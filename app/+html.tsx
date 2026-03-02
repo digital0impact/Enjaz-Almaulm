@@ -17,7 +17,11 @@ export default function Root({ children }: PropsWithChildren) {
 
         {/* PWA: يسمح بتثبيت التطبيق على سطح المكتب/الرئيسية بأيقونة */}
         <link rel="manifest" href="/manifest.json" />
-        <link rel="apple-touch-icon" href="/logo192.png" />
+        {/* أيقونة Safari/iOS: 180x180 بخلفية بيضاء صلبة (مطلوبة لظهور صحيح) */}
+        <link rel="apple-touch-icon" href="/apple-touch-icon.png" sizes="180x180" />
+        <link rel="apple-touch-icon" href="/logo192.png" sizes="192x192" />
+        <meta name="apple-mobile-web-app-title" content="إنجاز المعلم" />
+        <meta name="apple-mobile-web-app-capable" content="yes" />
 
         <ScrollViewStyleReset />
       </head>

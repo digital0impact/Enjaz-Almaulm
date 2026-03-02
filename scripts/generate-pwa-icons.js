@@ -16,24 +16,32 @@ if (!fs.existsSync(src)) {
 if (!fs.existsSync(publicDir)) fs.mkdirSync(publicDir, { recursive: true });
 
 async function run() {
+  const outputs = [
+    { name: 'logo192.png', size: 192 },
+    { name: 'logo512.png', size: 512 },
+    { name: 'apple-touch-icon.png', size: 180 },
+  ];
   try {
     const sharp = require('sharp');
-    await Promise.all([
-      sharp(src).resize(192, 192).toFile(path.join(publicDir, 'logo192.png')),
-      sharp(src).resize(512, 512).toFile(path.join(publicDir, 'logo512.png')),
-    ]);
-    console.log('تم إنشاء public/logo192.png و public/logo512.png بنجاح.');
+    for (const { name, size } of outputs) {
+      await sharp(src)
+        .resize(size, size)
+        .flatten({ background: { r: 255, g: 255, b: 255 } })
+        .toFile(path.join(publicDir, name));
+    }
+    console.log('تم إنشاء أيقونات PWA: logo192.png, logo512.png, apple-touch-icon.png');
   } catch (e) {
     if (e.code === 'MODULE_NOT_FOUND') {
-      fs.copyFileSync(src, path.join(publicDir, 'logo192.png'));
-      fs.copyFileSync(src, path.join(publicDir, 'logo512.png'));
-      console.log('تم نسخ الشعار إلى public/logo192.png و logo512.png (لأفضل نتيجة: npm i -D sharp ثم أعد التشغيل).');
+      for (const { name } of outputs) {
+        fs.copyFileSync(src, path.join(publicDir, name));
+      }
+      console.log('تم نسخ الشعار. لأفضل نتيجة: npm i -D sharp ثم أعد التشغيل.');
     } else {
-      // على Vercel قد يفشل sharp (ربطات أصلية) — ننسخ الملف كبديل ولا نوقف البناء
       console.warn('تحذير sharp:', e.message || e);
       try {
-        fs.copyFileSync(src, path.join(publicDir, 'logo192.png'));
-        fs.copyFileSync(src, path.join(publicDir, 'logo512.png'));
+        for (const { name } of outputs) {
+          fs.copyFileSync(src, path.join(publicDir, name));
+        }
         console.log('تم نسخ الشعار كبديل إلى public/.');
       } catch (copyErr) {
         console.warn('لم يتم إنشاء أيقونات PWA:', copyErr.message || copyErr);
