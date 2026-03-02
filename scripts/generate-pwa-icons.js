@@ -29,12 +29,20 @@ async function run() {
       fs.copyFileSync(src, path.join(publicDir, 'logo512.png'));
       console.log('تم نسخ الشعار إلى public/logo192.png و logo512.png (لأفضل نتيجة: npm i -D sharp ثم أعد التشغيل).');
     } else {
-      throw e;
+      // على Vercel قد يفشل sharp (ربطات أصلية) — ننسخ الملف كبديل ولا نوقف البناء
+      console.warn('تحذير sharp:', e.message || e);
+      try {
+        fs.copyFileSync(src, path.join(publicDir, 'logo192.png'));
+        fs.copyFileSync(src, path.join(publicDir, 'logo512.png'));
+        console.log('تم نسخ الشعار كبديل إلى public/.');
+      } catch (copyErr) {
+        console.warn('لم يتم إنشاء أيقونات PWA:', copyErr.message || copyErr);
+      }
     }
   }
 }
 
 run().catch((err) => {
-  console.error(err);
-  process.exit(1);
+  console.warn('generate-pwa-icons:', err.message || err);
+  process.exit(0);
 });
