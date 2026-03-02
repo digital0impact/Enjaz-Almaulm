@@ -77,25 +77,19 @@ export default function SignupScreen() {
       // لعرض تنبيه ترحيبي على الصفحة الرئيسية بعد التوجيه
       await AsyncStorage.setItem('showPostSignupBanner', '1');
 
-      const onSuccessPress = () => {
+      const onSuccessPress = async () => {
         if (Platform.OS === 'web' && shouldShowInstallPrompt()) {
           const isIOS = isIOSWeb();
-          appAlert.alert(
-            formatRTLText('إضافة التطبيق إلى الشاشة الرئيسية'),
-            isIOS
-              ? formatRTLText('لإضافة أيقونة على الشاشة الرئيسية: اضغط زر المشاركة في المتصفح ثم اختر "إضافة إلى الشاشة الرئيسية".')
-              : formatRTLText('يمكنك إضافة التطبيق ليعمل مثل البرامج ويظهر بأيقونة على سطح المكتب أو الشاشة الرئيسية.'),
-            [
-              { text: formatRTLText('لاحقاً'), onPress: () => router.replace('/') },
-              {
-                text: formatRTLText('إضافة الآن'),
-                onPress: async () => {
-                  await promptInstall();
-                  router.replace('/');
-                },
-              },
-            ]
-          );
+          if (isIOS) {
+            appAlert.alert(
+              formatRTLText('إضافة التطبيق إلى الشاشة الرئيسية'),
+              formatRTLText('اضغط زر المشاركة في المتصفح (السهم للأعلى) ثم اختر "إضافة إلى الشاشة الرئيسية".'),
+              [{ text: formatRTLText('حسناً'), onPress: () => router.replace('/') }]
+            );
+          } else {
+            await promptInstall();
+            router.replace('/');
+          }
         } else {
           router.replace('/');
         }
