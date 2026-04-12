@@ -6,11 +6,13 @@
 const fs = require('fs');
 const path = require('path');
 
-const src = path.join(__dirname, '../assets/images/Logo.png');
+const hiRes = path.join(__dirname, '../assets/images/Logo-1024.png');
+const fallback = path.join(__dirname, '../assets/images/Logo.png');
+const src = fs.existsSync(hiRes) ? hiRes : fallback;
 const publicDir = path.join(__dirname, '../public');
 
 if (!fs.existsSync(src)) {
-  console.warn('لم يُعثر على assets/images/Logo.png — أضف أيقونات PWA يدوياً إلى public/ (logo192.png، logo512.png).');
+  console.warn('لم يُعثر على Logo-1024.png أو Logo.png — أضف أيقونات PWA يدوياً إلى public/.');
   process.exit(0);
 }
 if (!fs.existsSync(publicDir)) fs.mkdirSync(publicDir, { recursive: true });

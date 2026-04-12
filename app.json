@@ -24,8 +24,9 @@
       "appStoreUrl": "https://apps.apple.com/app/com.teacherperformance.tdp"
     },
     "android": {
+      "icon": "./assets/images/Logo-1024.png",
       "adaptiveIcon": {
-        "foregroundImage": "./assets/images/Logo.png",
+        "foregroundImage": "./assets/images/Logo-1024.png",
         "backgroundColor": "#ffffff"
       },
       "package": "com.teacherperformance.tdp",
