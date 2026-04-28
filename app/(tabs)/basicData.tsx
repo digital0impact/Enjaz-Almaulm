@@ -93,6 +93,7 @@ export default function BasicDataScreen() {
   const loadUserData = async () => {
     try {
       const storedData = await AsyncStorage.getItem('basicData');
+      const hasLocalBasicData = !!storedData;
       if (storedData) {
         setUserData(JSON.parse(storedData));
       }
@@ -112,9 +113,10 @@ export default function BasicDataScreen() {
           if (profile) {
             setUserData((prev) => ({
               ...prev,
-              fullName: profile.name || prev.fullName,
-              email: profile.email || prev.email,
-              phone: profile.phoneNumber || prev.phone,
+              // عندما توجد بيانات محلية محفوظة سابقًا، لا نغطيها بقيم قديمة من السيرفر.
+              fullName: hasLocalBasicData ? prev.fullName : (profile.name || prev.fullName),
+              email: hasLocalBasicData ? prev.email : (profile.email || prev.email),
+              phone: hasLocalBasicData ? prev.phone : (profile.phoneNumber || prev.phone),
             }));
           }
           if (items.length > 0) {
