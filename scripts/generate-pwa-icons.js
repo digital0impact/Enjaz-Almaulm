@@ -17,6 +17,34 @@ if (!fs.existsSync(src)) {
 }
 if (!fs.existsSync(publicDir)) fs.mkdirSync(publicDir, { recursive: true });
 
+/** أيقونة maskable: الشعار داخل ~72% من المربع حتى لا يُقصّ بقناع الدائرة على أندرويد (Chrome). */
+async function writeMaskable(sharpMod, size, fileName) {
+  const inner = Math.max(1, Math.round(size * 0.72));
+  const padded = await sharpMod(src)
+    .resize(inner, inner, {
+      fit: 'contain',
+      position: 'centre',
+      background: { r: 255, g: 255, b: 255, alpha: 1 },
+      kernel: sharpMod.kernel.lanczos3,
+    })
+    .flatten({ background: { r: 255, g: 255, b: 255 } })
+    .png()
+    .toBuffer();
+  const left = Math.floor((size - inner) / 2);
+  const top = Math.floor((size - inner) / 2);
+  await sharpMod({
+    create: {
+      width: size,
+      height: size,
+      channels: 3,
+      background: { r: 255, g: 255, b: 255 },
+    },
+  })
+    .composite([{ input: padded, left, top }])
+    .png()
+    .toFile(path.join(publicDir, fileName));
+}
+
 async function run() {
   const outputs = [
     { name: 'logo192.png', size: 192 },
@@ -31,12 +59,18 @@ async function run() {
         .flatten({ background: { r: 255, g: 255, b: 255 } })
         .toFile(path.join(publicDir, name));
     }
-    console.log('تم إنشاء أيقونات PWA: logo192.png, logo512.png, apple-touch-icon.png');
+    await writeMaskable(sharp, 192, 'logo-maskable-192.png');
+    await writeMaskable(sharp, 512, 'logo-maskable-512.png');
+    console.log(
+      'تم إنشاء أيقونات PWA: logo192.png, logo512.png, apple-touch-icon.png, logo-maskable-*.png'
+    );
   } catch (e) {
     if (e.code === 'MODULE_NOT_FOUND') {
       for (const { name } of outputs) {
         fs.copyFileSync(src, path.join(publicDir, name));
       }
+      fs.copyFileSync(path.join(publicDir, 'logo192.png'), path.join(publicDir, 'logo-maskable-192.png'));
+      fs.copyFileSync(path.join(publicDir, 'logo512.png'), path.join(publicDir, 'logo-maskable-512.png'));
       console.log('تم نسخ الشعار. لأفضل نتيجة: npm i -D sharp ثم أعد التشغيل.');
     } else {
       console.warn('تحذير sharp:', e.message || e);
@@ -44,6 +78,8 @@ async function run() {
         for (const { name } of outputs) {
           fs.copyFileSync(src, path.join(publicDir, name));
         }
+        fs.copyFileSync(path.join(publicDir, 'logo192.png'), path.join(publicDir, 'logo-maskable-192.png'));
+        fs.copyFileSync(path.join(publicDir, 'logo512.png'), path.join(publicDir, 'logo-maskable-512.png'));
         console.log('تم نسخ الشعار كبديل إلى public/.');
       } catch (copyErr) {
         console.warn('لم يتم إنشاء أيقونات PWA:', copyErr.message || copyErr);
