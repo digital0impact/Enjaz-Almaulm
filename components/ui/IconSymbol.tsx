@@ -125,6 +125,7 @@ const MAPPING = {
   'card-giftcard': 'card-giftcard',
   'workspace-premium': 'workspace-premium',
   'stars': 'stars',
+  'photo': 'image',
 } as IconMapping;
 
 /**

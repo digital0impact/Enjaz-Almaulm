@@ -11,6 +11,7 @@ import {
   StatusBar,
   Modal,
   View,
+  Linking,
 } from 'react-native';
 import { AlertService } from '@/services/AlertService';
 
@@ -19,13 +20,16 @@ import { ThemedView } from '@/components/ThemedView';
 import { IconSymbol } from '@/components/ui/IconSymbol';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import * as ImagePicker from 'expo-image-picker';
+import * as DocumentPicker from 'expo-document-picker';
 import { useTheme } from '@/contexts/ThemeContext';
 import AuthService from '@/services/AuthService';
 import { DatabaseService } from '@/services/DatabaseService';
 import {
   ProfessionalGrowthService,
   syncItems,
+  type GrowthAttachmentKind,
 } from '@/services/ProfessionalGrowthService';
+import { isSupabaseConfigured } from '@/config/supabase';
 import { getTextDirection, formatRTLText } from '@/utils/rtl-utils';
 import { APP_FOCUS_REFRESH_EVENT } from '@/utils/useAppFocusRefresh';
 import { AIAssistButton } from '@/components/AIAssistButton';
@@ -36,7 +40,26 @@ type ProfessionalGrowthItem = {
   title: string;
   imageUri: string;
   image_path?: string | null;
+  attachmentKind?: GrowthAttachmentKind;
+  fileName?: string;
 };
+
+function normalizeStoredGrowthItems(raw: ProfessionalGrowthItem[]): ProfessionalGrowthItem[] {
+  return raw.map((p) => {
+    const inferredPdf =
+      p.attachmentKind === 'pdf' ||
+      p.image_path?.toLowerCase().endsWith('.pdf') ||
+      p.imageUri.toLowerCase().includes('.pdf');
+    const attachmentKind: GrowthAttachmentKind = inferredPdf ? 'pdf' : 'image';
+    return {
+      ...p,
+      attachmentKind: p.attachmentKind ?? attachmentKind,
+      fileName:
+        p.fileName ??
+        (attachmentKind === 'pdf' && p.image_path ? p.image_path.split('/').pop() : undefined),
+    };
+  });
+}
 
 export default function BasicDataScreen() {
   const [isEditing, setIsEditing] = useState(false);
@@ -121,19 +144,24 @@ export default function BasicDataScreen() {
           }
           if (items.length > 0) {
             setProfessionalGrowthItems(
-              items.map((i) => ({
-                id: i.id,
-                type: i.type,
-                title: i.title,
-                imageUri: i.imageUri || '',
-                image_path: i.image_path,
-              }))
+              items.map((i) => {
+                const isPdf = !!i.image_path?.toLowerCase().endsWith('.pdf');
+                return {
+                  id: i.id,
+                  type: i.type,
+                  title: i.title,
+                  imageUri: i.imageUri || '',
+                  image_path: i.image_path,
+                  attachmentKind: isPdf ? ('pdf' as const) : ('image' as const),
+                  fileName: isPdf ? (i.image_path?.split('/').pop() ?? undefined) : undefined,
+                };
+              })
             );
           } else {
             const storedGrowth = await AsyncStorage.getItem('professionalGrowthItems');
             if (storedGrowth) {
               try {
-                setProfessionalGrowthItems(JSON.parse(storedGrowth));
+                setProfessionalGrowthItems(normalizeStoredGrowthItems(JSON.parse(storedGrowth)));
               } catch {
                 // تجاهل
               }
@@ -143,7 +171,7 @@ export default function BasicDataScreen() {
           const storedGrowth = await AsyncStorage.getItem('professionalGrowthItems');
           if (storedGrowth) {
             try {
-              setProfessionalGrowthItems(JSON.parse(storedGrowth));
+              setProfessionalGrowthItems(normalizeStoredGrowthItems(JSON.parse(storedGrowth)));
             } catch {}
           }
         }
@@ -151,7 +179,7 @@ export default function BasicDataScreen() {
         const storedGrowth = await AsyncStorage.getItem('professionalGrowthItems');
         if (storedGrowth) {
           try {
-            setProfessionalGrowthItems(JSON.parse(storedGrowth));
+            setProfessionalGrowthItems(normalizeStoredGrowthItems(JSON.parse(storedGrowth)));
           } catch {}
         }
       }
@@ -170,6 +198,14 @@ export default function BasicDataScreen() {
       await AsyncStorage.setItem('professionalGrowthItems', JSON.stringify(professionalGrowthItems));
       const user = await AuthService.getCurrentUser();
       if (user?.id) {
+        if (!isSupabaseConfigured) {
+          setIsEditing(false);
+          AlertService.alert(
+            formatRTLText('تعذر رفع البيانات'),
+            formatRTLText('تم حفظ البيانات على الجهاز، لكن إعدادات الربط مع السيرفر (Supabase) غير مهيأة في نسخة الويب. تأكد من ضبط EXPO_PUBLIC_SUPABASE_URL و EXPO_PUBLIC_SUPABASE_ANON_KEY ثم أعد النشر.')
+          );
+          return;
+        }
         try {
           await DatabaseService.updateUserProfile(user.id, {
             name: userData.fullName,
@@ -181,11 +217,19 @@ export default function BasicDataScreen() {
             console.warn('Professional growth sync failed:', syncResult.error);
           }
         } catch (e) {
+          const details =
+            e && typeof e === 'object' && 'message' in e
+              ? String((e as any).message)
+              : typeof e === 'string'
+                ? e
+                : '';
           console.warn('Could not sync profile to Supabase:', e);
           setIsEditing(false);
           AlertService.alert(
             formatRTLText('فشلت المزامنة'),
-            formatRTLText('تم حفظ البيانات على الجهاز لكن لم يتم رفعها إلى السيرفر (بما فيها رقم الجوال). تحقق من الاتصال بالإنترنت وحاول مرة أخرى.')
+            formatRTLText(
+              `تم حفظ البيانات على الجهاز لكن لم يتم رفعها إلى السيرفر. تحقق من الاتصال بالإنترنت وحاول مرة أخرى.${details ? `\n\nتفاصيل: ${details}` : ''}`
+            )
           );
           return;
         }
@@ -280,7 +324,7 @@ export default function BasicDataScreen() {
     );
   };
 
-  const pickImageForGrowth = async (id: string) => {
+  const pickGrowthImage = async (id: string) => {
     const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
     if (status !== 'granted') {
       AlertService.alert('عذراً', 'نحتاج إلى صلاحية الوصول للصور لإضافة الشهادات والدورات');
@@ -293,8 +337,50 @@ export default function BasicDataScreen() {
       quality: 0.8,
     });
     if (!result.canceled) {
-      updateGrowthItem(id, { imageUri: result.assets[0].uri });
+      updateGrowthItem(id, {
+        imageUri: result.assets[0].uri,
+        attachmentKind: 'image',
+        fileName: undefined,
+      });
     }
+  };
+
+  const pickGrowthPdf = async (id: string) => {
+    try {
+      const result = await DocumentPicker.getDocumentAsync({
+        type: 'application/pdf',
+        multiple: false,
+        copyToCacheDirectory: true,
+      });
+      if (result.canceled || !result.assets?.[0]?.uri) return;
+      const asset = result.assets[0];
+      updateGrowthItem(id, {
+        imageUri: asset.uri,
+        attachmentKind: 'pdf',
+        fileName: asset.name || 'document.pdf',
+      });
+    } catch {
+      AlertService.alert(formatRTLText('تعذر اختيار الملف'), formatRTLText('حاول مرة أخرى أو اختر ملف PDF آخر.'));
+    }
+  };
+
+  const pickAttachmentForGrowth = (id: string) => {
+    AlertService.alert(
+      formatRTLText('إرفاق مستند'),
+      formatRTLText('يمكنك إضافة صورة من المعرض أو ملف PDF.'),
+      [
+        { text: formatRTLText('إلغاء'), style: 'cancel' },
+        { text: formatRTLText('صورة'), onPress: () => void pickGrowthImage(id) },
+        { text: formatRTLText('PDF'), onPress: () => void pickGrowthPdf(id) },
+      ]
+    );
+  };
+
+  const openGrowthPdf = (item: ProfessionalGrowthItem) => {
+    if (item.attachmentKind !== 'pdf' || !item.imageUri) return;
+    Linking.openURL(item.imageUri).catch(() => {
+      AlertService.alert(formatRTLText('تعذر الفتح'), formatRTLText('جرّب فتح الملف من المتصفح لاحقًا بعد المزامنة.'));
+    });
   };
 
   return (
@@ -702,7 +788,7 @@ export default function BasicDataScreen() {
                   </ThemedView>
                 )}
                 <ThemedText style={[styles.phoneHint, getTextDirection(), { color: colors.textSecondary, marginBottom: 12 }]}>
-                  {formatRTLText('أضف صور الشهادات والدورات التدريبية مرتبة حسب الجدول')}
+                  {formatRTLText('أضف صورة أو ملف PDF لكل شهادة أو دورة، مرتبة حسب الجدول')}
                 </ThemedText>
                 {professionalGrowthItems.length === 0 && !isEditing ? (
                   <ThemedText style={[styles.value, getTextDirection(), { color: colors.textSecondary, fontStyle: 'italic' }]}>
@@ -725,15 +811,37 @@ export default function BasicDataScreen() {
                   </ThemedView>
                   <TouchableOpacity
                     style={styles.growthItemImage}
-                    onPress={() => isEditing && pickImageForGrowth(item.id)}
+                    disabled={!isEditing && !(item.attachmentKind === 'pdf' && !!item.imageUri)}
+                    onPress={() => {
+                      if (isEditing) {
+                        pickAttachmentForGrowth(item.id);
+                      } else if (item.attachmentKind === 'pdf' && item.imageUri) {
+                        openGrowthPdf(item);
+                      }
+                    }}
                   >
-                    {item.imageUri ? (
+                    {item.imageUri && item.attachmentKind === 'pdf' ? (
+                      <ThemedView style={[styles.growthItemPdfBox, { borderColor: colors.textSecondary }]}>
+                        <IconSymbol size={36} name="doc.pdf" color={colors.textSecondary} />
+                        <ThemedText
+                          style={[styles.growthItemPdfName, { color: colors.text }]}
+                          numberOfLines={2}
+                        >
+                          {item.fileName || formatRTLText('ملف PDF')}
+                        </ThemedText>
+                        {!isEditing && (
+                          <ThemedText style={[styles.growthItemPlaceholderText, { color: colors.textSecondary }]}>
+                            {formatRTLText('اضغط للفتح')}
+                          </ThemedText>
+                        )}
+                      </ThemedView>
+                    ) : item.imageUri ? (
                       <Image source={{ uri: item.imageUri }} style={styles.growthItemImageInner} />
                     ) : (
                       <ThemedView style={[styles.growthItemImagePlaceholder, { borderColor: colors.textSecondary }]}>
                         <IconSymbol size={32} name="photo" color={colors.textSecondary} />
                         <ThemedText style={[styles.growthItemPlaceholderText, { color: colors.textSecondary }]}>
-                          {isEditing ? formatRTLText('اضغط لإضافة صورة') : '—'}
+                          {isEditing ? formatRTLText('صورة أو PDF') : '—'}
                         </ThemedText>
                       </ThemedView>
                     )}
@@ -1335,6 +1443,22 @@ const styles = StyleSheet.create({
     width: '100%',
     height: '100%',
     resizeMode: 'cover',
+  },
+  growthItemPdfBox: {
+    width: '100%',
+    height: '100%',
+    borderWidth: 2,
+    borderStyle: 'dashed',
+    borderRadius: 10,
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingHorizontal: 4,
+    gap: 4,
+  },
+  growthItemPdfName: {
+    fontSize: 10,
+    textAlign: 'center',
+    writingDirection: 'rtl',
   },
   growthItemImagePlaceholder: {
     width: '100%',

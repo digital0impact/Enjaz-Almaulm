@@ -229,7 +229,6 @@ export default function CalendarScreen() {
             headers: {
               'Accept': 'application/json',
               'Content-Type': 'application/json',
-              'User-Agent': 'Teacher-App/1.0',
             },
           });
 

@@ -17,8 +17,10 @@ export interface ProfessionalGrowthItem {
   created_at?: string;
 }
 
+export type GrowthAttachmentKind = 'image' | 'pdf';
+
 /** تحويل URI محلي إلى Blob للرفع */
-async function uriToBlob(uri: string): Promise<Blob> {
+async function uriToBlob(uri: string, dataUrlMime: string): Promise<Blob> {
   const isWeb = typeof window !== 'undefined';
   if (isWeb && (uri.startsWith('blob:') || uri.startsWith('http') || uri.startsWith('data:'))) {
     const res = await fetch(uri);
@@ -28,7 +30,7 @@ async function uriToBlob(uri: string): Promise<Blob> {
     const base64 = await FileSystem.readAsStringAsync(uri, {
       encoding: FileSystem.EncodingType.Base64,
     });
-    const res = await fetch(`data:image/jpeg;base64,${base64}`);
+    const res = await fetch(`data:${dataUrlMime};base64,${base64}`);
     return res.blob();
   } catch {
     const res = await fetch(uri);
@@ -36,18 +38,34 @@ async function uriToBlob(uri: string): Promise<Blob> {
   }
 }
 
-/** رفع صورة إلى Storage وإرجاع المسار */
-export async function uploadGrowthImage(
+function growthImageMimeFromUri(localUri: string): { ext: 'png' | 'jpg'; contentType: string; dataUrlMime: string } {
+  const lower = localUri.toLowerCase();
+  if (lower.includes('.png')) {
+    return { ext: 'png', contentType: 'image/png', dataUrlMime: 'image/png' };
+  }
+  return { ext: 'jpg', contentType: 'image/jpeg', dataUrlMime: 'image/jpeg' };
+}
+
+/** رفع مرفق (صورة أو PDF) إلى Storage وإرجاع المسار */
+export async function uploadGrowthAttachment(
   userId: string,
-  localUri: string
+  localUri: string,
+  kind: GrowthAttachmentKind
 ): Promise<string | null> {
   try {
-    const blob = await uriToBlob(localUri);
-    const ext = localUri.includes('.png') ? 'png' : 'jpg';
+    const mime =
+      kind === 'pdf'
+        ? { ext: 'pdf' as const, contentType: 'application/pdf', dataUrlMime: 'application/pdf' }
+        : (() => {
+            const m = growthImageMimeFromUri(localUri);
+            return { ext: m.ext, contentType: m.contentType, dataUrlMime: m.contentType };
+          })();
+    const { ext, contentType, dataUrlMime } = mime;
+    const blob = await uriToBlob(localUri, dataUrlMime);
     const fileName = `${userId}/professional-growth/${Date.now()}.${ext}`;
 
     const { error } = await supabase.storage.from(BUCKET).upload(fileName, blob, {
-      contentType: ext === 'png' ? 'image/png' : 'image/jpeg',
+      contentType,
       upsert: true,
     });
 
@@ -181,7 +199,14 @@ function isLocalUri(uri: string): boolean {
 /** مزامنة القائمة الكاملة مع Supabase (استبدال) */
 export async function syncItems(
   userId: string,
-  items: Array<{ id: string; type: GrowthType; title: string; imageUri: string; image_path?: string | null }>
+  items: Array<{
+    id: string;
+    type: GrowthType;
+    title: string;
+    imageUri: string;
+    image_path?: string | null;
+    attachmentKind?: GrowthAttachmentKind;
+  }>
 ): Promise<{ success: boolean; error?: string }> {
   try {
     const { data: existing } = await supabase
@@ -200,7 +225,11 @@ export async function syncItems(
       const item = items[i];
       let imagePath: string | null = item.image_path || null;
       if (isLocalUri(item.imageUri)) {
-        imagePath = await uploadGrowthImage(userId, item.imageUri);
+        const kind: GrowthAttachmentKind =
+          item.attachmentKind === 'pdf' || item.imageUri.toLowerCase().includes('.pdf')
+            ? 'pdf'
+            : 'image';
+        imagePath = await uploadGrowthAttachment(userId, item.imageUri, kind);
       }
       const { error: insErr } = await supabase.from('professional_growth').insert({
         user_id: userId,
