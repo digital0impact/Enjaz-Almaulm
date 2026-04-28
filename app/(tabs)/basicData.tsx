@@ -23,7 +23,7 @@ import * as ImagePicker from 'expo-image-picker';
 import * as DocumentPicker from 'expo-document-picker';
 import { useTheme } from '@/contexts/ThemeContext';
 import AuthService from '@/services/AuthService';
-import { DatabaseService } from '@/services/DatabaseService';
+import DatabaseService from '@/services/DatabaseService';
 import {
   ProfessionalGrowthService,
   syncItems,
