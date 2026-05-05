@@ -8,6 +8,18 @@ export interface UserProfile {
   phoneNumber: string;
   jobTitle: string;
   workLocation: string;
+  specialization?: string;
+  profession?: string;
+  hireDate?: string;
+  qualification?: string;
+  rank?: string;
+  yearsOfExperience?: number;
+  experiences?: string;
+  educationAdministration?: string;
+  schoolName?: string;
+  schoolStage?: string;
+  teachingGrades?: string;
+  professionalGrowth?: string;
   created_at?: string;
   updated_at?: string;
 }
@@ -161,6 +173,19 @@ class DatabaseService {
         phone_number: userProfile.phoneNumber ?? '',
         job_title: userProfile.jobTitle ?? '',
         work_location: userProfile.workLocation ?? '',
+        specialization: userProfile.specialization ?? '',
+        profession: userProfile.profession ?? '',
+        hire_date: userProfile.hireDate || null,
+        qualification: userProfile.qualification ?? '',
+        rank: userProfile.rank ?? '',
+        years_of_experience:
+          typeof userProfile.yearsOfExperience === 'number' ? userProfile.yearsOfExperience : null,
+        experiences: userProfile.experiences ?? '',
+        education_administration: userProfile.educationAdministration ?? '',
+        school_name: userProfile.schoolName ?? '',
+        school_stage: userProfile.schoolStage ?? '',
+        teaching_grades: userProfile.teachingGrades ?? '',
+        professional_growth: userProfile.professionalGrowth ?? '',
         updated_at: new Date().toISOString(),
       };
       const { data, error } = await supabase
@@ -192,6 +217,19 @@ class DatabaseService {
         phoneNumber: data.phone_number ?? '',
         jobTitle: data.job_title ?? '',
         workLocation: data.work_location ?? '',
+        specialization: data.specialization ?? '',
+        profession: data.profession ?? '',
+        hireDate: data.hire_date ?? '',
+        qualification: data.qualification ?? '',
+        rank: data.rank ?? '',
+        yearsOfExperience:
+          typeof data.years_of_experience === 'number' ? data.years_of_experience : undefined,
+        experiences: data.experiences ?? '',
+        educationAdministration: data.education_administration ?? '',
+        schoolName: data.school_name ?? '',
+        schoolStage: data.school_stage ?? '',
+        teachingGrades: data.teaching_grades ?? '',
+        professionalGrowth: data.professional_growth ?? '',
         created_at: data.created_at,
         updated_at: data.updated_at,
       };
@@ -215,6 +253,20 @@ class DatabaseService {
         phone_number: updates.phoneNumber ?? current?.phoneNumber ?? '',
         job_title: updates.jobTitle ?? current?.jobTitle ?? '',
         work_location: updates.workLocation ?? current?.workLocation ?? '',
+        specialization: updates.specialization ?? current?.specialization ?? '',
+        profession: updates.profession ?? current?.profession ?? '',
+        hire_date: updates.hireDate ?? current?.hireDate ?? null,
+        qualification: updates.qualification ?? current?.qualification ?? '',
+        rank: updates.rank ?? current?.rank ?? '',
+        years_of_experience:
+          updates.yearsOfExperience ?? current?.yearsOfExperience ?? null,
+        experiences: updates.experiences ?? current?.experiences ?? '',
+        education_administration:
+          updates.educationAdministration ?? current?.educationAdministration ?? '',
+        school_name: updates.schoolName ?? current?.schoolName ?? '',
+        school_stage: updates.schoolStage ?? current?.schoolStage ?? '',
+        teaching_grades: updates.teachingGrades ?? current?.teachingGrades ?? '',
+        professional_growth: updates.professionalGrowth ?? current?.professionalGrowth ?? '',
         updated_at: now,
       };
       const { error: profileError } = await supabase

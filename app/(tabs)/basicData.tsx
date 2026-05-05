@@ -61,6 +61,15 @@ function normalizeStoredGrowthItems(raw: ProfessionalGrowthItem[]): Professional
   });
 }
 
+function parseYearsOfExperience(value: string): number | undefined {
+  const normalized = (value || '').trim();
+  if (!normalized) return undefined;
+  const digits = normalized.replace(/[^\d]/g, '');
+  if (!digits) return undefined;
+  const parsed = Number.parseInt(digits, 10);
+  return Number.isFinite(parsed) ? parsed : undefined;
+}
+
 export default function BasicDataScreen() {
   const [isEditing, setIsEditing] = useState(false);
   const [profileImage, setProfileImage] = useState<string | null>(null);
@@ -140,6 +149,22 @@ export default function BasicDataScreen() {
               fullName: hasLocalBasicData ? prev.fullName : (profile.name || prev.fullName),
               email: hasLocalBasicData ? prev.email : (profile.email || prev.email),
               phone: hasLocalBasicData ? prev.phone : (profile.phoneNumber || prev.phone),
+              specialty: hasLocalBasicData ? prev.specialty : (profile.specialization || prev.specialty),
+              education: hasLocalBasicData ? prev.education : (profile.qualification || prev.education),
+              school: hasLocalBasicData ? prev.school : (profile.schoolName || prev.school),
+              educationDepartment: hasLocalBasicData
+                ? prev.educationDepartment
+                : (profile.educationAdministration || prev.educationDepartment),
+              gradeLevel: hasLocalBasicData ? prev.gradeLevel : (profile.teachingGrades || prev.gradeLevel),
+              appointmentDate: hasLocalBasicData ? prev.appointmentDate : (profile.hireDate || prev.appointmentDate),
+              rank: hasLocalBasicData ? prev.rank : (profile.rank || prev.rank),
+              profession: hasLocalBasicData ? prev.profession : (profile.profession || prev.profession),
+              experiences: hasLocalBasicData ? prev.experiences : (profile.experiences || prev.experiences),
+              experience: hasLocalBasicData
+                ? prev.experience
+                : (typeof profile.yearsOfExperience === 'number'
+                  ? String(profile.yearsOfExperience)
+                  : prev.experience),
             }));
           }
           if (items.length > 0) {
@@ -211,6 +236,17 @@ export default function BasicDataScreen() {
             name: userData.fullName,
             email: userData.email,
             phoneNumber: (userData.phone || '').trim() || undefined,
+            specialization: (userData.specialty || '').trim() || undefined,
+            qualification: (userData.education || '').trim() || undefined,
+            schoolName: (userData.school || '').trim() || undefined,
+            educationAdministration: (userData.educationDepartment || '').trim() || undefined,
+            teachingGrades: (userData.gradeLevel || '').trim() || undefined,
+            schoolStage: (userData.gradeLevel || '').trim() || undefined,
+            hireDate: (userData.appointmentDate || '').trim() || undefined,
+            rank: (userData.rank || '').trim() || undefined,
+            profession: (userData.profession || '').trim() || undefined,
+            experiences: (userData.experiences || '').trim() || undefined,
+            yearsOfExperience: parseYearsOfExperience(userData.experience),
           });
           const syncResult = await syncItems(user.id, professionalGrowthItems);
           if (!syncResult.success) {
