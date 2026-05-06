@@ -101,6 +101,7 @@ export default function BasicDataScreen() {
 
   const professionOptions = [
     'معلم/ة',
+    'محضر المختبر',
     'معلم/ة مسند له نشاط طلابي',
     'معلم/ة مسند له توجيه صحي',
     'الموجه/ه الطلابي',

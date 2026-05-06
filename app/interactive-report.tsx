@@ -161,6 +161,9 @@ export default function InteractiveReportScreen() {
   const getCategoryByTitle = (title: string, profession: string) => {
     // تصنيف المحاور حسب المهنة - مطابق لصفحة الأداء المهني
     switch (profession) {
+      case 'محضر المختبر':
+        return 'مختبر';
+
       case 'معلم/ة مسند له نشاط طلابي':
         // المحاور الوظيفية
         if (title.includes('أداء الواجبات الوظيفية') || title.includes('التفاعل مع المجتمع المهني') || title.includes('التفاعل مع أولياء الأمور')) {
@@ -309,6 +312,23 @@ export default function InteractiveReportScreen() {
   const getDefaultPerformanceData = (profession: string) => {
     // هيكل المحاور فقط (درجة 0) — البيانات الحقيقية تُحمّل من AsyncStorage من صفحة الأداء المهني
     switch (profession) {
+      case 'محضر المختبر':
+        return [
+          { id: 1, title: 'أداء الواجبات الوظيفية', score: 0, weight: 10, category: 'مختبر' },
+          { id: 2, title: 'التفاعل مع المجتمع المهني', score: 0, weight: 10, category: 'مختبر' },
+          { id: 3, title: 'التفاعل مع أولياء الأمور', score: 0, weight: 10, category: 'مختبر' },
+          { id: 4, title: 'التدريب أو استراتيجيات التدريس', score: 0, weight: 10, category: 'مختبر' },
+          { id: 5, title: 'تحسين نتائج التعلم', score: 0, weight: 10, category: 'مختبر' },
+          { id: 6, title: 'يعد خطة يومية لأنشطة المختبر', score: 0, weight: 5, category: 'مختبر' },
+          { id: 7, title: 'المعرفة بالأسس والمفاهيم الفنية', score: 0, weight: 5, category: 'مختبر' },
+          { id: 8, title: 'يوفر المستلزمات اللازمة لإجراء التجارب العلمية', score: 0, weight: 5, category: 'مختبر' },
+          { id: 9, title: 'يلتزم بتعليمات وإجراءات السلامة المهنية', score: 0, weight: 5, category: 'مختبر' },
+          { id: 10, title: 'يحضر ويجهز المختبر', score: 0, weight: 5, category: 'مختبر' },
+          { id: 11, title: 'تهيئة وتسليم الأجهزة المطلوبة للمعلم وتخزينها بطريقة سليمة', score: 0, weight: 5, category: 'مختبر' },
+          { id: 12, title: 'يعد تقرير أنشطة ومهام المختبر الأسبوعية', score: 0, weight: 10, category: 'مختبر' },
+          { id: 13, title: 'يعد تقارير دورية بحالة الأجهزة والمعدات', score: 0, weight: 10, category: 'مختبر' },
+        ];
+
       case 'معلم/ة مسند له نشاط طلابي':
         return [
           {
