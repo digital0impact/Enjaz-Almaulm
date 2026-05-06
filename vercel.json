@@ -11,19 +11,19 @@
       ]
     },
     {
-      "source": "/**/*.js",
+      "source": "/(.*)\\.js",
       "headers": [
         { "key": "Cache-Control", "value": "public, max-age=0, must-revalidate" }
       ]
     },
     {
-      "source": "/**/*.css",
+      "source": "/(.*)\\.css",
       "headers": [
         { "key": "Cache-Control", "value": "public, max-age=0, must-revalidate" }
       ]
     },
     {
-      "source": "/**/*.map",
+      "source": "/(.*)\\.map",
       "headers": [
         { "key": "Cache-Control", "value": "public, max-age=0, must-revalidate" }
       ]

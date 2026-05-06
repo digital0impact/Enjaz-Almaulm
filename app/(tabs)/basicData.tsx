@@ -221,7 +221,12 @@ export default function BasicDataScreen() {
       if (profileImage) {
         await AsyncStorage.setItem('profileImage', profileImage);
       }
-      await AsyncStorage.setItem('professionalGrowthItems', JSON.stringify(professionalGrowthItems));
+      // حفظ سجل النمو المهني بشكل مستقل حتى لا يفشل حفظ البيانات الأساسية عند امتلاء التخزين المحلي.
+      try {
+        await AsyncStorage.setItem('professionalGrowthItems', JSON.stringify(professionalGrowthItems));
+      } catch (growthStorageError) {
+        console.warn('Could not save professional growth items locally:', growthStorageError);
+      }
       const user = await AuthService.getCurrentUser();
       if (user?.id) {
         if (!isSupabaseConfigured) {
@@ -273,8 +278,14 @@ export default function BasicDataScreen() {
       }
       setIsEditing(false);
       AlertService.alert('تم الحفظ', 'تم حفظ البيانات بنجاح');
-    } catch {
-      AlertService.alert('خطأ', 'حدث خطأ في حفظ البيانات');
+    } catch (e) {
+      const details =
+        e && typeof e === 'object' && 'message' in e
+          ? String((e as any).message)
+          : typeof e === 'string'
+            ? e
+            : '';
+      AlertService.alert('خطأ', `حدث خطأ في حفظ البيانات${details ? `\n\nتفاصيل: ${details}` : ''}`);
     }
   };
 

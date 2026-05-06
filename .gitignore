@@ -43,3 +43,6 @@ yarn-error.*
 .config/
 
 app-example
+
+.vercel
+.env*.local
