@@ -46,7 +46,12 @@ export default function PerformanceScreen() {
         { name: 'إعداد الدروس والاختبارات ومتابعتها', available: false },
         { name: 'التوقيع في سجل الدوام', available: false },
         { name: 'التوقيع في سجل المناوبة أو الانتظار', available: false },
-        { name: 'خطة توزيع المنهج', available: false }
+        { name: 'خطة توزيع المنهج', available: false },
+        { name: 'جدول الحصص الأسبوعي', available: false },
+        { name: 'إعداد الدروس والواجبات في منصة مدرستي', available: false },
+        { name: 'إعداد سجلات المتابعة اليومية', available: false },
+        { name: 'متابعة الأداء والتحصيل الدراسي', available: false },
+        { name: 'تقديم التغذية الراجعة', available: false }
       ],
     },
     {
@@ -61,7 +66,8 @@ export default function PerformanceScreen() {
         { name: 'الزيارات التبادلية', available: false },
         { name: 'تنفيذ درس تطبيقي', available: false },
         { name: 'بحث درس', available: false },
-        { name: 'حضور ورش ودورات تدريبية', available: false }
+        { name: 'حضور ورش ودورات تدريبية', available: false },
+        { name: 'العمل التطوعي والمسؤولية المجتمعية', available: false }
       ],
     },
     {
@@ -76,7 +82,8 @@ export default function PerformanceScreen() {
         { name: 'التنسيق مع الموجه الطلابي', available: false },
         { name: 'إيصال الملاحظات الهامة', available: false },
         { name: 'تفعيل الخطة الأسبوعية', available: false },
-        { name: 'المشاركة في الجمعية العمومية', available: false }
+        { name: 'المشاركة في الجمعية العمومية', available: false },
+        { name: 'إشعار ولي الأمر بمستوى الطالب', available: false }
       ],
     },
     {
@@ -90,7 +97,9 @@ export default function PerformanceScreen() {
         { name: 'استخدام استراتيجيات متنوعة', available: false },
         { name: 'مراعاة الفروق الفردية', available: false },
         { name: 'تقرير عن تطبيق استراتيجية', available: false },
-        { name: 'ملف إنجاز للمعلم', available: false }
+        { name: 'ملف إنجاز للمعلم', available: false },
+        { name: 'تطبيق استراتيجيات التعلم النشط', available: false },
+        { name: 'استراتيجية التعلم باللعب', available: false }
       ],
     },
     {
@@ -119,7 +128,8 @@ export default function PerformanceScreen() {
         { name: 'خطة توزيع المنهج', available: false },
         { name: 'إعداد الدروس والاختبارات', available: false },
         { name: 'نماذج من إعداد الدروس', available: false },
-        { name: 'نماذج من الواجبات والاختبارات', available: false }
+        { name: 'نماذج من الواجبات والاختبارات', available: false },
+        { name: 'إرسال ملف الخطة الأسبوعية', available: false }
       ],
     },
     {
@@ -133,7 +143,10 @@ export default function PerformanceScreen() {
         { name: 'دمج التقنية في التعليم', available: false },
         { name: 'تنويع الوسائل التعليمية', available: false },
         { name: 'صور من الوسائل التعليمية', available: false },
-        { name: 'تقرير عن برنامج تقني مستخدم', available: false }
+        { name: 'تقرير عن برنامج تقني مستخدم', available: false },
+        { name: 'استخدام السبورة التفاعلية', available: false },
+        { name: 'تفعيل لوحات النقاش في منصة مدرستي', available: false },
+        { name: 'استخدام برنامج تقني (Padlet)', available: false }
       ],
     },
     {
@@ -147,7 +160,9 @@ export default function PerformanceScreen() {
         { name: 'مراعاة حاجات الطلاب', available: false },
         { name: 'تهيئة نفسية للطلاب', available: false },
         { name: 'تحفيز مادي ومعنوي', available: false },
-        { name: 'توفير متطلبات الدرس', available: false }
+        { name: 'توفير متطلبات الدرس', available: false },
+        { name: 'توفير بيئة تعليمية غنية بالمصادر (بوابة عين)', available: false },
+        { name: 'تحليل أنماط التعلم لدى الطلاب (VARK)', available: false }
       ],
     },
     {
@@ -161,7 +176,9 @@ export default function PerformanceScreen() {
         { name: 'ضبط سلوك الطلاب', available: false },
         { name: 'شد انتباه الطلاب', available: false },
         { name: 'مراعاة الفروق الفردية', available: false },
-        { name: 'متابعة الحضور والغياب', available: false }
+        { name: 'متابعة الحضور والغياب', available: false },
+        { name: 'استراتيجيات إدارة الوقت', available: false },
+        { name: 'أنظمة التعزيز والتحفيز', available: false }
       ],
     },
     {
@@ -189,7 +206,8 @@ export default function PerformanceScreen() {
         { name: 'تطبيق اختبارات ورقية وإلكترونية', available: false },
         { name: 'المشاريع الطلابية', available: false },
         { name: 'المهام الأدائية', available: false },
-        { name: 'ملفات إنجاز الطلاب', available: false }
+        { name: 'ملفات إنجاز الطلاب', available: false },
+        { name: 'التقويم الذاتي وتقويم الأقران', available: false }
       ],
     },
   ]);
@@ -1752,7 +1770,12 @@ export default function PerformanceScreen() {
             { name: 'إعداد الدروس والاختبارات ومتابعتها', available: false },
             { name: 'التوقيع في سجل الدوام', available: false },
             { name: 'التوقيع في سجل المناوبة أو الانتظار', available: false },
-            { name: 'خطة توزيع المنهج', available: false }
+            { name: 'خطة توزيع المنهج', available: false },
+            { name: 'جدول الحصص الأسبوعي', available: false },
+            { name: 'إعداد الدروس والواجبات في منصة مدرستي', available: false },
+            { name: 'إعداد سجلات المتابعة اليومية', available: false },
+            { name: 'متابعة الأداء والتحصيل الدراسي', available: false },
+            { name: 'تقديم التغذية الراجعة', available: false }
           ],
         },
         {
@@ -1767,7 +1790,8 @@ export default function PerformanceScreen() {
             { name: 'الزيارات التبادلية', available: false },
             { name: 'تنفيذ درس تطبيقي', available: false },
             { name: 'بحث درس', available: false },
-            { name: 'حضور ورش ودورات تدريبية', available: false }
+            { name: 'حضور ورش ودورات تدريبية', available: false },
+            { name: 'العمل التطوعي والمسؤولية المجتمعية', available: false }
           ],
         },
         {
@@ -1782,7 +1806,8 @@ export default function PerformanceScreen() {
             { name: 'التنسيق مع الموجه الطلابي', available: false },
             { name: 'إيصال الملاحظات الهامة', available: false },
             { name: 'تفعيل الخطة الأسبوعية', available: false },
-            { name: 'المشاركة في الجمعية العمومية', available: false }
+            { name: 'المشاركة في الجمعية العمومية', available: false },
+            { name: 'إشعار ولي الأمر بمستوى الطالب', available: false }
           ],
         },
         {
@@ -1796,7 +1821,9 @@ export default function PerformanceScreen() {
             { name: 'استخدام استراتيجيات متنوعة', available: false },
             { name: 'مراعاة الفروق الفردية', available: false },
             { name: 'تقرير عن تطبيق استراتيجية', available: false },
-            { name: 'ملف إنجاز للمعلم', available: false }
+            { name: 'ملف إنجاز للمعلم', available: false },
+            { name: 'تطبيق استراتيجيات التعلم النشط', available: false },
+            { name: 'استراتيجية التعلم باللعب', available: false }
           ],
         },
         {
@@ -1825,7 +1852,8 @@ export default function PerformanceScreen() {
             { name: 'خطة توزيع المنهج', available: false },
             { name: 'إعداد الدروس والاختبارات', available: false },
             { name: 'نماذج من إعداد الدروس', available: false },
-            { name: 'نماذج من الواجبات والاختبارات', available: false }
+            { name: 'نماذج من الواجبات والاختبارات', available: false },
+            { name: 'إرسال ملف الخطة الأسبوعية', available: false }
           ],
         },
         {
@@ -1839,7 +1867,10 @@ export default function PerformanceScreen() {
             { name: 'دمج التقنية في التعليم', available: false },
             { name: 'تنويع الوسائل التعليمية', available: false },
             { name: 'صور من الوسائل التعليمية', available: false },
-            { name: 'تقرير عن برنامج تقني مستخدم', available: false }
+            { name: 'تقرير عن برنامج تقني مستخدم', available: false },
+            { name: 'استخدام السبورة التفاعلية', available: false },
+            { name: 'تفعيل لوحات النقاش في منصة مدرستي', available: false },
+            { name: 'استخدام برنامج تقني (Padlet)', available: false }
           ],
         },
         {
@@ -1853,7 +1884,9 @@ export default function PerformanceScreen() {
             { name: 'مراعاة حاجات الطلاب', available: false },
             { name: 'تهيئة نفسية للطلاب', available: false },
             { name: 'تحفيز مادي ومعنوي', available: false },
-            { name: 'توفير متطلبات الدرس', available: false }
+            { name: 'توفير متطلبات الدرس', available: false },
+            { name: 'توفير بيئة تعليمية غنية بالمصادر (بوابة عين)', available: false },
+            { name: 'تحليل أنماط التعلم لدى الطلاب (VARK)', available: false }
           ],
         },
         {
@@ -1867,7 +1900,9 @@ export default function PerformanceScreen() {
             { name: 'ضبط سلوك الطلاب', available: false },
             { name: 'شد انتباه الطلاب', available: false },
             { name: 'مراعاة الفروق الفردية', available: false },
-            { name: 'متابعة الحضور والغياب', available: false }
+            { name: 'متابعة الحضور والغياب', available: false },
+            { name: 'استراتيجيات إدارة الوقت', available: false },
+            { name: 'أنظمة التعزيز والتحفيز', available: false }
           ],
         },
         {
@@ -1895,169 +1930,8 @@ export default function PerformanceScreen() {
             { name: 'تطبيق اختبارات ورقية وإلكترونية', available: false },
             { name: 'المشاريع الطلابية', available: false },
             { name: 'المهام الأدائية', available: false },
-            { name: 'ملفات إنجاز الطلاب', available: false }
-          ],
-        },
-      ];
-      return [
-        {
-          id: 1,
-          title: 'أداء الواجبات الوظيفية',
-          score: 0,
-          weight: 10,
-          description: 'التقيد بالدوام الرسمي، تأدية الحصص وفق الجدول الدراسي، المشاركة في الإشراف والانتظار والمناوبة، إعداد الدروس والاختبارات والواجبات',
-          details: 'التزام بالدوام الرسمي، تنفيذ الحصص الدراسية وفق الجدول المحدد، ومشاركة في الإشراف والمناوبة والانتظار. إعداد منتظم للدروس والاختبارات والواجبات.',
-          evidence: [
-            { name: 'التقيد بالدوام الرسمي', available: false },
-            { name: 'تأدية الحصص وفق الجدول الدراسي', available: false },
-            { name: 'المشاركة في الإشراف والمناوبة', available: false },
-            { name: 'إعداد الدروس والاختبارات ومتابعتها', available: false },
-            { name: 'التوقيع في سجل الدوام', available: false },
-            { name: 'التوقيع في سجل المناوبة أو الانتظار', available: false },
-            { name: 'خطة توزيع المنهج', available: false }
-          ],
-        },
-        {
-          id: 2,
-          title: 'التفاعل مع المجتمع المهني',
-          score: 0,
-          weight: 10,
-          description: 'المشاركة في مجتمعات التعلم المهنية، تبادل الزيارات الصفية، تنفيذ الدروس التطبيقية، بحث الدرس، حضور الدورات والورش التدريبية',
-          details: 'مشاركة في مجتمعات التعلم المهنية، تبادل للزيارات الصفية، وتنفيذ دروس تطبيقية. إجراء بحوث دروس وحضور للدورات التدريبية والورش التطويرية.',
-          evidence: [
-            { name: 'المشاركة في مجتمعات التعلم المهنية', available: false },
-            { name: 'الزيارات التبادلية', available: false },
-            { name: 'تنفيذ درس تطبيقي', available: false },
-            { name: 'بحث درس', available: false },
-            { name: 'حضور ورش ودورات تدريبية', available: false }
-          ],
-        },
-        {
-          id: 3,
-          title: 'التفاعل مع أولياء الأمور',
-          score: 0,
-          weight: 10,
-          description: 'التواصل الفعّال مع أولياء الأمور، تزويد أولياء الأمور بمستويات الطلاب، إيصال الملاحظات الهامة، تفعيل الخطة الأسبوعية للمدرسة، المشاركة في الجمعية العمومية',
-          details: 'تواصل مع أولياء الأمور وتزويدهم بمستويات أبنائهم، إيصال الملاحظات الهامة، وتفعيل للخطة الأسبوعية. مشاركة في الجمعية العمومية.',
-          evidence: [
-            { name: 'التواصل الفعال مع أولياء الأمور', available: false },
-            { name: 'التنسيق مع الموجه الطلابي', available: false },
-            { name: 'إيصال الملاحظات الهامة', available: false },
-            { name: 'تفعيل الخطة الأسبوعية', available: false },
-            { name: 'المشاركة في الجمعية العمومية', available: false }
-          ],
-        },
-        {
-          id: 4,
-          title: 'تنويع استراتيجيات التدريس',
-          score: 0,
-          weight: 10,
-          description: 'استخدام استراتيجيات متنوعة، مراعاة الفروق الفردية، تطبيق استراتيجيات تناسب مستويات الطلاب',
-          details: 'تطبيق لاستراتيجيات تدريس متنوعة، مراعاة للفروق الفردية بين الطلاب، واستخدام استراتيجيات تلائم مستويات الطلاب المختلفة.',
-          evidence: [
-            { name: 'استخدام استراتيجيات متنوعة', available: false },
-            { name: 'مراعاة الفروق الفردية', available: false },
-            { name: 'تقرير عن تطبيق استراتيجية', available: false },
-            { name: 'ملف إنجاز للمعلم', available: false }
-          ],
-        },
-        {
-          id: 5,
-          title: 'تحسين نتائج المتعلمين',
-          score: 0,
-          weight: 10,
-          description: 'معالجة الفاقد التعليمي، وضع خطط علاجية للطلاب الضعاف، وضع خطط إثرائية للمتميزين، تكريم الطلاب المتحسنين',
-          details: 'جهود في معالجة الفاقد التعليمي، وضع خطط علاجية للطلاب الضعاف وخطط إثرائية للمتميزين، مع تكريم للطلاب المتحسنين.',
-          evidence: [
-            { name: 'معالجة الفاقد التعليمي', available: false },
-            { name: 'خطط علاجية للطلاب الضعاف', available: false },
-            { name: 'خطط إثرائية للمتميزين', available: false },
-            { name: 'تكريم الطلاب المتحسنين', available: false },
-            { name: 'نتائج الاختبارات القبلية والبعدية', available: false }
-          ],
-        },
-        {
-          id: 6,
-          title: 'إعداد خطة وتنفيذ التعلم',
-          score: 0,
-          weight: 10,
-          description: 'توزيع المنهج، إعداد الدروس والواجبات والاختبارات',
-          details: 'تخطيط لتوزيع المنهج بما يتناسب مع الزمن المتاح، إعداد دروس، وتصميم واجبات واختبارات تتماشى مع أهداف التعلم.',
-          evidence: [
-            { name: 'خطة توزيع المنهج', available: false },
-            { name: 'إعداد الدروس والاختبارات', available: false },
-            { name: 'نماذج من إعداد الدروس', available: false },
-            { name: 'نماذج من الواجبات والاختبارات', available: false }
-          ],
-        },
-        {
-          id: 7,
-          title: 'توظيف تقنيات ووسائل التعلم',
-          score: 0,
-          weight: 10,
-          description: 'دمج التقنية في التعليم، التنويع في الوسائل التعليمية',
-          details: 'استخدام للتقنيات في التعليم، تنويع في الوسائل التعليمية المستخدمة، مع دمج للتقنية في العملية التعليمية.',
-          evidence: [
-            { name: 'دمج التقنية في التعليم', available: false },
-            { name: 'تنويع الوسائل التعليمية', available: false },
-            { name: 'صور من الوسائل التعليمية', available: false },
-            { name: 'تقرير عن برنامج تقني مستخدم', available: false }
-          ],
-        },
-        {
-          id: 8,
-          title: 'تهيئة البيئة التعليمية',
-          score: 0,
-          weight: 5,
-          description: 'مراعاة حاجات الطلاب، تهيئة نفسية ومادية ومعنوية مناسبة',
-          details: 'اهتمام بتهيئة بيئة تعليمية محفزة ومناسبة، مراعاة لحاجات الطلاب النفسية والمادية والمعنوية.',
-          evidence: [
-            { name: 'مراعاة حاجات الطلاب', available: false },
-            { name: 'تهيئة نفسية للطلاب', available: false },
-            { name: 'تحفيز مادي ومعنوي', available: false },
-            { name: 'توفير متطلبات الدرس', available: false }
-          ],
-        },
-        {
-          id: 9,
-          title: 'الإدارة الصفية',
-          score: 0,
-          weight: 5,
-          description: 'ضبط سلوك الطلاب، شد انتباه الطلاب، مراعاة الفروق الفردية',
-          details: 'إدارة للصف، مهارات في ضبط سلوك الطلاب وشد انتباههم، مع مراعاة للفروق الفردية ومتابعة للحضور والانضباط.',
-          evidence: [
-            { name: 'ضبط سلوك الطلاب', available: false },
-            { name: 'شد انتباه الطلاب', available: false },
-            { name: 'مراعاة الفروق الفردية', available: false },
-            { name: 'متابعة الحضور والغياب', available: false }
-          ],
-        },
-        {
-          id: 10,
-          title: 'تحليل نتائج المتعلمين وتشخيص مستوياتهم',
-          score: 0,
-          weight: 10,
-          description: 'تحليل نتائج الاختبارات الفصلية والنهائية، تصنيف الطلاب حسب نتائجهم، معالجة الفاقد التعليمي',
-          details: 'تحليل لنتائج الاختبارات الفصلية والنهائية، تصنيف للطلاب حسب نتائجهم ومستوياتهم، ووضع خطط لمعالجة الفاقد التعليمي.',
-          evidence: [
-            { name: 'تحليل نتائج الاختبارات', available: false },
-            { name: 'تصنيف الطلاب وفق نتائجهم', available: false },
-            { name: 'تحديد نقاط القوة والضعف', available: false },
-            { name: 'سجل معالجة الفاقد', available: false }
-          ],
-        },
-        {
-          id: 11,
-          title: 'تنويع أساليب التقويم',
-          score: 0,
-          weight: 10,
-          description: 'تطبيق الاختبارات الورقية والإلكترونية، المشاريع الطلابية، المهام الأدائية، ملفات الإنجاز',
-          details: 'تنويع في أساليب التقويم بين الاختبارات الورقية والإلكترونية، تنفيذ مشاريع طلابية، وإنشاء مهام أدائية وملفات إنجاز.',
-          evidence: [
-            { name: 'تطبيق اختبارات ورقية وإلكترونية', available: false },
-            { name: 'المشاريع الطلابية', available: false },
-            { name: 'المهام الأدائية', available: false },
-            { name: 'ملفات إنجاز الطلاب', available: false }
+            { name: 'ملفات إنجاز الطلاب', available: false },
+            { name: 'التقويم الذاتي وتقويم الأقران', available: false }
           ],
         },
       ];
