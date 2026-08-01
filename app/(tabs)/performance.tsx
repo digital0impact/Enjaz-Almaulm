@@ -861,16 +861,27 @@ export default function PerformanceScreen() {
               {formatRTLText(`${userProfession}`)}
             </ThemedText>
             
-            {/* زر إعادة تحديث البطاقات */}
-            <TouchableOpacity 
-              style={styles.refreshButton}
-              onPress={() => forceUpdateCardsForProfession(userProfession)}
-              activeOpacity={0.7}
-            >
-              <IconSymbol size={16} name="arrow.clockwise" color="#4ECDC4" />
-              <ThemedText style={styles.refreshButtonText}>تحديث البطاقات</ThemedText>
-            </TouchableOpacity>
-            
+            {/* أزرار الإجراءات العلوية */}
+            <ThemedView style={styles.headerActionsRow}>
+              <TouchableOpacity
+                style={styles.refreshButton}
+                onPress={() => forceUpdateCardsForProfession(userProfession)}
+                activeOpacity={0.7}
+              >
+                <IconSymbol size={16} name="arrow.clockwise" color="#4ECDC4" />
+                <ThemedText style={styles.refreshButtonText}>تحديث البطاقات</ThemedText>
+              </TouchableOpacity>
+
+              <TouchableOpacity
+                style={styles.fullReportButton}
+                onPress={() => router.push('/interactive-report')}
+                activeOpacity={0.7}
+              >
+                <IconSymbol size={16} name="chart.bar.fill" color="#fff" />
+                <ThemedText style={styles.fullReportButtonText}>عرض التقرير الكامل</ThemedText>
+              </TouchableOpacity>
+            </ThemedView>
+
             {/* Overall Score Card */}
             <ThemedView style={styles.overallScoreCard}>
               <ThemedText style={[styles.overallScoreTitle, getTextDirection()]}>معدل الأداء</ThemedText>
@@ -951,17 +962,43 @@ export default function PerformanceScreen() {
           )}
 
           {/* Performance Cards */}
-          {performanceData.map((performance, idx) => (
+          {performanceData.map((performance, idx) => {
+            const evidenceTotal = performance.evidence.length;
+            const evidenceAvailable = performance.evidence.filter((e) => e.available).length;
+            const axisStatus =
+              evidenceAvailable === 0 ? 'لم يبدأ' : evidenceAvailable === evidenceTotal ? 'مكتمل' : 'قيد التنفيذ';
+            const axisStatusStyle =
+              evidenceAvailable === 0
+                ? styles.axisStatusPending
+                : evidenceAvailable === evidenceTotal
+                ? styles.axisStatusDone
+                : styles.axisStatusProgress;
+            return (
             <React.Fragment key={performance.id}>
               <TouchableOpacity style={styles.specialCardMain} activeOpacity={0.9} onPress={() => setSelectedPerformance(selectedPerformance === performance.id ? null : performance.id)}>
-                {/* رقم المحور */}
-                <ThemedView style={styles.specialAxisCircle}><ThemedText style={[styles.specialAxisCircleText, getTextDirection()]}>{idx+1}</ThemedText></ThemedView>
-                {/* عنوان المحور */}
-                <ThemedText style={styles.specialCardTitle}>{formatRTLText(performance.title)}</ThemedText>
+                {/* شريط عنوان المحور الملوّن (بأسلوب ملف الإنجاز) */}
+                <ThemedView style={styles.axisHeaderBar}>
+                  <ThemedView style={styles.axisHeaderBadge}>
+                    <ThemedText style={styles.axisHeaderBadgeText}>{idx + 1}</ThemedText>
+                  </ThemedView>
+                  <ThemedText style={styles.axisHeaderTitle} numberOfLines={2}>{formatRTLText(performance.title)}</ThemedText>
+                  <ThemedView style={styles.axisHeaderWeightPill}>
+                    <ThemedText style={styles.axisHeaderWeightText}>{formatRTLText(`الوزن ${performance.weight}%`)}</ThemedText>
+                  </ThemedView>
+                </ThemedView>
                 {/* وصف مختصر */}
-                <ThemedText style={styles.specialCardDesc} numberOfLines={1}>{formatRTLText(performance.description)}</ThemedText>
-                {/* الوزن */}
-                <ThemedText style={styles.specialCardWeight}>الوزن: {performance.weight}%</ThemedText>
+                <ThemedText style={styles.specialCardDesc} numberOfLines={2}>{formatRTLText(performance.description)}</ThemedText>
+                {/* صف بادجات المعلومات (شواهد / حالة) بأسلوب الملف */}
+                <ThemedView style={styles.axisInfoBadgesRow}>
+                  <ThemedView style={styles.axisInfoBadge}>
+                    <IconSymbol name="doc.text.fill" size={14} color="#0f6e5c" />
+                    <ThemedText style={styles.axisInfoBadgeText}>{formatRTLText(`الشواهد ${evidenceAvailable}/${evidenceTotal}`)}</ThemedText>
+                  </ThemedView>
+                  <ThemedView style={[styles.axisInfoBadge, axisStatusStyle]}>
+                    <IconSymbol name="checkmark.circle.fill" size={14} color="#fff" />
+                    <ThemedText style={[styles.axisInfoBadgeText, { color: '#fff' }]}>{formatRTLText(axisStatus)}</ThemedText>
+                  </ThemedView>
+                </ThemedView>
                 {/* نسبة الأداء */}
                 <ThemedView style={styles.specialScoreSection}>
                   <ThemedView style={[
@@ -1054,7 +1091,8 @@ export default function PerformanceScreen() {
                 </ThemedView>
               )}
             </React.Fragment>
-          ))}
+            );
+          })}
 
           {/* Action Buttons */}
           </ScrollView>
@@ -1138,6 +1176,14 @@ const styles = StyleSheet.create({
     paddingVertical: 8,
     paddingHorizontal: 12,
   },
+  headerActionsRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    flexWrap: 'wrap',
+    gap: 10,
+    marginVertical: 12,
+  },
   refreshButton: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -1145,7 +1191,6 @@ const styles = StyleSheet.create({
     paddingHorizontal: 16,
     paddingVertical: 8,
     borderRadius: 20,
-    marginVertical: 12,
     borderWidth: 1,
     borderColor: '#4ECDC4',
     gap: 6,
@@ -1153,6 +1198,22 @@ const styles = StyleSheet.create({
   refreshButtonText: {
     fontSize: 14,
     color: '#4ECDC4',
+    fontWeight: '600',
+    textAlign: 'center',
+    writingDirection: 'rtl',
+  },
+  fullReportButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#0f6e5c',
+    paddingHorizontal: 16,
+    paddingVertical: 8,
+    borderRadius: 20,
+    gap: 6,
+  },
+  fullReportButtonText: {
+    fontSize: 14,
+    color: '#fff',
     fontWeight: '600',
     textAlign: 'center',
     writingDirection: 'rtl',
@@ -1209,42 +1270,61 @@ const styles = StyleSheet.create({
     alignSelf: 'center',
     width: '100%',
     direction: 'rtl',
+    overflow: 'hidden',
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 6 },
     shadowOpacity: 0.25,
     shadowRadius: 12,
     elevation: 10,
   },
-  specialAxisCircle: {
-    width: 36,
-    height: 36,
-    borderRadius: 18,
-    backgroundColor: '#F8F9FA',
+  /* شريط عنوان المحور الملوّن — بأسلوب رأس التقرير في ملف الإنجاز */
+  axisHeaderBar: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#0f6e5c',
+    borderTopLeftRadius: 14,
+    borderTopRightRadius: 14,
+    marginTop: -20,
+    marginHorizontal: -20,
+    marginBottom: 12,
+    paddingHorizontal: 14,
+    paddingVertical: 10,
+    gap: 10,
+  },
+  axisHeaderBadge: {
+    width: 30,
+    height: 30,
+    borderRadius: 15,
+    backgroundColor: 'rgba(255,255,255,0.2)',
     justifyContent: 'center',
     alignItems: 'center',
-    direction: 'rtl',
-    borderWidth: 1,
-    borderColor: '#E5E5EA',
-    marginBottom: 6,
   },
-  specialAxisCircleText: {
-    fontSize: 16,
+  axisHeaderBadgeText: {
+    fontSize: 14,
     fontWeight: 'bold',
-    color: '#2c3e50',
+    color: '#fff',
     textAlign: 'center',
-    writingDirection: 'rtl',
-    lineHeight: 36,
   },
-  specialCardTitle: {
-    fontSize: 16,
+  axisHeaderTitle: {
+    flex: 1,
+    fontSize: 15,
     fontWeight: 'bold',
-    color: '#1C1C1E',
-    textAlign: 'center',
-    marginBottom: 8,
+    color: '#fff',
+    textAlign: 'right',
     writingDirection: 'rtl',
-    alignSelf: 'center',
-    width: '100%',
     flexWrap: 'wrap',
+  },
+  axisHeaderWeightPill: {
+    backgroundColor: 'rgba(255,255,255,0.18)',
+    borderRadius: 12,
+    paddingHorizontal: 10,
+    paddingVertical: 4,
+  },
+  axisHeaderWeightText: {
+    fontSize: 11,
+    fontWeight: '600',
+    color: '#fff',
+    writingDirection: 'rtl',
   },
   specialCardDesc: {
     fontSize: 12,
@@ -1257,15 +1337,32 @@ const styles = StyleSheet.create({
     flexWrap: 'wrap',
     lineHeight: 18,
   },
-  specialCardWeight: {
-    fontSize: 12,
-    color: '#8E8E93',
-    textAlign: 'center',
-    marginBottom: 8,
-    writingDirection: 'rtl',
-    alignSelf: 'center',
-    width: '100%',
+  /* صف بادجات المعلومات (الشواهد/الحالة) — بأسلوب صناديق المعلومات في ملف الإنجاز */
+  axisInfoBadgesRow: {
+    flexDirection: 'row',
+    justifyContent: 'center',
+    flexWrap: 'wrap',
+    gap: 8,
+    marginBottom: 10,
   },
+  axisInfoBadge: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#eef7f4',
+    borderRadius: 14,
+    paddingHorizontal: 10,
+    paddingVertical: 5,
+    gap: 5,
+  },
+  axisInfoBadgeText: {
+    fontSize: 11,
+    fontWeight: '600',
+    color: '#0f6e5c',
+    writingDirection: 'rtl',
+  },
+  axisStatusPending: { backgroundColor: '#9aa5a1' },
+  axisStatusProgress: { backgroundColor: '#b8720a' },
+  axisStatusDone: { backgroundColor: '#2f8f5f' },
   specialScoreSection: { alignItems: 'center', marginBottom: 0 },
   specialScoreCircleBig: {
     width: 52,
