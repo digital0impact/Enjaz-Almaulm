@@ -129,7 +129,7 @@ export default function PerformanceScreen() {
         { name: 'إعداد الدروس والاختبارات', available: false },
         { name: 'نماذج من إعداد الدروس', available: false },
         { name: 'نماذج من الواجبات والاختبارات', available: false },
-        { name: 'إرسال ملف الخطة الأسبوعية', available: false }
+        { name: 'إرسال ملف الخطة الأسبوعية (PDF أو صورة) عبر منصة مدرستي', available: false }
       ],
     },
     {
@@ -1853,7 +1853,7 @@ export default function PerformanceScreen() {
             { name: 'إعداد الدروس والاختبارات', available: false },
             { name: 'نماذج من إعداد الدروس', available: false },
             { name: 'نماذج من الواجبات والاختبارات', available: false },
-            { name: 'إرسال ملف الخطة الأسبوعية', available: false }
+            { name: 'إرسال ملف الخطة الأسبوعية (PDF أو صورة) عبر منصة مدرستي', available: false }
           ],
         },
         {
