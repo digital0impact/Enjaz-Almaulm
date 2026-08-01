@@ -35,7 +35,6 @@ type PerformanceItem = {
 
 export function PerformanceReportView() {
   const router = useRouter();
-  const [selectedChart, setSelectedChart] = useState('evidence');
   const [performanceData, setPerformanceData] = useState<PerformanceItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [isExporting, setIsExporting] = useState(false);
@@ -500,17 +499,57 @@ export function PerformanceReportView() {
     );
   };
 
-  const renderChart = () => {
-    switch (selectedChart) {
-      case 'evidence':
-        return renderEvidence();
-      case 'overall':
-        return renderProgressChart();
-      case 'categories':
-        return renderCategoriesChart();
-      default:
-        return renderEvidence();
-    }
+  const renderDashboard = () => {
+    const overallAverage = calculateOverallAverage();
+    const sortedByScore = [...performanceData].sort((a, b) => b.score - a.score);
+    const strongest = sortedByScore.slice(0, 3);
+    const weakest = [...sortedByScore].reverse().slice(0, 3);
+
+    return (
+      <ThemedView style={styles.dashboardCard}>
+        <ThemedText type="subtitle" style={styles.summaryTitle}>لوحة القيادة</ThemedText>
+
+        {/* متوسط الجودة العام */}
+        <ThemedView style={styles.dashboardOverallRow}>
+          <ThemedText style={[styles.dashboardOverallValue, { color: getScoreColor(overallAverage) }]}>
+            {overallAverage}%
+          </ThemedText>
+          <ThemedText style={styles.dashboardOverallLabel}>
+            {formatRTLText(`متوسط الجودة العام — ${getScoreLevel(overallAverage)}`)}
+          </ThemedText>
+        </ThemedView>
+
+        {/* أقوى وأضعف ثلاثة محاور */}
+        <ThemedView style={styles.dashboardTopBottomRow}>
+          <ThemedView style={styles.dashboardMiniList}>
+            <ThemedText style={styles.dashboardMiniListTitle}>🏆 أقوى 3 محاور</ThemedText>
+            {strongest.map((item, i) => (
+              <ThemedView key={item.id} style={styles.dashboardMiniRow}>
+                <ThemedText style={styles.dashboardMiniRank}>{i + 1}</ThemedText>
+                <ThemedText style={styles.dashboardMiniName} numberOfLines={1}>{item.title}</ThemedText>
+                <ThemedText style={[styles.dashboardMiniScore, { color: getScoreColor(item.score) }]}>{item.score}%</ThemedText>
+              </ThemedView>
+            ))}
+          </ThemedView>
+          <ThemedView style={styles.dashboardMiniList}>
+            <ThemedText style={styles.dashboardMiniListTitle}>⚠️ أضعف 3 محاور</ThemedText>
+            {weakest.map((item, i) => (
+              <ThemedView key={item.id} style={styles.dashboardMiniRow}>
+                <ThemedText style={styles.dashboardMiniRank}>{i + 1}</ThemedText>
+                <ThemedText style={styles.dashboardMiniName} numberOfLines={1}>{item.title}</ThemedText>
+                <ThemedText style={[styles.dashboardMiniScore, { color: getScoreColor(item.score) }]}>{item.score}%</ThemedText>
+              </ThemedView>
+            ))}
+          </ThemedView>
+        </ThemedView>
+
+        {/* درجة كل محور */}
+        {renderProgressChart()}
+
+        {/* رسم بياني تشخيصي مبسط */}
+        {renderCategoriesChart()}
+      </ThemedView>
+    );
   };
 
   type ReportData = {
@@ -1417,64 +1456,9 @@ export function PerformanceReportView() {
   return (
     <>
             <ThemedView style={styles.content}>
-              <ThemedView style={styles.summaryCard}>
-                              <ThemedText type="subtitle" style={styles.summaryTitle}>
-                  ملخص الأداء العام
-                </ThemedText>
-              <ThemedView style={styles.summaryRow}>
-                <ThemedView style={styles.summaryItem}>
-                  <ThemedText style={[styles.summaryValue, { color: getScoreColor(calculateOverallAverage()) }]}>
-                    {calculateOverallAverage()}%
-                  </ThemedText>
-                  <ThemedText style={styles.summaryLabel}>المتوسط العام</ThemedText>
-                </ThemedView>
-                <ThemedView style={styles.summaryItem}>
-                  <ThemedText style={[styles.summaryValue, { color: getScoreColor(calculateOverallAverage()) }]}>
-                    {getScoreLevel(calculateOverallAverage())}
-                  </ThemedText>
-                  <ThemedText style={styles.summaryLabel}>مستوى الأداء</ThemedText>
-                </ThemedView>
-              </ThemedView>
-            </ThemedView>
+              {renderDashboard()}
 
-            <ThemedView style={styles.chartSelector}>
-                              <ThemedText style={styles.selectorTitle}>
-                  اختر نوع التحليل:
-                </ThemedText>
-              <ThemedView style={styles.selectorButtons}>
-                <TouchableOpacity
-                  style={[styles.selectorButton, selectedChart === 'evidence' && styles.activeSelectorButton]}
-                  onPress={() => setSelectedChart('evidence')}
-                >
-                  <IconSymbol size={16} name="doc.text.fill" color={selectedChart === 'evidence' ? '#fff' : '#666'} />
-                  <ThemedText style={[styles.selectorButtonText, selectedChart === 'evidence' && styles.activeSelectorButtonText]}>
-                    الشواهد
-                  </ThemedText>
-                </TouchableOpacity>
-
-                <TouchableOpacity
-                  style={[styles.selectorButton, selectedChart === 'overall' && styles.activeSelectorButton]}
-                  onPress={() => setSelectedChart('overall')}
-                >
-                  <IconSymbol size={16} name="list.bullet" color={selectedChart === 'overall' ? '#fff' : '#666'} />
-                                    <ThemedText style={[styles.selectorButtonText, selectedChart === 'overall' && styles.activeSelectorButtonText]}>
-                    الترتيب
-                  </ThemedText>
-                </TouchableOpacity>
-
-                <TouchableOpacity
-                  style={[styles.selectorButton, selectedChart === 'categories' && styles.activeSelectorButton]}
-                  onPress={() => setSelectedChart('categories')}
-                >
-                  <IconSymbol size={16} name="chart.bar.fill" color={selectedChart === 'categories' ? '#fff' : '#666'} />
-                                    <ThemedText style={[styles.selectorButtonText, selectedChart === 'categories' && styles.activeSelectorButtonText]}>
-                    الفئة
-                  </ThemedText>
-                </TouchableOpacity>
-              </ThemedView>
-            </ThemedView>
-
-            {renderChart()}
+              {renderEvidence()}
 
             <ThemedView style={styles.recommendationsCard}>
                               <ThemedText style={styles.recommendationsTitle}>
@@ -1691,12 +1675,15 @@ const styles = StyleSheet.create<any>({
     marginBottom: 2,
   },
   content: {
+    width: '100%',
     padding: 20,
     backgroundColor: 'transparent',
   },
-  summaryCard: {
+  dashboardCard: {
+    width: '100%',
+    overflow: 'hidden',
     marginBottom: 20,
-    padding: 25,
+    padding: 20,
     backgroundColor: 'rgba(255, 255, 255, 0.9)',
     borderRadius: 16,
     borderWidth: 1,
@@ -1706,7 +1693,6 @@ const styles = StyleSheet.create<any>({
     shadowOpacity: 0.15,
     shadowRadius: 8,
     elevation: 6,
-    minHeight: 120,
   },
   summaryTitle: {
     fontSize: 22,
@@ -1716,93 +1702,79 @@ const styles = StyleSheet.create<any>({
     textAlign: 'center',
 
   },
-  summaryRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-around',
+  dashboardOverallRow: {
     alignItems: 'center',
+    paddingVertical: 16,
     paddingHorizontal: 15,
-    gap: 20,
-  },
-  summaryItem: {
-    alignItems: 'center',
-    flex: 1,
-    paddingVertical: 20,
-    paddingHorizontal: 15,
-    backgroundColor: 'rgba(173, 212, 206, 0.1)',
+    backgroundColor: 'rgba(173, 212, 206, 0.15)',
     borderRadius: 12,
     borderWidth: 1,
     borderColor: 'rgba(173, 212, 206, 0.3)',
-    minHeight: 80,
-    justifyContent: 'center',
+    marginBottom: 16,
   },
-  summaryValue: {
-    fontSize: 32,
+  dashboardOverallValue: {
+    fontSize: 36,
     fontWeight: 'bold',
-    marginBottom: 12,
     textAlign: 'center',
-
-    textShadowColor: 'rgba(0, 0, 0, 0.1)',
-    textShadowOffset: { width: 1, height: 1 },
-    textShadowRadius: 2,
-    lineHeight: 36,
+    lineHeight: 40,
   },
-  summaryLabel: {
-    fontSize: 16,
-    color: '#1c1f33',
-    textAlign: 'center',
-
+  dashboardOverallLabel: {
+    fontSize: 14,
     fontWeight: '600',
-    textShadowColor: 'rgba(0, 0, 0, 0.05)',
-    textShadowOffset: { width: 0.5, height: 0.5 },
-    textShadowRadius: 1,
-    lineHeight: 20,
-  },
-  chartSelector: {
-    marginBottom: 20,
-    padding: 20,
-    backgroundColor: 'rgba(255, 255, 255, 0.9)',
-    borderRadius: 16,
-    borderWidth: 1,
-    borderColor: 'rgba(229, 229, 234, 0.5)',
-  },
-  selectorTitle: {
-    fontSize: 16,
-    fontWeight: 'bold',
     color: '#1c1f33',
-    textAlign: 'right',
-    alignSelf: 'flex-end',
+    textAlign: 'center',
+    marginTop: 4,
     writingDirection: 'rtl',
-    textDirection: 'rtl',
-    marginBottom: 10,
   },
-  selectorButtons: {
+  dashboardTopBottomRow: {
     flexDirection: 'row',
-    justifyContent: 'space-around',
+    gap: 10,
+    marginBottom: 16,
   },
-  selectorButton: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    paddingHorizontal: 18,
-    paddingVertical: 12,
-    borderRadius: 25,
+  dashboardMiniList: {
+    flex: 1,
+    minWidth: 0,
     backgroundColor: '#f8f9fa',
-    gap: 8,
+    borderRadius: 12,
     borderWidth: 1,
     borderColor: '#e9ecef',
+    padding: 12,
   },
-  activeSelectorButton: {
-    backgroundColor: '#add4ce',
-    borderColor: '#add4ce',
-  },
-  selectorButtonText: {
-    fontSize: 14,
-    color: '#666',
-    fontWeight: '600',
-    textAlign: 'left',
-
-  },
-  activeSelectorButtonText: {
+  dashboardMiniListTitle: {
+    fontSize: 13,
+    fontWeight: 'bold',
     color: '#1c1f33',
+    textAlign: 'center',
+    marginBottom: 10,
+    writingDirection: 'rtl',
+  },
+  dashboardMiniRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    minWidth: 0,
+    gap: 6,
+    paddingVertical: 6,
+    borderTopWidth: 1,
+    borderTopColor: '#eef0ef',
+  },
+  dashboardMiniRank: {
+    fontSize: 11,
+    fontWeight: 'bold',
+    color: '#999',
+    width: 14,
+    textAlign: 'center',
+  },
+  dashboardMiniName: {
+    flex: 1,
+    minWidth: 0,
+    fontSize: 11,
+    fontWeight: '600',
+    color: '#1c1f33',
+    writingDirection: 'rtl',
+    textAlign: 'right',
+  },
+  dashboardMiniScore: {
+    fontSize: 12,
     fontWeight: 'bold',
   },
   chartContainer: {
