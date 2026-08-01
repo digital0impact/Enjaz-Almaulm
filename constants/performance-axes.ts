@@ -16,7 +16,8 @@ export type PerformanceAxis = {
 /**
  * Single source of truth for the performance-evaluation axes (محاور الأداء الوظيفي)
  * per profession. Shared by app/(tabs)/performance.tsx (data entry) and
- * app/interactive-report.tsx (read-only report) so the two screens never drift.
+ * components/PerformanceReportView.tsx (read-only report, embedded in the
+ * same screen via a view toggle) so the two views never drift.
  */
 export const getPerformanceAxesByProfession = (profession: string): PerformanceAxis[] => {
   if (profession === 'محضر المختبر') {

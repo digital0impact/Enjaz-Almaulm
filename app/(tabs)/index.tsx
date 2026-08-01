@@ -398,9 +398,9 @@ export default function HomeScreen() {
                     <ThemedText style={[styles.toolDescription, getTextDirection()]}>إدارة الجدول الدراسي والحصص</ThemedText>
                   </TouchableOpacity>
 
-                  <TouchableOpacity 
+                  <TouchableOpacity
                     style={styles.toolCard}
-                    onPress={() => router.push('/interactive-report')}
+                    onPress={() => router.push({ pathname: '/(tabs)/performance', params: { view: 'report' } })}
                   >
                     <ThemedView style={styles.toolIconWrapper}>
                       <IconSymbol size={28} name="chart.line.uptrend.xyaxis" color="#1c1f33" />

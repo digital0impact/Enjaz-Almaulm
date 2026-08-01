@@ -12,6 +12,8 @@ import * as ImagePicker from 'expo-image-picker';
 import * as DocumentPicker from 'expo-document-picker';
 import { getTextDirection, formatRTLText } from '@/utils/rtl-utils';
 import { getPerformanceAxesByProfession, PerformanceAxis } from '@/constants/performance-axes';
+import { PerformanceReportView } from '@/components/PerformanceReportView';
+import { useLocalSearchParams } from 'expo-router';
 
 const { width, height } = Dimensions.get('window');
 
@@ -31,6 +33,8 @@ const getDefaultObjectivesData = () =>
 
 export default function PerformanceScreen() {
   const router = useRouter();
+  const { view } = useLocalSearchParams<{ view?: string }>();
+  const [activeView, setActiveView] = useState<'cards' | 'report'>(view === 'report' ? 'report' : 'cards');
   const [userProfession, setUserProfession] = useState('معلم/ة');
   const [performanceData, setPerformanceData] = useState<PerformanceAxis[]>(() => getPerformanceAxesByProfession('معلم/ة'));
 
@@ -51,6 +55,13 @@ export default function PerformanceScreen() {
   const [objectivesData, setObjectivesData] = useState<Array<{ id: number; objective: string; measurementStandard: string; relativeWeight: string; targetedOutcome: string; actualOutcome: string; weightedRating: string }>>(getDefaultObjectivesData());
 
   const showObjectivesCard = PROFESSIONS_WITH_OBJECTIVES.includes(userProfession);
+
+  // يبقي مفتاح التبديل متجاوبًا مع رابط ?view=report حتى لو كانت الشاشة محمّلة مسبقًا (تبويبات Expo Router تبقى في الذاكرة)
+  useEffect(() => {
+    if (view === 'report') {
+      setActiveView('report');
+    }
+  }, [view]);
 
   useEffect(() => {
     loadUserProfession();
@@ -861,37 +872,50 @@ export default function PerformanceScreen() {
               {formatRTLText(`${userProfession}`)}
             </ThemedText>
             
-            {/* أزرار الإجراءات العلوية */}
-            <ThemedView style={styles.headerActionsRow}>
+            {/* مفتاح التبديل بين البطاقات والتقرير الكامل */}
+            <ThemedView style={styles.viewToggleRow}>
               <TouchableOpacity
-                style={styles.refreshButton}
-                onPress={() => forceUpdateCardsForProfession(userProfession)}
+                style={[styles.viewToggleButton, activeView === 'cards' && styles.viewToggleButtonActive]}
+                onPress={() => setActiveView('cards')}
                 activeOpacity={0.7}
               >
-                <IconSymbol size={16} name="arrow.clockwise" color="#4ECDC4" />
-                <ThemedText style={styles.refreshButtonText}>تحديث البطاقات</ThemedText>
+                <IconSymbol size={16} name="list.bullet" color={activeView === 'cards' ? '#fff' : '#0f6e5c'} />
+                <ThemedText style={[styles.viewToggleButtonText, activeView === 'cards' && styles.viewToggleButtonTextActive]}>المحاور</ThemedText>
               </TouchableOpacity>
-
               <TouchableOpacity
-                style={styles.fullReportButton}
-                onPress={() => router.push('/interactive-report')}
+                style={[styles.viewToggleButton, activeView === 'report' && styles.viewToggleButtonActive]}
+                onPress={() => setActiveView('report')}
                 activeOpacity={0.7}
               >
-                <IconSymbol size={16} name="chart.bar.fill" color="#fff" />
-                <ThemedText style={styles.fullReportButtonText}>عرض التقرير الكامل</ThemedText>
+                <IconSymbol size={16} name="chart.bar.fill" color={activeView === 'report' ? '#fff' : '#0f6e5c'} />
+                <ThemedText style={[styles.viewToggleButtonText, activeView === 'report' && styles.viewToggleButtonTextActive]}>التقرير الكامل</ThemedText>
               </TouchableOpacity>
             </ThemedView>
 
-            {/* Overall Score Card */}
-            <ThemedView style={styles.overallScoreCard}>
-              <ThemedText style={[styles.overallScoreTitle, getTextDirection()]}>معدل الأداء</ThemedText>
-              <ThemedText style={[styles.overallScoreValue, getTextDirection()]}>{calculateOverallAverage()}%</ThemedText>
-              <ThemedText style={[styles.overallScoreLevel, getTextDirection()]}>{formatRTLText(getScoreLevel(calculateOverallAverage()))}</ThemedText>
-            </ThemedView>
+            {activeView === 'cards' && (
+              <>
+                {/* زر إعادة تحديث البطاقات */}
+                <TouchableOpacity
+                  style={styles.refreshButton}
+                  onPress={() => forceUpdateCardsForProfession(userProfession)}
+                  activeOpacity={0.7}
+                >
+                  <IconSymbol size={16} name="arrow.clockwise" color="#4ECDC4" />
+                  <ThemedText style={styles.refreshButtonText}>تحديث البطاقات</ThemedText>
+                </TouchableOpacity>
+
+                {/* Overall Score Card */}
+                <ThemedView style={styles.overallScoreCard}>
+                  <ThemedText style={[styles.overallScoreTitle, getTextDirection()]}>معدل الأداء</ThemedText>
+                  <ThemedText style={[styles.overallScoreValue, getTextDirection()]}>{calculateOverallAverage()}%</ThemedText>
+                  <ThemedText style={[styles.overallScoreLevel, getTextDirection()]}>{formatRTLText(getScoreLevel(calculateOverallAverage()))}</ThemedText>
+                </ThemedView>
+              </>
+            )}
                           </ThemedView>
 
           {/* بطاقة الأهداف (نموذج تقييم أداء التشكيلات الإشرافية) - للجدارات المشتركة والقيادية فقط */}
-          {showObjectivesCard && (
+          {activeView === 'cards' && showObjectivesCard && (
             <ThemedView style={styles.objectivesCard}>
               <ThemedText style={[styles.objectivesCardTitle, getTextDirection()]}>
                 {formatRTLText(
@@ -962,7 +986,7 @@ export default function PerformanceScreen() {
           )}
 
           {/* Performance Cards */}
-          {performanceData.map((performance, idx) => {
+          {activeView === 'cards' && performanceData.map((performance, idx) => {
             const evidenceTotal = performance.evidence.length;
             const evidenceAvailable = performance.evidence.filter((e) => e.available).length;
             const axisStatus =
@@ -987,7 +1011,7 @@ export default function PerformanceScreen() {
                   </ThemedView>
                 </ThemedView>
                 {/* وصف مختصر */}
-                <ThemedText style={styles.specialCardDesc} numberOfLines={2}>{formatRTLText(performance.description)}</ThemedText>
+                <ThemedText style={styles.specialCardDesc} numberOfLines={2}>{formatRTLText(performance.description || '')}</ThemedText>
                 {/* صف بادجات المعلومات (شواهد / حالة) بأسلوب الملف */}
                 <ThemedView style={styles.axisInfoBadgesRow}>
                   <ThemedView style={styles.axisInfoBadge}>
@@ -1094,6 +1118,9 @@ export default function PerformanceScreen() {
             );
           })}
 
+          {/* التقرير الكامل (الرسوم البيانية، الشواهد المجمّعة، التصدير) */}
+          {activeView === 'report' && <PerformanceReportView />}
+
           {/* Action Buttons */}
           </ScrollView>
       </ImageBackground>
@@ -1176,13 +1203,36 @@ const styles = StyleSheet.create({
     paddingVertical: 8,
     paddingHorizontal: 12,
   },
-  headerActionsRow: {
+  viewToggleRow: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    flexWrap: 'wrap',
-    gap: 10,
+    backgroundColor: '#eef7f4',
+    borderRadius: 24,
+    padding: 4,
     marginVertical: 12,
+    gap: 4,
+  },
+  viewToggleButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingHorizontal: 18,
+    paddingVertical: 8,
+    borderRadius: 20,
+    gap: 6,
+  },
+  viewToggleButtonActive: {
+    backgroundColor: '#0f6e5c',
+  },
+  viewToggleButtonText: {
+    fontSize: 13,
+    fontWeight: '600',
+    color: '#0f6e5c',
+    writingDirection: 'rtl',
+  },
+  viewToggleButtonTextActive: {
+    color: '#fff',
   },
   refreshButton: {
     flexDirection: 'row',
@@ -1191,6 +1241,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 16,
     paddingVertical: 8,
     borderRadius: 20,
+    marginBottom: 12,
     borderWidth: 1,
     borderColor: '#4ECDC4',
     gap: 6,
@@ -1198,22 +1249,6 @@ const styles = StyleSheet.create({
   refreshButtonText: {
     fontSize: 14,
     color: '#4ECDC4',
-    fontWeight: '600',
-    textAlign: 'center',
-    writingDirection: 'rtl',
-  },
-  fullReportButton: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: '#0f6e5c',
-    paddingHorizontal: 16,
-    paddingVertical: 8,
-    borderRadius: 20,
-    gap: 6,
-  },
-  fullReportButtonText: {
-    fontSize: 14,
-    color: '#fff',
     fontWeight: '600',
     textAlign: 'center',
     writingDirection: 'rtl',

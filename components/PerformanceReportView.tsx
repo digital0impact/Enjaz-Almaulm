@@ -1,7 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import { StyleSheet, ScrollView, TouchableOpacity, ImageBackground, KeyboardAvoidingView, Platform, StatusBar, Dimensions, View, ActivityIndicator, Linking, Modal, Image } from 'react-native';
+import { StyleSheet, ScrollView, TouchableOpacity, Platform, Dimensions, View, ActivityIndicator, Linking, Modal, Image } from 'react-native';
 import { AlertService } from '@/services/AlertService';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { BarChart } from 'react-native-chart-kit';
 import { useFocusEffect } from '@react-navigation/native';
 
@@ -12,7 +11,6 @@ import { useRouter } from 'expo-router';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import AuthService from '@/services/AuthService';
 import { SubscriptionService } from '@/services/SubscriptionService';
-import { BottomNavigationBar } from '@/components/BottomNavigationBar';
 import * as Sharing from 'expo-sharing';
 import * as Print from 'expo-print';
 import * as FileSystem from 'expo-file-system';
@@ -35,9 +33,8 @@ type PerformanceItem = {
   evidence?: Evidence[];
 };
 
-export default function InteractiveReportScreen() {
+export function PerformanceReportView() {
   const router = useRouter();
-  const insets = useSafeAreaInsets();
   const [selectedChart, setSelectedChart] = useState('evidence');
   const [performanceData, setPerformanceData] = useState<PerformanceItem[]>([]);
   const [loading, setLoading] = useState(true);
@@ -1411,55 +1408,14 @@ export default function InteractiveReportScreen() {
 
   if (loading) {
     return (
-      <ThemedView style={styles.container}>
-        <ThemedView style={styles.loadingContainer}>
-          <ThemedText>جاري تحميل البيانات...</ThemedText>
-        </ThemedView>
+      <ThemedView style={styles.loadingContainer}>
+        <ThemedText>جاري تحميل البيانات...</ThemedText>
       </ThemedView>
     );
   }
 
   return (
-    <ThemedView style={styles.container}>
-      <StatusBar 
-        barStyle="dark-content" 
-        backgroundColor={Platform.OS === 'ios' ? 'transparent' : '#E8F5F4'} 
-        translucent={Platform.OS === 'ios'}
-      />
-      <ImageBackground
-        source={require('@/assets/images/background.png')}
-        style={styles.backgroundImage}
-        resizeMode="cover"
-      >
-        <KeyboardAvoidingView
-          style={{ flex: 1 }}
-          behavior={Platform.OS === 'ios' ? 'padding' : undefined}
-        >
-          <ScrollView 
-            style={styles.scrollContainer}
-            contentContainerStyle={{ paddingBottom: 120 }}
-            showsVerticalScrollIndicator={true}
-            indicatorStyle="black"
-          >
-            <ThemedView style={styles.header}>
-              <TouchableOpacity 
-                style={styles.backButton}
-                onPress={() => router.back()}
-              >
-                <IconSymbol size={20} name="chevron.left" color="#1c1f33" />
-              </TouchableOpacity>
-
-              <ThemedView style={styles.iconContainer}>
-                <IconSymbol size={60} name="chart.line.uptrend.xyaxis" color="#1c1f33" />
-              </ThemedView>
-              <ThemedText type="title" style={styles.title}>
-                التقرير التفاعلي
-              </ThemedText>
-                <ThemedText style={styles.subtitle}>
-                  تحليل شامل لأداءك المهني مع مؤشرات تفاعلية
-                </ThemedText>
-            </ThemedView>
-
+    <>
             <ThemedView style={styles.content}>
               <ThemedView style={styles.summaryCard}>
                               <ThemedText type="subtitle" style={styles.summaryTitle}>
@@ -1595,9 +1551,6 @@ export default function InteractiveReportScreen() {
               </View>
             </ThemedView>
             </ThemedView>
-          </ScrollView>
-        </KeyboardAvoidingView>
-      </ImageBackground>
 
       <Modal
         visible={previewVisible}
@@ -1663,9 +1616,7 @@ export default function InteractiveReportScreen() {
           </View>
         </View>
       </Modal>
-
-      <BottomNavigationBar />
-    </ThemedView>
+    </>
   );
 }
 
