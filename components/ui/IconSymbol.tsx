@@ -126,6 +126,12 @@ const MAPPING = {
   'workspace-premium': 'workspace-premium',
   'stars': 'stars',
   'photo': 'image',
+
+  // مربعات الاختيار (checkboxes)
+  'checkmark.square.fill': 'check-box',
+  'square': 'check-box-outline-blank',
+  'barcode': 'qr-code-2',
+  'circle': 'radio-button-unchecked',
 } as IconMapping;
 
 /**

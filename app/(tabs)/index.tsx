@@ -420,6 +420,17 @@ export default function HomeScreen() {
                     <ThemedText style={[styles.toolDescription, getTextDirection()]}>نموذج خطة التطوير الفردية ومجالات التطوير المهني 70-20-10</ThemedText>
                   </TouchableOpacity>
 
+                  <TouchableOpacity
+                    style={styles.toolCard}
+                    onPress={() => router.push('/report-builder')}
+                  >
+                    <ThemedView style={styles.toolIconWrapper}>
+                      <IconSymbol size={28} name="doc.badge.plus" color="#1c1f33" />
+                    </ThemedView>
+                    <ThemedText style={[styles.toolTitle, getTextDirection()]}>منشئ التقارير</ThemedText>
+                    <ThemedText style={[styles.toolDescription, getTextDirection()]}>إنشاء تقرير تنفيذ برامج النشاط الصفي وتصديره</ThemedText>
+                  </TouchableOpacity>
+
                 </ThemedView>
               </ThemedView>
             </ScrollView>
