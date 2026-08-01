@@ -400,17 +400,6 @@ export default function HomeScreen() {
 
                   <TouchableOpacity
                     style={styles.toolCard}
-                    onPress={() => router.push({ pathname: '/(tabs)/performance', params: { view: 'report' } })}
-                  >
-                    <ThemedView style={styles.toolIconWrapper}>
-                      <IconSymbol size={28} name="chart.line.uptrend.xyaxis" color="#1c1f33" />
-                    </ThemedView>
-                    <ThemedText style={[styles.toolTitle, getTextDirection()]}>التقرير التفاعلي للأداء المهني</ThemedText>
-                    <ThemedText style={[styles.toolDescription, getTextDirection()]}>تقييم وتحليل أدائك المهني كمعلم</ThemedText>
-                  </TouchableOpacity>
-
-                  <TouchableOpacity 
-                    style={styles.toolCard}
                     onPress={() => router.push('/student-tracking')}
                   >
                     <ThemedView style={styles.toolIconWrapper}>
