@@ -15,8 +15,30 @@ if (!fs.existsSync(indexPath)) {
 
 let html = fs.readFileSync(indexPath, 'utf8');
 
+// تسجيل service worker: مطلوب على Chrome/أندرويد حتى يُطلق المتصفح حدث
+// beforeinstallprompt (زر "تثبيت التطبيق"). يُدرَج دائماً حتى لو كان
+// manifest موجوداً مسبقاً، لأن expo export قد يُبقي الـ manifest من +html.tsx
+// دون أن يُبقي وسوم <script> المخصّصة.
+const swRegisterScript = `
+    <script>
+      if ('serviceWorker' in navigator) {
+        window.addEventListener('load', function () {
+          navigator.serviceWorker.register('/sw.js').catch(function (err) {
+            console.warn('SW registration failed:', err);
+          });
+        });
+      }
+    </script>
+`;
+
+if (!html.includes("register('/sw.js')")) {
+  html = html.replace('</head>', `${swRegisterScript}  </head>`);
+  fs.writeFileSync(indexPath, html, 'utf8');
+  console.log('inject-pwa-html: تم إدراج تسجيل service worker.');
+}
+
 if (html.includes('rel="manifest"')) {
-  console.log('inject-pwa-html: dist/index.html يحتوي manifest مسبقاً — تخطي.');
+  console.log('inject-pwa-html: dist/index.html يحتوي manifest مسبقاً — تخطي باقي الحقن.');
   process.exit(0);
 }
 

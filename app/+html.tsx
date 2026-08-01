@@ -27,6 +27,23 @@ export default function Root({ children }: PropsWithChildren) {
         <meta name="apple-mobile-web-app-capable" content="yes" />
 
         <ScrollViewStyleReset />
+
+        {/* تسجيل service worker: مطلوب على Chrome/أندرويد حتى يُطلق المتصفح حدث
+            beforeinstallprompt (زر "تثبيت التطبيق" في PWAInstallButton). */}
+        <script
+          // eslint-disable-next-line react/no-danger
+          dangerouslySetInnerHTML={{
+            __html: `
+              if ('serviceWorker' in navigator) {
+                window.addEventListener('load', function () {
+                  navigator.serviceWorker.register('/sw.js').catch(function (err) {
+                    console.warn('SW registration failed:', err);
+                  });
+                });
+              }
+            `,
+          }}
+        />
       </head>
       <body>{children}</body>
     </html>
