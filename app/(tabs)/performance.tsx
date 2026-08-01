@@ -88,7 +88,7 @@ export default function PerformanceScreen() {
     },
     {
       id: 4,
-      title: 'تنويع استراتيجيات التدريس',
+      title: 'التنويع في استراتيجيات التدريس',
       score: 0,
       weight: 10,
       description: 'استخدام استراتيجيات متنوعة، مراعاة الفروق الفردية، تطبيق استراتيجيات تناسب مستويات الطلاب',
@@ -119,7 +119,7 @@ export default function PerformanceScreen() {
     },
     {
       id: 6,
-      title: 'إعداد خطة وتنفيذ التعلم',
+      title: 'إعداد وتنفيذ خطة التعلم',
       score: 0,
       weight: 10,
       description: 'توزيع المنهج، إعداد الدروس والواجبات والاختبارات',
@@ -134,7 +134,7 @@ export default function PerformanceScreen() {
     },
     {
       id: 7,
-      title: 'توظيف تقنيات ووسائل التعلم',
+      title: 'توظيف تقنيات ووسائل التعلم المناسبة',
       score: 0,
       weight: 10,
       description: 'دمج التقنية في التعليم، التنويع في الوسائل التعليمية',
@@ -153,7 +153,7 @@ export default function PerformanceScreen() {
       id: 8,
       title: 'تهيئة البيئة التعليمية',
       score: 0,
-      weight: 5,
+      weight: 10,
       description: 'مراعاة حاجات الطلاب، تهيئة نفسية ومادية ومعنوية مناسبة',
       details: 'اهتمام بتهيئة بيئة تعليمية محفزة ومناسبة، مراعاة لحاجات الطلاب النفسية والمادية والمعنوية.',
       evidence: [
@@ -169,7 +169,7 @@ export default function PerformanceScreen() {
       id: 9,
       title: 'الإدارة الصفية',
       score: 0,
-      weight: 5,
+      weight: 10,
       description: 'ضبط سلوك الطلاب، شد انتباه الطلاب، مراعاة الفروق الفردية',
       details: 'إدارة للصف، مهارات في ضبط سلوك الطلاب وشد انتباههم، مع مراعاة للفروق الفردية ومتابعة للحضور والانضباط.',
       evidence: [
@@ -197,7 +197,7 @@ export default function PerformanceScreen() {
     },
     {
       id: 11,
-      title: 'تنويع أساليب التقويم',
+      title: 'تنوع أساليب التقويم',
       score: 0,
       weight: 10,
       description: 'تطبيق الاختبارات الورقية والإلكترونية، المشاريع الطلابية، المهام الأدائية، ملفات الإنجاز',
@@ -1875,7 +1875,7 @@ export default function PerformanceScreen() {
         },
         {
           id: 8,
-          title: 'تهيئة بيئة تعليمية',
+          title: 'تهيئة البيئة التعليمية',
           score: 0,
           weight: 10,
           description: 'مراعاة حاجات الطلاب، تهيئة نفسية ومادية ومعنوية مناسبة',

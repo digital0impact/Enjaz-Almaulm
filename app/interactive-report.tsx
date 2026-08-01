@@ -922,77 +922,167 @@ export default function InteractiveReportScreen() {
             title: 'أداء الواجبات الوظيفية',
             score: 0,
             weight: 10,
-            category: 'وظيفي'
+            category: 'وظيفي',
+            evidence: [
+              { name: 'التقيد بالدوام الرسمي', available: false },
+              { name: 'تأدية الحصص وفق الجدول الدراسي', available: false },
+              { name: 'المشاركة في الإشراف والمناوبة', available: false },
+              { name: 'إعداد الدروس والاختبارات ومتابعتها', available: false },
+              { name: 'التوقيع في سجل الدوام', available: false },
+              { name: 'التوقيع في سجل المناوبة أو الانتظار', available: false },
+              { name: 'خطة توزيع المنهج', available: false },
+              { name: 'جدول الحصص الأسبوعي', available: false },
+              { name: 'إعداد الدروس والواجبات في منصة مدرستي', available: false },
+              { name: 'إعداد سجلات المتابعة اليومية', available: false },
+              { name: 'متابعة الأداء والتحصيل الدراسي', available: false },
+              { name: 'تقديم التغذية الراجعة', available: false }
+            ]
           },
           {
             id: 2,
             title: 'التفاعل مع المجتمع المهني',
             score: 0,
             weight: 10,
-            category: 'وظيفي'
+            category: 'وظيفي',
+            evidence: [
+              { name: 'المشاركة في مجتمعات التعلم المهنية', available: false },
+              { name: 'الزيارات التبادلية', available: false },
+              { name: 'تنفيذ درس تطبيقي', available: false },
+              { name: 'بحث درس', available: false },
+              { name: 'حضور ورش ودورات تدريبية', available: false },
+              { name: 'العمل التطوعي والمسؤولية المجتمعية', available: false }
+            ]
           },
           {
             id: 3,
             title: 'التفاعل مع أولياء الأمور',
             score: 0,
             weight: 10,
-            category: 'وظيفي'
+            category: 'وظيفي',
+            evidence: [
+              { name: 'التواصل الفعال مع أولياء الأمور', available: false },
+              { name: 'التنسيق مع الموجه الطلابي', available: false },
+              { name: 'إيصال الملاحظات الهامة', available: false },
+              { name: 'تفعيل الخطة الأسبوعية', available: false },
+              { name: 'المشاركة في الجمعية العمومية', available: false },
+              { name: 'إشعار ولي الأمر بمستوى الطالب', available: false }
+            ]
           },
           {
             id: 4,
             title: 'التنويع في استراتيجيات التدريس',
             score: 0,
             weight: 10,
-            category: 'تعليمي'
+            category: 'تعليمي',
+            evidence: [
+              { name: 'استخدام استراتيجيات متنوعة', available: false },
+              { name: 'مراعاة الفروق الفردية', available: false },
+              { name: 'تقرير عن تطبيق استراتيجية', available: false },
+              { name: 'ملف إنجاز للمعلم', available: false },
+              { name: 'تطبيق استراتيجيات التعلم النشط', available: false },
+              { name: 'استراتيجية التعلم باللعب', available: false }
+            ]
           },
           {
             id: 5,
             title: 'تحسين نتائج المتعلمين',
             score: 0,
             weight: 10,
-            category: 'تعليمي'
+            category: 'تعليمي',
+            evidence: [
+              { name: 'معالجة الفاقد التعليمي', available: false },
+              { name: 'خطط علاجية للطلاب الضعاف', available: false },
+              { name: 'خطط إثرائية للمتميزين', available: false },
+              { name: 'تكريم الطلاب المتحسنين', available: false },
+              { name: 'نتائج الاختبارات القبلية والبعدية', available: false }
+            ]
           },
           {
             id: 6,
-            title: 'إعداد خطة وتنفيذ التعلم',
+            title: 'إعداد وتنفيذ خطة التعلم',
             score: 0,
             weight: 10,
-            category: 'تخطيطي'
+            category: 'تخطيطي',
+            evidence: [
+              { name: 'خطة توزيع المنهج', available: false },
+              { name: 'إعداد الدروس والاختبارات', available: false },
+              { name: 'نماذج من إعداد الدروس', available: false },
+              { name: 'نماذج من الواجبات والاختبارات', available: false },
+              { name: 'إرسال ملف الخطة الأسبوعية (PDF أو صورة) عبر منصة مدرستي', available: false }
+            ]
           },
           {
             id: 7,
-            title: 'توظيف تقنيات ووسائل التعلم',
+            title: 'توظيف تقنيات ووسائل التعلم المناسبة',
             score: 0,
             weight: 10,
-            category: 'تخطيطي'
+            category: 'تخطيطي',
+            evidence: [
+              { name: 'دمج التقنية في التعليم', available: false },
+              { name: 'تنويع الوسائل التعليمية', available: false },
+              { name: 'صور من الوسائل التعليمية', available: false },
+              { name: 'تقرير عن برنامج تقني مستخدم', available: false },
+              { name: 'استخدام السبورة التفاعلية', available: false },
+              { name: 'تفعيل لوحات النقاش في منصة مدرستي', available: false },
+              { name: 'استخدام برنامج تقني (Padlet)', available: false }
+            ]
           },
           {
             id: 8,
             title: 'تهيئة البيئة التعليمية',
             score: 0,
             weight: 10,
-            category: 'إداري'
+            category: 'إداري',
+            evidence: [
+              { name: 'مراعاة حاجات الطلاب', available: false },
+              { name: 'تهيئة نفسية للطلاب', available: false },
+              { name: 'تحفيز مادي ومعنوي', available: false },
+              { name: 'توفير متطلبات الدرس', available: false },
+              { name: 'توفير بيئة تعليمية غنية بالمصادر (بوابة عين)', available: false },
+              { name: 'تحليل أنماط التعلم لدى الطلاب (VARK)', available: false }
+            ]
           },
           {
             id: 9,
             title: 'الإدارة الصفية',
             score: 0,
             weight: 10,
-            category: 'إداري'
+            category: 'إداري',
+            evidence: [
+              { name: 'ضبط سلوك الطلاب', available: false },
+              { name: 'شد انتباه الطلاب', available: false },
+              { name: 'مراعاة الفروق الفردية', available: false },
+              { name: 'متابعة الحضور والغياب', available: false },
+              { name: 'استراتيجيات إدارة الوقت', available: false },
+              { name: 'أنظمة التعزيز والتحفيز', available: false }
+            ]
           },
           {
             id: 10,
             title: 'تحليل نتائج المتعلمين وتشخيص مستوياتهم',
             score: 0,
-            weight: 5,
-            category: 'تقويمي'
+            weight: 10,
+            category: 'تقويمي',
+            evidence: [
+              { name: 'تحليل نتائج الاختبارات', available: false },
+              { name: 'تصنيف الطلاب وفق نتائجهم', available: false },
+              { name: 'تحديد نقاط القوة والضعف', available: false },
+              { name: 'سجل معالجة الفاقد', available: false }
+            ]
           },
           {
             id: 11,
             title: 'تنوع أساليب التقويم',
             score: 0,
-            weight: 5,
-            category: 'تقويمي'
+            weight: 10,
+            category: 'تقويمي',
+            evidence: [
+              { name: 'تطبيق اختبارات ورقية وإلكترونية', available: false },
+              { name: 'المشاريع الطلابية', available: false },
+              { name: 'المهام الأدائية', available: false },
+              { name: 'ملفات إنجاز الطلاب', available: false },
+              { name: 'التقويم الذاتي وتقويم الأقران', available: false }
+            ]
           }
         ];
     }
