@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { StyleSheet, ScrollView, TouchableOpacity, Platform, Dimensions, View, ActivityIndicator, Linking, Modal, Image } from 'react-native';
 import { AlertService } from '@/services/AlertService';
-import { BarChart } from 'react-native-chart-kit';
+import { PieChart } from 'react-native-chart-kit';
 import { useFocusEffect } from '@react-navigation/native';
 
 import { ThemedText } from '@/components/ThemedText';
@@ -332,11 +332,13 @@ export function PerformanceReportView() {
     );
   };
 
+  const CATEGORY_PIE_COLORS = [
+    '#4CAF50', '#2196F3', '#FF9800', '#9C27B0', '#F44336',
+    '#00BCD4', '#8BC34A', '#FFC107', '#3F51B5', '#E91E63', '#795548',
+  ];
+
   const renderCategoriesChart = () => {
     const categories = getCategories();
-    const screenWidth = Dimensions.get('window').width - 40;
-    const minBarWidth = 80; // عرض أدنى لكل عمود
-    const chartWidth = Math.max(screenWidth, categories.length * minBarWidth);
 
     // التأكد من وجود بيانات
     if (!categories || categories.length === 0) {
@@ -352,7 +354,7 @@ export function PerformanceReportView() {
 
     // التأكد من أن البيانات صحيحة
     const validCategories = categories.filter(cat => cat && cat.name && typeof cat.average === 'number');
-    
+
     if (validCategories.length === 0) {
       return (
         <ThemedView style={styles.chartContainer}>
@@ -364,137 +366,33 @@ export function PerformanceReportView() {
       );
     }
 
-    const data = {
-      labels: validCategories.map(cat => {
-        const name = String(cat.name || 'غير محدد');
-        // تقصير العناوين أكثر لأندرويد
-        return name.length > 6 ? name.substring(0, 6) + '...' : name;
-      }),
-      datasets: [
-        {
-          data: validCategories.map(cat => Math.max(0, cat.average || 0)),
-        }
-      ]
-    };
-
-    const chartConfig = {
-      backgroundColor: '#ffffff',
-      backgroundGradientFrom: '#ffffff',
-      backgroundGradientTo: '#ffffff',
-      decimalPlaces: 0,
-      color: (opacity = 1, index?: number) => {
-        const score = index !== undefined ? validCategories[index]?.average || 0 : 0;
-        const color = getScoreColor(score);
-        // تحويل اللون إلى rgba
-        switch (color) {
-          case '#4CAF50': return `rgba(76, 175, 80, ${opacity})`; // أخضر
-          case '#FF9800': return `rgba(255, 152, 0, ${opacity})`; // برتقالي
-          case '#FFC107': return `rgba(255, 193, 7, ${opacity})`; // أصفر
-          case '#F44336': return `rgba(244, 67, 54, ${opacity})`; // أحمر
-          default: return `rgba(33, 150, 243, ${opacity})`; // لون افتراضي
-        }
-      },
-      labelColor: (opacity = 1) => `rgba(28, 31, 51, ${opacity})`,
-      style: {
-        borderRadius: 16
-      },
-      barPercentage: 0.6,
-      propsForBackgroundLines: {
-        strokeDasharray: '',
-        stroke: 'rgba(0, 0, 0, 0.1)',
-        strokeWidth: 1,
-      },
-      propsForLabels: {
-        fontSize: 9,
-        fontWeight: 'bold',
-        fill: '#1c1f33',
-      },
-      propsForVerticalLabels: {
-        fontSize: 9,
-        fontWeight: 'bold',
-        fill: '#1c1f33',
-      },
-      propsForValues: {
-        fontSize: 11,
-        fontWeight: 'bold',
-        fill: '#1c1f33',
-      },
-    };
-
-
+    const pieData = validCategories.map((cat, index) => {
+      const name = String(cat.name || 'غير محدد');
+      return {
+        name: name.length > 12 ? name.substring(0, 12) + '…' : name,
+        score: Math.max(0, cat.average || 0),
+        color: CATEGORY_PIE_COLORS[index % CATEGORY_PIE_COLORS.length],
+        legendFontColor: '#1c1f33',
+        legendFontSize: 11,
+      };
+    });
 
     return (
       <ThemedView style={styles.chartContainer}>
         <ThemedText style={styles.chartTitle}>توزيع محاور الأداء المهني</ThemedText>
-
-        {/* محاولة عرض الرسم البياني مع معالجة خاصة لأندرويد */}
-        {Platform.OS === 'android' ? (
-          <ScrollView 
-            horizontal={true}
-            showsHorizontalScrollIndicator={true}
-            indicatorStyle="black"
-            contentContainerStyle={{ paddingHorizontal: 20 }}
-            style={{ marginVertical: 10 }}
-          >
-            <BarChart
-              // @ts-ignore
-              data={data}
-              width={chartWidth}
-              height={280}
-              chartConfig={chartConfig}
-              style={{
-                marginVertical: 8,
-                borderRadius: 16,
-              }}
-              fromZero={true}
-              showBarTops={true}
-              showValuesOnTopOfBars={true}
-              withInnerLines={true}
-              withVerticalLabels={true}
-              withHorizontalLabels={true}
-              segments={5}
-              yAxisLabel=""
-              yAxisSuffix=""
-              yLabelsOffset={10}
-              xLabelsOffset={-10}
-            />
-          </ScrollView>
-                ) : (
-          <ScrollView 
-            horizontal={true}
-            showsHorizontalScrollIndicator={true}
-            indicatorStyle="black"
-            contentContainerStyle={{ paddingHorizontal: 20 }}
-            style={{ marginVertical: 10 }}
-          >
-            <BarChart
-              // @ts-ignore
-              data={data}
-              width={chartWidth}
-              height={280}
-              chartConfig={chartConfig}
-              style={{
-                marginVertical: 8,
-                borderRadius: 16,
-              }}
-              fromZero={true}
-              showBarTops={true}
-              showValuesOnTopOfBars={true}
-              withInnerLines={true}
-              withVerticalLabels={true}
-              withHorizontalLabels={true}
-              segments={5}
-              yAxisLabel=""
-              yAxisSuffix=""
-              yLabelsOffset={10}
-              xLabelsOffset={-10}
-            />
-          </ScrollView>
-        )}
-
-
-        
-
+        <PieChart
+          data={pieData}
+          width={Dimensions.get('window').width - 80}
+          height={220}
+          chartConfig={{ color: (opacity = 1) => `rgba(28, 31, 51, ${opacity})` }}
+          accessor="score"
+          backgroundColor="transparent"
+          paddingLeft="15"
+          absolute={false}
+          avoidFalseZero
+          hasLegend
+          style={{ marginVertical: 10 }}
+        />
       </ThemedView>
     );
   };
