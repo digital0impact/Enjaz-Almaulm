@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import {
   ActivityIndicator,
+  Image,
   ImageBackground,
   Modal,
   Platform,
@@ -12,6 +13,7 @@ import {
 } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import * as FileSystem from 'expo-file-system';
+import * as ImagePicker from 'expo-image-picker';
 import * as Print from 'expo-print';
 import * as Sharing from 'expo-sharing';
 import { useRouter } from 'expo-router';
@@ -212,6 +214,8 @@ const getReportType = (id: ReportTypeId | undefined): ReportTypeConfig =>
 
 type ChecklistField = 'goals' | 'means' | 'results' | 'challenges' | 'suggestions';
 
+type EvidenceImage = { id: string; uri: string };
+
 type ReportForm = {
   reportType: ReportTypeId;
   schoolName: string;
@@ -234,6 +238,7 @@ type ReportForm = {
   suggestions: string[];
   suggestionsOther: string;
   evidenceNotes: string;
+  evidenceImages: EvidenceImage[];
   implementationDate: string;
   activityLeaderName: string;
   principalName: string;
@@ -263,6 +268,7 @@ const EMPTY_FORM: ReportForm = {
   suggestions: [],
   suggestionsOther: '',
   evidenceNotes: '',
+  evidenceImages: [],
   implementationDate: '',
   activityLeaderName: '',
   principalName: '',
@@ -437,6 +443,26 @@ export default function ReportBuilderScreen() {
     setForm((prev) => ({ ...prev, [field]: prev[field].filter((v) => v !== value) }));
   };
 
+  const pickEvidenceImage = async () => {
+    const permission = await ImagePicker.requestMediaLibraryPermissionsAsync();
+    if (!permission.granted) {
+      showAlert(formatRTLText('إذن مطلوب'), formatRTLText('يجب السماح بالوصول إلى معرض الصور لإرفاق شواهد.'));
+      return;
+    }
+    const result = await ImagePicker.launchImageLibraryAsync({
+      mediaTypes: ImagePicker.MediaTypeOptions.Images,
+      allowsEditing: true,
+      quality: 0.7,
+    });
+    if (result.canceled || !result.assets?.[0]?.uri) return;
+    const newImage: EvidenceImage = { id: `${Date.now()}`, uri: result.assets[0].uri };
+    setForm((prev) => ({ ...prev, evidenceImages: [...prev.evidenceImages, newImage] }));
+  };
+
+  const removeEvidenceImage = (id: string) => {
+    setForm((prev) => ({ ...prev, evidenceImages: prev.evidenceImages.filter((img) => img.id !== id) }));
+  };
+
   const showAlert = (
     title: string,
     message: string,
@@ -582,6 +608,28 @@ export default function ReportBuilderScreen() {
     return '';
   };
 
+  /** تحويل صورة شاهد مُرفَقة (من ImagePicker) إلى data URI ليمكن تضمينها داخل مستند PDF/Word المصدَّر */
+  const imageUriToDataUri = async (uri: string): Promise<string> => {
+    try {
+      if (uri.startsWith('data:')) return uri;
+      if (Platform.OS === 'web') {
+        const res = await fetch(uri);
+        const blob = await res.blob();
+        return await new Promise<string>((resolve, reject) => {
+          const reader = new FileReader();
+          reader.onload = () => resolve(reader.result as string);
+          reader.onerror = reject;
+          reader.readAsDataURL(blob);
+        });
+      }
+      const base64 = await FileSystem.readAsStringAsync(uri, { encoding: FileSystem.EncodingType.Base64 });
+      return base64 ? `data:image/jpeg;base64,${base64}` : '';
+    } catch (e) {
+      if (__DEV__ && typeof console !== 'undefined') console.warn('تحويل صورة الشاهد للتقرير:', e);
+      return '';
+    }
+  };
+
   /** عناصر مُختارة فقط (بدون خيارات غير محدَّدة) كقائمة نقطية — يشمل بند "أخرى" إن وُجد */
   const bulletListHtml = (presets: string[], selected: string[], other: string): string => {
     const items = presets.length > 0 ? presets.filter((o) => selected.includes(o)) : selected;
@@ -600,6 +648,26 @@ export default function ReportBuilderScreen() {
       .split('\n')
       .map((s) => s.trim())
       .filter(Boolean);
+
+    let evidenceCounter = 0;
+    const evidenceImageCards = (
+      await Promise.all(
+        data.evidenceImages.map(async (img) => {
+          const dataUri = await imageUriToDataUri(img.uri);
+          if (!dataUri) return '';
+          evidenceCounter += 1;
+          return `<div class="evidence-card evidence-card-image"><img src="${dataUri}" class="evidence-img" alt="شاهد ${evidenceCounter}"/><div class="evidence-caption">شاهد رقم ${evidenceCounter}</div></div>`;
+        })
+      )
+    ).filter(Boolean);
+    const evidenceTextCards = evidenceItems.map((e) => {
+      evidenceCounter += 1;
+      return `<div class="evidence-card"><div class="evidence-icon">🗂️</div><div class="evidence-caption">شاهد رقم ${evidenceCounter}</div><div class="evidence-text">${escapeHtml(e)}</div></div>`;
+    });
+    const evidenceCardsHtml =
+      evidenceImageCards.length + evidenceTextCards.length > 0
+        ? [...evidenceImageCards, ...evidenceTextCards].join('')
+        : `<div class="evidence-card"><div class="evidence-icon">🗂️</div><div class="evidence-text">لا توجد شواهد مرفقة بعد</div></div>`;
 
     const subjectLabel = data.program.trim() || data.domain.trim() || type.docTitle;
     const summaryText =
@@ -647,6 +715,8 @@ export default function ReportBuilderScreen() {
     .evidence-icon { font-size: 15px; margin-bottom: 2px; }
     .evidence-caption { font-size: 10px; font-weight: 700; color: ${TEAL}; margin-bottom: 2px; }
     .evidence-text { font-size: 10px; color: #6b7280; }
+    .evidence-card-image { padding: 4px; border-style: solid; }
+    .evidence-img { width: 100%; height: 55px; object-fit: cover; border-radius: 6px; margin-bottom: 3px; }
     .two-col { display: flex; gap: 8px; }
     .two-col .card { flex: 1; margin-bottom: 8px; }
     .approval-row { display: flex; gap: 8px; margin-bottom: 6px; }
@@ -698,9 +768,7 @@ export default function ReportBuilderScreen() {
   <div class="card">
     <div class="card-heading">شواهد التنفيذ</div>
     <div class="evidence-grid">
-      ${evidenceItems.length > 0
-        ? evidenceItems.map((e, i) => `<div class="evidence-card"><div class="evidence-icon">🗂️</div><div class="evidence-caption">شاهد رقم ${i + 1}</div><div class="evidence-text">${escapeHtml(e)}</div></div>`).join('')
-        : `<div class="evidence-card"><div class="evidence-icon">🗂️</div><div class="evidence-text">لا توجد شواهد مرفقة بعد</div></div>`}
+      ${evidenceCardsHtml}
     </div>
   </div>
 
@@ -1164,6 +1232,27 @@ export default function ReportBuilderScreen() {
                   placeholderTextColor="#999"
                   multiline
                 />
+                {form.evidenceImages.length > 0 && (
+                  <View style={styles.evidenceImagesRow}>
+                    {form.evidenceImages.map((img) => (
+                      <View key={img.id} style={styles.evidenceThumbWrap}>
+                        <Image source={{ uri: img.uri }} style={styles.evidenceThumb} />
+                        <TouchableOpacity
+                          style={styles.evidenceThumbRemove}
+                          onPress={() => removeEvidenceImage(img.id)}
+                        >
+                          <IconSymbol size={14} name="xmark.circle.fill" color="#dc2626" />
+                        </TouchableOpacity>
+                      </View>
+                    ))}
+                  </View>
+                )}
+                <TouchableOpacity style={styles.attachImageButton} onPress={pickEvidenceImage}>
+                  <IconSymbol size={18} name="photo" color={TEAL} />
+                  <ThemedText style={[styles.attachImageButtonText, getTextDirection()]}>
+                    {formatRTLText('إرفاق صورة')}
+                  </ThemedText>
+                </TouchableOpacity>
               </ThemedView>
             </View>
           </ThemedView>
@@ -1418,6 +1507,30 @@ const styles = StyleSheet.create({
     minHeight: 90,
     textAlignVertical: 'top',
   },
+  evidenceImagesRow: { flexDirection: 'row-reverse', flexWrap: 'wrap', gap: 8, marginTop: 10 },
+  evidenceThumbWrap: { position: 'relative' },
+  evidenceThumb: { width: 64, height: 64, borderRadius: 8, backgroundColor: '#e5e7eb' },
+  evidenceThumbRemove: {
+    position: 'absolute',
+    top: -6,
+    left: -6,
+    backgroundColor: '#fff',
+    borderRadius: 10,
+  },
+  attachImageButton: {
+    flexDirection: 'row-reverse',
+    alignItems: 'center',
+    gap: 6,
+    alignSelf: 'flex-start',
+    marginTop: 10,
+    paddingVertical: 6,
+    paddingHorizontal: 12,
+    borderRadius: 8,
+    borderWidth: 1,
+    borderColor: TEAL,
+    backgroundColor: '#f0fdfa',
+  },
+  attachImageButtonText: { fontSize: 12, fontWeight: '600', color: TEAL },
   savedList: { padding: 12, gap: 8 },
   savedItem: {
     flexDirection: 'row-reverse',
