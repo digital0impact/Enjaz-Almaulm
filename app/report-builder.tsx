@@ -700,6 +700,9 @@ export default function ReportBuilderScreen() {
     .title-banner { background: ${TEAL_DARK}; color: #fff; text-align: center; padding: 10px 16px; border-radius: 10px; font-size: 18px; font-weight: 800; }
     .dot-divider { height: 8px; margin: 6px 0 10px; background-image: radial-gradient(circle, ${TEAL} 2px, transparent 2.2px); background-size: 14px 14px; background-repeat: repeat-x; background-position: center; opacity: 0.55; }
     .subtitle-line { text-align: center; color: #6b7280; font-size: 11px; margin-bottom: 10px; }
+    .info-grid { display: flex; flex-wrap: wrap; gap: 4px 18px; font-size: 11px; color: #374151; }
+    .info-item { width: 46%; }
+    .info-label { font-weight: 700; color: ${TEAL_DARK}; }
     .card { background: #fff; border: 1px solid #e5e7eb; border-radius: 10px; padding: 8px 12px; margin-bottom: 8px; }
     .card-heading { font-size: 12.5px; font-weight: 700; color: ${TEAL_DARK}; margin-bottom: 6px; padding-bottom: 4px; border-bottom: 1px solid #e5e7eb; }
     .card-text { font-size: 11px; line-height: 1.6; color: #374151; }
@@ -741,6 +744,18 @@ export default function ReportBuilderScreen() {
   <div class="title-banner">${escapeHtml(type.docTitle)}</div>
   <div class="dot-divider"></div>
   <div class="subtitle-line">${escapeHtml(data.educationAdministration)} - ${escapeHtml(data.schoolName)}</div>
+
+  <div class="card">
+    <div class="card-heading">بيانات التقرير</div>
+    <div class="info-grid">
+      <div class="info-item"><span class="info-label">اسم المعلم/ة:</span> ${escapeHtml(data.teacherName) || '-'}</div>
+      <div class="info-item"><span class="info-label">الفصل الدراسي:</span> ${escapeHtml(data.semester)}</div>
+      <div class="info-item"><span class="info-label">الصف والتفصيل:</span> ${escapeHtml(data.gradeDetails) || '-'}</div>
+      <div class="info-item"><span class="info-label">الأسبوع:</span> ${escapeHtml(data.week) || '-'}</div>
+      <div class="info-item"><span class="info-label">اسم المجال:</span> ${escapeHtml(data.domain) || '-'}</div>
+      <div class="info-item"><span class="info-label">${escapeHtml(type.programLabel)}:</span> ${escapeHtml(data.program) || '-'}</div>
+    </div>
+  </div>
 
   <div class="card">
     <div class="card-heading">نبذة مختصرة</div>
