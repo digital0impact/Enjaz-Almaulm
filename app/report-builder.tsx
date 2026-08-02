@@ -619,42 +619,47 @@ export default function ReportBuilderScreen() {
   <meta charset="utf-8"/>
   <title>${escapeHtml(type.docTitle)}</title>
   <style>
-    body { font-family: 'Segoe UI', Tahoma, Arial, sans-serif; padding: 20px; color: #1c1f33; background: #fff; }
-    .doc-header-top { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 16px; }
-    .doc-logo { width: 90px; object-fit: contain; }
-    .doc-tag { background: #f0fdfa; border: 1px solid ${TEAL_LIGHT}; border-radius: 10px; padding: 8px 14px; text-align: center; }
-    .doc-tag-title { font-size: 12px; font-weight: 700; color: ${TEAL}; }
-    .doc-tag-sub { font-size: 11px; color: #6b7280; margin-top: 2px; }
-    .title-banner { background: ${TEAL_DARK}; color: #fff; text-align: center; padding: 16px 20px; border-radius: 12px; font-size: 22px; font-weight: 800; }
-    .dot-divider { height: 12px; margin: 10px 0 18px; background-image: radial-gradient(circle, ${TEAL} 2.4px, transparent 2.6px); background-size: 16px 16px; background-repeat: repeat-x; background-position: center; opacity: 0.55; }
-    .subtitle-line { text-align: center; color: #6b7280; font-size: 13px; margin-bottom: 18px; }
-    .card { background: #fff; border: 1px solid #e5e7eb; border-radius: 12px; padding: 14px 16px; margin-bottom: 16px; box-shadow: 0 1px 3px rgba(0,0,0,0.06); }
-    .card-heading { font-size: 15px; font-weight: 700; color: ${TEAL_DARK}; margin-bottom: 10px; padding-bottom: 8px; border-bottom: 1px solid #e5e7eb; }
-    .card-text { font-size: 13px; line-height: 1.9; color: #374151; }
-    .bullet-list { margin: 0; padding-right: 18px; font-size: 13px; line-height: 1.9; color: #374151; }
-    .bullet-list li { margin-bottom: 4px; }
-    .empty-hint { font-size: 12px; color: #9ca3af; }
-    .badges-row { display: flex; flex-wrap: wrap; justify-content: space-around; gap: 12px; }
-    .badge-item { width: 22%; min-width: 90px; text-align: center; }
-    .badge-num { width: 38px; height: 38px; line-height: 38px; border-radius: 19px; background: ${TEAL_DARK}; color: #fff; font-weight: 800; font-size: 15px; margin: 0 auto 6px; }
-    .badge-label { font-size: 12px; color: #374151; }
-    .evidence-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(110px, 1fr)); gap: 10px; }
-    .evidence-card { border: 2px dashed #d1d5db; border-radius: 10px; padding: 10px; text-align: center; background: #f9fafb; }
-    .evidence-icon { font-size: 20px; margin-bottom: 4px; }
-    .evidence-caption { font-size: 11px; font-weight: 700; color: ${TEAL}; margin-bottom: 4px; }
-    .evidence-text { font-size: 11px; color: #6b7280; }
-    .two-col { display: flex; gap: 14px; }
-    .two-col .card { flex: 1; margin-bottom: 0; }
-    .approval-row { display: flex; gap: 14px; margin-bottom: 10px; }
-    .approval-box { flex: 1; border: 1px solid #e5e7eb; border-radius: 10px; padding: 12px; text-align: center; background: #f9fafb; }
-    .approval-label { font-size: 13px; font-weight: 700; color: ${TEAL}; margin-bottom: 6px; }
-    .approval-name { font-size: 13px; color: #1c1f33; margin-bottom: 10px; min-height: 16px; }
-    .approval-sign { font-size: 11px; color: #6b7280; border-top: 1px dashed #d1d5db; padding-top: 8px; }
-    .approval-date { text-align: center; font-size: 12px; color: #374151; }
-    .doc-footer { text-align: center; color: #9ca3af; font-size: 11px; margin-top: 6px; }
+    @page { size: A4; margin: 0; }
+    html, body { margin: 0; padding: 0; background: #e5e7eb; }
+    body { font-family: 'Segoe UI', Tahoma, Arial, sans-serif; color: #1c1f33; }
+    .page { width: 210mm; height: 297mm; margin: 0 auto; overflow: hidden; box-sizing: border-box; padding: 10mm 12mm; background: #fff; }
+    .page-inner { transform-origin: top center; }
+    .doc-header-top { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 10px; }
+    .doc-logo { width: 70px; object-fit: contain; }
+    .doc-tag { background: #f0fdfa; border: 1px solid ${TEAL_LIGHT}; border-radius: 10px; padding: 6px 12px; text-align: center; }
+    .doc-tag-title { font-size: 11px; font-weight: 700; color: ${TEAL}; }
+    .doc-tag-sub { font-size: 10px; color: #6b7280; margin-top: 2px; }
+    .title-banner { background: ${TEAL_DARK}; color: #fff; text-align: center; padding: 10px 16px; border-radius: 10px; font-size: 18px; font-weight: 800; }
+    .dot-divider { height: 8px; margin: 6px 0 10px; background-image: radial-gradient(circle, ${TEAL} 2px, transparent 2.2px); background-size: 14px 14px; background-repeat: repeat-x; background-position: center; opacity: 0.55; }
+    .subtitle-line { text-align: center; color: #6b7280; font-size: 11px; margin-bottom: 10px; }
+    .card { background: #fff; border: 1px solid #e5e7eb; border-radius: 10px; padding: 8px 12px; margin-bottom: 8px; }
+    .card-heading { font-size: 12.5px; font-weight: 700; color: ${TEAL_DARK}; margin-bottom: 6px; padding-bottom: 4px; border-bottom: 1px solid #e5e7eb; }
+    .card-text { font-size: 11px; line-height: 1.6; color: #374151; }
+    .bullet-list { margin: 0; padding-right: 16px; font-size: 11px; line-height: 1.6; color: #374151; }
+    .bullet-list li { margin-bottom: 2px; }
+    .empty-hint { font-size: 10.5px; color: #9ca3af; }
+    .badges-row { display: flex; flex-wrap: wrap; justify-content: space-around; gap: 8px; }
+    .badge-item { width: 22%; min-width: 80px; text-align: center; }
+    .badge-num { width: 28px; height: 28px; line-height: 28px; border-radius: 14px; background: ${TEAL_DARK}; color: #fff; font-weight: 800; font-size: 12px; margin: 0 auto 4px; }
+    .badge-label { font-size: 10.5px; color: #374151; }
+    .evidence-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(100px, 1fr)); gap: 6px; }
+    .evidence-card { border: 2px dashed #d1d5db; border-radius: 8px; padding: 6px; text-align: center; background: #f9fafb; }
+    .evidence-icon { font-size: 15px; margin-bottom: 2px; }
+    .evidence-caption { font-size: 10px; font-weight: 700; color: ${TEAL}; margin-bottom: 2px; }
+    .evidence-text { font-size: 10px; color: #6b7280; }
+    .two-col { display: flex; gap: 8px; }
+    .two-col .card { flex: 1; margin-bottom: 8px; }
+    .approval-row { display: flex; gap: 8px; margin-bottom: 6px; }
+    .approval-box { flex: 1; border: 1px solid #e5e7eb; border-radius: 8px; padding: 8px; text-align: center; background: #f9fafb; }
+    .approval-label { font-size: 11px; font-weight: 700; color: ${TEAL}; margin-bottom: 4px; }
+    .approval-name { font-size: 11px; color: #1c1f33; margin-bottom: 6px; min-height: 14px; }
+    .approval-sign { font-size: 10px; color: #6b7280; border-top: 1px dashed #d1d5db; padding-top: 5px; }
+    .approval-date { text-align: center; font-size: 10.5px; color: #374151; }
+    .doc-footer { text-align: center; color: #9ca3af; font-size: 10px; margin-top: 4px; }
   </style>
 </head>
 <body>
+<div class="page"><div class="page-inner">
   <div class="doc-header-top">
     <div class="doc-tag">
       <div class="doc-tag-title">${escapeHtml(type.chipLabel)}</div>
@@ -740,6 +745,25 @@ export default function ReportBuilderScreen() {
 
   <div class="dot-divider"></div>
   <div class="doc-footer">تقرير أُنشئ عبر تطبيق إنجاز المعلم</div>
+</div></div>
+<script>
+  (function () {
+    function fitToPage() {
+      var page = document.querySelector('.page');
+      var inner = document.querySelector('.page-inner');
+      if (!page || !inner) return;
+      inner.style.transform = 'none';
+      var pageHeight = page.clientHeight;
+      var contentHeight = inner.scrollHeight;
+      if (contentHeight > pageHeight && pageHeight > 0) {
+        var scale = pageHeight / contentHeight;
+        inner.style.transform = 'scale(' + scale + ')';
+      }
+    }
+    if (document.readyState === 'complete') fitToPage();
+    else window.addEventListener('load', fitToPage);
+  })();
+</script>
 </body>
 </html>`;
   };
