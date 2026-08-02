@@ -29,42 +29,190 @@ const TEAL = '#0d9488';
 const TEAL_LIGHT = '#14b8a6';
 const GREEN = '#059669';
 
-const GOAL_OPTIONS = [
-  'تنمية المهارات الاجتماعية',
-  'تعزيز القيم الإسلامية والوطنية',
-  'تعزيز التفكير الناقد والإبداع',
-  'تعزيز روح التعاون والعمل الجماعي',
-  'ترسيخ وتعزيز الصحة النفسية',
-];
-const MEANS_OPTIONS = [
-  'عرض شرائح / بوربوينت',
-  'فيديو تعليمي / توعوي',
-  'أوراق عمل',
-  'أنشطة عملية / تجارب',
-  'حوار ومناقشة جماعية',
-  'ملصقات أو مطويات',
-  'مسابقات وألعاب تعليمية',
-];
-const RESULTS_OPTIONS = [
-  'تفاعل الطالب/ة مع النشاط',
-  'تحقيق الهدف التعليمي المحدد',
-  'زيادة دافعية الطالب/ة',
-  'تنمية مهارة جديدة',
-  'مشاركة جماعية فعالة',
-];
-const CHALLENGES_OPTIONS = [
-  'ضيق الوقت',
-  'ضعف مشاركة بعض الطلاب/الطالبات',
-  'نقص الوسائل التعليمية',
-  'مشاكل تقنية (جهاز - عرض - صوت)',
-];
-const SUGGESTIONS_OPTIONS = [
-  'توفير دعم مادي (أجهزة/تجهيزات)',
-  'تكرار النشاط في مناسبات أخرى',
-  'تنويع طرق التنفيذ',
+type ReportTypeId = 'activity' | 'lesson' | 'initiative' | 'custom';
+
+type ReportTypeConfig = {
+  id: ReportTypeId;
+  chipLabel: string;
+  chipIcon: 'star.fill' | 'book.fill' | 'lightbulb.fill' | 'pencil';
+  docTitle: string;
+  programLabel: string;
+  programPlaceholder: string;
+  goalsTitle: string;
+  meansTitle: string;
+  resultsTitle: string;
+  leaderLabel: string;
+  leaderPlaceholder: string;
+  goals: string[];
+  means: string[];
+  results: string[];
+  challenges: string[];
+  suggestions: string[];
+};
+
+const REPORT_TYPES: ReportTypeConfig[] = [
+  {
+    id: 'activity',
+    chipLabel: 'نشاط صفي',
+    chipIcon: 'star.fill',
+    docTitle: 'تقرير تنفيذ برامج النشاط الصفي',
+    programLabel: 'البرنامج',
+    programPlaceholder: 'اسم البرنامج',
+    goalsTitle: 'الهدف من النشاط',
+    meansTitle: 'الوسائل المستخدمة',
+    resultsTitle: 'النتائج المتحققة',
+    leaderLabel: 'رائدة النشاط',
+    leaderPlaceholder: 'اسم رائدة النشاط',
+    goals: [
+      'تنمية المهارات الاجتماعية',
+      'تعزيز القيم الإسلامية والوطنية',
+      'تعزيز التفكير الناقد والإبداع',
+      'تعزيز روح التعاون والعمل الجماعي',
+      'ترسيخ وتعزيز الصحة النفسية',
+    ],
+    means: [
+      'عرض شرائح / بوربوينت',
+      'فيديو تعليمي / توعوي',
+      'أوراق عمل',
+      'أنشطة عملية / تجارب',
+      'حوار ومناقشة جماعية',
+      'ملصقات أو مطويات',
+      'مسابقات وألعاب تعليمية',
+    ],
+    results: [
+      'تفاعل الطالب/ة مع النشاط',
+      'تحقيق الهدف التعليمي المحدد',
+      'زيادة دافعية الطالب/ة',
+      'تنمية مهارة جديدة',
+      'مشاركة جماعية فعالة',
+    ],
+    challenges: [
+      'ضيق الوقت',
+      'ضعف مشاركة بعض الطلاب/الطالبات',
+      'نقص الوسائل التعليمية',
+      'مشاكل تقنية (جهاز - عرض - صوت)',
+    ],
+    suggestions: [
+      'توفير دعم مادي (أجهزة/تجهيزات)',
+      'تكرار النشاط في مناسبات أخرى',
+      'تنويع طرق التنفيذ',
+    ],
+  },
+  {
+    id: 'lesson',
+    chipLabel: 'درس',
+    chipIcon: 'book.fill',
+    docTitle: 'تقرير تنفيذ درس',
+    programLabel: 'الدرس',
+    programPlaceholder: 'اسم الدرس / الموضوع',
+    goalsTitle: 'الهدف من الدرس',
+    meansTitle: 'استراتيجيات وأساليب التدريس',
+    resultsTitle: 'نواتج التعلم المتحققة',
+    leaderLabel: 'معلم/ة المادة',
+    leaderPlaceholder: 'اسم المعلم/ة',
+    goals: [
+      'تحقيق نواتج التعلم المستهدفة',
+      'تنمية مهارات التفكير العليا',
+      'ربط الدرس بالواقع والحياة',
+      'تعزيز المشاركة والتفاعل الصفي',
+      'معالجة الفروق الفردية بين المتعلمين',
+    ],
+    means: [
+      'الحوار والمناقشة',
+      'التعلم التعاوني',
+      'العصف الذهني',
+      'الاستقصاء وحل المشكلات',
+      'الوسائل التقنية (عروض/فيديو)',
+      'أوراق عمل وتقويم تكويني',
+    ],
+    results: [
+      'تحقيق أهداف الدرس',
+      'تفاعل إيجابي من المتعلمين',
+      'إتقان أغلب المتعلمين للمهارة',
+      'تنويع أساليب التقويم',
+    ],
+    challenges: [
+      'ضيق الوقت المخصص للحصة',
+      'تفاوت المستويات بين المتعلمين',
+      'نقص الوسائل التعليمية',
+      'ضعف تفاعل بعض المتعلمين',
+    ],
+    suggestions: [
+      'تنويع استراتيجيات التقويم',
+      'تخصيص وقت لمعالجة الفروق الفردية',
+      'توظيف تقنيات تفاعلية إضافية',
+    ],
+  },
+  {
+    id: 'initiative',
+    chipLabel: 'مبادرة',
+    chipIcon: 'lightbulb.fill',
+    docTitle: 'تقرير تنفيذ مبادرة',
+    programLabel: 'المبادرة',
+    programPlaceholder: 'اسم المبادرة',
+    goalsTitle: 'أهداف المبادرة',
+    meansTitle: 'آليات وشركاء التنفيذ',
+    resultsTitle: 'الأثر والنتائج المتحققة',
+    leaderLabel: 'قائد/ة المبادرة',
+    leaderPlaceholder: 'اسم قائد/ة المبادرة',
+    goals: [
+      'خدمة المجتمع المدرسي',
+      'تعزيز الشراكة المجتمعية',
+      'الاستجابة لاحتياج فعلي محدد',
+      'تنمية مهارة أو قيمة مستهدفة',
+    ],
+    means: [
+      'تشكيل فريق عمل/متطوعين',
+      'شراكة مع جهة داخل/خارج المدرسة',
+      'حملات توعوية',
+      'مواد وأدوات داعمة',
+    ],
+    results: [
+      'تحقيق أثر ملموس على الفئة المستفيدة',
+      'مشاركة واسعة من المستفيدين',
+      'رضا الشركاء والمستفيدين',
+      'استدامة قابلة للتكرار',
+    ],
+    challenges: [
+      'محدودية الموارد المتاحة',
+      'ضعف تفاعل بعض المستفيدين',
+      'صعوبة التنسيق مع الشركاء',
+      'ضيق الوقت لتنفيذ جميع المراحل',
+    ],
+    suggestions: [
+      'تكرار المبادرة في مناسبات أخرى',
+      'توسيع نطاق المستفيدين',
+      'تعزيز الشراكات الداعمة',
+      'توثيق الأثر بمؤشرات قياس واضحة',
+    ],
+  },
+  {
+    id: 'custom',
+    chipLabel: 'تقرير مخصص',
+    chipIcon: 'pencil',
+    docTitle: 'تقرير عام',
+    programLabel: 'عنوان التقرير',
+    programPlaceholder: 'اكتب عنوان التقرير',
+    goalsTitle: 'الهدف',
+    meansTitle: 'الوسائل / الإجراءات',
+    resultsTitle: 'النتائج المتحققة',
+    leaderLabel: 'المسؤول عن التنفيذ',
+    leaderPlaceholder: 'الاسم',
+    goals: [],
+    means: [],
+    results: [],
+    challenges: [],
+    suggestions: [],
+  },
 ];
 
+const getReportType = (id: ReportTypeId | undefined): ReportTypeConfig =>
+  REPORT_TYPES.find((t) => t.id === id) ?? REPORT_TYPES[0];
+
+type ChecklistField = 'goals' | 'means' | 'results' | 'challenges' | 'suggestions';
+
 type ReportForm = {
+  reportType: ReportTypeId;
   schoolName: string;
   educationAdministration: string;
   teacherName: string;
@@ -93,6 +241,7 @@ type ReportForm = {
 type SavedReport = ReportForm & { id: string; savedAt: string };
 
 const EMPTY_FORM: ReportForm = {
+  reportType: 'activity',
   schoolName: '',
   educationAdministration: '',
   teacherName: '',
@@ -131,6 +280,91 @@ const escapeHtml = (s: string) =>
     .replace(/>/g, '&gt;')
     .replace(/"/g, '&quot;');
 
+/** مجموعة بنود قابلة للاختيار: قائمة جاهزة (checkboxes) للأنواع المعرّفة، أو قائمة حرة (إضافة/حذف) لنوع "تقرير مخصص" */
+function ChecklistGroup({
+  title,
+  options,
+  selected,
+  onToggle,
+  otherValue,
+  onOtherChange,
+  onAddCustom,
+  onRemoveCustom,
+}: {
+  title: string;
+  options: string[];
+  selected: string[];
+  onToggle: (value: string) => void;
+  otherValue: string;
+  onOtherChange: (value: string) => void;
+  onAddCustom: (value: string) => void;
+  onRemoveCustom: (value: string) => void;
+}) {
+  const [draft, setDraft] = useState('');
+  const isCustom = options.length === 0;
+
+  if (isCustom) {
+    const submitDraft = () => {
+      const v = draft.trim();
+      if (!v) return;
+      onAddCustom(v);
+      setDraft('');
+    };
+    return (
+      <ThemedView style={styles.groupCard}>
+        <ThemedText style={[styles.groupTitle, getTextDirection()]}>{formatRTLText(title)}</ThemedText>
+        {selected.map((item) => (
+          <View key={item} style={styles.customItemRow}>
+            <TouchableOpacity onPress={() => onRemoveCustom(item)} style={styles.customRemoveButton}>
+              <IconSymbol size={16} name="xmark.circle.fill" color="#dc2626" />
+            </TouchableOpacity>
+            <ThemedText style={[styles.checkboxLabel, getTextDirection(), { flex: 1 }]}>{formatRTLText(item)}</ThemedText>
+          </View>
+        ))}
+        <View style={styles.customAddRow}>
+          <TouchableOpacity style={styles.customAddButton} onPress={submitDraft}>
+            <IconSymbol size={20} name="plus.circle.fill" color={TEAL} />
+          </TouchableOpacity>
+          <TextInput
+            style={[styles.otherInput, getTextDirection(), styles.customAddInput]}
+            value={draft}
+            onChangeText={setDraft}
+            placeholder={formatRTLText('إضافة بند...')}
+            placeholderTextColor="#999"
+            onSubmitEditing={submitDraft}
+          />
+        </View>
+      </ThemedView>
+    );
+  }
+
+  return (
+    <ThemedView style={styles.groupCard}>
+      <ThemedText style={[styles.groupTitle, getTextDirection()]}>{formatRTLText(title)}</ThemedText>
+      {options.map((option) => {
+        const checked = selected.includes(option);
+        return (
+          <TouchableOpacity key={option} style={styles.checkboxRow} onPress={() => onToggle(option)} activeOpacity={0.7}>
+            <IconSymbol
+              size={20}
+              name={checked ? 'checkmark.square.fill' : 'square'}
+              color={checked ? TEAL : '#9ca3af'}
+            />
+            <ThemedText style={[styles.checkboxLabel, getTextDirection()]}>{formatRTLText(option)}</ThemedText>
+          </TouchableOpacity>
+        );
+      })}
+      <TextInput
+        style={[styles.otherInput, getTextDirection()]}
+        value={otherValue}
+        onChangeText={onOtherChange}
+        placeholder={formatRTLText('تحرير (أخرى)...')}
+        placeholderTextColor="#999"
+      />
+    </ThemedView>
+  );
+}
+
 export default function ReportBuilderScreen() {
   const router = useRouter();
   const [form, setForm] = useState<ReportForm>(EMPTY_FORM);
@@ -139,6 +373,8 @@ export default function ReportBuilderScreen() {
   const [isExporting, setIsExporting] = useState(false);
   const [exportingId, setExportingId] = useState<string | null>(null);
   const [wordDownload, setWordDownload] = useState<{ url: string; name: string } | null>(null);
+
+  const activeType = getReportType(form.reportType);
 
   useEffect(() => {
     loadInitialData();
@@ -164,7 +400,10 @@ export default function ReportBuilderScreen() {
       }
       setForm(nextForm);
 
-      if (reports) setSavedReports(JSON.parse(reports));
+      if (reports) {
+        const parsedReports: SavedReport[] = JSON.parse(reports);
+        setSavedReports(parsedReports.map((r) => ({ ...r, reportType: r.reportType ?? 'activity' })));
+      }
     } catch (e) {
       console.log('Error loading report builder data:', e);
     }
@@ -189,6 +428,14 @@ export default function ReportBuilderScreen() {
     });
   };
 
+  const addCustomItem = (field: ChecklistField, value: string) => {
+    setForm((prev) => (prev[field].includes(value) ? prev : { ...prev, [field]: [...prev[field], value] }));
+  };
+
+  const removeCustomItem = (field: ChecklistField, value: string) => {
+    setForm((prev) => ({ ...prev, [field]: prev[field].filter((v) => v !== value) }));
+  };
+
   const showAlert = (
     title: string,
     message: string,
@@ -211,6 +458,7 @@ export default function ReportBuilderScreen() {
   const resetForm = () => {
     setForm((prev) => ({
       ...EMPTY_FORM,
+      reportType: prev.reportType,
       schoolName: prev.schoolName,
       educationAdministration: prev.educationAdministration,
       teacherName: prev.teacherName,
@@ -231,7 +479,7 @@ export default function ReportBuilderScreen() {
 
   const handleSaveReport = async () => {
     if (!form.program.trim() && !form.domain.trim()) {
-      showAlert(formatRTLText('بيانات ناقصة'), formatRTLText('يرجى إدخال اسم المجال أو البرنامج قبل الحفظ.'));
+      showAlert(formatRTLText('بيانات ناقصة'), formatRTLText('يرجى إدخال عنوان التقرير أو اسم المجال قبل الحفظ.'));
       return;
     }
     try {
@@ -253,7 +501,7 @@ export default function ReportBuilderScreen() {
 
   const loadReportIntoForm = (report: SavedReport) => {
     const { id, savedAt, ...rest } = report;
-    setForm(rest);
+    setForm({ ...rest, reportType: rest.reportType ?? 'activity' });
     setEditingId(id);
   };
 
@@ -306,14 +554,20 @@ export default function ReportBuilderScreen() {
   const checkboxLine = (checked: boolean, label: string) =>
     `<div class="check-line">${checked ? '☑' : '☐'} ${escapeHtml(label)}</div>`;
 
+  const renderChecklistHtml = (type: ReportTypeConfig, presets: string[], selected: string[], other: string) =>
+    presets.length > 0
+      ? presets.map((o) => checkboxLine(selected.includes(o), o)).join('') + (other ? checkboxLine(true, other) : '')
+      : selected.map((o) => checkboxLine(true, o)).join('');
+
   const generateReportHtml = (data: ReportForm): string => {
+    const type = getReportType(data.reportType);
     const tableBorder = '1px solid #e5e7eb';
     return `
 <!DOCTYPE html>
 <html dir="rtl" lang="ar">
 <head>
   <meta charset="utf-8"/>
-  <title>تقرير تنفيذ برامج النشاط الصفي</title>
+  <title>${escapeHtml(type.docTitle)}</title>
   <style>
     body { font-family: 'Segoe UI', Tahoma, Arial, sans-serif; padding: 20px; color: #1c1f33; }
     h1 { color: #1c1f33; font-size: 20px; margin-bottom: 4px; text-align: center; }
@@ -338,7 +592,7 @@ export default function ReportBuilderScreen() {
   </style>
 </head>
 <body>
-  <h1>تقرير تنفيذ برامج النشاط الصفي</h1>
+  <h1>${escapeHtml(type.docTitle)}</h1>
   <div class="subtitle">${escapeHtml(data.educationAdministration)} - ${escapeHtml(data.schoolName)}</div>
 
   <div class="section">
@@ -353,7 +607,7 @@ export default function ReportBuilderScreen() {
     </div>
     <div class="form-row">
       <div class="field"><div class="field-label">اسم المجال</div><div class="field-value">${escapeHtml(data.domain)}</div></div>
-      <div class="field"><div class="field-label">البرنامج</div><div class="field-value">${escapeHtml(data.program)}</div></div>
+      <div class="field"><div class="field-label">${escapeHtml(type.programLabel)}</div><div class="field-value">${escapeHtml(data.program)}</div></div>
     </div>
   </div>
 
@@ -361,19 +615,16 @@ export default function ReportBuilderScreen() {
     <div class="section-header">تفاصيل التنفيذ</div>
     <div class="cols3">
       <div class="col">
-        <div class="col-title">الهدف من النشاط</div>
-        ${GOAL_OPTIONS.map((o) => checkboxLine(data.goals.includes(o), o)).join('')}
-        ${data.goalsOther ? checkboxLine(true, data.goalsOther) : ''}
+        <div class="col-title">${escapeHtml(type.goalsTitle)}</div>
+        ${renderChecklistHtml(type, type.goals, data.goals, data.goalsOther)}
       </div>
       <div class="col">
-        <div class="col-title">الوسائل المستخدمة</div>
-        ${MEANS_OPTIONS.map((o) => checkboxLine(data.means.includes(o), o)).join('')}
-        ${data.meansOther ? checkboxLine(true, data.meansOther) : ''}
+        <div class="col-title">${escapeHtml(type.meansTitle)}</div>
+        ${renderChecklistHtml(type, type.means, data.means, data.meansOther)}
       </div>
       <div class="col">
-        <div class="col-title">النتائج المتحققة</div>
-        ${RESULTS_OPTIONS.map((o) => checkboxLine(data.results.includes(o), o)).join('')}
-        ${data.resultsOther ? checkboxLine(true, data.resultsOther) : ''}
+        <div class="col-title">${escapeHtml(type.resultsTitle)}</div>
+        ${renderChecklistHtml(type, type.results, data.results, data.resultsOther)}
       </div>
     </div>
   </div>
@@ -389,13 +640,11 @@ export default function ReportBuilderScreen() {
     <div class="cols3">
       <div class="col">
         <div class="col-title">التحديات والمعوقات (إن وجدت)</div>
-        ${CHALLENGES_OPTIONS.map((o) => checkboxLine(data.challenges.includes(o), o)).join('')}
-        ${data.challengesOther ? checkboxLine(true, data.challengesOther) : ''}
+        ${renderChecklistHtml(type, type.challenges, data.challenges, data.challengesOther)}
       </div>
       <div class="col">
         <div class="col-title">المقترحات والتوصيات</div>
-        ${SUGGESTIONS_OPTIONS.map((o) => checkboxLine(data.suggestions.includes(o), o)).join('')}
-        ${data.suggestionsOther ? checkboxLine(true, data.suggestionsOther) : ''}
+        ${renderChecklistHtml(type, type.suggestions, data.suggestions, data.suggestionsOther)}
       </div>
       <div class="col">
         <div class="col-title">الشواهد</div>
@@ -409,7 +658,7 @@ export default function ReportBuilderScreen() {
     <table class="signoff">
       <tr>
         <th>تاريخ التنفيذ</th>
-        <th>رائدة النشاط</th>
+        <th>${escapeHtml(type.leaderLabel)}</th>
         <th>مديرة المدرسة</th>
       </tr>
       <tr>
@@ -429,6 +678,8 @@ export default function ReportBuilderScreen() {
     if (idForState) setExportingId(idForState);
     else setIsExporting(true);
     try {
+      const type = getReportType(data.reportType);
+      const fileBase = type.docTitle.replace(/\s+/g, '_');
       const htmlContent = generateReportHtml(data);
       if (Platform.OS === 'web') {
         if (typeof window === 'undefined' || typeof document === 'undefined') {
@@ -469,7 +720,7 @@ export default function ReportBuilderScreen() {
       if (Platform.OS === 'ios') {
         await Sharing.shareAsync(uri, { UTI: '.pdf', mimeType: 'application/pdf' });
       } else {
-        const pdfName = `تقرير_نشاط_صفي_${new Date().toISOString().split('T')[0]}.pdf`;
+        const pdfName = `${fileBase}_${new Date().toISOString().split('T')[0]}.pdf`;
         const dest = `${FileSystem.documentDirectory}${pdfName}`;
         await FileSystem.moveAsync({ from: uri, to: dest });
         await Sharing.shareAsync(dest, { mimeType: 'application/pdf', dialogTitle: formatRTLText('تصدير التقرير PDF') });
@@ -489,8 +740,10 @@ export default function ReportBuilderScreen() {
     if (!canExport) return;
     setIsExporting(true);
     try {
+      const type = getReportType(data.reportType);
+      const fileBase = type.docTitle.replace(/\s+/g, '_');
       const htmlContent = generateReportHtml(data);
-      const fileName = `تقرير_نشاط_صفي_${new Date().toISOString().split('T')[0]}.doc`;
+      const fileName = `${fileBase}_${new Date().toISOString().split('T')[0]}.doc`;
       if (Platform.OS === 'web') {
         if (typeof window === 'undefined' || typeof document === 'undefined') {
           showAlert(formatRTLText('تنبيه'), formatRTLText('تصدير Word غير متاح في هذا السياق.'));
@@ -525,39 +778,6 @@ export default function ReportBuilderScreen() {
     }
   };
 
-  const renderCheckboxGroup = (
-    title: string,
-    options: string[],
-    selected: string[],
-    onToggle: (value: string) => void,
-    otherValue: string,
-    onOtherChange: (value: string) => void
-  ) => (
-    <ThemedView style={styles.groupCard}>
-      <ThemedText style={[styles.groupTitle, getTextDirection()]}>{formatRTLText(title)}</ThemedText>
-      {options.map((option) => {
-        const checked = selected.includes(option);
-        return (
-          <TouchableOpacity key={option} style={styles.checkboxRow} onPress={() => onToggle(option)} activeOpacity={0.7}>
-            <IconSymbol
-              size={20}
-              name={checked ? 'checkmark.square.fill' : 'square'}
-              color={checked ? TEAL : '#9ca3af'}
-            />
-            <ThemedText style={[styles.checkboxLabel, getTextDirection()]}>{formatRTLText(option)}</ThemedText>
-          </TouchableOpacity>
-        );
-      })}
-      <TextInput
-        style={[styles.otherInput, getTextDirection()]}
-        value={otherValue}
-        onChangeText={onOtherChange}
-        placeholder={formatRTLText('تحرير (أخرى)...')}
-        placeholderTextColor="#999"
-      />
-    </ThemedView>
-  );
-
   return (
     <ThemedView style={styles.container}>
       <ImageBackground source={require('@/assets/images/background.png')} style={styles.backgroundImage} resizeMode="cover">
@@ -573,8 +793,32 @@ export default function ReportBuilderScreen() {
               </ThemedText>
             </ThemedView>
             <ThemedText style={[styles.headerSubtitle, getTextDirection()]}>
-              {formatRTLText('تقرير تنفيذ برامج النشاط الصفي')}
+              {formatRTLText(activeType.docTitle)}
             </ThemedText>
+          </ThemedView>
+
+          <ThemedView style={styles.section}>
+            <ThemedView style={styles.sectionHeader}>
+              <ThemedText style={[styles.sectionTitle, getTextDirection()]}>{formatRTLText('نوع التقرير')}</ThemedText>
+            </ThemedView>
+            <View style={styles.typeChipsRow}>
+              {REPORT_TYPES.map((t) => {
+                const active = form.reportType === t.id;
+                return (
+                  <TouchableOpacity
+                    key={t.id}
+                    style={[styles.typeChip, active && styles.typeChipActive]}
+                    onPress={() => updateField('reportType', t.id)}
+                    activeOpacity={0.7}
+                  >
+                    <IconSymbol size={16} name={t.chipIcon} color={active ? '#fff' : TEAL} />
+                    <ThemedText style={[styles.typeChipText, active && styles.typeChipTextActive]}>
+                      {formatRTLText(t.chipLabel)}
+                    </ThemedText>
+                  </TouchableOpacity>
+                );
+              })}
+            </View>
           </ThemedView>
 
           {savedReports.length > 0 && (
@@ -585,30 +829,38 @@ export default function ReportBuilderScreen() {
                 </ThemedText>
               </ThemedView>
               <View style={styles.savedList}>
-                {savedReports.map((report) => (
-                  <View key={report.id} style={[styles.savedItem, editingId === report.id && styles.savedItemActive]}>
-                    <TouchableOpacity style={styles.savedItemInfo} onPress={() => loadReportIntoForm(report)} activeOpacity={0.7}>
-                      <ThemedText style={[styles.savedItemTitle, getTextDirection()]}>
-                        {formatRTLText(report.program || report.domain || 'تقرير بدون عنوان')}
-                      </ThemedText>
-                      <ThemedText style={[styles.savedItemMeta, getTextDirection()]}>
-                        {formatRTLText(`الأسبوع: ${report.week || '-'} | ${new Date(report.savedAt).toLocaleDateString('ar-SA')}`)}
-                      </ThemedText>
-                    </TouchableOpacity>
-                    <View style={styles.savedItemActions}>
-                      <TouchableOpacity style={styles.savedIconButton} onPress={() => exportPDF(report, report.id)} disabled={exportingId === report.id}>
-                        {exportingId === report.id ? (
-                          <ActivityIndicator size="small" color={TEAL} />
-                        ) : (
-                          <IconSymbol size={18} name="doc.pdf" color={TEAL} />
-                        )}
+                {savedReports.map((report) => {
+                  const reportTypeConfig = getReportType(report.reportType);
+                  return (
+                    <View key={report.id} style={[styles.savedItem, editingId === report.id && styles.savedItemActive]}>
+                      <TouchableOpacity style={styles.savedItemInfo} onPress={() => loadReportIntoForm(report)} activeOpacity={0.7}>
+                        <View style={styles.savedItemTitleRow}>
+                          <IconSymbol size={14} name={reportTypeConfig.chipIcon} color={TEAL} />
+                          <ThemedText style={[styles.savedItemTitle, getTextDirection()]}>
+                            {formatRTLText(report.program || report.domain || 'تقرير بدون عنوان')}
+                          </ThemedText>
+                        </View>
+                        <ThemedText style={[styles.savedItemMeta, getTextDirection()]}>
+                          {formatRTLText(
+                            `${reportTypeConfig.chipLabel} | الأسبوع: ${report.week || '-'} | ${new Date(report.savedAt).toLocaleDateString('ar-SA')}`
+                          )}
+                        </ThemedText>
                       </TouchableOpacity>
-                      <TouchableOpacity style={styles.savedIconButton} onPress={() => deleteReport(report.id)}>
-                        <IconSymbol size={18} name="trash.fill" color="#dc2626" />
-                      </TouchableOpacity>
+                      <View style={styles.savedItemActions}>
+                        <TouchableOpacity style={styles.savedIconButton} onPress={() => exportPDF(report, report.id)} disabled={exportingId === report.id}>
+                          {exportingId === report.id ? (
+                            <ActivityIndicator size="small" color={TEAL} />
+                          ) : (
+                            <IconSymbol size={18} name="doc.pdf" color={TEAL} />
+                          )}
+                        </TouchableOpacity>
+                        <TouchableOpacity style={styles.savedIconButton} onPress={() => deleteReport(report.id)}>
+                          <IconSymbol size={18} name="trash.fill" color="#dc2626" />
+                        </TouchableOpacity>
+                      </View>
                     </View>
-                  </View>
-                ))}
+                  );
+                })}
               </View>
             </ThemedView>
           )}
@@ -707,12 +959,12 @@ export default function ReportBuilderScreen() {
                 />
               </ThemedView>
               <ThemedView style={styles.fieldBlock}>
-                <ThemedText style={[styles.label, getTextDirection()]}>البرنامج</ThemedText>
+                <ThemedText style={[styles.label, getTextDirection()]}>{formatRTLText(activeType.programLabel)}</ThemedText>
                 <TextInput
                   style={[styles.input, getTextDirection()]}
                   value={form.program}
                   onChangeText={(v) => updateField('program', v)}
-                  placeholder={formatRTLText('اسم البرنامج')}
+                  placeholder={formatRTLText(activeType.programPlaceholder)}
                   placeholderTextColor="#999"
                 />
               </ThemedView>
@@ -724,30 +976,36 @@ export default function ReportBuilderScreen() {
               <ThemedText style={[styles.sectionTitle, getTextDirection()]}>{formatRTLText('تفاصيل التنفيذ')}</ThemedText>
             </ThemedView>
             <View style={styles.groupsWrap}>
-              {renderCheckboxGroup(
-                'الهدف من النشاط',
-                GOAL_OPTIONS,
-                form.goals,
-                (v) => updateField('goals', toggleValue(form.goals, v)),
-                form.goalsOther,
-                (v) => updateField('goalsOther', v)
-              )}
-              {renderCheckboxGroup(
-                'الوسائل المستخدمة',
-                MEANS_OPTIONS,
-                form.means,
-                (v) => updateField('means', toggleValue(form.means, v)),
-                form.meansOther,
-                (v) => updateField('meansOther', v)
-              )}
-              {renderCheckboxGroup(
-                'النتائج المتحققة',
-                RESULTS_OPTIONS,
-                form.results,
-                (v) => updateField('results', toggleValue(form.results, v)),
-                form.resultsOther,
-                (v) => updateField('resultsOther', v)
-              )}
+              <ChecklistGroup
+                title={activeType.goalsTitle}
+                options={activeType.goals}
+                selected={form.goals}
+                onToggle={(v) => updateField('goals', toggleValue(form.goals, v))}
+                otherValue={form.goalsOther}
+                onOtherChange={(v) => updateField('goalsOther', v)}
+                onAddCustom={(v) => addCustomItem('goals', v)}
+                onRemoveCustom={(v) => removeCustomItem('goals', v)}
+              />
+              <ChecklistGroup
+                title={activeType.meansTitle}
+                options={activeType.means}
+                selected={form.means}
+                onToggle={(v) => updateField('means', toggleValue(form.means, v))}
+                otherValue={form.meansOther}
+                onOtherChange={(v) => updateField('meansOther', v)}
+                onAddCustom={(v) => addCustomItem('means', v)}
+                onRemoveCustom={(v) => removeCustomItem('means', v)}
+              />
+              <ChecklistGroup
+                title={activeType.resultsTitle}
+                options={activeType.results}
+                selected={form.results}
+                onToggle={(v) => updateField('results', toggleValue(form.results, v))}
+                otherValue={form.resultsOther}
+                onOtherChange={(v) => updateField('resultsOther', v)}
+                onAddCustom={(v) => addCustomItem('results', v)}
+                onRemoveCustom={(v) => removeCustomItem('results', v)}
+              />
             </View>
           </ThemedView>
 
@@ -780,22 +1038,26 @@ export default function ReportBuilderScreen() {
               </ThemedText>
             </ThemedView>
             <View style={styles.groupsWrap}>
-              {renderCheckboxGroup(
-                'التحديات والمعوقات (إن وجدت)',
-                CHALLENGES_OPTIONS,
-                form.challenges,
-                (v) => updateField('challenges', toggleValue(form.challenges, v)),
-                form.challengesOther,
-                (v) => updateField('challengesOther', v)
-              )}
-              {renderCheckboxGroup(
-                'المقترحات والتوصيات',
-                SUGGESTIONS_OPTIONS,
-                form.suggestions,
-                (v) => updateField('suggestions', toggleValue(form.suggestions, v)),
-                form.suggestionsOther,
-                (v) => updateField('suggestionsOther', v)
-              )}
+              <ChecklistGroup
+                title="التحديات والمعوقات (إن وجدت)"
+                options={activeType.challenges}
+                selected={form.challenges}
+                onToggle={(v) => updateField('challenges', toggleValue(form.challenges, v))}
+                otherValue={form.challengesOther}
+                onOtherChange={(v) => updateField('challengesOther', v)}
+                onAddCustom={(v) => addCustomItem('challenges', v)}
+                onRemoveCustom={(v) => removeCustomItem('challenges', v)}
+              />
+              <ChecklistGroup
+                title="المقترحات والتوصيات"
+                options={activeType.suggestions}
+                selected={form.suggestions}
+                onToggle={(v) => updateField('suggestions', toggleValue(form.suggestions, v))}
+                otherValue={form.suggestionsOther}
+                onOtherChange={(v) => updateField('suggestionsOther', v)}
+                onAddCustom={(v) => addCustomItem('suggestions', v)}
+                onRemoveCustom={(v) => removeCustomItem('suggestions', v)}
+              />
               <ThemedView style={styles.groupCard}>
                 <ThemedText style={[styles.groupTitle, getTextDirection()]}>{formatRTLText('الشواهد')}</ThemedText>
                 <TextInput
@@ -828,12 +1090,12 @@ export default function ReportBuilderScreen() {
             </ThemedView>
             <ThemedView style={styles.formRow}>
               <ThemedView style={styles.fieldBlock}>
-                <ThemedText style={[styles.label, getTextDirection()]}>رائدة النشاط</ThemedText>
+                <ThemedText style={[styles.label, getTextDirection()]}>{formatRTLText(activeType.leaderLabel)}</ThemedText>
                 <TextInput
                   style={[styles.input, getTextDirection()]}
                   value={form.activityLeaderName}
                   onChangeText={(v) => updateField('activityLeaderName', v)}
-                  placeholder={formatRTLText('اسم رائدة النشاط')}
+                  placeholder={formatRTLText(activeType.leaderPlaceholder)}
                   placeholderTextColor="#999"
                 />
               </ThemedView>
@@ -965,6 +1227,21 @@ const styles = StyleSheet.create({
   },
   sectionHeader: { backgroundColor: TEAL, paddingVertical: 12, paddingHorizontal: 16 },
   sectionTitle: { fontSize: 16, fontWeight: '700', color: '#fff' },
+  typeChipsRow: { flexDirection: 'row-reverse', flexWrap: 'wrap', gap: 10, padding: 12 },
+  typeChip: {
+    flexDirection: 'row-reverse',
+    alignItems: 'center',
+    gap: 6,
+    borderWidth: 1,
+    borderColor: TEAL,
+    borderRadius: 20,
+    paddingVertical: 8,
+    paddingHorizontal: 14,
+    backgroundColor: '#fff',
+  },
+  typeChipActive: { backgroundColor: TEAL },
+  typeChipText: { fontSize: 13, fontWeight: '600', color: TEAL },
+  typeChipTextActive: { color: '#fff' },
   formRow: { flexDirection: 'row-reverse', flexWrap: 'wrap', padding: 12, gap: 12 },
   fieldBlock: { flex: 1, minWidth: 140 },
   label: { fontSize: 13, fontWeight: '600', color: '#374151', marginBottom: 4 },
@@ -1004,6 +1281,11 @@ const styles = StyleSheet.create({
     backgroundColor: '#fff',
     marginTop: 4,
   },
+  customItemRow: { flexDirection: 'row-reverse', alignItems: 'center', gap: 8, marginBottom: 8 },
+  customRemoveButton: { padding: 2 },
+  customAddRow: { flexDirection: 'row-reverse', alignItems: 'center', gap: 8, marginTop: 4 },
+  customAddButton: { padding: 4 },
+  customAddInput: { flex: 1, marginTop: 0 },
   stepsWrap: { padding: 12, gap: 10 },
   stepRow: { flexDirection: 'row-reverse', alignItems: 'center', gap: 10, marginBottom: 8 },
   stepNumber: {
@@ -1054,6 +1336,7 @@ const styles = StyleSheet.create({
   },
   savedItemActive: { borderColor: TEAL, backgroundColor: '#f0fdfa' },
   savedItemInfo: { flex: 1 },
+  savedItemTitleRow: { flexDirection: 'row-reverse', alignItems: 'center', gap: 6 },
   savedItemTitle: { fontSize: 14, fontWeight: '700', color: '#1c1f33' },
   savedItemMeta: { fontSize: 12, color: '#6b7280', marginTop: 2 },
   savedItemActions: { flexDirection: 'row-reverse', gap: 8 },
