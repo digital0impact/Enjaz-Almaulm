@@ -27,6 +27,7 @@ import { formatRTLText, getTextDirection } from '@/utils/rtl-utils';
 
 const TEAL = '#0d9488';
 const TEAL_LIGHT = '#14b8a6';
+const TEAL_DARK = '#0b4f47';
 const GREEN = '#059669';
 
 type ReportTypeId = 'activity' | 'lesson' | 'initiative' | 'custom';
@@ -551,17 +552,66 @@ export default function ReportBuilderScreen() {
     return true;
   };
 
-  const checkboxLine = (checked: boolean, label: string) =>
-    `<div class="check-line">${checked ? '☑' : '☐'} ${escapeHtml(label)}</div>`;
+  /** تحميل شعار وزارة التعليم للتقرير المصدَّر (PDF/Word) فقط — من ملف assets/images/moe_logo.png المحلي */
+  const loadMoeLogoDataUri = async (): Promise<string> => {
+    try {
+      const Asset = require('expo-asset').Asset;
+      const asset = Asset.fromModule(require('@/assets/images/moe_logo.png'));
+      await asset.downloadAsync();
 
-  const renderChecklistHtml = (type: ReportTypeConfig, presets: string[], selected: string[], other: string) =>
-    presets.length > 0
-      ? presets.map((o) => checkboxLine(selected.includes(o), o)).join('') + (other ? checkboxLine(true, other) : '')
-      : selected.map((o) => checkboxLine(true, o)).join('');
+      if (Platform.OS === 'web') {
+        const uri = asset.uri ?? (asset as any).localUri;
+        if (uri) {
+          const url = typeof uri === 'string' && uri.startsWith('/') ? `${typeof window !== 'undefined' ? window.location.origin : ''}${uri}` : uri;
+          const res = await fetch(url);
+          const blob = await res.blob();
+          return await new Promise<string>((resolve, reject) => {
+            const reader = new FileReader();
+            reader.onload = () => resolve(reader.result as string);
+            reader.onerror = reject;
+            reader.readAsDataURL(blob);
+          });
+        }
+      } else if (asset.localUri) {
+        const base64 = await FileSystem.readAsStringAsync(asset.localUri, { encoding: FileSystem.EncodingType.Base64 });
+        if (base64) return `data:image/png;base64,${base64}`;
+      }
+    } catch (e) {
+      if (__DEV__ && typeof console !== 'undefined') console.warn('تحميل شعار الوزارة للتقرير:', e);
+    }
+    return '';
+  };
 
-  const generateReportHtml = (data: ReportForm): string => {
+  /** عناصر مُختارة فقط (بدون خيارات غير محدَّدة) كقائمة نقطية — يشمل بند "أخرى" إن وُجد */
+  const bulletListHtml = (presets: string[], selected: string[], other: string): string => {
+    const items = presets.length > 0 ? presets.filter((o) => selected.includes(o)) : selected;
+    const all = other.trim() ? [...items, other.trim()] : items;
+    if (all.length === 0) return `<div class="empty-hint">لا توجد بنود مضافة</div>`;
+    return `<ul class="bullet-list">${all.map((i) => `<li>${escapeHtml(i)}</li>`).join('')}</ul>`;
+  };
+
+  const generateReportHtml = async (data: ReportForm): Promise<string> => {
     const type = getReportType(data.reportType);
-    const tableBorder = '1px solid #e5e7eb';
+    const logoDataUri = await loadMoeLogoDataUri();
+    const todayStr = new Date().toLocaleDateString('ar-SA');
+
+    const filledSteps = data.steps.map((s) => s.trim()).filter(Boolean);
+    const evidenceItems = data.evidenceNotes
+      .split('\n')
+      .map((s) => s.trim())
+      .filter(Boolean);
+
+    const subjectLabel = data.program.trim() || data.domain.trim() || type.docTitle;
+    const summaryText =
+      `يوثّق هذا التقرير تنفيذ "${subjectLabel}"` +
+      (data.week.trim() ? ` خلال ${data.week.trim()}` : '') +
+      (data.teacherName.trim() ? ` بإشراف ${data.teacherName.trim()}` : '') +
+      (data.schoolName.trim() ? ` في ${data.schoolName.trim()}` : '') +
+      `، للفصل الدراسي ${data.semester}.`;
+    const conclusionText =
+      `يُظهر تنفيذ "${subjectLabel}" تحقيق أهدافه المرسومة بما ينعكس إيجاباً على المستفيدين، ` +
+      `مع إمكانية الاستفادة من التوصيات المذكورة أعلاه لتطوير التنفيذ مستقبلاً.`;
+
     return `
 <!DOCTYPE html>
 <html dir="rtl" lang="ar">
@@ -569,105 +619,127 @@ export default function ReportBuilderScreen() {
   <meta charset="utf-8"/>
   <title>${escapeHtml(type.docTitle)}</title>
   <style>
-    body { font-family: 'Segoe UI', Tahoma, Arial, sans-serif; padding: 20px; color: #1c1f33; }
-    h1 { color: #1c1f33; font-size: 20px; margin-bottom: 4px; text-align: center; }
-    .subtitle { text-align: center; color: #6b7280; font-size: 13px; margin-bottom: 20px; }
-    .section { margin-bottom: 18px; border: ${tableBorder}; border-radius: 8px; overflow: hidden; }
-    .section-header { background: ${TEAL}; color: #fff; padding: 10px 16px; font-weight: 700; font-size: 15px; }
-    .form-row { display: flex; flex-wrap: wrap; gap: 10px; padding: 10px; }
-    .field { flex: 1; min-width: 160px; }
-    .field-label { font-size: 12px; font-weight: 600; color: #374151; margin-bottom: 4px; }
-    .field-value { font-size: 13px; padding: 7px; background: #f9fafb; border: ${tableBorder}; border-radius: 6px; min-height: 16px; }
-    .cols3 { display: flex; }
-    .col { flex: 1; border-left: ${tableBorder}; padding: 10px; }
-    .col:last-child { border-left: none; }
-    .col-title { font-weight: 700; font-size: 13px; color: ${TEAL}; margin-bottom: 8px; text-align: center; }
-    .check-line { font-size: 12px; margin-bottom: 6px; }
-    .steps-list { padding: 10px; font-size: 13px; }
-    .step-line { margin-bottom: 8px; }
-    .evidence-box { min-height: 90px; border: 2px dashed #d1d5db; border-radius: 8px; display: flex; align-items: center; justify-content: center; color: #9ca3af; font-size: 12px; margin: 10px; text-align: center; padding: 10px; }
-    table.signoff { width: 100%; border-collapse: collapse; font-size: 12px; }
-    table.signoff th, table.signoff td { border: ${tableBorder}; padding: 10px; text-align: center; }
-    table.signoff th { background: ${TEAL_LIGHT}; color: #fff; font-weight: 700; }
+    body { font-family: 'Segoe UI', Tahoma, Arial, sans-serif; padding: 20px; color: #1c1f33; background: #fff; }
+    .doc-header-top { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 16px; }
+    .doc-logo { width: 90px; object-fit: contain; }
+    .doc-tag { background: #f0fdfa; border: 1px solid ${TEAL_LIGHT}; border-radius: 10px; padding: 8px 14px; text-align: center; }
+    .doc-tag-title { font-size: 12px; font-weight: 700; color: ${TEAL}; }
+    .doc-tag-sub { font-size: 11px; color: #6b7280; margin-top: 2px; }
+    .title-banner { background: ${TEAL_DARK}; color: #fff; text-align: center; padding: 16px 20px; border-radius: 12px; font-size: 22px; font-weight: 800; }
+    .dot-divider { height: 12px; margin: 10px 0 18px; background-image: radial-gradient(circle, ${TEAL} 2.4px, transparent 2.6px); background-size: 16px 16px; background-repeat: repeat-x; background-position: center; opacity: 0.55; }
+    .subtitle-line { text-align: center; color: #6b7280; font-size: 13px; margin-bottom: 18px; }
+    .card { background: #fff; border: 1px solid #e5e7eb; border-radius: 12px; padding: 14px 16px; margin-bottom: 16px; box-shadow: 0 1px 3px rgba(0,0,0,0.06); }
+    .card-heading { font-size: 15px; font-weight: 700; color: ${TEAL_DARK}; margin-bottom: 10px; padding-bottom: 8px; border-bottom: 1px solid #e5e7eb; }
+    .card-text { font-size: 13px; line-height: 1.9; color: #374151; }
+    .bullet-list { margin: 0; padding-right: 18px; font-size: 13px; line-height: 1.9; color: #374151; }
+    .bullet-list li { margin-bottom: 4px; }
+    .empty-hint { font-size: 12px; color: #9ca3af; }
+    .badges-row { display: flex; flex-wrap: wrap; justify-content: space-around; gap: 12px; }
+    .badge-item { width: 22%; min-width: 90px; text-align: center; }
+    .badge-num { width: 38px; height: 38px; line-height: 38px; border-radius: 19px; background: ${TEAL_DARK}; color: #fff; font-weight: 800; font-size: 15px; margin: 0 auto 6px; }
+    .badge-label { font-size: 12px; color: #374151; }
+    .evidence-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(110px, 1fr)); gap: 10px; }
+    .evidence-card { border: 2px dashed #d1d5db; border-radius: 10px; padding: 10px; text-align: center; background: #f9fafb; }
+    .evidence-icon { font-size: 20px; margin-bottom: 4px; }
+    .evidence-caption { font-size: 11px; font-weight: 700; color: ${TEAL}; margin-bottom: 4px; }
+    .evidence-text { font-size: 11px; color: #6b7280; }
+    .two-col { display: flex; gap: 14px; }
+    .two-col .card { flex: 1; margin-bottom: 0; }
+    .approval-row { display: flex; gap: 14px; margin-bottom: 10px; }
+    .approval-box { flex: 1; border: 1px solid #e5e7eb; border-radius: 10px; padding: 12px; text-align: center; background: #f9fafb; }
+    .approval-label { font-size: 13px; font-weight: 700; color: ${TEAL}; margin-bottom: 6px; }
+    .approval-name { font-size: 13px; color: #1c1f33; margin-bottom: 10px; min-height: 16px; }
+    .approval-sign { font-size: 11px; color: #6b7280; border-top: 1px dashed #d1d5db; padding-top: 8px; }
+    .approval-date { text-align: center; font-size: 12px; color: #374151; }
+    .doc-footer { text-align: center; color: #9ca3af; font-size: 11px; margin-top: 6px; }
   </style>
 </head>
 <body>
-  <h1>${escapeHtml(type.docTitle)}</h1>
-  <div class="subtitle">${escapeHtml(data.educationAdministration)} - ${escapeHtml(data.schoolName)}</div>
+  <div class="doc-header-top">
+    <div class="doc-tag">
+      <div class="doc-tag-title">${escapeHtml(type.chipLabel)}</div>
+      <div class="doc-tag-sub">التاريخ: ${escapeHtml(todayStr)}</div>
+    </div>
+    ${logoDataUri ? `<img src="${logoDataUri}" alt="شعار وزارة التعليم" class="doc-logo">` : ''}
+  </div>
 
-  <div class="section">
-    <div class="section-header">بيانات التقرير</div>
-    <div class="form-row">
-      <div class="field"><div class="field-label">اسم المعلم/ة</div><div class="field-value">${escapeHtml(data.teacherName)}</div></div>
-      <div class="field"><div class="field-label">الفصل الدراسي</div><div class="field-value">${escapeHtml(data.semester)}</div></div>
+  <div class="title-banner">${escapeHtml(type.docTitle)}</div>
+  <div class="dot-divider"></div>
+  <div class="subtitle-line">${escapeHtml(data.educationAdministration)} - ${escapeHtml(data.schoolName)}</div>
+
+  <div class="card">
+    <div class="card-heading">نبذة مختصرة</div>
+    <div class="card-text">${escapeHtml(summaryText)}</div>
+  </div>
+
+  <div class="card">
+    <div class="card-heading">${escapeHtml(type.goalsTitle)}</div>
+    ${bulletListHtml(type.goals, data.goals, data.goalsOther)}
+  </div>
+
+  <div class="card">
+    <div class="card-heading">${escapeHtml(type.meansTitle)}</div>
+    ${bulletListHtml(type.means, data.means, data.meansOther)}
+  </div>
+
+  ${filledSteps.length > 0 ? `
+  <div class="card">
+    <div class="card-heading">أبرز الأعمال والإجراءات المنفذة</div>
+    <div class="badges-row">
+      ${filledSteps.map((s, i) => `<div class="badge-item"><div class="badge-num">${i + 1}</div><div class="badge-label">${escapeHtml(s)}</div></div>`).join('')}
     </div>
-    <div class="form-row">
-      <div class="field"><div class="field-label">الصف والتفصيل</div><div class="field-value">${escapeHtml(data.gradeDetails)}</div></div>
-      <div class="field"><div class="field-label">الأسبوع</div><div class="field-value">${escapeHtml(data.week)}</div></div>
-    </div>
-    <div class="form-row">
-      <div class="field"><div class="field-label">اسم المجال</div><div class="field-value">${escapeHtml(data.domain)}</div></div>
-      <div class="field"><div class="field-label">${escapeHtml(type.programLabel)}</div><div class="field-value">${escapeHtml(data.program)}</div></div>
+  </div>` : ''}
+
+  <div class="card">
+    <div class="card-heading">شواهد التنفيذ</div>
+    <div class="evidence-grid">
+      ${evidenceItems.length > 0
+        ? evidenceItems.map((e, i) => `<div class="evidence-card"><div class="evidence-icon">🗂️</div><div class="evidence-caption">شاهد رقم ${i + 1}</div><div class="evidence-text">${escapeHtml(e)}</div></div>`).join('')
+        : `<div class="evidence-card"><div class="evidence-icon">🗂️</div><div class="evidence-text">لا توجد شواهد مرفقة بعد</div></div>`}
     </div>
   </div>
 
-  <div class="section">
-    <div class="section-header">تفاصيل التنفيذ</div>
-    <div class="cols3">
-      <div class="col">
-        <div class="col-title">${escapeHtml(type.goalsTitle)}</div>
-        ${renderChecklistHtml(type, type.goals, data.goals, data.goalsOther)}
-      </div>
-      <div class="col">
-        <div class="col-title">${escapeHtml(type.meansTitle)}</div>
-        ${renderChecklistHtml(type, type.means, data.means, data.meansOther)}
-      </div>
-      <div class="col">
-        <div class="col-title">${escapeHtml(type.resultsTitle)}</div>
-        ${renderChecklistHtml(type, type.results, data.results, data.resultsOther)}
-      </div>
+  <div class="two-col">
+    <div class="card">
+      <div class="card-heading">التحديات والمعوقات (إن وجدت)</div>
+      ${bulletListHtml(type.challenges, data.challenges, data.challengesOther)}
+    </div>
+    <div class="card">
+      <div class="card-heading">المقترحات والتوصيات</div>
+      ${bulletListHtml(type.suggestions, data.suggestions, data.suggestionsOther)}
     </div>
   </div>
 
-  <div class="section">
-    <div class="section-header">آلية التنفيذ (خطوات مختصرة)</div>
-    <div class="steps-list">
-      ${data.steps.map((s, i) => `<div class="step-line">${i + 1}. ${escapeHtml(s)}</div>`).join('')}
+  <div class="two-col">
+    <div class="card">
+      <div class="card-heading">${escapeHtml(type.resultsTitle)}</div>
+      ${bulletListHtml(type.results, data.results, data.resultsOther)}
+    </div>
+    <div class="card">
+      <div class="card-heading">خاتمة التقرير</div>
+      <div class="card-text">${escapeHtml(conclusionText)}</div>
     </div>
   </div>
 
-  <div class="section">
-    <div class="cols3">
-      <div class="col">
-        <div class="col-title">التحديات والمعوقات (إن وجدت)</div>
-        ${renderChecklistHtml(type, type.challenges, data.challenges, data.challengesOther)}
+  <div class="card">
+    <div class="card-heading">بيانات اعتماد التقرير</div>
+    <div class="approval-row">
+      <div class="approval-box">
+        <div class="approval-label">مديرة المدرسة</div>
+        <div class="approval-name">${escapeHtml(data.principalName) || '&nbsp;'}</div>
+        <div class="approval-sign">التوقيع: ..........................</div>
       </div>
-      <div class="col">
-        <div class="col-title">المقترحات والتوصيات</div>
-        ${renderChecklistHtml(type, type.suggestions, data.suggestions, data.suggestionsOther)}
-      </div>
-      <div class="col">
-        <div class="col-title">الشواهد</div>
-        <div class="evidence-box">${escapeHtml(data.evidenceNotes) || 'يوضع هنا وصف أو باركود الشواهد'}</div>
+      <div class="approval-box">
+        <div class="approval-label">${escapeHtml(type.leaderLabel)}</div>
+        <div class="approval-name">${escapeHtml(data.activityLeaderName) || '&nbsp;'}</div>
+        <div class="approval-sign">التوقيع: ..........................</div>
       </div>
     </div>
+    <div class="approval-date">تاريخ التنفيذ: ${escapeHtml(data.implementationDate) || '-'}</div>
   </div>
 
-  <div class="section">
-    <div class="section-header">اعتماد المتابعة</div>
-    <table class="signoff">
-      <tr>
-        <th>تاريخ التنفيذ</th>
-        <th>${escapeHtml(type.leaderLabel)}</th>
-        <th>مديرة المدرسة</th>
-      </tr>
-      <tr>
-        <td>${escapeHtml(data.implementationDate)}</td>
-        <td>${escapeHtml(data.activityLeaderName)}</td>
-        <td>${escapeHtml(data.principalName)}</td>
-      </tr>
-    </table>
-  </div>
+  <div class="dot-divider"></div>
+  <div class="doc-footer">تقرير أُنشئ عبر تطبيق إنجاز المعلم</div>
 </body>
 </html>`;
   };
@@ -680,7 +752,7 @@ export default function ReportBuilderScreen() {
     try {
       const type = getReportType(data.reportType);
       const fileBase = type.docTitle.replace(/\s+/g, '_');
-      const htmlContent = generateReportHtml(data);
+      const htmlContent = await generateReportHtml(data);
       if (Platform.OS === 'web') {
         if (typeof window === 'undefined' || typeof document === 'undefined') {
           showAlert(formatRTLText('تنبيه'), formatRTLText('تصدير PDF غير متاح في هذا السياق.'));
@@ -742,7 +814,7 @@ export default function ReportBuilderScreen() {
     try {
       const type = getReportType(data.reportType);
       const fileBase = type.docTitle.replace(/\s+/g, '_');
-      const htmlContent = generateReportHtml(data);
+      const htmlContent = await generateReportHtml(data);
       const fileName = `${fileBase}_${new Date().toISOString().split('T')[0]}.doc`;
       if (Platform.OS === 'web') {
         if (typeof window === 'undefined' || typeof document === 'undefined') {
