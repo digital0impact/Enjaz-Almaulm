@@ -275,19 +275,6 @@ export default function ResultsAnalysisScreen() {
     }
   };
 
-  const importFromPdf = async () => {
-    try {
-      const result = await DocumentPicker.getDocumentAsync({ type: 'application/pdf', multiple: false, copyToCacheDirectory: true });
-      if (result.canceled) return;
-      showAlert(
-        formatRTLText('استيراد من PDF'),
-        formatRTLText('الاستخراج التلقائي لبيانات الطلاب من ملفات PDF غير مدعوم حالياً. يرجى استخدام ملف إكسل أو الإدخال اليدوي.')
-      );
-    } catch {
-      showAlert(formatRTLText('تعذر اختيار الملف'), formatRTLText('حاول مرة أخرى أو اختر ملف آخر.'));
-    }
-  };
-
   const analysis = useMemo(
     () => computeAnalysis(form.students, parseFloat(form.maxScore) || 0),
     [form.students, form.maxScore]
@@ -868,10 +855,6 @@ export default function ResultsAnalysisScreen() {
                     <ThemedText style={[styles.importButtonText, getTextDirection()]}>{formatRTLText('استيراد إكسل')}</ThemedText>
                   </>
                 )}
-              </TouchableOpacity>
-              <TouchableOpacity style={styles.importButton} onPress={importFromPdf}>
-                <IconSymbol size={18} name="doc.pdf" color={TEAL} />
-                <ThemedText style={[styles.importButtonText, getTextDirection()]}>{formatRTLText('استيراد PDF')}</ThemedText>
               </TouchableOpacity>
             </View>
 
