@@ -76,6 +76,7 @@ const EMPTY_FORM: ResultsForm = {
 
 const DRAFT_KEY = 'resultsAnalysisDraft';
 const ANALYSES_KEY = 'resultsAnalysisSaved';
+const FREE_USE_KEY = 'resultsAnalysisFreeUseUsed';
 
 const escapeHtml = (s: string) =>
   String(s ?? '')
@@ -280,7 +281,36 @@ export default function ResultsAnalysisScreen() {
     [form.students, form.maxScore]
   );
 
-  const handleAnalyze = () => {
+  /** الاشتراك المجاني يتيح استخدام تحليل النتائج مرة واحدة فقط (محلياً على الجهاز)؛ الاشتراك المدفوع بلا حدود */
+  const checkCanUseAnalysis = async (): Promise<boolean> => {
+    try {
+      const user = (await AuthService.getCurrentUser()) ?? (await AuthService.checkAuthStatus());
+      if (user) {
+        const status = await SubscriptionService.checkSubscriptionStatus(user.id);
+        if (status.currentPlan === 'yearly' || status.currentPlan === 'half_yearly') {
+          return true;
+        }
+      }
+      const used = await AsyncStorage.getItem(FREE_USE_KEY);
+      if (used === '1') {
+        showAlert(
+          formatRTLText('انتهت المحاولة المجانية'),
+          formatRTLText('يتيح الاشتراك المجاني استخدام تحليل النتائج مرة واحدة فقط. يرجى ترقية اشتراكك لاستخدام الميزة دون حدود.'),
+          [
+            { text: formatRTLText('حسناً'), style: 'cancel' },
+            { text: formatRTLText('عرض الخطط'), onPress: () => router.push('/subscription') },
+          ]
+        );
+        return false;
+      }
+      await AsyncStorage.setItem(FREE_USE_KEY, '1');
+      return true;
+    } catch {
+      return true;
+    }
+  };
+
+  const handleAnalyze = async () => {
     if (!analysis) {
       showAlert(
         formatRTLText('بيانات غير كافية'),
@@ -288,6 +318,8 @@ export default function ResultsAnalysisScreen() {
       );
       return;
     }
+    const canUse = await checkCanUseAnalysis();
+    if (!canUse) return;
     setShowAnalysis(true);
   };
 
