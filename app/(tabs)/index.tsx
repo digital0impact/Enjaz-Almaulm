@@ -431,6 +431,17 @@ export default function HomeScreen() {
                     <ThemedText style={[styles.toolDescription, getTextDirection()]}>إنشاء تقرير تنفيذ برامج النشاط الصفي وتصديره</ThemedText>
                   </TouchableOpacity>
 
+                  <TouchableOpacity
+                    style={styles.toolCard}
+                    onPress={() => router.push('/results-analysis')}
+                  >
+                    <ThemedView style={styles.toolIconWrapper}>
+                      <IconSymbol size={28} name="chart.bar.fill" color="#1c1f33" />
+                    </ThemedView>
+                    <ThemedText style={[styles.toolTitle, getTextDirection()]}>تحليل النتائج</ThemedText>
+                    <ThemedText style={[styles.toolDescription, getTextDirection()]}>إدخال درجات الطلاب يدوياً أو من ملف وتحليلها في تقرير واحد</ThemedText>
+                  </TouchableOpacity>
+
                 </ThemedView>
               </ThemedView>
             </ScrollView>

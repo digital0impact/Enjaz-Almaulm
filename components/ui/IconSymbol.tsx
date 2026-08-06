@@ -132,6 +132,7 @@ const MAPPING = {
   'square': 'check-box-outline-blank',
   'barcode': 'qr-code-2',
   'circle': 'radio-button-unchecked',
+  'tablecells': 'table-chart',
 } as IconMapping;
 
 /**
