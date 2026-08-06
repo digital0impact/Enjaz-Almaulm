@@ -12,7 +12,6 @@ import {
   StyleSheet
 } from 'react-native';
 import { AlertService } from '@/services/AlertService';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { ThemedText } from '@/components/ThemedText';
 import { ThemedView } from '@/components/ThemedView';
 import { IconSymbol } from '@/components/ui/IconSymbol';
@@ -21,6 +20,10 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import { BottomNavigationBar } from '@/components/BottomNavigationBar';
 import { Student } from '@/types';
 import { getTextDirection, formatRTLText } from '@/utils/rtl-utils';
+
+const TEAL = '#0d9488';
+const TEAL_LIGHT = '#14b8a6';
+const GREEN = '#059669';
 
 interface RemedialPlan {
   id: string;
@@ -33,9 +36,16 @@ interface RemedialPlan {
   progress: number;
 }
 
+/** فئات إحصائيات حالة المتعلمين، بنفس الألوان المعتمدة سابقاً في بطاقة الإحصائيات */
+const STATUS_LEVELS: Array<{ key: string; label: string; color: string; statuses: string[] }> = [
+  { key: 'excellent', label: 'متفوقون', color: '#4CAF50', statuses: ['تفوق', 'ممتاز'] },
+  { key: 'needsDevelopment', label: 'يحتاجون تطوير', color: '#FF5722', statuses: ['يحتاج إلى تطوير', 'مقبول'] },
+  { key: 'learningDifficulties', label: 'صعوبات التعلم', color: '#9C27B0', statuses: ['صعوبات التعلم'] },
+  { key: 'weak', label: 'ضعف', color: '#F44336', statuses: ['ضعف', 'ضعيف'] },
+];
+
 export default function StudentTrackingScreen() {
   const router = useRouter();
-  const insets = useSafeAreaInsets();
   const [students, setStudents] = useState<Student[]>([]);
   const [expandedCards, setExpandedCards] = useState<{ [key: string]: boolean }>({});
   const [refreshing, setRefreshing] = useState(false);
@@ -296,44 +306,33 @@ export default function StudentTrackingScreen() {
 
   const renderStatsCard = () => {
     const totalStudents = students.length;
-    const excellentStudents = students.filter(s => s.status === 'تفوق' || s.status === 'ممتاز').length;
-    const needsDevelopment = students.filter(s => s.status === 'يحتاج إلى تطوير' || s.status === 'مقبول').length;
-    const learningDifficulties = students.filter(s => s.status === 'صعوبات التعلم').length;
-    const weakCount = students.filter(s => s.status === 'ضعف' || s.status === 'ضعيف').length;
+    const levels = STATUS_LEVELS.map((level) => ({
+      ...level,
+      count: students.filter((s) => level.statuses.includes(s.status)).length,
+    }));
 
     return (
-      <ThemedView style={styles.statsCard}>
-                        <ThemedText style={styles.statsTitle}>إحصائيات المتعلمين</ThemedText>
+      <ThemedView style={styles.pageSection}>
+        <ThemedView style={styles.pageSectionHeader}>
+          <ThemedText style={[styles.pageSectionTitle, getTextDirection()]}>
+            {formatRTLText('إحصائيات المتعلمين')}
+          </ThemedText>
+        </ThemedView>
         <ThemedView style={styles.statsGrid}>
-          <ThemedView style={styles.statItem}>
-            <IconSymbol size={30} name="person.3.fill" color="#4CAF50" />
-                          <ThemedText style={styles.statNumber}>{totalStudents}</ThemedText>
-              <ThemedText style={styles.statLabel}>إجمالي المتعلمين</ThemedText>
+          <ThemedView style={styles.statBox}>
+            <ThemedText style={styles.statValue}>{totalStudents}</ThemedText>
+            <ThemedText style={[styles.statLabel, getTextDirection()]}>{formatRTLText('إجمالي المتعلمين')}</ThemedText>
           </ThemedView>
-          
-          <ThemedView style={styles.statItem}>
-            <IconSymbol size={30} name="star.fill" color="#4CAF50" />
-                          <ThemedText style={styles.statNumber}>{excellentStudents}</ThemedText>
-              <ThemedText style={styles.statLabel}>متفوقون</ThemedText>
-          </ThemedView>
-          
-          <ThemedView style={styles.statItem}>
-            <IconSymbol size={30} name="star" color="#FF5722" />
-                          <ThemedText style={styles.statNumber}>{needsDevelopment}</ThemedText>
-              <ThemedText style={styles.statLabel}>يحتاجون تطوير</ThemedText>
-          </ThemedView>
-          
-          <ThemedView style={styles.statItem}>
-            <IconSymbol size={30} name="exclamationmark.triangle.fill" color="#9C27B0" />
-                          <ThemedText style={styles.statNumber}>{learningDifficulties}</ThemedText>
-              <ThemedText style={styles.statLabel}>صعوبات التعلم</ThemedText>
-          </ThemedView>
-
-          <ThemedView style={styles.statItem}>
-            <IconSymbol size={30} name="minus.circle.fill" color="#F44336" />
-                          <ThemedText style={styles.statNumber}>{weakCount}</ThemedText>
-              <ThemedText style={styles.statLabel}>ضعف</ThemedText>
-          </ThemedView>
+        </ThemedView>
+        <ThemedView style={styles.levelsTable}>
+          {levels.map((level) => (
+            <ThemedView key={level.key} style={styles.levelRow}>
+              <ThemedView style={[styles.levelBadge, { backgroundColor: level.color }]}>
+                <ThemedText style={styles.levelBadgeText}>{formatRTLText(level.label)}</ThemedText>
+              </ThemedView>
+              <ThemedText style={[styles.levelCount, getTextDirection()]}>{level.count}</ThemedText>
+            </ThemedView>
+          ))}
         </ThemedView>
       </ThemedView>
     );
@@ -352,51 +351,73 @@ export default function StudentTrackingScreen() {
         >
           <ScrollView
             style={styles.scrollContainer}
-            contentContainerStyle={{ flexGrow: 1, paddingBottom: 100 }}
+            contentContainerStyle={styles.scrollContent}
             showsVerticalScrollIndicator={false}
             keyboardShouldPersistTaps="handled"
+            refreshControl={
+              <RefreshControl refreshing={refreshing} onRefresh={onRefresh} colors={[TEAL]} tintColor={TEAL} />
+            }
           >
-            {/* Header */}
-            <ThemedView style={[styles.header, { paddingTop: insets.top + 20 }]}> 
-              <TouchableOpacity 
-                style={styles.backButton}
-                onPress={() => router.push('/(tabs)')}
-              >
+            <ThemedView style={styles.header}>
+              <TouchableOpacity style={styles.backButton} onPress={() => router.push('/(tabs)')}>
                 <IconSymbol size={20} name="chevron.left" color="#1c1f33" />
               </TouchableOpacity>
-              <ThemedView style={styles.iconContainer}>
-                <IconSymbol size={60} name="chart.line.uptrend.xyaxis" color="#1c1f33" />
+              <ThemedView style={styles.titleRow}>
+                <ThemedView style={styles.tealBar} />
+                <ThemedText type="title" style={[styles.mainTitle, getTextDirection()]}>
+                  {formatRTLText('تتبع حالة المتعلمين')}
+                </ThemedText>
               </ThemedView>
-              <ThemedText type="title" style={styles.title}>
-                تتبع حالة المتعلمين
+              <ThemedText style={[styles.headerSubtitle, getTextDirection()]}>
+                {formatRTLText('متابعة وتقييم حالة الطلاب')}
               </ThemedText>
-              <ThemedText style={styles.subtitle}>
-                متابعة وتقييم حالة الطلاب
-              </ThemedText>
-              <TouchableOpacity 
-                style={styles.addButton}
-                onPress={() => router.push('/add-student')}
-              >
-                <IconSymbol size={20} name="plus" color="#1c1f33" />
-                <ThemedText style={styles.addButtonText}>إضافة متعلم جديد</ThemedText>
-              </TouchableOpacity>
-              <TouchableOpacity 
-                style={[styles.addButton, { marginTop: 10 }]}
-                onPress={() => router.push('/remedial-plans')}
-              >
-                <IconSymbol size={20} name="doc.text.fill" color="#1c1f33" />
-                <ThemedText style={styles.addButtonText}>إدارة الخطط العلاجية والإثرائية</ThemedText>
-              </TouchableOpacity>
             </ThemedView>
 
-            {/* باقي الصفحة ... */}
+            <ThemedView style={styles.quickActionsSection}>
+              <ThemedView style={styles.quickActionsRow}>
+                <TouchableOpacity style={styles.quickActionButtonPrimary} onPress={() => router.push('/add-student')}>
+                  <IconSymbol size={20} name="person.badge.plus" color="#fff" />
+                  <ThemedText style={[styles.quickActionButtonText, getTextDirection()]}>
+                    {formatRTLText('إضافة متعلم جديد')}
+                  </ThemedText>
+                </TouchableOpacity>
+                <TouchableOpacity style={styles.quickActionButtonSecondary} onPress={() => router.push('/remedial-plans')}>
+                  <IconSymbol size={20} name="doc.text.fill" color="#fff" />
+                  <ThemedText style={[styles.quickActionButtonText, getTextDirection()]}>
+                    {formatRTLText('الخطط العلاجية والإثرائية')}
+                  </ThemedText>
+                </TouchableOpacity>
+              </ThemedView>
+            </ThemedView>
+
             {renderStatsCard()}
-            <ThemedView style={styles.studentsList}>
-              {students.map((student) => (
-                <React.Fragment key={student.id}>
-                  {renderStudentCard(student)}
-                </React.Fragment>
-              ))}
+
+            <ThemedView style={styles.pageSection}>
+              <ThemedView style={styles.pageSectionHeader}>
+                <ThemedText style={[styles.pageSectionTitle, getTextDirection()]}>
+                  {formatRTLText('قائمة المتعلمين')}
+                </ThemedText>
+              </ThemedView>
+              <ThemedView style={styles.studentsListInner}>
+                {loading ? (
+                  <ThemedView style={styles.loadingContainer}>
+                    <ActivityIndicator size="large" color={TEAL} />
+                    <ThemedText style={[styles.loadingText, getTextDirection()]}>{formatRTLText('جارٍ التحميل...')}</ThemedText>
+                  </ThemedView>
+                ) : students.length === 0 ? (
+                  <ThemedView style={styles.emptyState}>
+                    <IconSymbol size={40} name="person.3.fill" color="#9ca3af" />
+                    <ThemedText style={[styles.emptyTitle, getTextDirection()]}>{formatRTLText('لا يوجد متعلمون بعد')}</ThemedText>
+                    <ThemedText style={[styles.emptySubtitle, getTextDirection()]}>
+                      {formatRTLText('اضغط "إضافة متعلم جديد" للبدء')}
+                    </ThemedText>
+                  </ThemedView>
+                ) : (
+                  students.map((student) => (
+                    <React.Fragment key={student.id}>{renderStudentCard(student)}</React.Fragment>
+                  ))
+                )}
+              </ThemedView>
             </ThemedView>
           </ScrollView>
         </KeyboardAvoidingView>
@@ -417,29 +438,85 @@ const styles = StyleSheet.create({
   },
   header: {
     alignItems: 'center',
-    paddingTop: Platform.OS === 'ios' ? 60 : 50,
-    paddingHorizontal: 30,
-    paddingBottom: 30,
-    backgroundColor: 'transparent',
+    marginBottom: 20,
     position: 'relative',
   },
   backButton: {
     position: 'absolute',
-    top: Platform.OS === 'ios' ? 60 : 50,
-    left: 20,
+    left: 0,
+    top: Platform.OS === 'ios' ? 0 : -8,
     backgroundColor: '#add4ce',
     width: 40,
     height: 40,
     borderRadius: 20,
     justifyContent: 'center',
     alignItems: 'center',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.2,
-    shadowRadius: 8,
-    elevation: 8,
     zIndex: 1,
   },
+  titleRow: { flexDirection: 'row-reverse', alignItems: 'center', width: '100%', justifyContent: 'center' },
+  tealBar: { width: 6, height: 44, backgroundColor: TEAL, borderRadius: 3, marginLeft: 10 },
+  mainTitle: { fontSize: 22, fontWeight: 'bold', color: '#1c1f33', textAlign: 'center' },
+  headerSubtitle: { fontSize: 14, color: '#6b7280', textAlign: 'center', marginTop: 6 },
+  quickActionsSection: {
+    marginBottom: 20,
+    backgroundColor: '#fff',
+    borderRadius: 12,
+    padding: 12,
+    borderWidth: 1,
+    borderColor: '#e5e7eb',
+  },
+  quickActionsRow: { flexDirection: 'row-reverse', flexWrap: 'wrap', gap: 10 },
+  quickActionButtonPrimary: {
+    flex: 1,
+    minWidth: 150,
+    flexDirection: 'row-reverse',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 8,
+    backgroundColor: GREEN,
+    paddingVertical: 12,
+    paddingHorizontal: 16,
+    borderRadius: 10,
+  },
+  quickActionButtonSecondary: {
+    flex: 1,
+    minWidth: 150,
+    flexDirection: 'row-reverse',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 8,
+    backgroundColor: TEAL,
+    paddingVertical: 12,
+    paddingHorizontal: 16,
+    borderRadius: 10,
+  },
+  quickActionButtonText: { fontSize: 14, fontWeight: '600', color: '#fff' },
+  pageSection: {
+    marginBottom: 20,
+    backgroundColor: '#fff',
+    borderRadius: 12,
+    overflow: 'hidden',
+    borderWidth: 1,
+    borderColor: '#e5e7eb',
+  },
+  pageSectionHeader: { backgroundColor: TEAL, paddingVertical: 12, paddingHorizontal: 16 },
+  pageSectionTitle: { fontSize: 16, fontWeight: '700', color: '#fff' },
+  statBox: {
+    width: '100%',
+    alignItems: 'center',
+    backgroundColor: '#f9fafb',
+    borderRadius: 10,
+    borderWidth: 1,
+    borderColor: '#e5e7eb',
+    paddingVertical: 12,
+  },
+  statValue: { fontSize: 22, fontWeight: '800', color: '#1c1f33' },
+  levelsTable: { paddingHorizontal: 12, paddingBottom: 12, gap: 8 },
+  levelRow: { flexDirection: 'row-reverse', alignItems: 'center', gap: 10 },
+  levelBadge: { borderRadius: 8, paddingVertical: 5, paddingHorizontal: 12, minWidth: 120, alignItems: 'center' },
+  levelBadgeText: { color: '#fff', fontSize: 13, fontWeight: '700' },
+  levelCount: { fontSize: 15, fontWeight: '700', color: '#1c1f33', flex: 1, textAlign: 'center' },
+  studentsListInner: { padding: 12, gap: 12 },
   iconContainer: {
     marginBottom: 20,
     padding: 20,
@@ -496,6 +573,8 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   scrollContent: {
+    paddingHorizontal: 16,
+    paddingTop: Platform.OS === 'ios' ? 56 : 40,
     paddingBottom: 100,
   },
   statsCard: {
@@ -521,7 +600,8 @@ const styles = StyleSheet.create({
   statsGrid: {
     flexDirection: 'row',
     flexWrap: 'wrap',
-    justifyContent: 'space-between',
+    padding: 12,
+    paddingBottom: 0,
     gap: 10,
   },
   statItem: {
