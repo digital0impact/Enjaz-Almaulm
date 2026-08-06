@@ -133,6 +133,9 @@ const MAPPING = {
   'barcode': 'qr-code-2',
   'circle': 'radio-button-unchecked',
   'tablecells': 'table-chart',
+  'folder': 'folder',
+  'hand.raised': 'pan-tool',
+  'person.circle': 'account-circle',
 } as IconMapping;
 
 /**
