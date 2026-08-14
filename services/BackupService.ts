@@ -2,6 +2,7 @@ import { supabase } from '../config/supabase';
 import { logError } from '@/utils/logger';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { SubscriptionService } from './SubscriptionService';
+import AuthService from '@/services/AuthService';
 
 export interface BackupData {
   id: string;
@@ -39,11 +40,7 @@ export class BackupService {
     }
 
     try {
-      const { data: { user }, error } = await supabase.auth.getUser();
-      if (error) {
-        console.error('خطأ في الحصول على المستخدم:', error);
-        throw new Error('خطأ في المصادقة: ' + error.message);
-      }
+      const user = await AuthService.getCurrentUser();
 
       if (!user) {
         throw new Error('المستخدم غير مسجل الدخول');

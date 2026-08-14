@@ -1,5 +1,6 @@
 import { supabase } from '../config/supabase';
 import { logError } from '@/utils/logger';
+import AuthService from '@/services/AuthService';
 
 export interface UserProfile {
   id?: string;
@@ -98,7 +99,7 @@ class DatabaseService {
   // إضافة/تحديث الملف الشخصي للمستخدم الحالي (يُستدعى مع معرف المستخدم من auth)
   async addUser(name: string, email: string, phoneNumber?: string, jobTitle?: string, workLocation?: string) {
     try {
-      const { data: { user } } = await supabase.auth.getUser();
+      const user = await AuthService.getCurrentUser();
       if (!user?.id) throw new Error('يجب تسجيل الدخول أولاً');
       const { data, error } = await supabase
         .from('user_profiles')
