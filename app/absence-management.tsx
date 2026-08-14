@@ -4,6 +4,8 @@ import { AlertService } from '@/services/AlertService';
 import { useFocusEffect } from '@react-navigation/native';
 import { ThemedText } from '@/components/ThemedText';
 import { ThemedView } from '@/components/ThemedView';
+import { ThemedButton } from '@/components/ThemedButton';
+import { ThemedCard } from '@/components/ThemedCard';
 import { IconSymbol } from '@/components/ui/IconSymbol';
 import { useRouter } from 'expo-router';
 import AsyncStorage from '@react-native-async-storage/async-storage';
@@ -164,12 +166,12 @@ export default function AbsenceManagementScreen() {
             }
           >
             <ThemedView style={styles.header}>
-              <TouchableOpacity 
+              <ThemedButton
+                icon="chevron.left"
+                iconColor="#1c1f33"
                 style={styles.backButton}
                 onPress={() => router.back()}
-              >
-                <IconSymbol size={20} name="chevron.left" color="#1c1f33" />
-              </TouchableOpacity>
+              />
 
               <ThemedView style={styles.iconContainer}>
                 <IconSymbol size={60} name="person.crop.circle.badge.xmark" color="#1c1f33" />
@@ -185,15 +187,14 @@ export default function AbsenceManagementScreen() {
 
             <ThemedView style={styles.content}>
               {/* إضافة غياب جديد */}
-              <TouchableOpacity 
-                style={styles.addAbsenceCard}
-                onPress={() => router.push('/add-absence')}
-              >
-                <ThemedView style={styles.addAbsenceIconWrapper}>
-                  <IconSymbol size={32} name="plus.circle.fill" color="#1c1f33" />
-                </ThemedView>
-                <ThemedText style={[styles.addAbsenceTitle, getTextDirection()]}>إضافة غياب جديد</ThemedText>
-                <ThemedText style={[styles.addAbsenceDescription, getTextDirection()]}>تسجيل يوم غياب جديد مع تحديد السبب والفترة</ThemedText>
+              <TouchableOpacity onPress={() => router.push('/add-absence')}>
+                <ThemedCard style={styles.addAbsenceCard}>
+                  <ThemedView style={styles.addAbsenceIconWrapper}>
+                    <IconSymbol size={32} name="plus.circle.fill" color="#1c1f33" />
+                  </ThemedView>
+                  <ThemedText style={[styles.addAbsenceTitle, getTextDirection()]}>إضافة غياب جديد</ThemedText>
+                  <ThemedText style={[styles.addAbsenceDescription, getTextDirection()]}>تسجيل يوم غياب جديد مع تحديد السبب والفترة</ThemedText>
+                </ThemedCard>
               </TouchableOpacity>
 
               {/* إحصائيات سريعة */}
@@ -203,7 +204,7 @@ export default function AbsenceManagementScreen() {
                 </ThemedText>
 
                 <ThemedView style={styles.statsGrid}>
-                  <ThemedView style={styles.statCard}>
+                  <ThemedCard style={styles.statCard}>
                     <ThemedView style={styles.iconWrapper}>
                       <IconSymbol size={28} name="chart.bar.fill" color="#1c1f33" />
                     </ThemedView>
@@ -211,9 +212,9 @@ export default function AbsenceManagementScreen() {
                       <ThemedText style={[styles.statLabel, getTextDirection()]}>إجمالي الغياب</ThemedText>
                       <ThemedText style={styles.statNumber}>{stats.totalAbsences}</ThemedText>
                     </ThemedView>
-                  </ThemedView>
+                  </ThemedCard>
 
-                  <ThemedView style={styles.statCard}>
+                  <ThemedCard style={styles.statCard}>
                     <ThemedView style={styles.iconWrapper}>
                       <IconSymbol size={28} name="checkmark.circle.fill" color="#1c1f33" />
                     </ThemedView>
@@ -221,9 +222,9 @@ export default function AbsenceManagementScreen() {
                       <ThemedText style={[styles.statLabel, getTextDirection()]}>بعذر</ThemedText>
                       <ThemedText style={styles.statNumber}>{stats.withExcuse}</ThemedText>
                     </ThemedView>
-                  </ThemedView>
+                  </ThemedCard>
 
-                  <ThemedView style={styles.statCard}>
+                  <ThemedCard style={styles.statCard}>
                     <ThemedView style={styles.iconWrapper}>
                       <IconSymbol size={28} name="xmark.circle.fill" color="#1c1f33" />
                     </ThemedView>
@@ -231,9 +232,9 @@ export default function AbsenceManagementScreen() {
                       <ThemedText style={[styles.statLabel, getTextDirection()]}>بدون عذر</ThemedText>
                       <ThemedText style={styles.statNumber}>{stats.withoutExcuse}</ThemedText>
                     </ThemedView>
-                  </ThemedView>
+                  </ThemedCard>
 
-                  <ThemedView style={styles.statCard}>
+                  <ThemedCard style={styles.statCard}>
                     <ThemedView style={styles.iconWrapper}>
                       <IconSymbol size={28} name="calendar.circle.fill" color="#1c1f33" />
                     </ThemedView>
@@ -241,7 +242,7 @@ export default function AbsenceManagementScreen() {
                       <ThemedText style={[styles.statLabel, getTextDirection()]}>هذا الشهر</ThemedText>
                       <ThemedText style={styles.statNumber}>{stats.thisMonth}</ThemedText>
                     </ThemedView>
-                  </ThemedView>
+                  </ThemedCard>
                 </ThemedView>
               </ThemedView>
 
@@ -252,32 +253,33 @@ export default function AbsenceManagementScreen() {
                 </ThemedText>
 
                 {absenceRecords.length === 0 ? (
-                  <ThemedView style={styles.emptyState}>
+                  <ThemedCard style={styles.emptyState}>
                     <IconSymbol size={60} name="doc.text" color="#CCCCCC" />
-                    <ThemedText style={[styles.emptyStateText, getTextDirection()]}> 
+                    <ThemedText style={[styles.emptyStateText, getTextDirection()]}>
                       {formatRTLText('لا توجد سجلات غياب')}
                     </ThemedText>
-                    <ThemedText style={[styles.emptyStateSubtext, getTextDirection()]}> 
+                    <ThemedText style={[styles.emptyStateSubtext, getTextDirection()]}>
                       {formatRTLText('اضغط على «إضافة غياب جديد» لبدء التسجيل')}
                     </ThemedText>
-                  </ThemedView>
+                  </ThemedCard>
                 ) : (
                   <ThemedView style={styles.recordsList}>
                     {absenceRecords.map((record) => {
                       const typeIcon = getTypeIcon(record.type);
                       return (
-                        <ThemedView key={record.id} style={styles.recordCard}>
+                        <ThemedCard key={record.id} style={styles.recordCard}>
                           <ThemedView style={styles.recordHeader}>
                             <ThemedView style={styles.recordTypeContainer}>
                               <IconSymbol size={24} name={typeIcon.name as any} color={typeIcon.color} />
                               <ThemedText style={[styles.recordType, getTextDirection()]}>{record.type}</ThemedText>
                             </ThemedView>
-                            <TouchableOpacity
-                              style={styles.deleteButton}
+                            <ThemedButton
+                              icon="trash.fill"
+                              iconColor="#FF3B30"
+                              iconSize={20}
+                              style={[styles.deleteButton, { width: 36, height: 36, paddingVertical: 0, paddingHorizontal: 0 }]}
                               onPress={() => deleteAbsenceRecord(record.id)}
-                            >
-                              <IconSymbol size={20} name="trash.fill" color="#FF3B30" />
-                            </TouchableOpacity>
+                            />
                           </ThemedView>
 
                           <ThemedView style={styles.recordDetails}>
@@ -308,7 +310,7 @@ export default function AbsenceManagementScreen() {
                               </ThemedView>
                             )}
                           </ThemedView>
-                        </ThemedView>
+                        </ThemedCard>
                       );
                     })}
                   </ThemedView>
@@ -414,11 +416,8 @@ const styles = StyleSheet.create({
   },
   statCard: {
     padding: 20,
-    backgroundColor: '#F8F9FA',
     borderRadius: 50,
     borderWidth: 1,
-    borderColor: '#E5E5EA',
-    shadowColor: '#000',
     shadowOffset: { width: 0, height: 6 },
     shadowOpacity: 0.25,
     shadowRadius: 12,
@@ -460,15 +459,12 @@ const styles = StyleSheet.create({
     marginBottom: 5,
   },
   addAbsenceCard: {
-    backgroundColor: '#F8F9FA',
     borderRadius: 20,
     padding: 24,
     marginBottom: 25,
     alignItems: 'center',
     justifyContent: 'center',
     borderWidth: 1,
-    borderColor: '#E5E5EA',
-    shadowColor: '#000',
     shadowOffset: { width: 0, height: 6 },
     shadowOpacity: 0.25,
     shadowRadius: 12,
@@ -511,12 +507,9 @@ const styles = StyleSheet.create({
     gap: 15,
   },
   recordCard: {
-    backgroundColor: '#F8F9FA',
     borderRadius: 15,
     padding: 20,
     borderWidth: 1,
-    borderColor: '#E5E5EA',
-    shadowColor: '#000',
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.1,
     shadowRadius: 8,
@@ -563,10 +556,8 @@ const styles = StyleSheet.create({
   emptyState: {
     alignItems: 'center',
     padding: 40,
-    backgroundColor: '#F8F9FA',
     borderRadius: 15,
     borderWidth: 1,
-    borderColor: '#E5E5EA',
     borderStyle: 'dashed',
   },
   emptyStateText: {

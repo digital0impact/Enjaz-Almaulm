@@ -13,6 +13,11 @@ interface ThemedCardProps extends StyleProps {
  * مقرر في المرحلة 8) بدل قيم ثابتة، حتى تتبع أي تعديل مستقبلي على الثيم
  * تلقائيًا. الخصائص الهيكلية (radius/padding/shadow) تبقى قيمًا افتراضية
  * معقولة يمكن تجاوزها عبر style كما في السابق.
+ *
+ * ملاحظة: الخلفية تستخدم colors.surface وليس colors.card، لأن هذا هو
+ * اللون الفعلي المستخدم بالفعل في كل "بطاقات" التطبيق الحقيقية (F8F9FA،
+ * انظر مثلاً hooks/useGlobalTheme.ts وشاشات مثل absence-management.tsx)
+ * بينما colors.card (#FFFFFF) غير مستخدم فعليًا بهذا المعنى في أي مكان.
  */
 export const ThemedCard: React.FC<ThemedCardProps> = ({
   children,
@@ -24,7 +29,7 @@ export const ThemedCard: React.FC<ThemedCardProps> = ({
       style={[
         styles.card,
         {
-          backgroundColor: colors.card,
+          backgroundColor: colors.surface,
           borderColor: colors.border,
           shadowColor: colors.shadow,
         },
