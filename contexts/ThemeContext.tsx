@@ -11,7 +11,15 @@ interface ThemeContextType {
 
 const ThemeContext = createContext<ThemeContextType | undefined>(undefined);
 
-const defaultTheme: Theme = {
+/**
+ * مصدر الألوان الرسمي الوحيد للتطبيق (تقرر صراحةً أثناء المرحلة 8 من خطة
+ * إعادة الهيكلة، بعد اكتشاف أن constants/Colors.ts كان يعرّف لونًا أساسيًا
+ * مختلفًا تمامًا (#1B2951) لم يعد له أي استخدام فعلي حي في أي شاشة، بينما
+ * لون defaultTheme هنا (#0d9488) وأقاربه اللونية (#4ECDC4, #add4ce) هي
+ * الألوان الفعلية المستخدمة في عشرات المواضع عبر التطبيق). مُصدَّر هنا كي
+ * يستطيع constants/Colors.ts الاشتقاق منه بدل تكرار قيمة مستقلة.
+ */
+export const defaultTheme: Theme = {
   name: 'default',
   colors: {
     primary: '#0d9488',
