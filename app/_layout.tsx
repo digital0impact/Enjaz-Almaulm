@@ -5,7 +5,6 @@ import { initializeRTL } from '../utils/rtl-utils';
 import { View } from 'react-native';
 import { ThemeProvider } from '../contexts/ThemeContext';
 import { AppAlertProvider } from '../contexts/AppAlertContext';
-import { UserProvider } from '../contexts/UserContext';
 import { AppLayoutWrapper } from '@/components/AppLayoutWrapper';
 import { AcademicYearService } from '@/services/AcademicYearService';
 import { setupAppFocusRefresh } from '@/utils/useAppFocusRefresh';
@@ -28,17 +27,15 @@ export default function Layout() {
   return (
     <ThemeProvider>
       <AppAlertProvider>
-        <UserProvider>
-          <View style={{ flex: 1 }}>
-            <AppLayoutWrapper>
+        <View style={{ flex: 1 }}>
+          <AppLayoutWrapper>
             <Stack
               screenOptions={{
                 headerShown: false,
               }}
             />
           </AppLayoutWrapper>
-          </View>
-        </UserProvider>
+        </View>
       </AppAlertProvider>
     </ThemeProvider>
   );
