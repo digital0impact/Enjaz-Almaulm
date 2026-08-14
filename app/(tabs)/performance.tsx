@@ -461,31 +461,80 @@ export default function PerformanceScreen() {
     );
   };
 
-  const pickImage = async (performanceId: number, evidenceIndex: number) => {
+  /**
+   * اختيار وإرفاق ملف شاهد (صورة/وثيقة/فيديو) لعنصر أداء معيّن.
+   * يوحّد المنطق المشترك (~85%) الذي كان مكررًا في pickImage/pickDocument/
+   * pickVideo الثلاث: فقط استدعاء الـ picker المناسب ورسائل النص تختلف
+   * فعليًا بين الأنواع الثلاثة؛ باقي المنطق (تحديث uploadedFiles، إعادة حساب
+   * الدرجة، حفظ performanceData) كان متطابقًا حرفيًا في الأصل.
+   */
+  const pickEvidenceFile = async (
+    kind: 'image' | 'document' | 'video',
+    performanceId: number,
+    evidenceIndex: number
+  ) => {
     const fileKey = `${performanceId}-${evidenceIndex}`;
     setUploadingStates(prev => ({ ...prev, [fileKey]: true }));
 
     try {
-      const permissionResult = await ImagePicker.requestMediaLibraryPermissionsAsync();
-      if (permissionResult.granted === false) {
-        AlertService.alert('إذن مطلوب', 'يجب السماح بالوصول إلى معرض الصور لرفع الشواهد.');
-        return;
+      let fileName: string;
+      let sizeBytes: number;
+      let uri: string;
+
+      if (kind === 'document') {
+        const result = await DocumentPicker.getDocumentAsync({
+          type: '*/*',
+          copyToCacheDirectory: true,
+        });
+
+        const file = !result.canceled && result.assets?.length ? result.assets[0] : null;
+        if (!file) {
+          return;
+        }
+
+        fileName = file.name ?? `document_${Date.now()}`;
+        sizeBytes = file.size ?? 0;
+        uri = file.uri;
+      } else {
+        const permissionResult = await ImagePicker.requestMediaLibraryPermissionsAsync();
+        if (permissionResult.granted === false) {
+          AlertService.alert(
+            'إذن مطلوب',
+            kind === 'image'
+              ? 'يجب السماح بالوصول إلى معرض الصور لرفع الشواهد.'
+              : 'يجب السماح بالوصول إلى معرض الصور لرفع الفيديو.'
+          );
+          return;
+        }
+
+        const result = await ImagePicker.launchImageLibraryAsync(
+          kind === 'image'
+            ? {
+                mediaTypes: ImagePicker.MediaTypeOptions.Images,
+                allowsEditing: true,
+                aspect: [4, 3],
+                quality: 0.8,
+              }
+            : {
+                mediaTypes: ImagePicker.MediaTypeOptions.Videos,
+                allowsEditing: true,
+                aspect: [16, 9],
+                quality: 0.8,
+              }
+        );
+
+        const asset = !result.canceled && result.assets?.length ? result.assets[0] : null;
+        if (!asset) {
+          return;
+        }
+
+        fileName = kind === 'image' ? `image_${Date.now()}.jpg` : `video_${Date.now()}.mp4`;
+        sizeBytes = asset.fileSize ?? 0;
+        uri = asset.uri;
       }
 
-      const result = await ImagePicker.launchImageLibraryAsync({
-        mediaTypes: ImagePicker.MediaTypeOptions.Images,
-        allowsEditing: true,
-        aspect: [4, 3],
-        quality: 0.8,
-      });
-
-      const asset = !result.canceled && result.assets?.length ? result.assets[0] : null;
-      if (!asset) {
-        return;
-      }
-
-      const fileName = `image_${Date.now()}.jpg`;
-      const sizeStr = asset.fileSize ? `${(asset.fileSize / 1024 / 1024).toFixed(2)} MB` : '—';
+      const sizeStr = sizeBytes > 0 ? `${(sizeBytes / 1024 / 1024).toFixed(2)} MB` : '—';
+      const typeLabel = kind === 'image' ? 'صورة' : kind === 'document' ? 'وثيقة' : 'فيديو';
 
       const newUploadedFiles = {
         ...uploadedFiles,
@@ -493,8 +542,8 @@ export default function PerformanceScreen() {
           name: fileName,
           size: sizeStr,
           date: new Date().toLocaleDateString('ar-SA'),
-          type: 'صورة',
-          uri: asset.uri,
+          type: typeLabel,
+          uri,
         },
       };
 
@@ -505,7 +554,7 @@ export default function PerformanceScreen() {
         // تخزين محلي فقط بدون URI إذا فشل (تجاوز الحجم)
         await AsyncStorage.setItem('uploadedFiles', JSON.stringify({
           ...uploadedFiles,
-          [fileKey]: { name: fileName, size: sizeStr, date: new Date().toLocaleDateString('ar-SA'), type: 'صورة' },
+          [fileKey]: { name: fileName, size: sizeStr, date: new Date().toLocaleDateString('ar-SA'), type: typeLabel },
         }));
       }
 
@@ -532,163 +581,14 @@ export default function PerformanceScreen() {
         await AsyncStorage.setItem('performanceData', JSON.stringify(newPerformanceData));
       }
 
-      AlertService.alert('نجح', 'تم رفع الصورة بنجاح');
+      const successMessage =
+        kind === 'image' ? 'تم رفع الصورة بنجاح' : kind === 'document' ? 'تم رفع الوثيقة بنجاح' : 'تم رفع الفيديو بنجاح';
+      AlertService.alert('نجح', successMessage);
     } catch (error) {
-      const message = error instanceof Error ? error.message : 'فشل في اختيار الصورة';
-      console.log('Error picking image:', error);
-      AlertService.alert('خطأ', message);
-    } finally {
-      setUploadingStates(prev => ({ ...prev, [fileKey]: false }));
-    }
-  };
-
-  const pickDocument = async (performanceId: number, evidenceIndex: number) => {
-    const fileKey = `${performanceId}-${evidenceIndex}`;
-    setUploadingStates(prev => ({ ...prev, [fileKey]: true }));
-
-    try {
-      const result = await DocumentPicker.getDocumentAsync({
-        type: '*/*',
-        copyToCacheDirectory: true,
-      });
-
-      const file = !result.canceled && result.assets?.length ? result.assets[0] : null;
-      if (!file) {
-        return;
-      }
-
-      const name = file.name ?? `document_${Date.now()}`;
-      const sizeBytes = file.size ?? 0;
-      const sizeStr = sizeBytes > 0 ? `${(sizeBytes / 1024 / 1024).toFixed(2)} MB` : '—';
-
-      const newUploadedFiles = {
-        ...uploadedFiles,
-        [fileKey]: {
-          name,
-          size: sizeStr,
-          date: new Date().toLocaleDateString('ar-SA'),
-          type: 'وثيقة',
-          uri: file.uri,
-        },
-      };
-
-      setUploadedFiles(newUploadedFiles);
-      try {
-        await AsyncStorage.setItem('uploadedFiles', JSON.stringify(newUploadedFiles));
-      } catch (e) {
-        await AsyncStorage.setItem('uploadedFiles', JSON.stringify({
-          ...uploadedFiles,
-          [fileKey]: { name, size: sizeStr, date: new Date().toLocaleDateString('ar-SA'), type: 'وثيقة' },
-        }));
-      }
-
-      const newPerformanceData = performanceData.map(perf =>
-        perf.id === performanceId
-          ? {
-              ...perf,
-              evidence: perf.evidence.map((ev, idx) =>
-                idx === evidenceIndex ? { ...ev, available: true } : ev
-              ),
-            }
-          : perf
-      );
-      const updatedPerformance = newPerformanceData.find(perf => perf.id === performanceId);
-      if (updatedPerformance) {
-        const newScore = calculateScoreBasedOnEvidence(updatedPerformance.evidence);
-        const finalPerformanceData = newPerformanceData.map(perf =>
-          perf.id === performanceId ? { ...perf, score: newScore } : perf
-        );
-        setPerformanceData(finalPerformanceData);
-        await AsyncStorage.setItem('performanceData', JSON.stringify(finalPerformanceData));
-      } else {
-        setPerformanceData(newPerformanceData);
-        await AsyncStorage.setItem('performanceData', JSON.stringify(newPerformanceData));
-      }
-
-      AlertService.alert('نجح', 'تم رفع الوثيقة بنجاح');
-    } catch (error) {
-      const message = error instanceof Error ? error.message : 'فشل في اختيار الوثيقة';
-      console.log('Error picking document:', error);
-      AlertService.alert('خطأ', message);
-    } finally {
-      setUploadingStates(prev => ({ ...prev, [fileKey]: false }));
-    }
-  };
-
-  const pickVideo = async (performanceId: number, evidenceIndex: number) => {
-    const fileKey = `${performanceId}-${evidenceIndex}`;
-    setUploadingStates(prev => ({ ...prev, [fileKey]: true }));
-
-    try {
-      const permissionResult = await ImagePicker.requestMediaLibraryPermissionsAsync();
-      if (permissionResult.granted === false) {
-        AlertService.alert('إذن مطلوب', 'يجب السماح بالوصول إلى معرض الصور لرفع الفيديو.');
-        return;
-      }
-
-      const result = await ImagePicker.launchImageLibraryAsync({
-        mediaTypes: ImagePicker.MediaTypeOptions.Videos,
-        allowsEditing: true,
-        aspect: [16, 9],
-        quality: 0.8,
-      });
-
-      const asset = !result.canceled && result.assets?.length ? result.assets[0] : null;
-      if (!asset) {
-        return;
-      }
-
-      const fileName = `video_${Date.now()}.mp4`;
-      const sizeStr = asset.fileSize ? `${(asset.fileSize / 1024 / 1024).toFixed(2)} MB` : '—';
-
-      const newUploadedFiles = {
-        ...uploadedFiles,
-        [fileKey]: {
-          name: fileName,
-          size: sizeStr,
-          date: new Date().toLocaleDateString('ar-SA'),
-          type: 'فيديو',
-          uri: asset.uri,
-        },
-      };
-
-      setUploadedFiles(newUploadedFiles);
-      try {
-        await AsyncStorage.setItem('uploadedFiles', JSON.stringify(newUploadedFiles));
-      } catch (e) {
-        await AsyncStorage.setItem('uploadedFiles', JSON.stringify({
-          ...uploadedFiles,
-          [fileKey]: { name: fileName, size: sizeStr, date: new Date().toLocaleDateString('ar-SA'), type: 'فيديو' },
-        }));
-      }
-
-      const newPerformanceData = performanceData.map(perf =>
-        perf.id === performanceId
-          ? {
-              ...perf,
-              evidence: perf.evidence.map((ev, idx) =>
-                idx === evidenceIndex ? { ...ev, available: true } : ev
-              ),
-            }
-          : perf
-      );
-      const updatedPerformance = newPerformanceData.find(perf => perf.id === performanceId);
-      if (updatedPerformance) {
-        const newScore = calculateScoreBasedOnEvidence(updatedPerformance.evidence);
-        const finalPerformanceData = newPerformanceData.map(perf =>
-          perf.id === performanceId ? { ...perf, score: newScore } : perf
-        );
-        setPerformanceData(finalPerformanceData);
-        await AsyncStorage.setItem('performanceData', JSON.stringify(finalPerformanceData));
-      } else {
-        setPerformanceData(newPerformanceData);
-        await AsyncStorage.setItem('performanceData', JSON.stringify(newPerformanceData));
-      }
-
-      AlertService.alert('نجح', 'تم رفع الفيديو بنجاح');
-    } catch (error) {
-      const message = error instanceof Error ? error.message : 'فشل في اختيار الفيديو';
-      console.log('Error picking video:', error);
+      const fallbackMessage =
+        kind === 'image' ? 'فشل في اختيار الصورة' : kind === 'document' ? 'فشل في اختيار الوثيقة' : 'فشل في اختيار الفيديو';
+      const message = error instanceof Error ? error.message : fallbackMessage;
+      console.log(`Error picking ${kind}:`, error);
       AlertService.alert('خطأ', message);
     } finally {
       setUploadingStates(prev => ({ ...prev, [fileKey]: false }));
@@ -705,9 +605,7 @@ export default function PerformanceScreen() {
     setUploadModalVisible(false);
     const pid = uploadPerformanceId;
     const eid = uploadEvidenceIndex;
-    if (type === 'image') pickImage(pid, eid);
-    else if (type === 'document') pickDocument(pid, eid);
-    else pickVideo(pid, eid);
+    pickEvidenceFile(type, pid, eid);
   };
 
   const deleteFile = async (performanceId: number, evidenceIndex: number) => {
