@@ -34,6 +34,7 @@ import { getTextDirection, formatRTLText } from '@/utils/rtl-utils';
 import { APP_FOCUS_REFRESH_EVENT } from '@/utils/useAppFocusRefresh';
 import { AIAssistButton } from '@/components/AIAssistButton';
 import { PROFESSIONS } from '@/constants/professions';
+import { EditableField } from '@/components/EditableField';
 
 type ProfessionalGrowthItem = {
   id: string;
@@ -529,73 +530,64 @@ export default function BasicDataScreen() {
 
           {/* الصف الأول: الاسم الكامل والبريد الإلكتروني */}
           <ThemedView style={styles.gridContainer}>
-            <ThemedView style={[styles.dataItem, styles.gridItem, { backgroundColor: colors.card }]}>
-              <ThemedText style={[styles.labelMain, getTextDirection(), { color: colors.textSecondary }]}>الاسم الكامل</ThemedText>
-              {isEditing ? (
-                <TextInput
-                  style={[styles.inputMain, getTextDirection(), { backgroundColor: colors.inputBackground, color: colors.inputText }]}
-                  value={userData.fullName}
-                  onChangeText={(text) => updateField('fullName', text)}
-                  placeholder={formatRTLText('أدخل الاسم الكامل')}
-                  placeholderTextColor={colors.inputPlaceholder}
-                />
-              ) : (
-                <ThemedText style={[styles.value, getTextDirection(), { color: colors.text }]}>{userData.fullName}</ThemedText>
-              )}
-            </ThemedView>
+            <EditableField
+              label="الاسم الكامل"
+              value={userData.fullName}
+              isEditing={isEditing}
+              onChangeText={(text) => updateField('fullName', text)}
+              placeholder={formatRTLText('أدخل الاسم الكامل')}
+              colors={colors}
+              containerStyle={[styles.dataItem, styles.gridItem]}
+              labelStyle={styles.labelMain}
+              valueStyle={styles.value}
+              inputStyle={styles.inputMain}
+            />
 
-            <ThemedView style={[styles.dataItem, styles.gridItem, { backgroundColor: colors.card }]}>
-              <ThemedText style={[styles.labelMain, getTextDirection(), { color: colors.textSecondary }]}>البريد الإلكتروني</ThemedText>
-              {isEditing ? (
-                <TextInput
-                  style={[styles.inputMain, getTextDirection(), { backgroundColor: colors.inputBackground, color: colors.inputText }]}
-                  value={userData.email}
-                  onChangeText={(text) => updateField('email', text)}
-                  placeholder={formatRTLText('أدخل البريد الإلكتروني')}
-                  keyboardType="email-address"
-                  placeholderTextColor={colors.inputPlaceholder}
-                />
-              ) : (
-                <ThemedText style={[styles.value, getTextDirection(), { color: colors.text }]}>{userData.email}</ThemedText>
-              )}
-            </ThemedView>
+            <EditableField
+              label="البريد الإلكتروني"
+              value={userData.email}
+              isEditing={isEditing}
+              onChangeText={(text) => updateField('email', text)}
+              placeholder={formatRTLText('أدخل البريد الإلكتروني')}
+              keyboardType="email-address"
+              colors={colors}
+              containerStyle={[styles.dataItem, styles.gridItem]}
+              labelStyle={styles.labelMain}
+              valueStyle={styles.value}
+              inputStyle={styles.inputMain}
+            />
           </ThemedView>
 
           {/* الصف الثاني: رقم الهاتف ووسائل التواصل الاجتماعي */}
           <ThemedView style={styles.gridContainer}>
-            <ThemedView style={[styles.dataItem, styles.gridItem, { backgroundColor: colors.card }]}>
-              <ThemedText style={[styles.labelMain, getTextDirection(), { color: colors.textSecondary }]}>رقم الهاتف</ThemedText>
-              {isEditing ? (
-                <TextInput
-                  style={[styles.inputMain, getTextDirection(), { backgroundColor: colors.inputBackground, color: colors.inputText }]}
-                  value={userData.phone}
-                  onChangeText={(text) => updateField('phone', text)}
-                  placeholder={formatRTLText('أدخل رقم الهاتف')}
-                  keyboardType="phone-pad"
-                  placeholderTextColor={colors.inputPlaceholder}
-                />
-              ) : (
-                <ThemedText style={[styles.value, getTextDirection(), { color: colors.text }]}>{userData.phone}</ThemedText>
-              )}
-              <ThemedText style={[styles.phoneHint, getTextDirection(), { color: colors.textSecondary }]}>
-                {formatRTLText('يُستخدم لربط اشتراكك تلقائياً عند الشراء من متجرنا؛ استخدم نفس الرقم عند إتمام الطلب في المتجر.')}
-              </ThemedText>
-            </ThemedView>
+            <EditableField
+              label="رقم الهاتف"
+              value={userData.phone}
+              isEditing={isEditing}
+              onChangeText={(text) => updateField('phone', text)}
+              placeholder={formatRTLText('أدخل رقم الهاتف')}
+              keyboardType="phone-pad"
+              hint={formatRTLText('يُستخدم لربط اشتراكك تلقائياً عند الشراء من متجرنا؛ استخدم نفس الرقم عند إتمام الطلب في المتجر.')}
+              hintStyle={styles.phoneHint}
+              colors={colors}
+              containerStyle={[styles.dataItem, styles.gridItem]}
+              labelStyle={styles.labelMain}
+              valueStyle={styles.value}
+              inputStyle={styles.inputMain}
+            />
 
-            <ThemedView style={[styles.dataItem, styles.gridItem, { backgroundColor: colors.card }]}>
-              <ThemedText style={[styles.labelMain, getTextDirection(), { color: colors.textSecondary }]}>وسائل التواصل الاجتماعي</ThemedText>
-              {isEditing ? (
-                <TextInput
-                  style={[styles.inputMain, getTextDirection(), { backgroundColor: colors.inputBackground, color: colors.inputText }]}
-                  value={userData.socialMedia}
-                  onChangeText={(text) => updateField('socialMedia', text)}
-                  placeholder={formatRTLText('أدخل روابط وسائل التواصل الاجتماعي')}
-                  placeholderTextColor={colors.inputPlaceholder}
-                />
-              ) : (
-                <ThemedText style={[styles.value, getTextDirection(), { color: colors.text }]}>{userData.socialMedia}</ThemedText>
-              )}
-            </ThemedView>
+            <EditableField
+              label="وسائل التواصل الاجتماعي"
+              value={userData.socialMedia}
+              isEditing={isEditing}
+              onChangeText={(text) => updateField('socialMedia', text)}
+              placeholder={formatRTLText('أدخل روابط وسائل التواصل الاجتماعي')}
+              colors={colors}
+              containerStyle={[styles.dataItem, styles.gridItem]}
+              labelStyle={styles.labelMain}
+              valueStyle={styles.value}
+              inputStyle={styles.inputMain}
+            />
           </ThemedView>
         </ThemedView>
 
@@ -624,160 +616,144 @@ export default function BasicDataScreen() {
               )}
             </ThemedView>
 
-            <ThemedView style={[styles.dataItem, styles.gridItem, { backgroundColor: colors.card }]}>
-              <ThemedText style={[styles.label, getTextDirection(), { color: colors.textSecondary }]}>التخصص</ThemedText>
-              {isEditing ? (
-                <TextInput
-                  style={[styles.inputMain, getTextDirection(), { backgroundColor: colors.inputBackground, color: colors.inputText }]}
-                  value={userData.specialty}
-                  onChangeText={(text) => updateField('specialty', text)}
-                  placeholder={formatRTLText('أدخل التخصص')}
-                  placeholderTextColor={colors.inputPlaceholder}
-                />
-              ) : (
-                <ThemedText style={[styles.value, getTextDirection(), { color: colors.text }]}>{userData.specialty}</ThemedText>
-              )}
-            </ThemedView>
+            <EditableField
+              label="التخصص"
+              value={userData.specialty}
+              isEditing={isEditing}
+              onChangeText={(text) => updateField('specialty', text)}
+              placeholder={formatRTLText('أدخل التخصص')}
+              colors={colors}
+              containerStyle={[styles.dataItem, styles.gridItem]}
+              labelStyle={styles.label}
+              valueStyle={styles.value}
+              inputStyle={styles.inputMain}
+            />
           </ThemedView>
 
           {/* الصف الثاني: المؤهل العلمي وتاريخ التعيين */}
           <ThemedView style={styles.gridContainer}>
-            <ThemedView style={[styles.dataItem, styles.gridItem, { backgroundColor: colors.card }]}>
-              <ThemedText style={[styles.label, getTextDirection(), { color: colors.textSecondary }]}>المؤهل العلمي</ThemedText>
-              {isEditing ? (
-                <TextInput
-                  style={[styles.inputMain, getTextDirection(), { backgroundColor: colors.inputBackground, color: colors.inputText }]}
-                  value={userData.education}
-                  onChangeText={(text) => updateField('education', text)}
-                  placeholder={formatRTLText('أدخل المؤهل العلمي')}
-                  placeholderTextColor={colors.inputPlaceholder}
-                />
-              ) : (
-                <ThemedText style={[styles.value, getTextDirection(), { color: colors.text }]}>{userData.education}</ThemedText>
-              )}
-            </ThemedView>
+            <EditableField
+              label="المؤهل العلمي"
+              value={userData.education}
+              isEditing={isEditing}
+              onChangeText={(text) => updateField('education', text)}
+              placeholder={formatRTLText('أدخل المؤهل العلمي')}
+              colors={colors}
+              containerStyle={[styles.dataItem, styles.gridItem]}
+              labelStyle={styles.label}
+              valueStyle={styles.value}
+              inputStyle={styles.inputMain}
+            />
 
-            <ThemedView style={[styles.dataItem, styles.gridItem, { backgroundColor: colors.card }]}>
-              <ThemedText style={[styles.label, getTextDirection(), { color: colors.textSecondary }]}>تاريخ التعيين</ThemedText>
-              {isEditing ? (
-                <TextInput
-                  style={[styles.inputMain, getTextDirection(), { backgroundColor: colors.inputBackground, color: colors.inputText }]}
-                  value={userData.appointmentDate}
-                  onChangeText={(text) => updateField('appointmentDate', text)}
-                  placeholder={formatRTLText('أدخل تاريخ التعيين')}
-                  placeholderTextColor={colors.inputPlaceholder}
-                />
-              ) : (
-                <ThemedText style={[styles.value, getTextDirection(), { color: colors.text }]}>{userData.appointmentDate}</ThemedText>
-              )}
-            </ThemedView>
+            <EditableField
+              label="تاريخ التعيين"
+              value={userData.appointmentDate}
+              isEditing={isEditing}
+              onChangeText={(text) => updateField('appointmentDate', text)}
+              placeholder={formatRTLText('أدخل تاريخ التعيين')}
+              colors={colors}
+              containerStyle={[styles.dataItem, styles.gridItem]}
+              labelStyle={styles.label}
+              valueStyle={styles.value}
+              inputStyle={styles.inputMain}
+            />
           </ThemedView>
 
           {/* الصف الثالث: عدد سنوات الخبرة والرتبة */}
           <ThemedView style={styles.gridContainer}>
-            <ThemedView style={[styles.dataItem, styles.gridItem, { backgroundColor: colors.card }]}>
-              <ThemedText style={[styles.label, getTextDirection(), { color: colors.textSecondary }]}>عدد سنوات الخبرة</ThemedText>
-              {isEditing ? (
-                <TextInput
-                  style={[styles.inputMain, getTextDirection(), { backgroundColor: colors.inputBackground, color: colors.inputText }]}
-                  value={userData.experience}
-                  onChangeText={(text) => updateField('experience', text)}
-                  placeholder={formatRTLText('أدخل عدد سنوات الخبرة')}
-                  placeholderTextColor={colors.inputPlaceholder}
-                />
-              ) : (
-                <ThemedText style={[styles.value, getTextDirection(), { color: colors.text }]}>{userData.experience}</ThemedText>
-              )}
-            </ThemedView>
+            <EditableField
+              label="عدد سنوات الخبرة"
+              value={userData.experience}
+              isEditing={isEditing}
+              onChangeText={(text) => updateField('experience', text)}
+              placeholder={formatRTLText('أدخل عدد سنوات الخبرة')}
+              colors={colors}
+              containerStyle={[styles.dataItem, styles.gridItem]}
+              labelStyle={styles.label}
+              valueStyle={styles.value}
+              inputStyle={styles.inputMain}
+            />
 
-            <ThemedView style={[styles.dataItem, styles.gridItem, { backgroundColor: colors.card }]}>
-              <ThemedText style={[styles.label, getTextDirection(), { color: colors.textSecondary }]}>الرتبة</ThemedText>
-              {isEditing ? (
-                <TextInput
-                  style={[styles.inputMain, getTextDirection(), { backgroundColor: colors.inputBackground, color: colors.inputText }]}
-                  value={userData.rank}
-                  onChangeText={(text) => updateField('rank', text)}
-                  placeholder={formatRTLText('أدخل الرتبة')}
-                  placeholderTextColor={colors.inputPlaceholder}
-                />
-              ) : (
-                <ThemedText style={[styles.value, getTextDirection(), { color: colors.text }]}>{userData.rank}</ThemedText>
-              )}
-            </ThemedView>
+            <EditableField
+              label="الرتبة"
+              value={userData.rank}
+              isEditing={isEditing}
+              onChangeText={(text) => updateField('rank', text)}
+              placeholder={formatRTLText('أدخل الرتبة')}
+              colors={colors}
+              containerStyle={[styles.dataItem, styles.gridItem]}
+              labelStyle={styles.label}
+              valueStyle={styles.value}
+              inputStyle={styles.inputMain}
+            />
           </ThemedView>
 
           {/* الصف الرابع: الخبرات */}
           <ThemedView style={styles.gridContainer}>
-            <ThemedView style={[styles.dataItem, styles.fullWidth, { backgroundColor: colors.card }]}>
-              <ThemedText style={[styles.label, getTextDirection(), { color: colors.textSecondary }]}>الخبرات</ThemedText>
-              {isEditing ? (
-                <TextInput
-                  style={[styles.inputMain, styles.textArea, getTextDirection(), { backgroundColor: colors.inputBackground, color: colors.inputText }]}
-                  value={userData.experiences}
-                  onChangeText={(text) => updateField('experiences', text)}
-                  placeholder={formatRTLText('أدخل الخبرات المهنية')}
-                  multiline
-                  placeholderTextColor={colors.inputPlaceholder}
-                />
-              ) : (
-                <ThemedText style={[styles.value, getTextDirection(), { color: colors.text }]}>{userData.experiences}</ThemedText>
-              )}
-            </ThemedView>
+            <EditableField
+              label="الخبرات"
+              value={userData.experiences}
+              isEditing={isEditing}
+              onChangeText={(text) => updateField('experiences', text)}
+              placeholder={formatRTLText('أدخل الخبرات المهنية')}
+              multiline
+              colors={colors}
+              containerStyle={[styles.dataItem, styles.fullWidth]}
+              labelStyle={styles.label}
+              valueStyle={styles.value}
+              inputStyle={styles.inputMain}
+              textAreaStyle={styles.textArea}
+            />
           </ThemedView>
 
           {/* الصف الخامس: الإدارة التعليمية */}
           <ThemedView style={styles.gridContainer}>
-            <ThemedView style={[styles.dataItem, styles.fullWidth, { backgroundColor: colors.card }]}>
-              <ThemedText style={[styles.label, getTextDirection(), { color: colors.textSecondary }]}>الإدارة التعليمية</ThemedText>
-              {isEditing ? (
-                <TextInput
-                  style={[styles.inputMain, getTextDirection(), { backgroundColor: colors.inputBackground, color: colors.inputText }]}
-                  value={userData.educationDepartment}
-                  onChangeText={(text) => updateField('educationDepartment', text)}
-                  placeholder={formatRTLText('أدخل اسم الإدارة التعليمية')}
-                  placeholderTextColor={colors.inputPlaceholder}
-                />
-              ) : (
-                <ThemedText style={[styles.value, getTextDirection(), { color: colors.text }]}>{userData.educationDepartment}</ThemedText>
-              )}
-            </ThemedView>
+            <EditableField
+              label="الإدارة التعليمية"
+              value={userData.educationDepartment}
+              isEditing={isEditing}
+              onChangeText={(text) => updateField('educationDepartment', text)}
+              placeholder={formatRTLText('أدخل اسم الإدارة التعليمية')}
+              colors={colors}
+              containerStyle={[styles.dataItem, styles.fullWidth]}
+              labelStyle={styles.label}
+              valueStyle={styles.value}
+              inputStyle={styles.inputMain}
+            />
           </ThemedView>
 
           {/* الصف السادس: المدرسة */}
           <ThemedView style={styles.gridContainer}>
-            <ThemedView style={[styles.dataItem, styles.fullWidth, { backgroundColor: colors.card }]}>
-              <ThemedText style={[styles.label, getTextDirection(), { color: colors.textSecondary }]}>المدرسة</ThemedText>
-              {isEditing ? (
-                <TextInput
-                  style={[styles.inputMain, getTextDirection(), { backgroundColor: colors.inputBackground, color: colors.inputText }]}
-                  value={userData.school}
-                  onChangeText={(text) => updateField('school', text)}
-                  placeholder={formatRTLText('أدخل اسم المدرسة')}
-                  placeholderTextColor={colors.inputPlaceholder}
-                />
-              ) : (
-                <ThemedText style={[styles.value, getTextDirection(), { color: colors.text }]}>{userData.school}</ThemedText>
-              )}
-            </ThemedView>
+            <EditableField
+              label="المدرسة"
+              value={userData.school}
+              isEditing={isEditing}
+              onChangeText={(text) => updateField('school', text)}
+              placeholder={formatRTLText('أدخل اسم المدرسة')}
+              colors={colors}
+              containerStyle={[styles.dataItem, styles.fullWidth]}
+              labelStyle={styles.label}
+              valueStyle={styles.value}
+              inputStyle={styles.inputMain}
+            />
           </ThemedView>
 
           {/* الصف السابع: المرحلة والصفوف الدراسية */}
           <ThemedView style={styles.gridContainer}>
-            <ThemedView style={[styles.dataItem, styles.fullWidth, { backgroundColor: colors.card }]}>
-              <ThemedText style={[styles.label, getTextDirection(), { color: colors.textSecondary }]}>المرحلة والصفوف الدراسية</ThemedText>
-              {isEditing ? (
-                <TextInput
-                  style={[styles.inputMain, styles.textArea, getTextDirection(), { backgroundColor: colors.inputBackground, color: colors.inputText }]}
-                  value={userData.gradeLevel}
-                  onChangeText={(text) => updateField('gradeLevel', text)}
-                  placeholder={formatRTLText('أدخل المرحلة والصفوف الدراسية')}
-                  multiline
-                  placeholderTextColor={colors.inputPlaceholder}
-                />
-              ) : (
-                <ThemedText style={[styles.value, getTextDirection(), { color: colors.text }]}>{userData.gradeLevel}</ThemedText>
-              )}
-            </ThemedView>
+            <EditableField
+              label="المرحلة والصفوف الدراسية"
+              value={userData.gradeLevel}
+              isEditing={isEditing}
+              onChangeText={(text) => updateField('gradeLevel', text)}
+              placeholder={formatRTLText('أدخل المرحلة والصفوف الدراسية')}
+              multiline
+              colors={colors}
+              containerStyle={[styles.dataItem, styles.fullWidth]}
+              labelStyle={styles.label}
+              valueStyle={styles.value}
+              inputStyle={styles.inputMain}
+              textAreaStyle={styles.textArea}
+            />
           </ThemedView>
 
           {/* بطاقة النمو المهني: الشهادات والدورات التدريبية (قابلة للطي/الفتح) */}
