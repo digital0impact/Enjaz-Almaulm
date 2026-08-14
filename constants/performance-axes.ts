@@ -1578,7 +1578,7 @@ export const getPerformanceAxesByProfession = (profession: string): PerformanceA
         id: 8,
         title: 'تهيئة البيئة التعليمية',
         score: 0,
-        weight: 10,
+        weight: 5,
         description: 'مراعاة حاجات الطلاب، تهيئة نفسية ومادية ومعنوية مناسبة',
         details: 'اهتمام بتهيئة بيئة تعليمية محفزة ومناسبة، مراعاة لحاجات الطلاب النفسية والمادية والمعنوية.',
         evidence: [
@@ -1594,7 +1594,7 @@ export const getPerformanceAxesByProfession = (profession: string): PerformanceA
         id: 9,
         title: 'الإدارة الصفية',
         score: 0,
-        weight: 10,
+        weight: 5,
         description: 'ضبط سلوك الطلاب، شد انتباه الطلاب، مراعاة الفروق الفردية',
         details: 'إدارة للصف، مهارات في ضبط سلوك الطلاب وشد انتباههم، مع مراعاة للفروق الفردية ومتابعة للحضور والانضباط.',
         evidence: [
