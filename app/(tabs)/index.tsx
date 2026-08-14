@@ -398,18 +398,7 @@ export default function HomeScreen() {
                     <ThemedText style={[styles.toolDescription, getTextDirection()]}>إدارة الجدول الدراسي والحصص</ThemedText>
                   </TouchableOpacity>
 
-                  <TouchableOpacity 
-                    style={styles.toolCard}
-                    onPress={() => router.push('/interactive-report')}
-                  >
-                    <ThemedView style={styles.toolIconWrapper}>
-                      <IconSymbol size={28} name="chart.line.uptrend.xyaxis" color="#1c1f33" />
-                    </ThemedView>
-                    <ThemedText style={[styles.toolTitle, getTextDirection()]}>التقرير التفاعلي للأداء المهني</ThemedText>
-                    <ThemedText style={[styles.toolDescription, getTextDirection()]}>تقييم وتحليل أدائك المهني كمعلم</ThemedText>
-                  </TouchableOpacity>
-
-                  <TouchableOpacity 
+                  <TouchableOpacity
                     style={styles.toolCard}
                     onPress={() => router.push('/student-tracking')}
                   >
@@ -429,6 +418,28 @@ export default function HomeScreen() {
                     </ThemedView>
                     <ThemedText style={[styles.toolTitle, getTextDirection()]}>خطة التطوير الفردية (IDP)</ThemedText>
                     <ThemedText style={[styles.toolDescription, getTextDirection()]}>نموذج خطة التطوير الفردية ومجالات التطوير المهني 70-20-10</ThemedText>
+                  </TouchableOpacity>
+
+                  <TouchableOpacity
+                    style={styles.toolCard}
+                    onPress={() => router.push('/report-builder')}
+                  >
+                    <ThemedView style={styles.toolIconWrapper}>
+                      <IconSymbol size={28} name="doc.badge.plus" color="#1c1f33" />
+                    </ThemedView>
+                    <ThemedText style={[styles.toolTitle, getTextDirection()]}>منشئ التقارير</ThemedText>
+                    <ThemedText style={[styles.toolDescription, getTextDirection()]}>إنشاء تقرير تنفيذ برامج النشاط الصفي وتصديره</ThemedText>
+                  </TouchableOpacity>
+
+                  <TouchableOpacity
+                    style={styles.toolCard}
+                    onPress={() => router.push('/results-analysis')}
+                  >
+                    <ThemedView style={styles.toolIconWrapper}>
+                      <IconSymbol size={28} name="chart.bar.fill" color="#1c1f33" />
+                    </ThemedView>
+                    <ThemedText style={[styles.toolTitle, getTextDirection()]}>تحليل النتائج</ThemedText>
+                    <ThemedText style={[styles.toolDescription, getTextDirection()]}>إدخال درجات الطلاب يدوياً أو من ملف وتحليلها في تقرير واحد</ThemedText>
                   </TouchableOpacity>
 
                 </ThemedView>
