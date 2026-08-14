@@ -13,6 +13,7 @@ import * as DocumentPicker from 'expo-document-picker';
 import { getTextDirection, formatRTLText } from '@/utils/rtl-utils';
 import { getPerformanceAxesByProfession, PerformanceAxis } from '@/constants/performance-axes';
 import { PerformanceReportView } from '@/components/PerformanceReportView';
+import { calculateOverallAverageFivePoint } from '@/utils/performance-five-point';
 import { useLocalSearchParams } from 'expo-router';
 
 const { width, height } = Dimensions.get('window');
@@ -274,16 +275,17 @@ export default function PerformanceScreen() {
     return Math.round((availableEvidence / evidence.length) * 100);
   };
 
-  /** المعدل الحقيقي: المتوسط المرجح للنسب الفعلية (مجموع (الدرجة × الوزن) ÷ مجموع الأوزان) */
+  /**
+   * المعدل العام وفق النموذج الخماسي الرسمي (نفس الصيغة المستخدمة في عرض
+   * "التقرير الكامل" عبر PerformanceReportView) — بقرار صريح من المستخدم،
+   * بعد أن كان لعرض "المحاور" صيغة مختلفة (متوسط مرجّح مباشر للنسب) تعطي
+   * رقمًا مختلفًا لنفس البيانات بالضبط عند التبديل بين العرضين.
+   */
   const calculateOverallAverage = () => {
     if (!performanceData || performanceData.length === 0) return 0;
-    const totalWeight = performanceData.reduce((acc, p) => acc + (p.weight ?? 0), 0);
-    if (totalWeight === 0) return 0;
-    const weightedSum = performanceData.reduce(
-      (acc, p) => acc + (p.score ?? 0) * (p.weight ?? 0),
-      0
+    return calculateOverallAverageFivePoint(
+      performanceData.map(p => ({ score: p.score ?? 0, weight: p.weight ?? 0 }))
     );
-    return Math.round(weightedSum / totalWeight);
   };
 
   const updatePerformanceData = async (newData: any[]) => {
