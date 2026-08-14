@@ -33,6 +33,7 @@ import { isSupabaseConfigured } from '@/config/supabase';
 import { getTextDirection, formatRTLText } from '@/utils/rtl-utils';
 import { APP_FOCUS_REFRESH_EVENT } from '@/utils/useAppFocusRefresh';
 import { AIAssistButton } from '@/components/AIAssistButton';
+import { PROFESSIONS } from '@/constants/professions';
 
 type ProfessionalGrowthItem = {
   id: string;
@@ -99,17 +100,7 @@ export default function BasicDataScreen() {
 
   const { colors } = useTheme(); // Use the useTheme hook to get the current theme
 
-  const professionOptions = [
-    'معلم/ة',
-    'محضر المختبر',
-    'معلم/ة مسند له نشاط طلابي',
-    'معلم/ة مسند له توجيه صحي',
-    'الموجه/ه الطلابي',
-    'وكيل/ة المدرسة',
-    'مدير/ة المدرسة',
-    'التشكيلات الإشرافية المشتركة',
-    'التشكيلات الإشرافية'
-  ];
+  const professionOptions = PROFESSIONS;
 
   useEffect(() => {
     loadUserData();

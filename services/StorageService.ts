@@ -1,5 +1,6 @@
 import { supabase } from '../config/supabase';
 import { logError } from '@/utils/logger';
+import { getErrorMessage } from '@/utils/errorMessage';
 
 export interface FileUploadOptions {
   bucket?: string;
@@ -85,7 +86,7 @@ export class StorageService {
       logError('خطأ في رفع الملف', 'StorageService', error);
       return {
         success: false,
-        error: error instanceof Error ? error.message : 'خطأ غير معروف'
+        error: getErrorMessage(error)
       };
     }
   }
@@ -257,7 +258,7 @@ export class StorageService {
       logError('خطأ في رفع الصورة الشخصية', 'StorageService', error);
       return {
         success: false,
-        error: error instanceof Error ? error.message : 'خطأ غير معروف'
+        error: getErrorMessage(error)
       };
     }
   }
