@@ -162,6 +162,19 @@ class AuthService {
     }
   }
 
+  /** تحديث كلمة مرور المستخدم الحالي (يُستخدم في صفحة إعادة تعيين كلمة المرور). */
+  async updatePassword(password: string): Promise<void> {
+    try {
+      const { error } = await supabase.auth.updateUser({ password });
+      if (error) {
+        throw new Error(error.message);
+      }
+    } catch (error) {
+      logError('Update password error', 'AuthService', error);
+      throw error;
+    }
+  }
+
   async getCurrentUser(): Promise<User | null> {
     try {
       const { data: { user }, error } = await supabase.auth.getUser();
