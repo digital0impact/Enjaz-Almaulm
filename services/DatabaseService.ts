@@ -24,7 +24,13 @@ export interface UserProfile {
   updated_at?: string;
 }
 
-export interface PerformanceData {
+// ملاحظة: PerformanceRecordDB/AlertDB/FileAttachmentDB (بلاحقة DB) هي أشكال صفوف
+// قاعدة البيانات كما تُخزَّن/تُقرأ عبر هذه الخدمة تحديدًا، وهي مختلفة عن الأنواع
+// المتشابهة الاسم (بدون اللاحقة) في types/index.ts التي تمثل شكل بيانات واجهة
+// المستخدم/التقارير. الاسمان كانا متطابقين سابقًا (PerformanceData وAlert)
+// رغم اختلاف الشكل الفعلي تمامًا بينهما — هذا الفصل في التسمية إجراء وقائي فقط
+// (لا يغيّر أي سلوك) تمهيدًا لتوحيد الشكلين في مرحلة لاحقة من خطة إعادة الهيكلة.
+export interface PerformanceRecordDB {
   id?: string;
   userId: string;
   axisId: string;
@@ -39,11 +45,11 @@ export interface Evidence {
   id: string;
   title: string;
   description: string;
-  files: FileAttachment[];
+  files: FileAttachmentDB[];
   score: number;
 }
 
-export interface FileAttachment {
+export interface FileAttachmentDB {
   id: string;
   name: string;
   uri: string;
@@ -51,7 +57,7 @@ export interface FileAttachment {
   size: number;
 }
 
-export interface Alert {
+export interface AlertDB {
   id?: string;
   userId: string;
   title: string;
@@ -293,7 +299,7 @@ class DatabaseService {
   }
 
   // Performance Data Operations
-  async savePerformanceData(performanceData: PerformanceData): Promise<string> {
+  async savePerformanceData(performanceData: PerformanceRecordDB): Promise<string> {
     try {
       const row = {
         userid: performanceData.userId,
@@ -315,7 +321,7 @@ class DatabaseService {
     }
   }
 
-  async getPerformanceData(userId: string): Promise<PerformanceData[]> {
+  async getPerformanceData(userId: string): Promise<PerformanceRecordDB[]> {
     try {
       const { data, error } = await supabase
         .from('performance_data')
@@ -339,7 +345,7 @@ class DatabaseService {
     }
   }
 
-  async updatePerformanceData(performanceId: string, updates: Partial<PerformanceData>): Promise<void> {
+  async updatePerformanceData(performanceId: string, updates: Partial<PerformanceRecordDB>): Promise<void> {
     try {
       const row: Record<string, unknown> = {};
       if (updates.axisId !== undefined) row.axis_id = updates.axisId;
@@ -356,7 +362,7 @@ class DatabaseService {
   }
 
   // Alerts Operations
-  async saveAlert(alert: Alert): Promise<string> {
+  async saveAlert(alert: AlertDB): Promise<string> {
     try {
       const row = {
         userid: alert.userId,
@@ -375,7 +381,7 @@ class DatabaseService {
     }
   }
 
-  async getAlerts(userId: string): Promise<Alert[]> {
+  async getAlerts(userId: string): Promise<AlertDB[]> {
     try {
       const { data, error } = await supabase
         .from('alerts')
@@ -400,7 +406,7 @@ class DatabaseService {
     }
   }
 
-  async updateAlert(alertId: string, updates: Partial<Alert>): Promise<void> {
+  async updateAlert(alertId: string, updates: Partial<AlertDB>): Promise<void> {
     try {
       const row: Record<string, unknown> = {};
       if (updates.title !== undefined) row.title = updates.title;
