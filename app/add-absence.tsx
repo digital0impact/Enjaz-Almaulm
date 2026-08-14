@@ -4,6 +4,8 @@ import { AlertService } from '@/services/AlertService';
 
 import { ThemedText } from '@/components/ThemedText';
 import { ThemedView } from '@/components/ThemedView';
+import { ThemedButton } from '@/components/ThemedButton';
+import { ThemedCard } from '@/components/ThemedCard';
 import { IconSymbol } from '@/components/ui/IconSymbol';
 import { BottomNavigationBar } from '@/components/BottomNavigationBar';
 import { useRouter } from 'expo-router';
@@ -127,12 +129,12 @@ export default function AddAbsenceScreen() {
       >
           <ScrollView style={styles.scrollContainer}>
             <ThemedView style={styles.header}>
-              <TouchableOpacity 
+              <ThemedButton
+                icon="chevron.left"
+                iconColor="#1c1f33"
                 style={styles.backButton}
                 onPress={() => router.back()}
-              >
-                <IconSymbol size={20} name="chevron.left" color="#1c1f33" />
-              </TouchableOpacity>
+              />
 
               <ThemedView style={styles.iconContainer}>
                 <IconSymbol size={60} name="plus.circle.fill" color="#1c1f33" />
@@ -148,16 +150,16 @@ export default function AddAbsenceScreen() {
 
             <ThemedView style={styles.content}>
               {/* تاريخ الغياب */}
-              <ThemedView style={styles.formSection}>
+              <ThemedCard style={styles.formSection}>
                 <ThemedText style={[styles.sectionTitle, getTextDirection()]}>تاريخ الغياب</ThemedText>
                 <ThemedView style={styles.inputContainer}>
                   <ThemedText style={[styles.dateInput, getTextDirection()]}>{formData.date}</ThemedText>
                   <IconSymbol size={20} name="calendar" color="#666" />
                 </ThemedView>
-              </ThemedView>
+              </ThemedCard>
 
               {/* نوع الغياب */}
-              <ThemedView style={styles.formSection}>
+              <ThemedCard style={styles.formSection}>
                 <ThemedText style={[styles.sectionTitle, getTextDirection()]}>نوع الغياب</ThemedText>
                 <ThemedView style={styles.optionsGrid}>
                   {absenceTypes.map((type) => (
@@ -174,10 +176,10 @@ export default function AddAbsenceScreen() {
                     </TouchableOpacity>
                   ))}
                 </ThemedView>
-              </ThemedView>
+              </ThemedCard>
 
               {/* هل يوجد عذر */}
-              <ThemedView style={styles.formSection}>
+              <ThemedCard style={styles.formSection}>
                 <ThemedText style={[styles.sectionTitle, getTextDirection()]}>هل يوجد عذر؟</ThemedText>
                 <ThemedView style={styles.excuseContainer}>
                   <TouchableOpacity
@@ -202,13 +204,13 @@ export default function AddAbsenceScreen() {
                     <ThemedText style={[styles.excuseText, getTextDirection()]}>لا</ThemedText>
                   </TouchableOpacity>
                 </ThemedView>
-              </ThemedView>
+              </ThemedCard>
 
               {/* سبب الغياب */}
-              <ThemedView style={styles.formSection}>
+              <ThemedCard style={styles.formSection}>
                 <ThemedText style={[styles.sectionTitle, getTextDirection()]}>سبب الغياب (اختياري)</ThemedText>
                 <ThemedView style={styles.textInputContainer}>
-                  <ThemedText 
+                  <ThemedText
                     style={[styles.textInput, getTextDirection()]}
                     onPress={() => {
                       Alert.prompt(
@@ -223,7 +225,7 @@ export default function AddAbsenceScreen() {
                     {formData.reason || formatRTLText('اضغط لإدخال السبب...')}
                   </ThemedText>
                 </ThemedView>
-              </ThemedView>
+              </ThemedCard>
 
               {/* زر الحفظ */}
               <TouchableOpacity style={styles.saveButton} onPress={saveAbsence}>
@@ -314,12 +316,9 @@ const styles = StyleSheet.create({
     gap: 20,
   },
   formSection: {
-    backgroundColor: '#F8F9FA',
     borderRadius: 15,
     padding: 20,
     borderWidth: 1,
-    borderColor: '#E5E5EA',
-    shadowColor: '#000',
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.1,
     shadowRadius: 8,
