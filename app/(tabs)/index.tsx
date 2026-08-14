@@ -5,6 +5,7 @@ import { ThemedText } from '@/components/ThemedText';
 import { ThemedView } from '@/components/ThemedView';
 import { IconSymbol } from '@/components/ui/IconSymbol';
 import { VersionTracker } from '@/components/VersionTracker';
+import { ToolsGrid } from '@/components/ToolsGrid';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useRouter, useNavigation } from 'expo-router';
 import { useFocusEffect } from '@react-navigation/native';
@@ -12,6 +13,7 @@ import { useFocusEffect } from '@react-navigation/native';
 import { getTextDirection, formatRTLText } from '@/utils/rtl-utils';
 import AuthService from '@/services/AuthService';
 import { PermissionService } from '@/services/PermissionService';
+import { HOME_TOOLS } from '@/data/toolsMenu';
 
 const isWeb = Platform.OS === 'web';
 const WELCOME_MAX_CONTENT_WIDTH = 420;
@@ -375,74 +377,7 @@ export default function HomeScreen() {
               </ThemedView>
 
               <ThemedView style={styles.content}>
-                <ThemedView style={styles.toolsGrid}>
-                  <TouchableOpacity 
-                    style={styles.toolCard}
-                    onPress={() => router.push('/azkar')}
-                  >
-                    <ThemedView style={styles.toolIconWrapper}>
-                      <IconSymbol size={28} name="doc.text.fill" color="#1c1f33" />
-                    </ThemedView>
-                    <ThemedText style={[styles.toolTitle, getTextDirection()]}>أذكاري</ThemedText>
-                    <ThemedText style={[styles.toolDescription, getTextDirection()]}>مجموعة من الأذكار اليومية المفيدة</ThemedText>
-                  </TouchableOpacity>
-
-                  <TouchableOpacity 
-                    style={styles.toolCard}
-                    onPress={() => router.push('/schedule')}
-                  >
-                    <ThemedView style={styles.toolIconWrapper}>
-                      <IconSymbol size={28} name="calendar" color="#1c1f33" />
-                    </ThemedView>
-                    <ThemedText style={[styles.toolTitle, getTextDirection()]}>الجدول</ThemedText>
-                    <ThemedText style={[styles.toolDescription, getTextDirection()]}>إدارة الجدول الدراسي والحصص</ThemedText>
-                  </TouchableOpacity>
-
-                  <TouchableOpacity
-                    style={styles.toolCard}
-                    onPress={() => router.push('/student-tracking')}
-                  >
-                    <ThemedView style={styles.toolIconWrapper}>
-                      <IconSymbol size={28} name="person.crop.circle.badge.plus" color="#1c1f33" />
-                    </ThemedView>
-                    <ThemedText style={[styles.toolTitle, getTextDirection()]}>تتبع حالة المتعلمين</ThemedText>
-                    <ThemedText style={[styles.toolDescription, getTextDirection()]}>متابعة وتقييم حالة الطلاب</ThemedText>
-                  </TouchableOpacity>
-
-                  <TouchableOpacity 
-                    style={styles.toolCard}
-                    onPress={() => router.push('/idp')}
-                  >
-                    <ThemedView style={styles.toolIconWrapper}>
-                      <IconSymbol size={28} name="list.bullet" color="#1c1f33" />
-                    </ThemedView>
-                    <ThemedText style={[styles.toolTitle, getTextDirection()]}>خطة التطوير الفردية (IDP)</ThemedText>
-                    <ThemedText style={[styles.toolDescription, getTextDirection()]}>نموذج خطة التطوير الفردية ومجالات التطوير المهني 70-20-10</ThemedText>
-                  </TouchableOpacity>
-
-                  <TouchableOpacity
-                    style={styles.toolCard}
-                    onPress={() => router.push('/report-builder')}
-                  >
-                    <ThemedView style={styles.toolIconWrapper}>
-                      <IconSymbol size={28} name="doc.badge.plus" color="#1c1f33" />
-                    </ThemedView>
-                    <ThemedText style={[styles.toolTitle, getTextDirection()]}>منشئ التقارير</ThemedText>
-                    <ThemedText style={[styles.toolDescription, getTextDirection()]}>إنشاء تقرير تنفيذ برامج النشاط الصفي وتصديره</ThemedText>
-                  </TouchableOpacity>
-
-                  <TouchableOpacity
-                    style={styles.toolCard}
-                    onPress={() => router.push('/results-analysis')}
-                  >
-                    <ThemedView style={styles.toolIconWrapper}>
-                      <IconSymbol size={28} name="chart.bar.fill" color="#1c1f33" />
-                    </ThemedView>
-                    <ThemedText style={[styles.toolTitle, getTextDirection()]}>تحليل النتائج</ThemedText>
-                    <ThemedText style={[styles.toolDescription, getTextDirection()]}>إدخال درجات الطلاب يدوياً أو من ملف وتحليلها في تقرير واحد</ThemedText>
-                  </TouchableOpacity>
-
-                </ThemedView>
+                <ToolsGrid tools={HOME_TOOLS} />
               </ThemedView>
             </ScrollView>
           </KeyboardAvoidingView>
@@ -833,54 +768,6 @@ const styles = StyleSheet.create({
   content: {
     backgroundColor: 'transparent',
     gap: 15,
-  },
-  toolsGrid: {
-    flexDirection: 'column',
-    gap: 15,
-    backgroundColor: 'transparent',
-  },
-  toolCard: {
-    width: '100%',
-    alignItems: 'center',
-    padding: 20,
-    backgroundColor: '#F8F9FA',
-    borderRadius: 15,
-    borderWidth: 1,
-    borderColor: '#E5E5EA',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 6 },
-    shadowOpacity: 0.25,
-    shadowRadius: 12,
-    elevation: 10,
-    marginBottom: 15,
-  },
-  toolIconWrapper: {
-    marginBottom: 15,
-    padding: 15,
-    backgroundColor: '#F8F9FA',
-    borderRadius: 30,
-    borderWidth: 1,
-    borderColor: '#E5E5EA',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 6 },
-    shadowOpacity: 0.25,
-    shadowRadius: 12,
-    elevation: 10,
-  },
-  toolTitle: {
-    fontSize: 16,
-    fontWeight: 'bold',
-    color: '#1C1C1E',
-    textAlign: 'center',
-    writingDirection: 'rtl',
-    marginBottom: 8,
-  },
-  toolDescription: {
-    fontSize: 12,
-    color: '#8E8E93',
-    textAlign: 'center',
-    writingDirection: 'rtl',
-    lineHeight: 18,
   },
   headerButton: {
     flexDirection: 'row',
