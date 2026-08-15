@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { StyleSheet, ScrollView, TouchableOpacity, ImageBackground, Platform } from 'react-native';
+import { StyleSheet, ScrollView, TouchableOpacity, ImageBackground, Platform, TextInput } from 'react-native';
 import { AlertService } from '@/services/AlertService';
 
 import { ThemedText } from '@/components/ThemedText';
@@ -210,20 +210,15 @@ export default function AddAbsenceScreen() {
               <ThemedCard style={styles.formSection}>
                 <ThemedText style={[styles.sectionTitle, getTextDirection()]}>سبب الغياب (اختياري)</ThemedText>
                 <ThemedView style={styles.textInputContainer}>
-                  <ThemedText
+                  <TextInput
                     style={[styles.textInput, getTextDirection()]}
-                    onPress={() => {
-                      Alert.prompt(
-                        'سبب الغياب',
-                        'أدخل سبب الغياب',
-                        (text) => setFormData(prev => ({ ...prev, reason: text || '' })),
-                        'plain-text',
-                        formData.reason
-                      );
-                    }}
-                  >
-                    {formData.reason || formatRTLText('اضغط لإدخال السبب...')}
-                  </ThemedText>
+                    value={formData.reason}
+                    onChangeText={(text) => setFormData(prev => ({ ...prev, reason: text }))}
+                    placeholder={formatRTLText('اضغط لإدخال السبب...')}
+                    placeholderTextColor="#999"
+                    multiline
+                    textAlign="right"
+                  />
                 </ThemedView>
               </ThemedCard>
 
