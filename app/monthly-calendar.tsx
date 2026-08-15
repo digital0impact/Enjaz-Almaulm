@@ -3,6 +3,8 @@ import { StyleSheet, ScrollView, TouchableOpacity, View, Platform, ImageBackgrou
 import { AlertService } from '@/services/AlertService';
 import { ThemedText } from '@/components/ThemedText';
 import { ThemedView } from '@/components/ThemedView';
+import { ThemedButton } from '@/components/ThemedButton';
+import { ThemedCard } from '@/components/ThemedCard';
 import { IconSymbol } from '@/components/ui/IconSymbol';
 import { useRouter } from 'expo-router';
 import { useGlobalTheme } from '@/hooks/useGlobalTheme';
@@ -138,12 +140,12 @@ export default function MonthlyCalendarScreen() {
         <ScrollView style={[styles.scrollContainer, commonStyles.scrollViewWithBottomNav]}>
           {/* Header */}
           <ThemedView style={styles.header}>
-          <TouchableOpacity 
+          <ThemedButton
+            icon="chevron.left"
+            iconColor="#1c1f33"
             style={styles.backButton}
             onPress={() => router.back()}
-          >
-            <IconSymbol size={20} name="chevron.left" color="#1c1f33" />
-          </TouchableOpacity>
+          />
 
           <ThemedView style={styles.iconContainer}>
             <IconSymbol size={60} name="calendar" color="#1c1f33" />
@@ -158,28 +160,28 @@ export default function MonthlyCalendarScreen() {
 
         <ThemedView style={styles.content}>
           {/* Month Navigation */}
-          <ThemedView style={[styles.monthNavigation, { backgroundColor: colors.surface }]}>
-            <TouchableOpacity 
-              style={styles.navButton}
+          <ThemedCard style={styles.monthNavigation}>
+            <ThemedButton
+              icon="chevron.left"
+              iconColor={colors.primary}
+              style={[styles.navButton, { width: 36, height: 36, paddingVertical: 0, paddingHorizontal: 0 }]}
               onPress={() => navigateMonth('next')}
-            >
-              <IconSymbol size={20} name="chevron.left" color={colors.primary} />
-            </TouchableOpacity>
-            
+            />
+
             <ThemedText style={[styles.monthTitle, { color: colors.text }]}>
               {calendarData.monthName} {calendarData.year}
             </ThemedText>
-            
-            <TouchableOpacity 
-              style={styles.navButton}
+
+            <ThemedButton
+              icon="chevron.right"
+              iconColor={colors.primary}
+              style={[styles.navButton, { width: 36, height: 36, paddingVertical: 0, paddingHorizontal: 0 }]}
               onPress={() => navigateMonth('prev')}
-            >
-              <IconSymbol size={20} name="chevron.right" color={colors.primary} />
-            </TouchableOpacity>
-          </ThemedView>
+            />
+          </ThemedCard>
 
           {/* Days Header */}
-          <ThemedView style={[styles.daysHeader, { backgroundColor: colors.surface }]}>
+          <ThemedCard style={styles.daysHeader}>
             {dayAbbreviations.map((day, index) => (
               <ThemedView key={index} style={styles.dayHeaderContainer}>
                 <ThemedText style={[styles.dayHeaderText, { color: colors.text }]}>
@@ -187,18 +189,18 @@ export default function MonthlyCalendarScreen() {
                 </ThemedText>
               </ThemedView>
             ))}
-          </ThemedView>
+          </ThemedCard>
 
           {/* Calendar Grid */}
-          <ThemedView style={[styles.calendarGrid, { backgroundColor: colors.surface }]}>
+          <ThemedCard style={styles.calendarGrid}>
             {calendarData.days.map((day, index) => renderCalendarDay(day, index))}
-          </ThemedView>
+          </ThemedCard>
 
-          
+
 
           {/* Legend */}
-          <ThemedView style={[styles.legend, { backgroundColor: colors.surface }]}>
-            <ThemedText style={[styles.legendTitle, getTextDirection(), { color: colors.text }]}> 
+          <ThemedCard style={styles.legend}>
+            <ThemedText style={[styles.legendTitle, getTextDirection(), { color: colors.text }]}>
               {formatRTLText('📋 مفتاح الألوان:')}
             </ThemedText>
             <ThemedView style={styles.legendItems}>
@@ -211,10 +213,10 @@ export default function MonthlyCalendarScreen() {
                 <ThemedText style={[styles.legendText, getTextDirection(), { color: colors.text }]}>اليوم المحدد</ThemedText>
               </ThemedView>
             </ThemedView>
-          </ThemedView>
+          </ThemedCard>
 
           {/* Quick Actions */}
-          <ThemedView style={[styles.quickActions, { backgroundColor: colors.surface }]}>
+          <ThemedCard style={styles.quickActions}>
             <ThemedText style={[styles.sectionTitle, getTextDirection(), { color: colors.text }]}> 
               {formatRTLText('⚡ إجراءات سريعة')}
             </ThemedText>
@@ -248,7 +250,7 @@ export default function MonthlyCalendarScreen() {
                 {formatRTLText('عرض أحداث الشهر')}
               </ThemedText>
             </TouchableOpacity>
-          </ThemedView>
+          </ThemedCard>
         </ThemedView>
         </ScrollView>
         <BottomNavigationBar />
@@ -337,6 +339,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     padding: 16,
     borderRadius: 12,
+    borderWidth: 0,
     elevation: 2,
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 1 },
@@ -356,8 +359,10 @@ const styles = StyleSheet.create({
   daysHeader: {
     flexDirection: 'row',
     borderRadius: 12,
+    borderWidth: 0,
     overflow: 'hidden',
     elevation: 1,
+    shadowOpacity: 0,
   },
   dayHeaderContainer: {
     flex: 1,
@@ -374,6 +379,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     flexWrap: 'wrap',
     borderRadius: 12,
+    borderWidth: 0,
     padding: 8,
     elevation: 2,
     shadowColor: '#000',
@@ -416,7 +422,9 @@ const styles = StyleSheet.create({
   legend: {
     padding: 16,
     borderRadius: 12,
+    borderWidth: 0,
     elevation: 1,
+    shadowOpacity: 0,
   },
   legendTitle: {
     fontSize: 16,
@@ -444,8 +452,10 @@ const styles = StyleSheet.create({
   quickActions: {
     padding: 16,
     borderRadius: 12,
+    borderWidth: 0,
     elevation: 1,
     gap: 12,
+    shadowOpacity: 0,
   },
   sectionTitle: {
     fontSize: 16,
