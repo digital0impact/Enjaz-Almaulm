@@ -12,6 +12,7 @@ import {
 } from 'react-native-iap';
 import { supabase } from '../config/supabase';
 import { SubscriptionService } from './SubscriptionService';
+import { PriceManagementService } from './PriceManagementService';
 import { logError } from '@/utils/logger';
 
 // معرفات المنتجات في المتجر
@@ -88,8 +89,7 @@ export class InAppPurchaseService {
 
     // إذا لم تكن هناك منتجات من المتجر (ويب، محاكي، أو عدم اتصال)، نعرض المنتجات الافتراضية
     if (this.products.length === 0) {
-      const defaultPlans = this.getDefaultPlans();
-      return defaultPlans;
+      return await this.getDefaultPlans();
     }
 
     return this.products.map(product => ({
@@ -101,9 +101,21 @@ export class InAppPurchaseService {
     }));
   }
 
-  /** خطط افتراضية عند عدم توفر منتجات من المتجر (ويب / محاكي / تطوير) */
-  private getDefaultPlans(): SubscriptionProduct[] {
+  /**
+   * خطط افتراضية عند عدم توفر منتجات من المتجر (ويب / محاكي / تطوير).
+   * تُحاول أولاً قراءة الأسعار الحالية من جدول subscription_prices (المصدر
+   * الديناميكي عبر PriceManagementService)، وترجع تلقائيًا للقيم الثابتة
+   * أدناه لأي خطة لم يُعثر لها على سعر نشط في قاعدة البيانات - حتى لا تتعطل
+   * الشاشة أبدًا إن كان الجدول غير موجود أو فارغًا.
+   */
+  private async getDefaultPlans(): Promise<SubscriptionProduct[]> {
     const isIOS = Platform.OS === 'ios';
+    let livePrices: { [key: string]: string } = {};
+    try {
+      livePrices = await PriceManagementService.getInstance().getActivePrices();
+    } catch (error) {
+      logError('تعذّر جلب الأسعار الديناميكية، ستُستخدم القيم الثابتة', 'InAppPurchaseService', error);
+    }
     return [
       {
         productId: isIOS ? 'Enjaz_basic_free' : 'enjaz_subscription',
@@ -116,14 +128,14 @@ export class InAppPurchaseService {
         productId: isIOS ? 'Enjaz.Half_Yearly_Subscription30' : 'enjazhalfyearly30',
         title: 'الاشتراك النصف سنوي',
         description: 'اشتراك لمدة 6 أشهر',
-        price: '29.99 ريال',
+        price: livePrices.half_yearly || '29.99 ريال',
         features: this.getFeaturesByProductId(isIOS ? 'Enjaz.Half_Yearly_Subscription30' : 'enjazhalfyearly30')
       },
       {
         productId: isIOS ? 'Enjaz_Yearly_Subscription_50' : 'enjazyearly50',
         title: 'الاشتراك السنوي',
         description: 'اشتراك شامل لمدة سنة كاملة',
-        price: '49.99 ريال',
+        price: livePrices.yearly || '49.99 ريال',
         features: this.getFeaturesByProductId(isIOS ? 'Enjaz_Yearly_Subscription_50' : 'enjazyearly50')
       }
     ];

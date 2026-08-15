@@ -1,5 +1,6 @@
 import { supabase } from '../config/supabase';
 import { logError } from '@/utils/logger';
+import { PriceManagementService } from './PriceManagementService';
 
 export interface Subscription {
   id: string;
@@ -21,6 +22,11 @@ export interface SubscriptionFeatures {
   supportLevel: 'none' | 'business' | '24/7';
 }
 
+/**
+ * القيم الاحتياطية الثابتة - تُستخدم فقط إن تعذّر جلب السعر الديناميكي من
+ * جدول subscription_prices (عبر PriceManagementService). راجع
+ * scripts/setup-subscription-prices.sql للمصدر الرسمي لهذه القيم.
+ */
 const SUBSCRIPTION_PRICES = {
   yearly: 49.99,
   half_yearly: 29.99,
@@ -69,6 +75,25 @@ const FREE_FALLBACK = (userId: string): Subscription => ({
 });
 
 export class SubscriptionService {
+  /**
+   * السعر الفعلي للخطة وقت إنشاء الاشتراك: يُحاول القراءة من جدول
+   * subscription_prices (المصدر الديناميكي المُدار عبر PriceManagementService)
+   * أولاً، ويرجع تلقائيًا للقيمة الثابتة في SUBSCRIPTION_PRICES إن تعذّر ذلك
+   * (الجدول غير موجود/فارغ/خطأ شبكة) - حتى لا يتعطل إنشاء الاشتراك أبدًا.
+   */
+  private static async getEffectivePrice(planType: Subscription['plan_type']): Promise<number> {
+    if (planType === 'free') return 0;
+    try {
+      const dbPrice = await PriceManagementService.getInstance().getPriceByPlanType(planType);
+      if (dbPrice && typeof dbPrice.price === 'number' && dbPrice.price > 0) {
+        return dbPrice.price;
+      }
+    } catch (error) {
+      logError('تعذّر جلب السعر الديناميكي، سيُستخدم السعر الثابت', 'SubscriptionService', error);
+    }
+    return SUBSCRIPTION_PRICES[planType];
+  }
+
   /** يُستخدم في صفحة الاشتراكات لعرض خطأ التحميل إن وُجد */
   static async getCurrentSubscriptionWithError(userId: string): Promise<{
     subscription: Subscription;
@@ -126,6 +151,7 @@ export class SubscriptionService {
     const startDate = new Date();
     const endDate = new Date();
     endDate.setDate(endDate.getDate() + SUBSCRIPTION_DURATIONS[planType]);
+    const price = await this.getEffectivePrice(planType);
 
       const subscriptionData = {
         user_id: userId,
@@ -133,7 +159,7 @@ export class SubscriptionService {
         start_date: startDate.toISOString(),
         end_date: endDate.toISOString(),
         status: 'active',
-        price: SUBSCRIPTION_PRICES[planType],
+        price,
         transaction_id: transactionId,
         purchase_verified: verified
       };

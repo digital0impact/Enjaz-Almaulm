@@ -1,5 +1,23 @@
 -- إعداد جدول أسعار الاشتراكات
 -- تشغيل هذا الملف في Supabase SQL Editor
+--
+-- ⚠️ هذا هو المصدر الرسمي الوحيد لمخطط جدول subscription_prices (المرحلة 12
+-- من خطة إعادة الهيكلة). الكود التالي يقرأ منه فعليًا الآن عبر
+-- services/PriceManagementService.ts، مع رجوع تلقائي آمن للقيم الثابتة
+-- (49.99/29.99) إن تعذّر الوصول للجدول أو كان فارغًا:
+--   - services/SubscriptionService.ts (createVerifiedSubscription)
+--   - services/InAppPurchaseService.ts (getDefaultPlans)
+-- لتغيير السعر فعليًا: عدّل عمود price/localized_price في هذا الجدول من
+-- Supabase Dashboard مباشرة (وليس عبر التطبيق - انظر ملاحظة سياسة UPDATE
+-- أدناه)، ولا تنسَ تحديث نفس القيمة يدويًا في Edge Functions التالية
+-- (لم تُوحَّد بعد لأنها تُنشر بشكل منفصل عبر `supabase functions deploy`
+-- ولا يمكنها استيراد كود التطبيق مباشرة):
+--   - supabase/functions/salla-webhook/index.ts
+--   - supabase/functions/store-subscription-webhook/index.ts
+--
+-- ملاحظة: سكربت scripts/setup-subscription-schema.sql القديم كان يُنشئ نفس
+-- الجدول بمخطط وقيم مختلفة (50/30 بدل 49.99/29.99، وبلا عمود price رقمي) —
+-- أُبقي عليه دون حذف لكن أُضيفت له ملاحظة تحذيرية، ولا يجب تشغيله بعد الآن.
 
 -- إنشاء جدول أسعار الاشتراكات
 CREATE TABLE IF NOT EXISTS subscription_prices (
@@ -49,6 +67,13 @@ CREATE POLICY "Anyone can view subscription prices"
     ON subscription_prices FOR SELECT
     USING (true);
 
+-- ⚠️ ملاحظة: auth.role() في Supabase يُرجع 'authenticated'/'anon'/'service_role'
+-- فقط، وليس 'admin' (لا يوجد دور مخصص بهذا الاسم افتراضيًا). هذا يعني عمليًا
+-- أن UPDATE/INSERT عبر عميل التطبيق (authenticated) ستُرفض دائمًا بهاتين
+-- السياستين كما هما - وهذا مقصود ومقبول حاليًا: تغيير السعر يتم من
+-- Supabase Dashboard مباشرة (يستخدم صلاحيات service_role التي تتجاوز RLS)
+-- وليس من داخل التطبيق. لم أُعدّل هذا المنطق لأنه قرار صلاحيات يحتاج تأكيدًا
+-- صريحًا منفصلاً إن أردتِ لاحقًا شاشة إدارة أسعار داخل التطبيق نفسه.
 CREATE POLICY "Only admins can update subscription prices"
     ON subscription_prices FOR UPDATE
     USING (auth.role() = 'admin');
