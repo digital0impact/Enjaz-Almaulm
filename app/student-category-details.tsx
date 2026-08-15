@@ -3,6 +3,8 @@ import { StyleSheet, ScrollView, TouchableOpacity, ImageBackground, Platform, Mo
 import { AlertService } from '@/services/AlertService';
 import { ThemedText } from '@/components/ThemedText';
 import { ThemedView } from '@/components/ThemedView';
+import { ThemedButton } from '@/components/ThemedButton';
+import { ThemedCard } from '@/components/ThemedCard';
 import { IconSymbol } from '@/components/ui/IconSymbol';
 import { useRouter, useLocalSearchParams } from 'expo-router';
 import AsyncStorage from '@react-native-async-storage/async-storage';
@@ -157,12 +159,12 @@ const StudentCategoryDetailsScreen = () => {
           <ThemedView style={styles.content}>
             {/* Header */}
             <ThemedView style={styles.header}>
-              <TouchableOpacity 
+              <ThemedButton
+                icon="chevron.right"
+                iconColor="#1c1f33"
                 style={styles.backButton}
                 onPress={() => router.back()}
-              >
-                <IconSymbol size={20} name="chevron.right" color="#1c1f33" />
-              </TouchableOpacity>
+              />
 
               <ThemedView style={styles.headerContent}>
                 <ThemedText style={[styles.title, getTextDirection()]}> 
@@ -185,7 +187,7 @@ const StudentCategoryDetailsScreen = () => {
 
             {/* Students Table */}
             {students.length > 0 ? (
-              <ThemedView style={styles.tableContainer}>
+              <ThemedCard style={styles.tableContainer}>
                 {/* Table Header */}
                 <ThemedView style={[styles.tableHeader, { backgroundColor: categoryColor || '#4CAF50' }]}>
                   <ThemedText style={[styles.headerCell, getTextDirection(), { flex: 2 }]}>اسم المتعلم</ThemedText>
@@ -282,7 +284,7 @@ const StudentCategoryDetailsScreen = () => {
                     </ThemedView>
                   </TouchableOpacity>
                 ))}
-              </ThemedView>
+              </ThemedCard>
             ) : (
               <ThemedView style={styles.emptyState}>
                 <ThemedView style={styles.emptyIconContainer}>
@@ -306,7 +308,7 @@ const StudentCategoryDetailsScreen = () => {
         onRequestClose={() => setShowExportOptions(false)}
       >
         <View style={styles.modalOverlay}>
-          <ThemedView style={styles.modalContent}>
+          <ThemedCard style={styles.modalContent}>
             <ThemedText style={[styles.modalTitle, getTextDirection()]}>اختر صيغة التحميل</ThemedText>
             
             <TouchableOpacity 
@@ -337,7 +339,7 @@ const StudentCategoryDetailsScreen = () => {
             >
               <ThemedText style={[styles.cancelButtonText, getTextDirection()]}>إلغاء</ThemedText>
             </TouchableOpacity>
-          </ThemedView>
+          </ThemedCard>
         </View>
       </Modal>
     </ThemedView>
@@ -433,8 +435,9 @@ const styles = StyleSheet.create({
     borderRadius: 12,
     overflow: 'hidden',
     borderWidth: 1,
-    borderColor: '#E5E5EA',
     direction: 'rtl',
+    shadowOpacity: 0,
+    elevation: 0,
   },
   tableHeader: {
     flexDirection: 'row-reverse',
@@ -516,6 +519,9 @@ const styles = StyleSheet.create({
     padding: 20,
     width: '80%',
     maxWidth: 400,
+    borderWidth: 0,
+    shadowOpacity: 0,
+    elevation: 0,
   },
   modalTitle: {
     fontSize: 18,
