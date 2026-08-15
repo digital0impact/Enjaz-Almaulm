@@ -214,19 +214,22 @@ export class InAppPurchaseService {
 
       // محاولة الشراء من المتجر
       try {
-        const purchase = await requestPurchase({ sku: productId });
+        const purchaseResult = await requestPurchase({ sku: productId });
+        // requestPurchase قد يُرجع عنصرًا واحدًا أو مصفوفة (بعض تدفقات iOS)؛
+        // هذا التطبيق يطلب SKU واحدًا فقط، لذا نأخذ العنصر الأول عند وجود مصفوفة.
+        const purchase = Array.isArray(purchaseResult) ? purchaseResult[0] : purchaseResult;
         if (purchase) {
-          const isValid = await this.validateReceipt(purchase as any);
+          const isValid = await this.validateReceipt(purchase);
 
-        if (isValid) {
-            await finishTransaction({ purchase: purchase as any });
-          await SubscriptionService.createVerifiedSubscription(
-            userId,
-            this.getPlanTypeFromProductId(productId),
-              (purchase as any).transactionId || 'dev-transaction',
-            true
-          );
-          return true;
+          if (isValid) {
+            await finishTransaction({ purchase });
+            await SubscriptionService.createVerifiedSubscription(
+              userId,
+              this.getPlanTypeFromProductId(productId),
+              purchase.transactionId || 'dev-transaction',
+              true
+            );
+            return true;
           }
         }
       } catch (purchaseError) {
