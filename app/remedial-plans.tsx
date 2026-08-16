@@ -5,6 +5,7 @@ import { AlertService } from '@/services/AlertService';
 // تطبيق RTL عند بدء الصفحة
 import { ThemedText } from '@/components/ThemedText';
 import { ThemedView } from '@/components/ThemedView';
+import { ThemedCard } from '@/components/ThemedCard';
 import { IconSymbol } from '@/components/ui/IconSymbol';
 import { BackButton } from '@/components/BackButton';
 import { useRouter } from 'expo-router';
@@ -867,12 +868,10 @@ export default function RemedialPlansScreen() {
             <ThemedView style={styles.content}>
               {/* Header */}
               <ThemedView style={styles.header}>
-                    <TouchableOpacity 
+                <BackButton
                   style={styles.backButton}
                   onPress={() => router.push('/student-tracking')}
-                    >
-                  <IconSymbol size={20} name="chevron.left" color="#1c1f33" />
-                    </TouchableOpacity>
+                />
 
                 <ThemedView style={styles.iconContainer}>
                   <IconSymbol size={60} name="doc.text.fill" color="#1c1f33" />
@@ -887,37 +886,37 @@ export default function RemedialPlansScreen() {
 
               {/* Main Statistics */}
               <ThemedView style={styles.statsContainer}>
-                <ThemedView style={[styles.statCard, { backgroundColor: '#E8F5E8' }]}>
+                <ThemedCard style={[styles.statCard, { backgroundColor: '#E8F5E8' }]}>
                   <IconSymbol size={24} name="play.circle.fill" color="#4CAF50" />
                   <ThemedText style={styles.statNumber}>
                     {activePlans.filter(plan => plan.status === 'نشط').length}
                   </ThemedText>
                   <ThemedText style={styles.statLabel}>خطط نشطة</ThemedText>
-                        </ThemedView>
+                        </ThemedCard>
 
-                <ThemedView style={[styles.statCard, { backgroundColor: '#E3F2FD' }]}>
+                <ThemedCard style={[styles.statCard, { backgroundColor: '#E3F2FD' }]}>
                   <IconSymbol size={24} name="checkmark.circle.fill" color="#2196F3" />
                   <ThemedText style={styles.statNumber}>
                     {activePlans.filter(plan => plan.status === 'مكتمل').length}
                   </ThemedText>
                   <ThemedText style={styles.statLabel}>خطط مكتملة</ThemedText>
-                        </ThemedView>
+                        </ThemedCard>
 
-                <ThemedView style={[styles.statCard, { backgroundColor: '#FFF3E0' }]}>
+                <ThemedCard style={[styles.statCard, { backgroundColor: '#FFF3E0' }]}>
                   <IconSymbol size={24} name="pause.circle.fill" color="#FF9800" />
                   <ThemedText style={styles.statNumber}>
                     {activePlans.filter(plan => plan.status === 'معلق').length}
                   </ThemedText>
                   <ThemedText style={styles.statLabel}>خطط معلقة</ThemedText>
-                        </ThemedView>
+                        </ThemedCard>
 
-                <ThemedView style={[styles.statCard, { backgroundColor: '#F3E5F5' }]}>
+                <ThemedCard style={[styles.statCard, { backgroundColor: '#F3E5F5' }]}>
                   <IconSymbol size={24} name="person.2.fill" color="#9C27B0" />
                   <ThemedText style={styles.statNumber}>
                     {students.length}
                       </ThemedText>
                   <ThemedText style={styles.statLabel}>إجمالي المتعلمين</ThemedText>
-                  </ThemedView>
+                  </ThemedCard>
                 </ThemedView>
 
               {/* Categories */}
@@ -1074,8 +1073,6 @@ const styles = StyleSheet.create({
     padding: 15,
     borderRadius: 12,
     borderWidth: 1,
-    borderColor: '#E5E5EA',
-    shadowColor: '#000',
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.1,
     shadowRadius: 4,
