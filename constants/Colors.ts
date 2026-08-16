@@ -1,7 +1,23 @@
+import { defaultTheme } from '@/contexts/ThemeContext';
+
 const tintColorLight = '#4ECDC4';
 const tintColorDark = '#4ECDC4';
 
-// الثيم الافتراضي فقط (وضع فاتح فقط)
+/**
+ * ملاحظة (المرحلة 8 من خطة إعادة الهيكلة): contexts/ThemeContext.tsx هو
+ * مصدر الألوان الرسمي الوحيد للتطبيق الآن (قرار صريح من المستخدم، بعد
+ * التأكد أن لونه الأساسي #0d9488 وأقاربه هي الألوان الفعلية المستخدمة عبر
+ * الشاشات، بينما اللون الأساسي القديم هنا #1B2951 لم يكن له أي استخدام حي).
+ * `primary` أدناه أصبح يشتق من ذلك المصدر بدل تكرار قيمة مستقلة، لأنه
+ * مؤكَّد أنه بلا أي مستهلك مباشر خارج هذا الملف (grep على كامل الريبو).
+ *
+ * القيم الأخرى هنا (خصوصًا `text`/`background`/`border`) **لم تُلمَس عمدًا**
+ * رغم أنها تبدو مرشحة للتوحيد أيضًا: هي حية فعليًا عبر
+ * hooks/useThemeColor.ts (مستهلكة من app/calendar.tsx وcomponents/FileManager.tsx)
+ * بقيم مختلفة عن ThemeContext، فتغييرها الآن سيكون تغييرًا بصريًا حقيقيًا
+ * على شاشتين فعليتين — يحتاج قرارًا منفصلاً صريحًا، وليس جزءًا من هذه
+ * المرحلة التأسيسية بلا تغيير بصري.
+ */
 export const Themes = {
   default: {
     name: 'الافتراضي',
@@ -12,7 +28,7 @@ export const Themes = {
       icon: '#7F8C8D',
       tabIconDefault: '#95A5A6',
       tabIconSelected: '#4ECDC4',
-      primary: '#1B2951',
+      primary: defaultTheme.colors.primary,
       secondary: '#E8F5F4',
       accent: '#BDC3C7',
       card: '#FFFFFF',

@@ -162,6 +162,19 @@ class AuthService {
     }
   }
 
+  /** تحديث كلمة مرور المستخدم الحالي (يُستخدم في صفحة إعادة تعيين كلمة المرور). */
+  async updatePassword(password: string): Promise<void> {
+    try {
+      const { error } = await supabase.auth.updateUser({ password });
+      if (error) {
+        throw new Error(error.message);
+      }
+    } catch (error) {
+      logError('Update password error', 'AuthService', error);
+      throw error;
+    }
+  }
+
   async getCurrentUser(): Promise<User | null> {
     try {
       const { data: { user }, error } = await supabase.auth.getUser();
@@ -206,13 +219,26 @@ class AuthService {
     }
   }
 
-  /** عنوان إعادة التوجيه بعد النقر على رابط إعادة التعيين في البريد - يجب أن يكون رابطاً كاملاً يبدأ بـ https:// */
+  /**
+   * عنوان إعادة التوجيه بعد النقر على رابط إعادة التعيين في البريد - يجب أن
+   * يكون رابطاً كاملاً يبدأ بـ https://
+   *
+   * نُفضّل الرابط الرسمي الثابت للتطبيق (EXPO_PUBLIC_APP_URL) دائمًا، حتى لو
+   * طُلبت إعادة التعيين من نطاق مختلف (معاينة Vercel، نطاق تجريبي، بدون
+   * www...) - لأن Supabase يرفض بصمت أي redirectTo غير مُدرَج في قائمة
+   * النطاقات المسموحة (Authentication > URL Configuration > Redirect URLs في
+   * لوحة Supabase) ويُعيد التوجيه لعنوان Site URL الافتراضي بدلاً منه، ما
+   * يُفقد رمز الاستعادة ويفتح صفحة خاطئة. نطاق الصفحة الحالية
+   * (window.location.origin) يبقى فقط كخيار احتياطي أخير إن لم يُضبط
+   * EXPO_PUBLIC_APP_URL إطلاقًا (كان الترتيب معكوسًا سابقًا وهذا ما سبَّب
+   * فشل الرابط لمن يطلب إعادة التعيين من نطاق غير النطاق الرسمي).
+   */
   private getPasswordResetRedirectUrl(): string {
     const isWeb = typeof window !== 'undefined';
     if (isWeb) {
-      const origin = typeof window?.location?.origin === 'string' ? window.location.origin : '';
       const appUrl = (process.env.EXPO_PUBLIC_APP_URL ?? '').trim();
-      let base = (origin || appUrl || 'https://www.enjaz-almaulm.com').trim();
+      const origin = typeof window?.location?.origin === 'string' ? window.location.origin : '';
+      let base = (appUrl || origin || 'https://www.enjaz-almaulm.com').trim();
       if (!base.startsWith('http://') && !base.startsWith('https://')) {
         base = `https://${base}`;
       }

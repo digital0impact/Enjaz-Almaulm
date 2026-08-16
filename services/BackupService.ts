@@ -2,6 +2,7 @@ import { supabase } from '../config/supabase';
 import { logError } from '@/utils/logger';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { SubscriptionService } from './SubscriptionService';
+import AuthService from '@/services/AuthService';
 
 export interface BackupData {
   id: string;
@@ -12,7 +13,7 @@ export interface BackupData {
   createdAt: string;
   expiresAt: string;
   status: 'active' | 'restored' | 'expired';
-  metadata: any;
+  metadata: Record<string, unknown>;
 }
 
 export interface BackupProgress {
@@ -20,6 +21,31 @@ export interface BackupProgress {
   total: number;
   message: string;
   percentage: number;
+}
+
+/** أسماء الجداول المدعومة حاليًا في النسخ الاحتياطي/الاستعادة */
+export type BackupTableName = 'students' | 'reports' | 'comments' | 'file_attachments';
+
+/** بيانات AsyncStorage المحلية المجمَّعة: كل قيمة كما خُزِّنت (نص JSON أو نص عادي) */
+export type LocalBackupData = Record<string, string>;
+
+/** صفوف كل جدول مدعوم؛ بلا نوع صف محدد لأن الأعمدة تختلف بين الجداول */
+export type DatabaseBackupTables = Record<BackupTableName, Record<string, unknown>[]>;
+
+export interface BackupFileSummary {
+  localDataKeys: string[];
+  databaseTables: string[];
+  totalLocalItems: number;
+  totalDatabaseRecords: number;
+}
+
+/** الشكل الكامل لملف JSON الناتج عن إنشاء نسخة احتياطية (وما تتوقعه الاستعادة عند التحميل) */
+export interface BackupFileContents {
+  version: string;
+  timestamp: string;
+  localData: LocalBackupData;
+  databaseData: DatabaseBackupTables;
+  summary: BackupFileSummary;
 }
 
 export class BackupService {
@@ -39,11 +65,7 @@ export class BackupService {
     }
 
     try {
-      const { data: { user }, error } = await supabase.auth.getUser();
-      if (error) {
-        console.error('خطأ في الحصول على المستخدم:', error);
-        throw new Error('خطأ في المصادقة: ' + error.message);
-      }
+      const user = await AuthService.getCurrentUser();
 
       if (!user) {
         throw new Error('المستخدم غير مسجل الدخول');
@@ -194,11 +216,33 @@ export class BackupService {
     }
   }
 
+  /**
+   * يحوّل صف الجدول الخام (أعمدة snake_case كما في backups: user_id, backup_type,
+   * total_size, created_at, ...) إلى BackupData (camelCase). قبل هذا التحويل كانت
+   * getUserBackups تُرجع الصفوف الخام مباشرة مع الادعاء بأنها BackupData - ما كان
+   * يجعل settings.tsx's lastBackup.createdAt/.totalSize/.backupType دائمًا undefined
+   * (تاريخ غير صالح، حجم "غير محدد"، ونوع "تلقائية" دائمًا) - اكتُشف أثناء تحسين
+   * الأنواع (المرحلة 13) وأُصلح بموافقة صريحة.
+   */
+  private mapBackupRow(row: Record<string, unknown>): BackupData {
+    return {
+      id: String(row.id ?? ''),
+      userId: String(row.user_id ?? ''),
+      backupType: (row.backup_type as BackupData['backupType']) ?? 'manual',
+      fileCount: Number(row.file_count ?? 0),
+      totalSize: Number(row.total_size ?? 0),
+      createdAt: String(row.created_at ?? ''),
+      expiresAt: String(row.expires_at ?? ''),
+      status: (row.status as BackupData['status']) ?? 'active',
+      metadata: (row.metadata as Record<string, unknown>) ?? {},
+    };
+  }
+
   // الحصول على قائمة النسخ الاحتياطية للمستخدم
   async getUserBackups(): Promise<BackupData[]> {
     try {
       const userId = await this.getCurrentUserId();
-      
+
       const { data, error } = await supabase
         .from('backups')
         .select('*')
@@ -215,7 +259,7 @@ export class BackupService {
         throw error;
       }
 
-      return data || [];
+      return (data || []).map((row) => this.mapBackupRow(row as Record<string, unknown>));
     } catch (error) {
       logError('خطأ في الحصول على النسخ الاحتياطية', 'BackupService', error);
       return [];
@@ -262,9 +306,9 @@ export class BackupService {
   }
 
   // جمع البيانات المحلية
-  private async collectLocalData(): Promise<any> {
-    const localData: any = {};
-    
+  private async collectLocalData(): Promise<LocalBackupData> {
+    const localData: LocalBackupData = {};
+
     try {
       // جمع البيانات المحفوظة في AsyncStorage
       const keys = await AsyncStorage.getAllKeys();
@@ -294,13 +338,18 @@ export class BackupService {
   }
 
   // جمع بيانات قاعدة البيانات
-  private async collectDatabaseData(userId: string): Promise<any> {
-    const databaseData: any = {};
-    
+  private async collectDatabaseData(userId: string): Promise<DatabaseBackupTables> {
+    const databaseData: DatabaseBackupTables = {
+      students: [],
+      reports: [],
+      comments: [],
+      file_attachments: [],
+    };
+
     try {
       // جمع البيانات من الجداول المختلفة
-      const tables = ['students', 'reports', 'comments', 'file_attachments'];
-      
+      const tables: BackupTableName[] = ['students', 'reports', 'comments', 'file_attachments'];
+
       for (const table of tables) {
         try {
           const { data, error } = await supabase
@@ -309,7 +358,7 @@ export class BackupService {
             .eq('userid', userId);
 
           if (!error && data) {
-            databaseData[table] = data;
+            databaseData[table] = data as Record<string, unknown>[];
           } else if (error) {
             console.log(`خطأ في جمع بيانات الجدول ${table}:`, error);
             // نستمر مع الجداول الأخرى حتى لو فشل جدول واحد
@@ -328,9 +377,9 @@ export class BackupService {
   }
 
   // إنشاء ملف النسخة الاحتياطية
-  private async createBackupFile(localData: any, databaseData: any): Promise<Blob> {
+  private async createBackupFile(localData: LocalBackupData, databaseData: DatabaseBackupTables): Promise<Blob> {
     try {
-      const backupData = {
+      const backupData: BackupFileContents = {
         version: '1.0',
         timestamp: new Date().toISOString(),
         localData,
@@ -339,7 +388,7 @@ export class BackupService {
           localDataKeys: localData ? Object.keys(localData) : [],
           databaseTables: databaseData ? Object.keys(databaseData) : [],
           totalLocalItems: localData ? Object.keys(localData).length : 0,
-          totalDatabaseRecords: databaseData ? Object.values(databaseData).reduce((sum: number, table: any) => sum + (Array.isArray(table) ? table.length : 0), 0) : 0
+          totalDatabaseRecords: databaseData ? Object.values(databaseData).reduce((sum: number, table: Record<string, unknown>[]) => sum + (Array.isArray(table) ? table.length : 0), 0) : 0
         }
       };
 
@@ -360,7 +409,7 @@ export class BackupService {
   private async uploadBackup(
     backupFile: Blob,
     userId: string,
-    backupType: string
+    backupType: BackupData['backupType']
   ): Promise<string> {
     try {
       const timestamp = new Date().toISOString().replace(/[:.]/g, '-');
@@ -466,7 +515,7 @@ export class BackupService {
   }
 
   // تحميل النسخة الاحتياطية
-  private async downloadBackup(backupId: string, userId: string): Promise<any> {
+  private async downloadBackup(backupId: string, userId: string): Promise<BackupFileContents> {
     // الحصول على معلومات النسخة الاحتياطية
     const { data: backupInfo, error: infoError } = await supabase
       .from('backups')
@@ -479,10 +528,12 @@ export class BackupService {
       throw new Error('النسخة الاحتياطية غير موجودة');
     }
 
+    const filePath = String((backupInfo as Record<string, unknown>).file_path ?? '');
+
     // تحميل الملف من Storage
     const { data: fileData, error: fileError } = await supabase.storage
       .from('backups')
-      .download(backupInfo.file_path);
+      .download(filePath);
 
     if (fileError || !fileData) {
       throw new Error('فشل في تحميل ملف النسخة الاحتياطية');
@@ -490,11 +541,11 @@ export class BackupService {
 
     // تحويل الملف إلى نص
     const text = await fileData.text();
-    return JSON.parse(text);
+    return JSON.parse(text) as BackupFileContents;
   }
 
   // استعادة البيانات المحلية
-  private async restoreLocalData(localData: any): Promise<void> {
+  private async restoreLocalData(localData: LocalBackupData): Promise<void> {
     try {
       // حذف البيانات المحلية الحالية
       const keys = await AsyncStorage.getAllKeys();
@@ -502,7 +553,7 @@ export class BackupService {
 
       // استعادة البيانات من النسخة الاحتياطية
       const restorePromises = localData ? Object.entries(localData).map(([key, value]) =>
-        AsyncStorage.setItem(key, value as string)
+        AsyncStorage.setItem(key, value)
       ) : [];
 
       await Promise.all(restorePromises);
@@ -513,7 +564,7 @@ export class BackupService {
   }
 
   // استعادة بيانات قاعدة البيانات
-  private async restoreDatabaseData(databaseData: any, userId: string): Promise<void> {
+  private async restoreDatabaseData(databaseData: DatabaseBackupTables, userId: string): Promise<void> {
     try {
       // حذف البيانات الحالية للمستخدم
       const tables = ['students', 'reports', 'comments', 'file_attachments'];

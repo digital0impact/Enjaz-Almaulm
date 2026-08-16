@@ -16,6 +16,8 @@ import * as Crypto from 'expo-crypto';
 
 import { ThemedText } from '@/components/ThemedText';
 import { ThemedView } from '@/components/ThemedView';
+import { ThemedButton } from '@/components/ThemedButton';
+import { ThemedCard } from '@/components/ThemedCard';
 import { IconSymbol } from '@/components/ui/IconSymbol';
 import { BottomNavigationBar } from '@/components/BottomNavigationBar';
 import AsyncStorage from '@react-native-async-storage/async-storage';
@@ -191,9 +193,13 @@ export default function ShareAchievementsScreen() {
           keyboardShouldPersistTaps="handled"
           showsVerticalScrollIndicator={false}
         >
-          <TouchableOpacity style={styles.backButton} onPress={() => router.back()} activeOpacity={0.7}>
-            <IconSymbol size={20} name="chevron.right" color="#1c1f33" />
-          </TouchableOpacity>
+          <ThemedButton
+            icon="chevron.right"
+            iconColor="#1c1f33"
+            style={styles.backButton}
+            onPress={() => router.back()}
+            activeOpacity={0.7}
+          />
 
           <ThemedView style={styles.header}>
             <ThemedView style={styles.iconContainer}>
@@ -208,7 +214,7 @@ export default function ShareAchievementsScreen() {
           </ThemedView>
 
           {canUseShare === false && (
-            <ThemedView style={styles.upgradeBanner}>
+            <ThemedCard style={styles.upgradeBanner}>
               <IconSymbol size={24} name="lock.fill" color="#FF9800" />
               <ThemedView style={styles.upgradeBannerTextWrap}>
                 <ThemedText style={[styles.upgradeBannerTitle, getTextDirection()]}>
@@ -227,10 +233,10 @@ export default function ShareAchievementsScreen() {
                   </ThemedText>
                 </TouchableOpacity>
               </ThemedView>
-            </ThemedView>
+            </ThemedCard>
           )}
 
-          <ThemedView style={styles.card}>
+          <ThemedCard style={styles.card}>
             <ThemedText style={[styles.cardTitle, getTextDirection()]}>
               {formatRTLText('نوع الرابط')}
             </ThemedText>
@@ -279,7 +285,7 @@ export default function ShareAchievementsScreen() {
                 ? formatRTLText('الرابط الخاص: لا يصل إليه إلا من يملك الرابط.')
                 : formatRTLText('الرابط العام: يمكن الوصول إليه من يعرف الرابط.')}
             </ThemedText>
-          </ThemedView>
+          </ThemedCard>
 
           <TouchableOpacity
             style={[
@@ -304,7 +310,7 @@ export default function ShareAchievementsScreen() {
           </TouchableOpacity>
 
           {shareLink ? (
-            <ThemedView style={styles.linkCard}>
+            <ThemedCard style={styles.linkCard}>
               <ThemedText style={[styles.linkLabel, getTextDirection()]}>
                 {formatRTLText('الرابط')}
               </ThemedText>
@@ -325,10 +331,10 @@ export default function ShareAchievementsScreen() {
                   </ThemedText>
                 </TouchableOpacity>
               </ThemedView>
-            </ThemedView>
+            </ThemedCard>
           ) : null}
 
-          <ThemedView style={styles.recipientsCard}>
+          <ThemedCard style={styles.recipientsCard}>
             <IconSymbol size={24} name="person.2.fill" color="#abd6ce" />
             <ThemedText style={[styles.recipientsText, getTextDirection()]}>
               {formatRTLText('يمكنك مشاركة هذا الرابط مع:')}
@@ -338,7 +344,7 @@ export default function ShareAchievementsScreen() {
               {formatRTLText('• المدرسة')}{'\n'}
               {formatRTLText('• لجنة التقييم')}
             </ThemedText>
-          </ThemedView>
+          </ThemedCard>
         </ScrollView>
         <BottomNavigationBar />
       </ImageBackground>
@@ -420,6 +426,8 @@ const styles = StyleSheet.create({
     marginBottom: 16,
     borderWidth: 1,
     borderColor: 'rgba(255, 152, 0, 0.35)',
+    shadowOpacity: 0,
+    elevation: 0,
   },
   upgradeBannerTextWrap: { flex: 1 },
   upgradeBannerTitle: {
@@ -456,8 +464,6 @@ const styles = StyleSheet.create({
     padding: 20,
     marginBottom: 16,
     borderWidth: 1,
-    borderColor: '#E5E5EA',
-    shadowColor: '#000',
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.2,
     shadowRadius: 8,
@@ -520,8 +526,6 @@ const styles = StyleSheet.create({
     padding: 20,
     marginBottom: 20,
     borderWidth: 1,
-    borderColor: '#E5E5EA',
-    shadowColor: '#000',
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.2,
     shadowRadius: 8,
@@ -564,6 +568,8 @@ const styles = StyleSheet.create({
     padding: 20,
     borderWidth: 1,
     borderColor: 'rgba(199, 219, 217, 0.4)',
+    shadowOpacity: 0,
+    elevation: 0,
   },
   recipientsText: {
     fontSize: 16,

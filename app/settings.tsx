@@ -5,6 +5,8 @@ import { useFocusEffect } from '@react-navigation/native';
 
 import { ThemedText } from '@/components/ThemedText';
 import { ThemedView } from '@/components/ThemedView';
+import { ThemedButton } from '@/components/ThemedButton';
+import { ThemedCard } from '@/components/ThemedCard';
 import { IconSymbol } from '@/components/ui/IconSymbol';
 import { BottomNavigationBar } from '@/components/BottomNavigationBar';
 import { BackupProgressModal } from '@/components/BackupProgressModal';
@@ -543,13 +545,13 @@ export default function SettingsScreen() {
             >
               {/* Header */}
               <Animated.View style={[styles.header, { opacity: fadeAnim }]}>
-                <TouchableOpacity 
+                <ThemedButton
+                  icon="chevron.left"
+                  iconColor="#1c1f33"
                   style={styles.backButton}
                   onPress={() => router.back()}
                   activeOpacity={0.7}
-                >
-                  <IconSymbol size={20} name="chevron.left" color="#1c1f33" />
-                </TouchableOpacity>
+                />
 
                 <Animated.View style={[styles.iconContainer, { transform: [{ scale: fadeAnim }] }]}>
                   <IconSymbol size={60} name="gear" color="#1c1f33" />
@@ -570,7 +572,7 @@ export default function SettingsScreen() {
               <Animated.View style={[styles.settingsSection, { opacity: fadeAnim, transform: [{ translateX: slideAnim }] }]}>
                 <ThemedText style={[styles.sectionTitle, getTextDirection()]}>الإشعارات</ThemedText>
                 
-                <ThemedView style={styles.settingItem}>
+                <ThemedCard style={styles.settingItem}>
                   <ThemedView style={styles.settingInfo}>
                     <IconSymbol size={24} name="bell.fill" color="#FF9800" />
                     <ThemedView style={styles.settingText}>
@@ -578,38 +580,39 @@ export default function SettingsScreen() {
                       <ThemedText style={[styles.settingDescription, getTextDirection()]}>استلام إشعارات حول التحديثات والأنشطة</ThemedText>
                     </ThemedView>
                   </ThemedView>
-                  <TouchableOpacity 
+                  <TouchableOpacity
                     style={[styles.toggleSwitch, notificationsEnabled && styles.toggleActive]}
                     onPress={toggleNotifications}
                     activeOpacity={0.7}
                   >
                     <ThemedView style={[styles.toggleKnob, notificationsEnabled && styles.toggleKnobActive]} />
                   </TouchableOpacity>
-                </ThemedView>
+                </ThemedCard>
               </Animated.View>
 
               <Animated.View style={[styles.settingsSection, { opacity: fadeAnim, transform: [{ translateX: slideAnim }] }]}>
                 <ThemedText style={[styles.sectionTitle, getTextDirection()]}>الاشتراك</ThemedText>
                 
-                <TouchableOpacity 
-                  style={styles.settingItem}
+                <TouchableOpacity
                   onPress={() => router.push('/subscription')}
                   activeOpacity={0.8}
                 >
-                  <ThemedView style={styles.settingInfo}>
-                    <IconSymbol size={24} name="creditcard.fill" color="#2196F3" />
-                    <ThemedView style={styles.settingText}>
-                      <ThemedText style={[styles.settingTitle, getTextDirection()]}>إدارة الاشتراكات</ThemedText>
-                      <ThemedText style={[styles.settingDescription, getTextDirection()]}>ترقية أو إلغاء الاشتراك</ThemedText>
+                  <ThemedCard style={styles.settingItem}>
+                    <ThemedView style={styles.settingInfo}>
+                      <IconSymbol size={24} name="creditcard.fill" color="#2196F3" />
+                      <ThemedView style={styles.settingText}>
+                        <ThemedText style={[styles.settingTitle, getTextDirection()]}>إدارة الاشتراكات</ThemedText>
+                        <ThemedText style={[styles.settingDescription, getTextDirection()]}>ترقية أو إلغاء الاشتراك</ThemedText>
+                      </ThemedView>
                     </ThemedView>
-                  </ThemedView>
-                  <IconSymbol size={20} name="chevron.left" color="#666" />
+                    <IconSymbol size={20} name="chevron.left" color="#666" />
+                  </ThemedCard>
                 </TouchableOpacity>
               </Animated.View>
 
               <Animated.View style={[styles.settingsSection, { opacity: fadeAnim, transform: [{ translateX: slideAnim }] }]}>
                 <ThemedText style={[styles.sectionTitle, getTextDirection()]}>العام الدراسي</ThemedText>
-                <ThemedView style={styles.backupCard}>
+                <ThemedCard style={styles.backupCard}>
                   <ThemedView style={styles.backupHeader}>
                     <IconSymbol size={24} name="calendar" color="#0d9488" />
                     <ThemedText style={[styles.backupTitle, getTextDirection()]}>العام الحالي: {currentAcademicYear ? formatAcademicYearLabel(currentAcademicYear) : '—'}</ThemedText>
@@ -646,18 +649,18 @@ export default function SettingsScreen() {
                       ))}
                     </ThemedView>
                   )}
-                </ThemedView>
+                </ThemedCard>
               </Animated.View>
 
               <Animated.View style={[styles.settingsSection, { opacity: fadeAnim, transform: [{ translateX: slideAnim }] }]}>
                 <ThemedText style={[styles.sectionTitle, getTextDirection()]}>البيانات</ThemedText>
-                
-                <ThemedView style={styles.backupCard}>
+
+                <ThemedCard style={styles.backupCard}>
                   <ThemedView style={styles.backupHeader}>
                     <IconSymbol size={24} name="arrow.clockwise" color="#4CAF50" />
                     <ThemedText style={[styles.backupTitle, getTextDirection()]}>النسخ الاحتياطي</ThemedText>
                   </ThemedView>
-                  
+
                   {lastBackupInfo && (
                     <ThemedView style={styles.lastBackupInfo}>
                       <ThemedText style={[styles.lastBackupText, getTextDirection()]}>آخر نسخة: {lastBackupInfo.date} ({lastBackupInfo.type})</ThemedText>
@@ -669,82 +672,83 @@ export default function SettingsScreen() {
                       {formatRTLText('النسخ الاحتياطي متاح مع الاشتراك المدفوع.')}
                     </ThemedText>
                   )}
-                  
+
                   <ThemedView style={styles.backupButtons}>
-                    <TouchableOpacity 
+                    <TouchableOpacity
                       style={[styles.backupButton, isBackupInProgress && styles.disabledButton]}
                       onPress={handleCreateBackup}
                       activeOpacity={0.8}
                       disabled={isBackupInProgress}
                     >
-                      <ThemedText style={[styles.backupButtonText, getTextDirection()]}> 
+                      <ThemedText style={[styles.backupButtonText, getTextDirection()]}>
                         {isBackupInProgress ? formatRTLText('جاري إنشاء النسخة...') : formatRTLText('عمل نسخة احتياطية')}
                       </ThemedText>
                     </TouchableOpacity>
-                    
-                    <TouchableOpacity 
+
+                    <TouchableOpacity
                       style={[styles.restoreButton, isBackupInProgress && styles.disabledButton]}
                       onPress={handleRestoreBackup}
                       activeOpacity={0.8}
                       disabled={isBackupInProgress}
                     >
-                      <ThemedText style={[styles.restoreButtonText, getTextDirection()]}> 
+                      <ThemedText style={[styles.restoreButtonText, getTextDirection()]}>
                         {isBackupInProgress ? formatRTLText('جاري الاستعادة...') : formatRTLText('استعادة نسخة احتياطية')}
                       </ThemedText>
                     </TouchableOpacity>
                   </ThemedView>
-                </ThemedView>
+                </ThemedCard>
               </Animated.View>
 
               <Animated.View style={[styles.settingsSection, { opacity: fadeAnim, transform: [{ translateX: slideAnim }] }]}>
                 <ThemedText style={[styles.sectionTitle, getTextDirection()]}>الحساب</ThemedText>
                 
-                <TouchableOpacity 
-                  style={styles.settingItem}
+                <TouchableOpacity
                   onPress={handleDeleteAccount}
                   activeOpacity={0.8}
                 >
-                  <ThemedView style={styles.settingInfo}>
-                    <IconSymbol size={24} name="trash.fill" color="#F44336" />
-                    <ThemedView style={styles.settingText}>
-                      <ThemedText style={[styles.settingTitle, getTextDirection()]}>حذف الحساب</ThemedText>
-                      <ThemedText style={[styles.settingDescription, getTextDirection()]}>حذف الحساب نهائياً (لا يمكن التراجع)</ThemedText>
+                  <ThemedCard style={styles.settingItem}>
+                    <ThemedView style={styles.settingInfo}>
+                      <IconSymbol size={24} name="trash.fill" color="#F44336" />
+                      <ThemedView style={styles.settingText}>
+                        <ThemedText style={[styles.settingTitle, getTextDirection()]}>حذف الحساب</ThemedText>
+                        <ThemedText style={[styles.settingDescription, getTextDirection()]}>حذف الحساب نهائياً (لا يمكن التراجع)</ThemedText>
+                      </ThemedView>
                     </ThemedView>
-                  </ThemedView>
-                  <IconSymbol size={20} name="chevron.left" color="#666" />
+                    <IconSymbol size={20} name="chevron.left" color="#666" />
+                  </ThemedCard>
                 </TouchableOpacity>
               </Animated.View>
 
               {/* معلومات التطبيق */}
               <Animated.View style={[styles.versionSection, { opacity: fadeAnim, transform: [{ translateY: slideAnim }] }]}>
-                <ThemedView style={styles.versionCard}>
+                <ThemedCard style={styles.versionCard}>
                   <ThemedView style={styles.versionHeader}>
                     <IconSymbol size={40} name="info.circle.fill" color="#add4ce" />
                     <ThemedText style={[styles.versionTitle, getTextDirection()]}>معلومات التطبيق</ThemedText>
                   </ThemedView>
-                  
+
                   <ThemedView style={styles.versionInfo}>
                     <ThemedView style={styles.versionRow}>
                       <ThemedText style={[styles.versionLabel, getTextDirection()]}>رقم الإصدار:</ThemedText>
                       <ThemedText style={[styles.versionValue, getTextDirection()]}>{versionInfo.version}</ThemedText>
                     </ThemedView>
-                    
+
                     <ThemedView style={styles.versionRow}>
                       <ThemedText style={[styles.versionLabel, getTextDirection()]}>رقم البناء:</ThemedText>
                       <ThemedText style={[styles.versionValue, getTextDirection()]}>{VERSION_INFO.build}</ThemedText>
                     </ThemedView>
-                    
+
                     <ThemedView style={styles.versionRow}>
                       <ThemedText style={[styles.versionLabel, getTextDirection()]}>التطوير:</ThemedText>
                       <ThemedText style={[styles.versionValue, getTextDirection()]}>أ. أمل بنت علي الشامان</ThemedText>
                     </ThemedView>
-                    
+
                     <ThemedView style={styles.versionRow}>
                       <ThemedText style={[styles.versionLabel, getTextDirection()]}>تاريخ الإصدار:</ThemedText>
                       <ThemedText style={[styles.versionValue, getTextDirection()]}>{versionInfo.releaseDate}</ThemedText>
                     </ThemedView>
                   </ThemedView>
-                </ThemedView>
+                </ThemedCard>
               </Animated.View>
             </Animated.ScrollView>
           </KeyboardAvoidingView>
@@ -858,13 +862,11 @@ const styles = StyleSheet.create({
     backgroundColor: '#FFFFFF',
     borderRadius: 16,
     marginBottom: 10,
-    shadowColor: '#000',
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.15,
     shadowRadius: 8,
     elevation: 5,
     borderWidth: 1,
-    borderColor: '#E5E5EA',
   },
   settingInfo: {
     flexDirection: 'row-reverse',
@@ -899,13 +901,11 @@ const styles = StyleSheet.create({
     backgroundColor: '#FFFFFF',
     borderRadius: 20,
     padding: 20,
-    shadowColor: '#000',
     shadowOffset: { width: 0, height: 6 },
     shadowOpacity: 0.15,
     shadowRadius: 12,
     elevation: 8,
     borderWidth: 1,
-    borderColor: '#E5E5EA',
   },
   versionHeader: {
     flexDirection: 'row-reverse',
@@ -952,13 +952,11 @@ const styles = StyleSheet.create({
     backgroundColor: '#FFFFFF',
     borderRadius: 16,
     padding: 20,
-    shadowColor: '#000',
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.15,
     shadowRadius: 8,
     elevation: 5,
     borderWidth: 1,
-    borderColor: '#E5E5EA',
   },
   backupHeader: {
     flexDirection: 'row-reverse',

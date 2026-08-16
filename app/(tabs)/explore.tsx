@@ -4,8 +4,10 @@ import { StyleSheet, ScrollView, TouchableOpacity, ImageBackground, Platform } f
 import { ThemedText } from '@/components/ThemedText';
 import { ThemedView } from '@/components/ThemedView';
 import { IconSymbol } from '@/components/ui/IconSymbol';
+import { ToolsGrid } from '@/components/ToolsGrid';
 import { useRouter } from 'expo-router';
 import { getTextDirection, formatRTLText } from '@/utils/rtl-utils';
+import { EXPLORE_TOOLS } from '@/data/toolsMenu';
 
 export default function ExploreScreen() {
   const router = useRouter();
@@ -41,62 +43,7 @@ export default function ExploreScreen() {
             </ThemedView>
 
             <ThemedView style={styles.content}>
-              <ThemedView style={styles.toolsGrid}>
-                <TouchableOpacity 
-                  style={styles.toolCard}
-                  onPress={() => router.push('/official-holidays')}
-                >
-                  <ThemedView style={styles.toolIconWrapper}>
-                    <IconSymbol size={28} name="calendar.badge.plus" color="#1c1f33" />
-                  </ThemedView>
-                  <ThemedText style={[styles.toolTitle, getTextDirection()]}>الإجازات الرسمية</ThemedText>
-                  <ThemedText style={[styles.toolDescription, getTextDirection()]}>جدول الإجازات والعطل الرسمية</ThemedText>
-                </TouchableOpacity>
-
-                <TouchableOpacity 
-                  style={styles.toolCard}
-                  onPress={() => router.push('/calendar')}
-                >
-                  <ThemedView style={styles.toolIconWrapper}>
-                    <IconSymbol size={28} name="calendar" color="#1c1f33" />
-                  </ThemedView>
-                  <ThemedText style={[styles.toolTitle, getTextDirection()]}>التقويم الهجري والميلادي</ThemedText>
-                  <ThemedText style={[styles.toolDescription, getTextDirection()]}>عرض التقويم بالتاريخين الهجري والميلادي</ThemedText>
-                </TouchableOpacity>
-
-                <TouchableOpacity 
-                  style={styles.toolCard}
-                  onPress={() => router.push('/password-tracker')}
-                >
-                  <ThemedView style={styles.toolIconWrapper}>
-                    <IconSymbol size={28} name="lock.shield.fill" color="#1c1f33" />
-                  </ThemedView>
-                  <ThemedText style={[styles.toolTitle, getTextDirection()]}>متتبع المواقع وكلمات المرور</ThemedText>
-                  <ThemedText style={[styles.toolDescription, getTextDirection()]}>إدارة كلمات المرور والمواقع المهمة</ThemedText>
-                </TouchableOpacity>
-
-                <TouchableOpacity 
-                  style={styles.toolCard}
-                  onPress={() => router.push('/absence-management')}
-                >
-                  <ThemedView style={styles.toolIconWrapper}>
-                    <IconSymbol size={28} name="calendar.badge.exclamationmark" color="#1c1f33" />
-                  </ThemedView>
-                  <ThemedText style={[styles.toolTitle, getTextDirection()]}>إدارة غيابي</ThemedText>
-                  <ThemedText style={[styles.toolDescription, getTextDirection()]}>تسجيل ومتابعة أيام الغياب الشخصية</ThemedText>
-                </TouchableOpacity>
-
-                <TouchableOpacity 
-                  style={styles.toolCard}
-                  onPress={() => router.push('/alerts-management')}
-                >
-                  <ThemedView style={styles.toolIconWrapper}>
-                    <IconSymbol size={28} name="bell.fill" color="#1c1f33" />
-                  </ThemedView>
-                  <ThemedText style={[styles.toolTitle, getTextDirection()]}>التنبيهات المهمة</ThemedText>
-                  <ThemedText style={[styles.toolDescription, getTextDirection()]}>إنشاء وإدارة التنبيهات والتذكيرات</ThemedText>
-                </TouchableOpacity>
-              </ThemedView>
+              <ToolsGrid tools={EXPLORE_TOOLS} />
             </ThemedView>
           </ScrollView>
       </ImageBackground>
@@ -178,54 +125,6 @@ const styles = StyleSheet.create({
   content: {
     backgroundColor: 'transparent',
     gap: 15,
-  },
-  toolsGrid: {
-    flexDirection: 'column',
-    gap: 15,
-    backgroundColor: 'transparent',
-  },
-  toolCard: {
-    width: '100%',
-    alignItems: 'center',
-    padding: 20,
-    backgroundColor: '#F8F9FA',
-    borderRadius: 15,
-    borderWidth: 1,
-    borderColor: '#E5E5EA',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 6 },
-    shadowOpacity: 0.25,
-    shadowRadius: 12,
-    elevation: 10,
-    marginBottom: 15,
-  },
-  toolIconWrapper: {
-    marginBottom: 15,
-    padding: 15,
-    backgroundColor: '#F8F9FA',
-    borderRadius: 30,
-    borderWidth: 1,
-    borderColor: '#E5E5EA',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 6 },
-    shadowOpacity: 0.25,
-    shadowRadius: 12,
-    elevation: 10,
-  },
-  toolTitle: {
-    fontSize: 16,
-    fontWeight: 'bold',
-    color: '#1C1C1E',
-    textAlign: 'center',
-    writingDirection: 'rtl',
-    marginBottom: 8,
-  },
-  toolDescription: {
-    fontSize: 12,
-    color: '#8E8E93',
-    textAlign: 'center',
-    writingDirection: 'rtl',
-    lineHeight: 18,
   },
   addButton: {
     flexDirection: 'row',

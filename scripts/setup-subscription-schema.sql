@@ -1,3 +1,15 @@
+-- ⚠️ سكربت قديم/متضارب - لا تشغّليه بعد الآن (المرحلة 12 من خطة إعادة الهيكلة)
+--
+-- هذا الملف يُنشئ جدول subscription_prices بمخطط وقيم مختلفة عن السكربت
+-- الرسمي الحالي (scripts/setup-subscription-prices.sql): هنا بلا عمود price
+-- رقمي وبقيم 50/30 (مقرَّبة)، بينما الكود الفعلي (services/
+-- PriceManagementService.ts) يتوقع عمود price رقمي وقيم 49.99/29.99. هذا
+-- الملف يُنشئ أيضًا جدول user_subscriptions الذي لا يستخدمه أي كود حالي في
+-- التطبيق (الجدول الفعلي المستخدم هو `subscriptions`، المُعرَّف في
+-- supabase/migrations/20260221100000_create_subscriptions_table.sql).
+-- أُبقي على هذا الملف دون حذف كأثر تاريخي فقط - استخدمي
+-- scripts/setup-subscription-prices.sql بدلاً منه.
+
 -- إنشاء جدول أسعار الاشتراكات
 CREATE TABLE IF NOT EXISTS subscription_prices (
     id UUID DEFAULT gen_random_uuid() PRIMARY KEY,

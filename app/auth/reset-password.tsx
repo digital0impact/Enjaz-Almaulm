@@ -17,7 +17,7 @@ import { useRouter } from 'expo-router';
 import { ThemedText } from '@/components/ThemedText';
 import { ThemedView } from '@/components/ThemedView';
 import { IconSymbol } from '@/components/ui/IconSymbol';
-import { supabase } from '@/config/supabase';
+import AuthService from '@/services/AuthService';
 import { AlertService } from '@/services/AlertService';
 import { rtlStyles } from '@/styles/rtl-styles';
 
@@ -61,8 +61,7 @@ export default function ResetPasswordScreen() {
 
     setIsLoading(true);
     try {
-      const { error: updateError } = await supabase.auth.updateUser({ password });
-      if (updateError) throw updateError;
+      await AuthService.updatePassword(password);
       AlertService.alert('تم بنجاح', 'تم تحديث كلمة المرور. يمكنك تسجيل الدخول الآن.');
       router.replace('/login');
     } catch (err: unknown) {

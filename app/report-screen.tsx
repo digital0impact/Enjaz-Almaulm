@@ -3,6 +3,8 @@ import { StyleSheet, ScrollView, TouchableOpacity, Platform, ImageBackground } f
 
 import { ThemedText } from '@/components/ThemedText';
 import { ThemedView } from '@/components/ThemedView';
+import { ThemedButton } from '@/components/ThemedButton';
+import { ThemedCard } from '@/components/ThemedCard';
 import { IconSymbol } from '@/components/ui/IconSymbol';
 import { useRouter, useLocalSearchParams } from 'expo-router';
 import { BottomNavigationBar } from '@/components/BottomNavigationBar';
@@ -45,12 +47,12 @@ export default function ReportScreen() {
             contentContainerStyle={{ flexGrow: 1 }}
           >
             <ThemedView style={styles.header}>
-              <TouchableOpacity 
+              <ThemedButton
+                icon="chevron.left"
+                iconColor="#1c1f33"
                 style={styles.backButton}
                 onPress={() => router.back()}
-              >
-                <IconSymbol size={20} name="chevron.left" color="#1c1f33" />
-              </TouchableOpacity>
+              />
 
               <IconSymbol size={60} name="doc.text.fill" color="#1c1f33" />
               <ThemedText type="title" style={[styles.title, getTextDirection()]}> 
@@ -61,19 +63,19 @@ export default function ReportScreen() {
               </ThemedText>
             </ThemedView>
 
-            <ThemedView style={styles.summaryCard}>
-              <ThemedText style={[styles.summaryTitle, getTextDirection()]}> 
+            <ThemedCard style={styles.summaryCard}>
+              <ThemedText style={[styles.summaryTitle, getTextDirection()]}>
                 {formatRTLText('ملخص النتائج العامة')}
               </ThemedText>
               <ThemedView style={styles.summaryContent}>
-                <ThemedText style={[styles.overallScore, getTextDirection(), { color: getScoreColor(overallAverage) }]}> 
+                <ThemedText style={[styles.overallScore, getTextDirection(), { color: getScoreColor(overallAverage) }]}>
                   {formatRTLText(`المتوسط العام: ${overallAverage}%`)}
                 </ThemedText>
-                <ThemedText style={[styles.overallGrade, getTextDirection(), { color: getScoreColor(overallAverage) }]}> 
+                <ThemedText style={[styles.overallGrade, getTextDirection(), { color: getScoreColor(overallAverage) }]}>
                   {formatRTLText(`التقدير: ${getScoreLevel(overallAverage)}`)}
                 </ThemedText>
               </ThemedView>
-            </ThemedView>
+            </ThemedCard>
 
             <ThemedView style={styles.content}>
               <ThemedText type="subtitle" style={[styles.sectionTitle, getTextDirection()]}> 
@@ -81,7 +83,7 @@ export default function ReportScreen() {
               </ThemedText>
 
               {axisResults.map((axis: any, index: number) => (
-                <ThemedView key={index} style={styles.axisBox}>
+                <ThemedCard key={index} style={styles.axisBox}>
                   <ThemedView style={styles.axisHeader}>
                     <ThemedView style={styles.axisNumberContainer}>
                       <ThemedText style={styles.axisNumber}>
@@ -139,10 +141,10 @@ export default function ReportScreen() {
                       </ThemedView>
                     )}
                   </ThemedView>
-                </ThemedView>
+                </ThemedCard>
               ))}
 
-              <ThemedView style={styles.recommendationsCard}>
+              <ThemedCard style={styles.recommendationsCard}>
                 <ThemedText style={[styles.recommendationsTitle, getTextDirection()]}> 
                   <IconSymbol size={20} name="lightbulb.fill" color="#FF9800" /> {formatRTLText('توصيات للتحسين')}
                 </ThemedText>
@@ -160,7 +162,7 @@ export default function ReportScreen() {
                       </ThemedView>
                     ))}
                 </ThemedView>
-              </ThemedView>
+              </ThemedCard>
 
               <ThemedView style={styles.actionButtons}>
                 <TouchableOpacity style={styles.printButton}>
@@ -284,17 +286,14 @@ const styles = StyleSheet.create({
     writingDirection: 'rtl',
   },
   axisBox: {
-    backgroundColor: '#F8F9FA',
     borderRadius: 15,
     marginBottom: 20,
     padding: 20,
-    shadowColor: '#000',
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.1,
     shadowRadius: 4,
     elevation: 3,
     borderWidth: 1,
-    borderColor: '#E5E5EA',
   },
   axisHeader: {
     flexDirection: 'row',

@@ -1,5 +1,7 @@
 import { supabase } from '../config/supabase';
 import { logError } from '@/utils/logger';
+import { getErrorMessage } from '@/utils/errorMessage';
+import AuthService from '@/services/AuthService';
 
 export interface FileUploadOptions {
   bucket?: string;
@@ -42,7 +44,7 @@ export class StorageService {
         relatedId
       } = options;
 
-      const userId = (await supabase.auth.getUser()).data.user?.id;
+      const userId = (await AuthService.getCurrentUser())?.id;
       if (!userId) {
         throw new Error('المستخدم غير مسجل الدخول');
       }
@@ -85,7 +87,7 @@ export class StorageService {
       logError('خطأ في رفع الملف', 'StorageService', error);
       return {
         success: false,
-        error: error instanceof Error ? error.message : 'خطأ غير معروف'
+        error: getErrorMessage(error)
       };
     }
   }
@@ -138,7 +140,7 @@ export class StorageService {
   // الحصول على قائمة ملفات المستخدم
   static async getUserFiles(userId?: string): Promise<FileAttachment[]> {
     try {
-      const currentUserId = userId || (await supabase.auth.getUser()).data.user?.id;
+      const currentUserId = userId || (await AuthService.getCurrentUser())?.id;
       
       if (!currentUserId) {
         throw new Error('المستخدم غير مسجل الدخول');
@@ -174,7 +176,7 @@ export class StorageService {
   // الحصول على ملفات مرتبطة بسجل معين (جدول file_attachments لا يحتوي related_table/related_id؛ نرجع ملفات المستخدم حسب مسار الملف)
   static async getRelatedFiles(relatedTable: string, relatedId: string): Promise<FileAttachment[]> {
     try {
-      const currentUserId = (await supabase.auth.getUser()).data.user?.id;
+      const currentUserId = (await AuthService.getCurrentUser())?.id;
       if (!currentUserId) return [];
       const { data, error } = await supabase
         .from('file_attachments')
@@ -226,7 +228,7 @@ export class StorageService {
   // رفع صورة شخصية
   static async uploadProfileImage(file: File): Promise<{ success: boolean; url?: string; error?: string }> {
     try {
-      const userId = (await supabase.auth.getUser()).data.user?.id;
+      const userId = (await AuthService.getCurrentUser())?.id;
       if (!userId) {
         throw new Error('المستخدم غير مسجل الدخول');
       }
@@ -257,7 +259,7 @@ export class StorageService {
       logError('خطأ في رفع الصورة الشخصية', 'StorageService', error);
       return {
         success: false,
-        error: error instanceof Error ? error.message : 'خطأ غير معروف'
+        error: getErrorMessage(error)
       };
     }
   }
