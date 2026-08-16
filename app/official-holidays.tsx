@@ -4,6 +4,8 @@ import { AlertService } from '@/services/AlertService';
 
 import { ThemedText } from '@/components/ThemedText';
 import { ThemedView } from '@/components/ThemedView';
+import { ThemedButton } from '@/components/ThemedButton';
+import { ThemedCard } from '@/components/ThemedCard';
 import { IconSymbol } from '@/components/ui/IconSymbol';
 import { useRouter } from 'expo-router';
 import { BottomNavigationBar } from '@/components/BottomNavigationBar';
@@ -217,12 +219,12 @@ export default function OfficialHolidaysScreen() {
         
           <ScrollView style={[styles.scrollView, commonStyles.scrollViewWithBottomNav]}>
             <ThemedView style={styles.header}>
-              <TouchableOpacity 
+              <ThemedButton
+                icon="chevron.left"
+                iconColor="#1c1f33"
                 style={styles.backButton}
                 onPress={() => router.back()}
-              >
-                <IconSymbol size={20} name="chevron.left" color="#1c1f33" />
-              </TouchableOpacity>
+              />
               <ThemedView style={styles.iconContainer}>
                 <IconSymbol size={48} name="calendar.badge.clock" color="#1c1f33" />
               </ThemedView>
@@ -237,7 +239,7 @@ export default function OfficialHolidaysScreen() {
             <ThemedView style={styles.content}>
           {/* الإجازة القادمة */}
           {nextHoliday && (
-            <ThemedView style={styles.nextHolidayCard}>
+            <ThemedCard style={styles.nextHolidayCard}>
               <ThemedView style={styles.nextHolidayHeader}>
                 <ThemedView style={styles.toolIconWrapper}>
                   <IconSymbol size={32} name={getHolidayIcon(nextHoliday.category, nextHoliday.type)} color="#1c1f33" />
@@ -258,7 +260,7 @@ export default function OfficialHolidaysScreen() {
               <ThemedText style={[styles.nextHolidayDescription, getTextDirection()]}>
                 {nextHoliday.description}
               </ThemedText>
-            </ThemedView>
+            </ThemedCard>
           )}
 
           {/* فلترة الفئات */}
@@ -322,16 +324,18 @@ export default function OfficialHolidaysScreen() {
                 return (
                   <TouchableOpacity
                     key={holiday.id}
-                    style={[
-                      styles.holidayCard,
-                      isPast && styles.pastHolidayCard,
-                      isToday && styles.todayHolidayCard
-                    ]}
                     onPress={() => AlertService.alert(
                       holiday.nameAr,
                       `${holiday.description}\n\nالتاريخ: ${new Date(holiday.date).toLocaleDateString('ar-SA')}\n${holiday.hijriDate ? `الهجري: ${holiday.hijriDate}\n` : ''}المدة: ${holiday.duration} ${holiday.duration === 1 ? 'يوم' : 'أيام'}\nالنوع: ${holiday.type === 'fixed' ? 'ثابت' : 'متغير'}`
                     )}
                   >
+                    <ThemedCard
+                      style={[
+                        styles.holidayCard,
+                        isPast && styles.pastHolidayCard,
+                        isToday && styles.todayHolidayCard
+                      ]}
+                    >
                     <ThemedView style={styles.holidayHeader}>
                       <ThemedView style={styles.toolIconWrapper}>
                         <IconSymbol 
@@ -377,6 +381,7 @@ export default function OfficialHolidaysScreen() {
                         )}
                       </ThemedView>
                     </ThemedView>
+                    </ThemedCard>
                   </TouchableOpacity>
                 );
               })}
@@ -614,13 +619,11 @@ const styles = StyleSheet.create({
     borderRadius: 16,
     padding: 20,
     marginBottom: 25,
-    shadowColor: '#000',
     shadowOffset: { width: 0, height: 6 },
     shadowOpacity: 0.25,
     shadowRadius: 12,
     elevation: 10,
     borderWidth: 1,
-    borderColor: '#E5E5EA',
   },
   nextHolidayHeader: {
     flexDirection: 'row',
@@ -754,8 +757,6 @@ const styles = StyleSheet.create({
     padding: 15,
     marginBottom: 15,
     borderWidth: 1,
-    borderColor: '#E5E5EA',
-    shadowColor: '#000',
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.1,
     shadowRadius: 4,
