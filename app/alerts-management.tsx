@@ -6,6 +6,8 @@ import { Audio } from 'expo-av';
 
 import { ThemedText } from '@/components/ThemedText';
 import { ThemedView } from '@/components/ThemedView';
+import { ThemedButton } from '@/components/ThemedButton';
+import { ThemedCard } from '@/components/ThemedCard';
 import { IconSymbol } from '@/components/ui/IconSymbol';
 import { useRouter } from 'expo-router';
 import AsyncStorage from '@react-native-async-storage/async-storage';
@@ -390,12 +392,12 @@ export default function AlertsManagementScreen() {
             contentContainerStyle={{ flexGrow: 1 }}
           >
             <ThemedView style={styles.header}>
-              <TouchableOpacity 
+              <ThemedButton
+                icon="chevron.left"
+                iconColor="#1c1f33"
                 style={styles.backButton}
                 onPress={() => router.back()}
-              >
-                <IconSymbol size={20} name="chevron.left" color="#1c1f33" />
-              </TouchableOpacity>
+              />
               <ThemedView style={styles.iconContainer}>
                 <IconSymbol size={60} name="bell.fill" color="#1c1f33" />
               </ThemedView>
@@ -411,29 +413,29 @@ export default function AlertsManagementScreen() {
               {/* إحصائيات سريعة */}
               <ThemedView style={styles.statsContainer}>
                 <ThemedView style={styles.statsGrid}>
-                  <ThemedView style={[styles.statCard, { backgroundColor: '#007AFF15' }]}>
+                  <ThemedCard style={[styles.statCard, { backgroundColor: '#007AFF15' }]}>
                     <ThemedView style={styles.statIconContainer}>
                       <IconSymbol size={28} name="bell.badge.fill" color="#1c1f33" />
                     </ThemedView>
                     <ThemedText style={styles.statNumber}>{alerts.length}</ThemedText>
                     <ThemedText style={[styles.statLabel, getTextDirection()]}>إجمالي التنبيهات</ThemedText>
-                  </ThemedView>
+                  </ThemedCard>
 
-                  <ThemedView style={[styles.statCard, { backgroundColor: '#4CAF5015' }]}>
+                  <ThemedCard style={[styles.statCard, { backgroundColor: '#4CAF5015' }]}>
                     <ThemedView style={styles.statIconContainer}>
                       <IconSymbol size={28} name="bell.fill" color="#1c1f33" />
                     </ThemedView>
                     <ThemedText style={styles.statNumber}>{activeAlerts}</ThemedText>
                     <ThemedText style={[styles.statLabel, getTextDirection()]}>نشطة</ThemedText>
-                  </ThemedView>
+                  </ThemedCard>
 
-                  <ThemedView style={[styles.statCard, { backgroundColor: '#FF980015' }]}>
+                  <ThemedCard style={[styles.statCard, { backgroundColor: '#FF980015' }]}>
                     <ThemedView style={styles.statIconContainer}>
                       <IconSymbol size={28} name="clock.fill" color="#1c1f33" />
                     </ThemedView>
                     <ThemedText style={styles.statNumber}>{upcomingAlerts}</ThemedText>
                     <ThemedText style={[styles.statLabel, getTextDirection()]}>قادمة</ThemedText>
-                  </ThemedView>
+                  </ThemedCard>
                 </ThemedView>
               </ThemedView>
 
@@ -567,7 +569,7 @@ export default function AlertsManagementScreen() {
                       const isToday = daysUntil === 0;
 
                       return (
-                        <ThemedView key={alert.id} style={[
+                        <ThemedCard key={alert.id} style={[
                           styles.alertCard,
                           !alert.active && styles.inactiveAlertCard,
                           isToday && styles.todayAlertCard
@@ -637,7 +639,7 @@ export default function AlertsManagementScreen() {
                               </TouchableOpacity>
                             </ThemedView>
                           </ThemedView>
-                        </ThemedView>
+                        </ThemedCard>
                       );
                     })}
                   </ThemedView>
@@ -1061,8 +1063,6 @@ const styles = StyleSheet.create({
     padding: 15,
     alignItems: 'center',
     borderWidth: 1,
-    borderColor: '#E5E5EA',
-    shadowColor: '#000',
     shadowOffset: { width: 0, height: 6 },
     shadowOpacity: 0.25,
     shadowRadius: 12,
@@ -1240,8 +1240,6 @@ const styles = StyleSheet.create({
     borderRadius: 12,
     padding: 15,
     borderWidth: 1,
-    borderColor: '#E5E5EA',
-    shadowColor: '#000',
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.1,
     shadowRadius: 4,
