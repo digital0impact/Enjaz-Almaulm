@@ -1,10 +1,9 @@
 import React from 'react';
-import { StyleSheet } from 'react-native';
+import { StyleSheet, ViewProps } from 'react-native';
 import { ThemedView } from '@/components/ThemedView';
 import { useTheme } from '@/contexts/ThemeContext';
-import { StyleProps } from '@/types';
 
-interface ThemedCardProps extends StyleProps {
+interface ThemedCardProps extends ViewProps {
   children: React.ReactNode;
 }
 
@@ -18,10 +17,15 @@ interface ThemedCardProps extends StyleProps {
  * اللون الفعلي المستخدم بالفعل في كل "بطاقات" التطبيق الحقيقية (F8F9FA،
  * انظر مثلاً hooks/useGlobalTheme.ts وشاشات مثل absence-management.tsx)
  * بينما colors.card (#FFFFFF) غير مستخدم فعليًا بهذا المعنى في أي مكان.
+ *
+ * تُمرَّر أي خصائص إضافية (id، testID، onLayout...) مباشرةً إلى ThemedView
+ * الداخلي - ضروري مثلاً لشاشات تعتمد على document.getElementById(id) للتمرير
+ * لبطاقة معيّنة على الويب (انظر app/student-tracking.tsx).
  */
 export const ThemedCard: React.FC<ThemedCardProps> = ({
   children,
   style,
+  ...rest
 }) => {
   const { colors } = useTheme();
   return (
@@ -35,6 +39,7 @@ export const ThemedCard: React.FC<ThemedCardProps> = ({
         },
         style,
       ]}
+      {...rest}
     >
       {children}
     </ThemedView>
