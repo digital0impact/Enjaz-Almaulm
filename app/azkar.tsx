@@ -4,6 +4,8 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { ThemedText } from '@/components/ThemedText';
 import { ThemedView } from '@/components/ThemedView';
+import { ThemedButton } from '@/components/ThemedButton';
+import { ThemedCard } from '@/components/ThemedCard';
 import { IconSymbol } from '@/components/ui/IconSymbol';
 import { useRouter } from 'expo-router';
 import { BottomNavigationBar } from '@/components/BottomNavigationBar';
@@ -255,12 +257,12 @@ export default function AzkarScreen() {
               contentContainerStyle={{ flexGrow: 1 }}
             >
               <ThemedView style={styles.header}>
-                <TouchableOpacity 
+                <ThemedButton
+                  icon="chevron.left"
+                  iconColor="#1c1f33"
                   style={styles.backButton}
                   onPress={() => router.back()}
-                >
-                  <IconSymbol size={20} name="chevron.left" color="#1c1f33" />
-                </TouchableOpacity>
+                />
 
                 <ThemedView style={styles.iconContainer}>
                   <IconSymbol size={60} name="book.fill" color="#1c1f33" />
@@ -283,9 +285,9 @@ export default function AzkarScreen() {
                   {azkarData.map((category) => (
                     <ThemedView key={category.id} style={styles.categoryContainer}>
                       <TouchableOpacity
-                        style={styles.dataItem}
                         onPress={() => toggleCategory(category.id)}
                       >
+                        <ThemedCard style={styles.dataItem}>
                         <ThemedView style={styles.categoryContent}>
                           <ThemedView style={styles.categoryIconContainer}>
                             <IconSymbol size={24} name={category.icon as any} color="#1c1f33" />
@@ -302,6 +304,7 @@ export default function AzkarScreen() {
 
 
                         </ThemedView>
+                        </ThemedCard>
                       </TouchableOpacity>
 
                       {expandedCategories.includes(category.id) && (
@@ -312,14 +315,14 @@ export default function AzkarScreen() {
                             const isCompleted = currentCount >= zikr.count;
 
                             return (
-                              <ThemedView 
-                                key={index} 
+                              <ThemedCard
+                                key={index}
                                 style={[
                                   styles.azkarItem,
                                   isCompleted && styles.completedCard
                                 ]}
                               >
-                                <ThemedText style={[styles.azkarText, getTextDirection()]}> 
+                                <ThemedText style={[styles.azkarText, getTextDirection()]}>
                                   {formatRTLText(zikr.text)}
                                 </ThemedText>
 
@@ -352,7 +355,7 @@ export default function AzkarScreen() {
                                     </TouchableOpacity>
                                   </ThemedView>
                                 </ThemedView>
-                              </ThemedView>
+                              </ThemedCard>
                             );
                           })}
                         </ThemedView>

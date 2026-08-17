@@ -15,6 +15,8 @@ import {
 import { AlertService } from '@/services/AlertService';
 import { ThemedText } from '@/components/ThemedText';
 import { ThemedView } from '@/components/ThemedView';
+import { ThemedButton } from '@/components/ThemedButton';
+import { ThemedCard } from '@/components/ThemedCard';
 import { IconSymbol } from '@/components/ui/IconSymbol';
 import { useRouter } from 'expo-router';
 import AsyncStorage from '@react-native-async-storage/async-storage';
@@ -1868,7 +1870,7 @@ export default function StudentTrackingScreen() {
   const renderStudentCard = (student: Student) => {
     const isExpanded = expandedCards[student.id] || false;
     return (
-      <ThemedView style={styles.studentCard} id={`student-card-${student.id}`}>
+      <ThemedCard style={styles.studentCard} id={`student-card-${student.id}`}>
         <TouchableOpacity
           style={[styles.studentHeader, { flexDirection: 'row-reverse', justifyContent: 'space-between', alignItems: 'center' }]}
           onPress={() => toggleCardExpansion(student.id)}
@@ -1886,9 +1888,9 @@ export default function StudentTrackingScreen() {
         {isExpanded && (
           <ThemedView style={styles.expandedContent}>
             {student.notes ? (
-              <ThemedView style={styles.notesCard}>
+              <ThemedCard style={styles.notesCard}>
                 <ThemedText style={styles.notesText}>{student.notes}</ThemedText>
-              </ThemedView>
+              </ThemedCard>
             ) : null}
 
             {student.goals && student.goals.length > 0 && (
@@ -1896,10 +1898,10 @@ export default function StudentTrackingScreen() {
                 <ThemedText style={styles.sectionTitle}>الأهداف</ThemedText>
                 <ThemedView style={styles.itemsList}>
                   {student.goals.map((goal, index) => (
-                    <ThemedView key={goal.id || index} style={styles.itemCard}>
+                    <ThemedCard key={goal.id || index} style={styles.itemCard}>
                       <ThemedText style={styles.itemTitle}>{goal.title}</ThemedText>
                       <ThemedText style={styles.progressText}>نسبة التحقق: {goal.progress}%</ThemedText>
-                    </ThemedView>
+                    </ThemedCard>
                   ))}
                 </ThemedView>
               </ThemedView>
@@ -1910,9 +1912,9 @@ export default function StudentTrackingScreen() {
                 <ThemedText style={styles.sectionTitle}>الاحتياجات</ThemedText>
                 <ThemedView style={styles.itemsList}>
                   {student.needs.map((need, index) => (
-                    <ThemedView key={index} style={styles.itemCard}>
+                    <ThemedCard key={index} style={styles.itemCard}>
                       <ThemedText style={styles.itemText}>• {need}</ThemedText>
-                    </ThemedView>
+                    </ThemedCard>
                   ))}
                 </ThemedView>
               </ThemedView>
@@ -1923,11 +1925,11 @@ export default function StudentTrackingScreen() {
                 <ThemedText style={styles.sectionTitle}>الشواهد</ThemedText>
                 <ThemedView style={styles.itemsList}>
                   {student.performanceEvidence.map((evidence, index) => (
-                    <ThemedView key={evidence.id || index} style={styles.itemCard}>
+                    <ThemedCard key={evidence.id || index} style={styles.itemCard}>
                       <ThemedText style={styles.itemTitle}>{evidence.title}</ThemedText>
                       <ThemedText style={styles.itemType}>النوع: {evidence.type}</ThemedText>
                       <ThemedText style={styles.itemDate}>التاريخ: {evidence.date}</ThemedText>
-                    </ThemedView>
+                    </ThemedCard>
                   ))}
                 </ThemedView>
               </ThemedView>
@@ -1945,7 +1947,7 @@ export default function StudentTrackingScreen() {
             </ThemedView>
           </ThemedView>
         )}
-      </ThemedView>
+      </ThemedCard>
     );
   };
 
@@ -2004,9 +2006,12 @@ export default function StudentTrackingScreen() {
             }
           >
             <ThemedView style={styles.header}>
-              <TouchableOpacity style={styles.backButton} onPress={() => router.push('/(tabs)')}>
-                <IconSymbol size={20} name="chevron.left" color="#1c1f33" />
-              </TouchableOpacity>
+              <ThemedButton
+                icon="chevron.left"
+                iconColor="#1c1f33"
+                style={styles.backButton}
+                onPress={() => router.push('/(tabs)')}
+              />
               <ThemedView style={styles.titleRow}>
                 <ThemedView style={styles.tealBar} />
                 <ThemedText type="title" style={[styles.mainTitle, getTextDirection()]}>
@@ -2387,6 +2392,7 @@ const styles = StyleSheet.create({
   studentCard: {
     backgroundColor: '#fff',
     borderRadius: 12,
+    borderWidth: 0,
     overflow: 'hidden',
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 2 },
@@ -2451,6 +2457,7 @@ const styles = StyleSheet.create({
   itemCard: {
     backgroundColor: '#F8F9FA',
     borderRadius: 10,
+    borderWidth: 0,
     padding: 12,
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 1 },
@@ -2487,6 +2494,7 @@ const styles = StyleSheet.create({
   notesCard: {
     backgroundColor: '#F8F9FA',
     borderRadius: 10,
+    borderWidth: 0,
     padding: 12,
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 1 },

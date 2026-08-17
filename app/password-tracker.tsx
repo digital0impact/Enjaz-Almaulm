@@ -6,6 +6,8 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { ThemedText } from '@/components/ThemedText';
 import { ThemedView } from '@/components/ThemedView';
+import { ThemedButton } from '@/components/ThemedButton';
+import { ThemedCard } from '@/components/ThemedCard';
 import { IconSymbol } from '@/components/ui/IconSymbol';
 import { useRouter } from 'expo-router';
 import AsyncStorage from '@react-native-async-storage/async-storage';
@@ -259,29 +261,29 @@ export default function PasswordTrackerScreen() {
       <ThemedView style={styles.summarySection}>
         <ThemedText style={[styles.sectionTitle, getTextDirection()]}>{formatRTLText('إحصائيات كلمات المرور')}</ThemedText>
         <ThemedView style={styles.statsGrid}>
-          <ThemedView style={[styles.statCard, { backgroundColor: '#E3F2FD' }]}>
+          <ThemedCard style={[styles.statCard, { backgroundColor: '#E3F2FD' }]}>
             <IconSymbol size={24} name="key.fill" color="#2196F3" />
             <ThemedText style={[styles.statValue, getTextDirection()]}>{passwords.length}</ThemedText>
             <ThemedText style={[styles.statLabel, getTextDirection()]}>إجمالي كلمات المرور</ThemedText>
-          </ThemedView>
+          </ThemedCard>
 
-          <ThemedView style={[styles.statCard, { backgroundColor: '#E8F5E8' }]}>
+          <ThemedCard style={[styles.statCard, { backgroundColor: '#E8F5E8' }]}>
             <IconSymbol size={24} name="checkmark.shield.fill" color="#4CAF50" />
             <ThemedText style={[styles.statValue, getTextDirection()]}>{passwords.filter(p => p.strength === 'قوي').length}</ThemedText>
             <ThemedText style={[styles.statLabel, getTextDirection()]}>كلمات مرور قوية</ThemedText>
-          </ThemedView>
+          </ThemedCard>
 
-          <ThemedView style={[styles.statCard, { backgroundColor: '#FFEBEE' }]}>
+          <ThemedCard style={[styles.statCard, { backgroundColor: '#FFEBEE' }]}>
             <IconSymbol size={24} name="exclamationmark.triangle.fill" color="#F44336" />
             <ThemedText style={[styles.statValue, getTextDirection()]}>{passwords.filter(p => p.strength === 'ضعيف').length}</ThemedText>
             <ThemedText style={[styles.statLabel, getTextDirection()]}>تحتاج تحديث</ThemedText>
-          </ThemedView>
+          </ThemedCard>
         </ThemedView>
       </ThemedView>
 
       <ThemedView style={styles.passwordsGrid}>
         {passwords.map((item) => (
-          <ThemedView key={item.id} style={styles.passwordCard}>
+          <ThemedCard key={item.id} style={styles.passwordCard}>
             <ThemedView style={styles.passwordHeader}>
               <ThemedText style={styles.websiteName} numberOfLines={1}>
                 {item.websiteName}
@@ -319,7 +321,7 @@ export default function PasswordTrackerScreen() {
                 <ThemedText style={styles.actionButtonText}>تعديل</ThemedText>
               </TouchableOpacity>
             </ThemedView>
-          </ThemedView>
+          </ThemedCard>
         ))}
       </ThemedView>
     </ThemedView>
@@ -606,7 +608,7 @@ export default function PasswordTrackerScreen() {
       <ThemedView style={styles.recommendationsContainer}>
         <ThemedText style={[styles.sectionTitle, getTextDirection()]}>توصيات الأمان</ThemedText>
 
-        <ThemedView style={styles.recommendationCard}>
+        <ThemedCard style={styles.recommendationCard}>
           <ThemedText style={[styles.recommendationTitle, getTextDirection()]}>
             <IconSymbol size={16} name="exclamationmark.triangle.fill" color="#F44336" /> {formatRTLText('كلمات مرور ضعيفة')}
           </ThemedText>
@@ -615,9 +617,9 @@ export default function PasswordTrackerScreen() {
               {formatRTLText('•')} {password.websiteName} - {formatRTLText('يحتاج إلى تحديث كلمة المرور')}
             </ThemedText>
           ))}
-        </ThemedView>
+        </ThemedCard>
 
-        <ThemedView style={styles.recommendationCard}>
+        <ThemedCard style={styles.recommendationCard}>
           <ThemedText style={[styles.recommendationTitle, getTextDirection()]}>
             <IconSymbol size={16} name="calendar" color="#9C27B0" /> {formatRTLText('كلمات مرور قديمة')}
           </ThemedText>
@@ -630,9 +632,9 @@ export default function PasswordTrackerScreen() {
               {formatRTLText('•')} {password.websiteName} - {formatRTLText('لم يتم تحديثها منذ أكثر من 6 أشهر')}
             </ThemedText>
           ))}
-        </ThemedView>
+        </ThemedCard>
 
-        <ThemedView style={styles.recommendationCard}>
+        <ThemedCard style={styles.recommendationCard}>
           <ThemedText style={[styles.recommendationTitle, getTextDirection()]}>
             <IconSymbol size={16} name="star.fill" color="#FF9800" /> {formatRTLText('نصائح الأمان')}
           </ThemedText>
@@ -640,7 +642,7 @@ export default function PasswordTrackerScreen() {
           <ThemedText style={[styles.recommendationText, getTextDirection()]}>• قم بتحديث كلمات المرور كل 3-6 أشهر</ThemedText>
           <ThemedText style={[styles.recommendationText, getTextDirection()]}>• استخدم المصادقة الثنائية عند توفرها</ThemedText>
           <ThemedText style={[styles.recommendationText, getTextDirection()]}>• تجنب استخدام معلومات شخصية في كلمات المرور</ThemedText>
-        </ThemedView>
+        </ThemedCard>
       </ThemedView>
     </ThemedView>
   );
@@ -701,12 +703,12 @@ export default function PasswordTrackerScreen() {
             keyboardShouldPersistTaps="handled"
           >
             <ThemedView style={[styles.header, { paddingTop: insets.top + 20 }]}>
-              <TouchableOpacity 
+              <ThemedButton
+                icon="chevron.left"
+                iconColor="#1c1f33"
                 style={styles.backButton}
                 onPress={() => router.back()}
-              >
-                <IconSymbol size={20} name="chevron.left" color="#1c1f33" />
-              </TouchableOpacity>
+              />
 
               <ThemedView style={styles.iconContainer}>
                 <IconSymbol size={60} name="key.fill" color="#1c1f33" />
@@ -951,6 +953,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     padding: 15,
     borderRadius: 12,
+    borderWidth: 0,
     elevation: 1,
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 1 },
@@ -978,6 +981,7 @@ const styles = StyleSheet.create({
     width: '100%',
     backgroundColor: '#fff',
     borderRadius: 12,
+    borderWidth: 0,
     padding: 15,
     elevation: 2,
     shadowColor: '#000',
@@ -1156,6 +1160,7 @@ const styles = StyleSheet.create({
   recommendationCard: {
     backgroundColor: '#fff',
     borderRadius: 12,
+    borderWidth: 0,
     padding: 20,
     elevation: 2,
     shadowColor: '#000',
