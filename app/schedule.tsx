@@ -5,6 +5,8 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { ThemedText } from '@/components/ThemedText';
 import { ThemedView } from '@/components/ThemedView';
+import { ThemedButton } from '@/components/ThemedButton';
+import { ThemedCard } from '@/components/ThemedCard';
 import { IconSymbol } from '@/components/ui/IconSymbol';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useRouter } from 'expo-router';
@@ -285,12 +287,12 @@ export default function ScheduleScreen() {
               automaticallyAdjustContentInsets={false}
             >
               <ThemedView style={[styles.header, styles.formPageHeader]}>
-                <TouchableOpacity 
+                <ThemedButton
+                  icon="chevron.left"
+                  iconColor="#1c1f33"
                   style={[styles.backButton, styles.formBackButton]}
                   onPress={() => setShowAddForm(false)}
-                >
-                  <IconSymbol size={20} name="chevron.left" color="#1c1f33" />
-                </TouchableOpacity>
+                />
 
                 <ThemedView style={styles.iconContainer}>
                   <IconSymbol size={60} name="plus.circle.fill" color="#1c1f33" />
@@ -314,7 +316,7 @@ export default function ScheduleScreen() {
               </ThemedView>
 
               <ThemedView style={[styles.content, styles.formPageContent]}>
-          <ThemedView style={styles.formCard}>
+          <ThemedCard style={styles.formCard}>
             <ThemedView style={styles.formGroup}>
               <ThemedText style={styles.formLabel}>الأيام</ThemedText>
               <ScrollView 
@@ -418,7 +420,7 @@ export default function ScheduleScreen() {
                 <ThemedText style={[styles.cancelButtonText, getTextDirection()]}>إلغاء</ThemedText>
               </TouchableOpacity>
             </ThemedView>
-          </ThemedView>
+          </ThemedCard>
             </ThemedView>
           </ScrollView>
         
@@ -441,12 +443,12 @@ export default function ScheduleScreen() {
             keyboardShouldPersistTaps="handled"
           >
             <ThemedView style={styles.header}>
-              <TouchableOpacity 
+              <ThemedButton
+                icon="chevron.left"
+                iconColor="#1c1f33"
                 style={styles.backButton}
                 onPress={() => router.back()}
-              >
-                <IconSymbol size={20} name="chevron.left" color="#1c1f33" />
-              </TouchableOpacity>
+              />
 
               <ThemedView style={styles.iconContainer}>
                 <IconSymbol size={60} name="calendar.badge.clock" color="#1c1f33" />
@@ -469,37 +471,37 @@ export default function ScheduleScreen() {
 
             <ThemedView style={styles.content}>
           {/* إحصائيات سريعة */}
-          <ThemedView style={styles.statsCard}>
+          <ThemedCard style={styles.statsCard}>
             <ThemedText style={styles.statsTitle}>إحصائيات الجدول</ThemedText>
             <ThemedView style={styles.statsGrid}>
-              <ThemedView style={[styles.statItem, { backgroundColor: '#4CAF5015' }]}>
+              <ThemedCard style={[styles.statItem, { backgroundColor: '#4CAF5015' }]}>
                 <IconSymbol size={24} name="book.fill" color="#4CAF50" />
                 <ThemedText style={styles.statNumber}>{stats.totalClasses}</ThemedText>
                 <ThemedText style={[styles.statLabel, getTextDirection()]}>حصص دراسية</ThemedText>
-              </ThemedView>
+              </ThemedCard>
 
-              <ThemedView style={[styles.statItem, { backgroundColor: '#FF980015' }]}>
+              <ThemedCard style={[styles.statItem, { backgroundColor: '#FF980015' }]}>
                 <IconSymbol size={24} name="plus.circle.fill" color="#FF9800" />
                 <ThemedText style={styles.statNumber}>{stats.totalAdditional}</ThemedText>
                 <ThemedText style={[styles.statLabel, getTextDirection()]}>حصص إضافية</ThemedText>
-              </ThemedView>
+              </ThemedCard>
 
-              <ThemedView style={[styles.statItem, { backgroundColor: '#9C27B015' }]}>
+              <ThemedCard style={[styles.statItem, { backgroundColor: '#9C27B015' }]}>
                 <IconSymbol size={24} name="hourglass.fill" color="#9C27B0" />
                 <ThemedText style={styles.statNumber}>{stats.totalWaitingClasses}</ThemedText>
                 <ThemedText style={[styles.statLabel, getTextDirection()]}>حصص انتظار</ThemedText>
-              </ThemedView>
+              </ThemedCard>
 
-              <ThemedView style={[styles.statItem, { backgroundColor: '#9E9E9E15' }]}>
+              <ThemedCard style={[styles.statItem, { backgroundColor: '#9E9E9E15' }]}>
                 <IconSymbol size={24} name="pause.circle.fill" color="#9E9E9E" />
                 <ThemedText style={styles.statNumber}>{stats.freeSlots}</ThemedText>
                 <ThemedText style={[styles.statLabel, getTextDirection()]}>فراغات</ThemedText>
-              </ThemedView>
+              </ThemedCard>
             </ThemedView>
-          </ThemedView>
+          </ThemedCard>
 
           {/* الجدول الأسبوعي الشامل */}
-          <ThemedView style={styles.weeklyScheduleCard}>
+          <ThemedCard style={styles.weeklyScheduleCard}>
             <ThemedView style={styles.scheduleHeader}>
               <ThemedText style={styles.scheduleTitle}>الجدول الأسبوعي الشامل</ThemedText>
             </ThemedView>
@@ -586,11 +588,11 @@ export default function ScheduleScreen() {
                 ))}
               </ThemedView>
             </ScrollView>
-          </ThemedView>
+          </ThemedCard>
 
             </ThemedView>
           </ScrollView>
-        
+
       </ImageBackground>
       <BottomNavigationBar />
     </ThemedView>
@@ -742,6 +744,7 @@ const styles = StyleSheet.create({
   statsCard: {
     backgroundColor: '#fff',
     borderRadius: 12,
+    borderWidth: 0,
     padding: 20,
     marginBottom: 20,
     elevation: 2,
@@ -771,7 +774,10 @@ const styles = StyleSheet.create({
     width: '48%',
     padding: 15,
     borderRadius: 12,
+    borderWidth: 0,
     alignItems: 'center',
+    shadowOpacity: 0,
+    elevation: 0,
   },
   statNumber: {
     fontSize: 24,
@@ -789,6 +795,7 @@ const styles = StyleSheet.create({
   weeklyScheduleCard: {
     backgroundColor: '#fff',
     borderRadius: 12,
+    borderWidth: 0,
     padding: 15,
     marginBottom: 20,
     elevation: 2,
@@ -1023,6 +1030,7 @@ const styles = StyleSheet.create({
   formCard: {
     backgroundColor: '#e0f0f1',
     borderRadius: 12,
+    borderWidth: 0,
     padding: 20,
     elevation: 2,
     shadowColor: '#000',
