@@ -1554,15 +1554,10 @@ export const getPerformanceAxesByProfession = (profession: string): PerformanceA
         title: 'تهيئة البيئة التعليمية',
         score: 0,
         weight: 5,
-        description: 'مراعاة حاجات الطلاب، تهيئة نفسية ومادية ومعنوية مناسبة',
-        details: 'اهتمام بتهيئة بيئة تعليمية محفزة ومناسبة، مراعاة لحاجات الطلاب النفسية والمادية والمعنوية.',
+        description: 'توفير بيئة تعليمية غنية بالمصادر',
+        details: 'اهتمام بتهيئة بيئة تعليمية محفزة ومناسبة، مع توفير مصادر تعليمية غنية للطلاب.',
         evidence: [
-          { name: 'مراعاة حاجات الطلاب', available: false },
-          { name: 'تهيئة نفسية للطلاب', available: false },
-          { name: 'تحفيز مادي ومعنوي', available: false },
-          { name: 'توفير متطلبات الدرس', available: false },
-          { name: 'توفير بيئة تعليمية غنية بالمصادر (بوابة عين)', available: false },
-          { name: 'تحليل أنماط التعلم لدى الطلاب (VARK)', available: false }
+          { name: 'توفير بيئة تعليمية غنية بالمصادر (بوابة عين)', available: false }
         ],
       },
       {
@@ -1592,7 +1587,8 @@ export const getPerformanceAxesByProfession = (profession: string): PerformanceA
           { name: 'تحليل نتائج الاختبارات', available: false },
           { name: 'تصنيف الطلاب وفق نتائجهم', available: false },
           { name: 'تحديد نقاط القوة والضعف', available: false },
-          { name: 'سجل معالجة الفاقد', available: false }
+          { name: 'سجل معالجة الفاقد', available: false },
+          { name: 'تحليل أنماط التعلم لدى الطلاب (VARK)', available: false }
         ],
       },
       {
