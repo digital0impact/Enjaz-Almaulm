@@ -223,11 +223,9 @@ export const getPerformanceAxesByProfession = (profession: string): PerformanceA
         title: 'إعداد وتنفيذ خطة التعلم',
         score: 0,
         weight: 5,
-        description: 'توزيع المنهج، إعداد الدروس والواجبات والاختبارات',
-        details: 'تخطيط لتوزيع المنهج بما يتناسب مع الزمن المتاح، إعداد دروس، وتصميم واجبات واختبارات تتماشى مع أهداف التعلم.',
+        description: 'نماذج من إعداد الدروس، ونماذج من الواجبات والاختبارات',
+        details: 'إعداد نماذج دروس، وتصميم واجبات واختبارات تتماشى مع أهداف التعلم.',
         evidence: [
-          { name: 'خطة توزيع المنهج', available: false },
-          { name: 'إعداد الدروس والاختبارات', available: false },
           { name: 'نماذج من إعداد الدروس', available: false },
           { name: 'نماذج من الواجبات والاختبارات', available: false }
         ],
@@ -447,11 +445,9 @@ export const getPerformanceAxesByProfession = (profession: string): PerformanceA
         title: 'إعداد وتنفيذ خطة التعلم',
         score: 0,
         weight: 5,
-        description: 'توزيع المنهج، إعداد الدروس والواجبات والاختبارات',
-        details: 'تخطيط لتوزيع المنهج بما يتناسب مع الزمن المتاح، إعداد دروس، وتصميم واجبات واختبارات تتماشى مع أهداف التعلم.',
+        description: 'نماذج من إعداد الدروس، ونماذج من الواجبات والاختبارات',
+        details: 'إعداد نماذج دروس، وتصميم واجبات واختبارات تتماشى مع أهداف التعلم.',
         evidence: [
-          { name: 'خطة توزيع المنهج', available: false },
-          { name: 'إعداد الدروس والاختبارات', available: false },
           { name: 'نماذج من إعداد الدروس', available: false },
           { name: 'نماذج من الواجبات والاختبارات', available: false }
         ],
@@ -1534,11 +1530,9 @@ export const getPerformanceAxesByProfession = (profession: string): PerformanceA
         title: 'إعداد وتنفيذ خطة التعلم',
         score: 0,
         weight: 10,
-        description: 'توزيع المنهج، إعداد الدروس والواجبات والاختبارات',
-        details: 'تخطيط لتوزيع المنهج بما يتناسب مع الزمن المتاح، إعداد دروس، وتصميم واجبات واختبارات تتماشى مع أهداف التعلم.',
+        description: 'نماذج من إعداد الدروس، ونماذج من الواجبات والاختبارات',
+        details: 'إعداد نماذج دروس، وتصميم واجبات واختبارات تتماشى مع أهداف التعلم.',
         evidence: [
-          { name: 'خطة توزيع المنهج', available: false },
-          { name: 'إعداد الدروس والاختبارات', available: false },
           { name: 'نماذج من إعداد الدروس', available: false },
           { name: 'نماذج من الواجبات والاختبارات', available: false },
           { name: 'إرسال ملف الخطة الأسبوعية (PDF أو صورة) عبر منصة مدرستي', available: false }
