@@ -236,9 +236,14 @@ export const getPerformanceAxesByProfession = (profession: string): PerformanceA
         title: 'تهيئة بيئة تعليمية',
         score: 0,
         weight: 5,
-        description: '',
-        details: '',
-        evidence: [],
+        description: 'مراعاة حاجات الطلاب، تهيئة نفسية ومادية ومعنوية مناسبة',
+        details: 'اهتمام بتهيئة بيئة تعليمية محفزة ومناسبة، مراعاة لحاجات الطلاب النفسية والمادية والمعنوية.',
+        evidence: [
+          { name: 'مراعاة حاجات الطلاب', available: false },
+          { name: 'تهيئة نفسية للطلاب', available: false },
+          { name: 'تحفيز مادي ومعنوي', available: false },
+          { name: 'توفير متطلبات الدرس', available: false }
+        ],
       },
       {
         id: 9,
@@ -440,9 +445,14 @@ export const getPerformanceAxesByProfession = (profession: string): PerformanceA
         title: 'تهيئة بيئة تعليمية',
         score: 0,
         weight: 5,
-        description: '',
-        details: '',
-        evidence: [],
+        description: 'مراعاة حاجات الطلاب، تهيئة نفسية ومادية ومعنوية مناسبة',
+        details: 'اهتمام بتهيئة بيئة تعليمية محفزة ومناسبة، مراعاة لحاجات الطلاب النفسية والمادية والمعنوية.',
+        evidence: [
+          { name: 'مراعاة حاجات الطلاب', available: false },
+          { name: 'تهيئة نفسية للطلاب', available: false },
+          { name: 'تحفيز مادي ومعنوي', available: false },
+          { name: 'توفير متطلبات الدرس', available: false }
+        ],
       },
       {
         id: 9,
