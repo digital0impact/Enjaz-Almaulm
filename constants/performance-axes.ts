@@ -250,13 +250,12 @@ export const getPerformanceAxesByProfession = (profession: string): PerformanceA
         title: 'الإدارة الصفية',
         score: 0,
         weight: 5,
-        description: 'ضبط سلوك الطلاب، شد انتباه الطلاب، مراعاة الفروق الفردية',
-        details: 'إدارة للصف، مهارات في ضبط سلوك الطلاب وشد انتباههم، مع مراعاة للفروق الفردية ومتابعة للحضور والانضباط.',
+        description: 'قواعد السلوك الصفي، إدارة الوقت، التعزيز والتحفيز',
+        details: 'إدارة للصف عبر قواعد سلوك صفي واضحة، إدارة فعّالة للوقت، وأنظمة تعزيز وتحفيز للطلاب.',
         evidence: [
-          { name: 'ضبط سلوك الطلاب', available: false },
-          { name: 'شد انتباه الطلاب', available: false },
-          { name: 'مراعاة الفروق الفردية', available: false },
-          { name: 'متابعة الحضور والغياب', available: false }
+          { name: 'قواعد السلوك الصفي', available: false },
+          { name: 'إدارة الوقت', available: false },
+          { name: 'التعزيز والتحفيز', available: false }
         ],
       },
       {
@@ -459,13 +458,12 @@ export const getPerformanceAxesByProfession = (profession: string): PerformanceA
         title: 'الإدارة الصفية',
         score: 0,
         weight: 5,
-        description: 'ضبط سلوك الطلاب، شد انتباه الطلاب، مراعاة الفروق الفردية',
-        details: 'إدارة للصف، مهارات في ضبط سلوك الطلاب وشد انتباههم، مع مراعاة للفروق الفردية ومتابعة للحضور والانضباط.',
+        description: 'قواعد السلوك الصفي، إدارة الوقت، التعزيز والتحفيز',
+        details: 'إدارة للصف عبر قواعد سلوك صفي واضحة، إدارة فعّالة للوقت، وأنظمة تعزيز وتحفيز للطلاب.',
         evidence: [
-          { name: 'ضبط سلوك الطلاب', available: false },
-          { name: 'شد انتباه الطلاب', available: false },
-          { name: 'مراعاة الفروق الفردية', available: false },
-          { name: 'متابعة الحضور والغياب', available: false }
+          { name: 'قواعد السلوك الصفي', available: false },
+          { name: 'إدارة الوقت', available: false },
+          { name: 'التعزيز والتحفيز', available: false }
         ],
       },
       {
