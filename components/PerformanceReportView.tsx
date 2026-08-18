@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { StyleSheet, ScrollView, TouchableOpacity, Platform, Dimensions, View, ActivityIndicator, Linking, Modal, Image } from 'react-native';
+import { StyleSheet, TouchableOpacity, Platform, Dimensions, View, ActivityIndicator, Linking, Modal } from 'react-native';
 import { AlertService } from '@/services/AlertService';
 import { PieChart } from 'react-native-chart-kit';
 import { useFocusEffect } from '@react-navigation/native';
@@ -38,11 +38,6 @@ export function PerformanceReportView() {
   const [performanceData, setPerformanceData] = useState<PerformanceItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [isExporting, setIsExporting] = useState(false);
-  /** الملفات المرفقة للشواهد (مفتاح: محور-رقم_شاهد) لمعاينة الشاهد */
-  const [uploadedFilesMap, setUploadedFilesMap] = useState<Record<string, { name: string; size: string; date: string; type: string; uri?: string }>>({});
-  /** معاينة الصورة: URI المعروض وحالة ظهور الـ Modal */
-  const [previewVisible, setPreviewVisible] = useState(false);
-  const [previewImageUri, setPreviewImageUri] = useState<string | null>(null);
   /** تحميل Word على الويب: عرض نافذة تحتوي على رابط التحميل */
   const [wordDownload, setWordDownload] = useState<{ url: string; name: string } | null>(null);
   // إضافة مستمع للتركيز على الصفحة باستخدام useFocusEffect
@@ -124,25 +119,11 @@ export function PerformanceReportView() {
         await AsyncStorage.setItem('performanceData', JSON.stringify(currentProfessionData));
       }
 
-      // تحميل الملفات المرفقة للشواهد (للمعاينة)
-      const storedFiles = await AsyncStorage.getItem('uploadedFiles');
-      if (storedFiles) {
-        try {
-          const parsed = JSON.parse(storedFiles) as Record<string, { name: string; size: string; date: string; type: string; uri?: string }>;
-          setUploadedFilesMap(typeof parsed === 'object' && parsed !== null ? parsed : {});
-        } catch (_) {
-          setUploadedFilesMap({});
-        }
-      } else {
-        setUploadedFilesMap({});
-      }
-
       setLoading(false);
     } catch (error) {
       console.log('Error loading performance data:', error);
       const fallbackData = getDefaultPerformanceData('معلم/ة');
       setPerformanceData(fallbackData);
-      setUploadedFilesMap({});
       // حفظ البيانات الافتراضية في حالة الخطأ
       try {
         await AsyncStorage.setItem('performanceData', JSON.stringify(fallbackData));
@@ -273,95 +254,6 @@ export function PerformanceReportView() {
     );
   };
 
-  const renderEvidence = () => {
-    const itemsWithEvidence = performanceData.filter(
-      (item) => item.evidence && item.evidence.length > 0
-    );
-
-    if (itemsWithEvidence.length === 0) {
-      return (
-        <ThemedView style={styles.evidenceContainer}>
-          <ThemedText style={styles.sectionTitle}>الشواهد - محاور الأداء المهني</ThemedText>
-          <ThemedView style={styles.emptyState}>
-            <ThemedText style={styles.emptyStateText}>
-              لا توجد شواهد مُدخلة في محاور الأداء المهني. أضف الشواهد من تبويب محاور الأداء المهني.
-            </ThemedText>
-          </ThemedView>
-        </ThemedView>
-      );
-    }
-
-    return (
-      <ThemedView style={styles.evidenceContainer}>
-        <ThemedText style={styles.sectionTitle}>الشواهد - محاور الأداء المهني</ThemedText>
-        <ThemedText style={styles.evidenceIntro}>
-          الشواهد المُدخلة في كل محور من محاور الأداء المهني:
-        </ThemedText>
-        <ScrollView
-          style={styles.evidenceScroll}
-          showsVerticalScrollIndicator={false}
-          nestedScrollEnabled
-        >
-          {itemsWithEvidence.map((item) => (
-            <ThemedView key={String(item.id)} style={styles.evidenceAxisCard}>
-              <ThemedText style={styles.evidenceAxisTitle}>{item.title}</ThemedText>
-              <ThemedView style={styles.evidenceList}>
-                {(item.evidence || []).map((ev, idx) => {
-                  const fileKey = `${item.id}-${idx}`;
-                  const file = uploadedFilesMap[fileKey];
-                  const canPreview = ev.available && file?.uri;
-                  const isImage = file?.type === 'صورة';
-                  return (
-                    <ThemedView key={idx} style={styles.evidenceRow}>
-                      <ThemedView style={styles.evidenceRowContent}>
-                        <ThemedText style={styles.evidenceName}>{ev.name}</ThemedText>
-                      </ThemedView>
-                      <ThemedView style={styles.evidenceRowBadge}>
-                        <ThemedView
-                          style={[
-                            styles.evidenceBadge,
-                            ev.available ? styles.evidenceBadgeAvailable : styles.evidenceBadgeUnavailable,
-                          ]}
-                        >
-                          <ThemedText
-                            style={[
-                              styles.evidenceBadgeText,
-                              ev.available ? styles.evidenceBadgeTextAvailable : styles.evidenceBadgeTextUnavailable,
-                            ]}
-                          >
-                            {ev.available ? 'متوفر' : 'غير متوفر'}
-                          </ThemedText>
-                        </ThemedView>
-                        {canPreview && (
-                          <TouchableOpacity
-                            style={styles.evidencePreviewButton}
-                            onPress={() => {
-                              if (isImage) {
-                                setPreviewImageUri(file.uri!);
-                                setPreviewVisible(true);
-                              } else {
-                                Linking.openURL(file.uri!).catch(() =>
-                                  AlertService.alert('لا يمكن فتح الملف', 'المعاينة غير متاحة لهذا النوع على هذا الجهاز.')
-                                );
-                              }
-                            }}
-                            activeOpacity={0.7}
-                          >
-                            <IconSymbol size={16} name="eye.fill" color="#1c1f33" />
-                            <ThemedText style={styles.evidencePreviewButtonText}>معاينة</ThemedText>
-                          </TouchableOpacity>
-                        )}
-                      </ThemedView>
-                    </ThemedView>
-                  );
-                })}
-              </ThemedView>
-            </ThemedView>
-          ))}
-        </ScrollView>
-      </ThemedView>
-    );
-  };
 
   const CATEGORY_PIE_COLORS = [
     '#4CAF50', '#2196F3', '#FF9800', '#9C27B0', '#F44336',
@@ -1387,8 +1279,6 @@ export function PerformanceReportView() {
             <ThemedView style={styles.content}>
               {renderDashboard()}
 
-              {renderEvidence()}
-
             <ThemedView style={styles.recommendationsCard}>
                               <ThemedText style={styles.recommendationsTitle}>
                   <IconSymbol size={20} name="lightbulb.fill" color="#FF9800" /> توصيات للتحسين
@@ -1464,32 +1354,6 @@ export function PerformanceReportView() {
               </View>
             </ThemedView>
             </ThemedView>
-
-      <Modal
-        visible={previewVisible}
-        transparent
-        animationType="fade"
-        onRequestClose={() => setPreviewVisible(false)}
-      >
-        <TouchableOpacity
-          style={styles.previewOverlay}
-          activeOpacity={1}
-          onPress={() => setPreviewVisible(false)}
-        >
-          <View style={styles.previewContent} pointerEvents="box-none">
-            {previewImageUri ? (
-              <Image source={{ uri: previewImageUri }} style={styles.previewImage} resizeMode="contain" />
-            ) : null}
-            <TouchableOpacity
-              style={styles.previewCloseButton}
-              onPress={() => setPreviewVisible(false)}
-              activeOpacity={0.8}
-            >
-              <ThemedText style={styles.previewCloseText}>إغلاق</ThemedText>
-            </TouchableOpacity>
-          </View>
-        </TouchableOpacity>
-      </Modal>
 
       <Modal
         visible={!!wordDownload}
@@ -2033,136 +1897,6 @@ const styles = StyleSheet.create<any>({
     borderRadius: 16,
     borderWidth: 1,
     borderColor: 'rgba(229, 229, 234, 0.5)',
-  },
-  evidenceContainer: {
-    marginBottom: 20,
-    padding: 20,
-    backgroundColor: 'rgba(255, 255, 255, 0.9)',
-    borderRadius: 16,
-    borderWidth: 1,
-    borderColor: 'rgba(229, 229, 234, 0.5)',
-  },
-  evidenceIntro: {
-    fontSize: 14,
-    color: '#555',
-    textAlign: 'right',
-    writingDirection: 'rtl',
-    textDirection: 'rtl',
-    marginBottom: 12,
-  },
-  evidenceScroll: {
-    maxHeight: 380,
-  },
-  evidenceAxisCard: {
-    marginBottom: 16,
-    padding: 14,
-    backgroundColor: 'rgba(245, 245, 247, 0.9)',
-    borderRadius: 12,
-    borderWidth: 1,
-    borderColor: 'rgba(229, 229, 234, 0.5)',
-  },
-  evidenceAxisTitle: {
-    fontSize: 16,
-    fontWeight: '600',
-    color: '#1c1f33',
-    textAlign: 'right',
-    writingDirection: 'rtl',
-    textDirection: 'rtl',
-    marginBottom: 10,
-  },
-  evidenceList: {
-    gap: 8,
-  },
-  evidenceRow: {
-    flexDirection: 'row-reverse',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    paddingVertical: 6,
-    paddingHorizontal: 10,
-    backgroundColor: '#fff',
-    borderRadius: 8,
-    borderWidth: 1,
-    borderColor: 'rgba(229, 229, 234, 0.4)',
-  },
-  evidenceName: {
-    flex: 1,
-    fontSize: 13,
-    color: '#333',
-    textAlign: 'right',
-    writingDirection: 'rtl',
-    textDirection: 'rtl',
-  },
-  evidenceBadge: {
-    paddingHorizontal: 10,
-    paddingVertical: 4,
-    borderRadius: 8,
-    marginLeft: 8,
-  },
-  evidenceBadgeAvailable: {
-    backgroundColor: 'rgba(76, 175, 80, 0.2)',
-  },
-  evidenceBadgeUnavailable: {
-    backgroundColor: 'rgba(158, 158, 158, 0.2)',
-  },
-  evidenceBadgeText: {
-    fontSize: 12,
-    fontWeight: '600',
-  },
-  evidenceBadgeTextAvailable: {
-    color: '#2e7d32',
-  },
-  evidenceBadgeTextUnavailable: {
-    color: '#616161',
-  },
-  evidenceRowContent: {
-    flex: 1,
-  },
-  evidenceRowBadge: {
-    flexDirection: 'row-reverse',
-    alignItems: 'center',
-    gap: 10,
-  },
-  evidencePreviewButton: {
-    flexDirection: 'row-reverse',
-    alignItems: 'center',
-    gap: 6,
-    paddingVertical: 6,
-    paddingHorizontal: 12,
-    backgroundColor: 'rgba(28, 31, 51, 0.08)',
-    borderRadius: 8,
-  },
-  evidencePreviewButtonText: {
-    fontSize: 13,
-    fontWeight: '600',
-    color: '#1c1f33',
-  },
-  previewOverlay: {
-    flex: 1,
-    backgroundColor: 'rgba(0,0,0,0.85)',
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  previewContent: {
-    width: '90%',
-    maxWidth: 400,
-    alignItems: 'center',
-  },
-  previewImage: {
-    width: '100%',
-    height: 360,
-    borderRadius: 12,
-  },
-  previewCloseButton: {
-    marginTop: 16,
-    paddingVertical: 12,
-    paddingHorizontal: 24,
-    backgroundColor: 'rgba(255,255,255,0.2)',
-    borderRadius: 12,
-  },
-  previewCloseText: {
-    color: '#fff',
-    fontSize: 16,
-    fontWeight: '600',
   },
   wordDownloadOverlay: {
     flex: 1,
