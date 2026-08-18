@@ -309,34 +309,48 @@ export default function LearningStylesScreen() {
               {formatRTLText('لم تنشئ أي اختبار بعد.')}
             </ThemedText>
           ) : (
-            tests.map((test) => (
-              <ThemedView key={test.id}>
-                <TouchableOpacity onPress={() => handleSelectTest(test.token)} activeOpacity={0.8}>
-                  <ThemedCard style={styles.testCard}>
-                    <ThemedView style={styles.testCardRow}>
-                      <IconSymbol
-                        size={20}
-                        name={selectedToken === test.token ? 'chevron.down' : 'chevron.left'}
-                        color="#666"
-                      />
-                      <ThemedView style={styles.testCardInfo}>
-                        <ThemedText style={[styles.testCardTitle, getTextDirection()]}>
-                          {formatRTLText(test.title || 'اختبار بدون عنوان')}
-                        </ThemedText>
-                        <ThemedText style={[styles.testCardDate, getTextDirection()]}>
-                          {new Date(test.created_at).toLocaleDateString('ar-SA', {
-                            year: 'numeric',
-                            month: 'long',
-                            day: 'numeric',
-                          })}
-                        </ThemedText>
+            <ThemedCard style={styles.tableCard}>
+              <ThemedView style={styles.tableHeaderRow}>
+                <ThemedText style={[styles.tableHeaderCell, styles.tableColTitle, getTextDirection()]}>
+                  {formatRTLText('عنوان الاختبار')}
+                </ThemedText>
+                <ThemedText style={[styles.tableHeaderCell, styles.tableColDate, getTextDirection()]}>
+                  {formatRTLText('التاريخ')}
+                </ThemedText>
+                <ThemedView style={styles.tableColIcon} />
+              </ThemedView>
+
+              {tests.map((test) => (
+                <React.Fragment key={test.id}>
+                  <TouchableOpacity onPress={() => handleSelectTest(test.token)} activeOpacity={0.7}>
+                    <ThemedView
+                      style={[styles.tableRow, selectedToken === test.token && styles.tableRowActive]}
+                    >
+                      <ThemedText
+                        style={[styles.tableCell, styles.tableColTitle, getTextDirection()]}
+                        numberOfLines={1}
+                      >
+                        {formatRTLText(test.title || 'اختبار بدون عنوان')}
+                      </ThemedText>
+                      <ThemedText style={[styles.tableCell, styles.tableColDate, getTextDirection()]}>
+                        {new Date(test.created_at).toLocaleDateString('ar-SA', {
+                          year: 'numeric',
+                          month: 'short',
+                          day: 'numeric',
+                        })}
+                      </ThemedText>
+                      <ThemedView style={styles.tableColIcon}>
+                        <IconSymbol
+                          size={18}
+                          name={selectedToken === test.token ? 'chevron.down' : 'chevron.left'}
+                          color="#666"
+                        />
                       </ThemedView>
                     </ThemedView>
-                  </ThemedCard>
-                </TouchableOpacity>
+                  </TouchableOpacity>
 
-                {selectedToken === test.token && (
-                  <ThemedCard style={styles.resultsCard}>
+                  {selectedToken === test.token && (
+                    <ThemedView style={styles.resultsRow}>
                     {loadingResponses ? (
                       <ActivityIndicator color="#1c1f33" />
                     ) : responses.length === 0 ? (
@@ -373,10 +387,11 @@ export default function LearningStylesScreen() {
                         ))}
                       </>
                     )}
-                  </ThemedCard>
-                )}
-              </ThemedView>
-            ))
+                    </ThemedView>
+                  )}
+                </React.Fragment>
+              ))}
+            </ThemedCard>
           )}
         </ScrollView>
         <BottomNavigationBar />
@@ -471,12 +486,37 @@ const styles = StyleSheet.create({
   sectionTitle: { fontSize: 18, fontWeight: '700', color: '#1c1f33' },
   loader: { marginTop: 20 },
   emptyText: { fontSize: 14, color: '#666', textAlign: 'center', paddingVertical: 16 },
-  testCard: { marginBottom: 10, borderWidth: 0, shadowOpacity: 0, elevation: 0 },
-  testCardRow: { flexDirection: 'row-reverse', alignItems: 'center', gap: 12 },
-  testCardInfo: { flex: 1 },
-  testCardTitle: { fontSize: 15, fontWeight: '600', color: '#1c1f33' },
-  testCardDate: { fontSize: 12, color: '#888', marginTop: 4 },
-  resultsCard: { marginTop: -4, marginBottom: 10, backgroundColor: '#f9fafb' },
+  tableCard: { padding: 0, overflow: 'hidden' },
+  tableHeaderRow: {
+    flexDirection: 'row-reverse',
+    alignItems: 'center',
+    backgroundColor: '#f0f2f5',
+    paddingVertical: 12,
+    paddingHorizontal: 14,
+    borderBottomWidth: 1,
+    borderBottomColor: '#E5E5EA',
+  },
+  tableHeaderCell: { fontSize: 13, fontWeight: '700', color: '#555' },
+  tableRow: {
+    flexDirection: 'row-reverse',
+    alignItems: 'center',
+    paddingVertical: 14,
+    paddingHorizontal: 14,
+    borderBottomWidth: 1,
+    borderBottomColor: '#EEEEEE',
+    backgroundColor: '#fff',
+  },
+  tableRowActive: { backgroundColor: '#eef7f5' },
+  tableCell: { fontSize: 14, color: '#1c1f33' },
+  tableColTitle: { flex: 1, fontWeight: '600', marginHorizontal: 8 },
+  tableColDate: { width: 90, color: '#888', fontSize: 12 },
+  tableColIcon: { width: 24, alignItems: 'center' },
+  resultsRow: {
+    padding: 16,
+    backgroundColor: '#f9fafb',
+    borderBottomWidth: 1,
+    borderBottomColor: '#E5E5EA',
+  },
   resultsSummaryText: { fontSize: 14, fontWeight: '600', color: '#1c1f33', marginBottom: 12 },
   classBlock: {
     marginBottom: 14,
