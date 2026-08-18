@@ -84,4 +84,10 @@ export const EXPLORE_TOOLS: ToolMenuItem[] = [
     description: 'إنشاء وإدارة التنبيهات والتذكيرات',
     route: '/alerts-management',
   },
+  {
+    icon: 'graduationcap.fill',
+    title: 'تحليل أنماط تعلم الطلاب',
+    description: 'إنشاء رابط استبيان VARK ومشاركته مع الطلاب، وعرض النتائج مجمّعة حسب الصف',
+    route: '/learning-styles',
+  },
 ];
