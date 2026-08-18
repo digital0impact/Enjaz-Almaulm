@@ -13,6 +13,7 @@ import * as DocumentPicker from 'expo-document-picker';
 import { getTextDirection, formatRTLText } from '@/utils/rtl-utils';
 import { getPerformanceAxesByProfession, PerformanceAxis } from '@/constants/performance-axes';
 import { PerformanceReportView } from '@/components/PerformanceReportView';
+import { WeeklyScheduleTable } from '@/components/WeeklyScheduleTable';
 import { calculateOverallAverageFivePoint } from '@/utils/performance-five-point';
 import { useLocalSearchParams } from 'expo-router';
 
@@ -998,18 +999,20 @@ export default function PerformanceScreen() {
                     const uploadedFile = uploadedFiles[fileKey];
                     const isUploading = uploadingStates[fileKey];
 
+                    const isScheduleEvidence = evidence.name === 'جدول الحصص الأسبوعي';
+
                     return (
                     <ThemedView key={evidenceIndex} style={styles.evidenceCardRow}>
                       <ThemedText style={[styles.evidenceName, getTextDirection()]}>{formatRTLText(evidence.name)}</ThemedText>
-                        
-                        {/* عرض الملف المرفوع إذا كان موجود */}
-                        {uploadedFile && (
+
+                        {/* عرض الملف المرفوع إذا كان موجود (لا ينطبق على شاهد الجدول، فهو معروض مباشرة أدناه) */}
+                        {uploadedFile && !isScheduleEvidence && (
                           <ThemedView style={styles.uploadedFileContainer}>
                             <ThemedView style={styles.fileInfo}>
-                              <IconSymbol 
-                                name={uploadedFile.type === 'صورة' ? "photo.fill" : uploadedFile.type === 'فيديو' ? "video.fill" : "doc.fill"} 
-                                size={20} 
-                                color="#4A90E2" 
+                              <IconSymbol
+                                name={uploadedFile.type === 'صورة' ? "photo.fill" : uploadedFile.type === 'فيديو' ? "video.fill" : "doc.fill"}
+                                size={20}
+                                color="#4A90E2"
                               />
                               <ThemedText style={[styles.fileName, getTextDirection()]}>{uploadedFile.name}</ThemedText>
                               <ThemedText style={[styles.fileDetails, getTextDirection()]}>{uploadedFile.size} • {uploadedFile.date}</ThemedText>
@@ -1022,16 +1025,10 @@ export default function PerformanceScreen() {
                           <IconSymbol name={evidence.available ? "checkmark" : "xmark"} size={18} color={evidence.available ? '#fff' : '#fff'} />
                           <ThemedText style={[styles.evidenceStatusText, getTextDirection()]}>{evidence.available ? formatRTLText('متوفر') : formatRTLText('غير متوفر')}</ThemedText>
                         </ThemedView>
-                        <ThemedView style={styles.evidenceActionsRow}>
-                            {/* شاهد "جدول الحصص الأسبوعي" مرتبط مباشرة بخانة "الجدول" في تبويب الرئيسية */}
-                            {evidence.name === 'جدول الحصص الأسبوعي' && (
-                              <TouchableOpacity
-                                style={styles.evidenceActionBtn}
-                                onPress={() => router.push('/schedule')}
-                              >
-                                <IconSymbol name="calendar" size={24} color="#0d9488" />
-                              </TouchableOpacity>
-                            )}
+                        {/* شاهد "جدول الحصص الأسبوعي": لا أزرار تحميل/تعديل — الجدول نفسه معروض
+                            مباشرة أدناه (مرتبط بنفس بيانات خانة "الجدول" في تبويب الرئيسية) */}
+                        {!isScheduleEvidence && (
+                          <ThemedView style={styles.evidenceActionsRow}>
                             <TouchableOpacity
                               style={[styles.evidenceActionBtn, isUploading && styles.uploadingBtn]}
                               onPress={() => !isUploading && handleFileUpload(performance.id, evidenceIndex)}
@@ -1043,19 +1040,22 @@ export default function PerformanceScreen() {
                                 <IconSymbol name="arrow.up.doc.fill" size={24} color="#4A90E2" />
                               )}
                             </TouchableOpacity>
-                          <TouchableOpacity style={styles.evidenceActionBtn} onPress={() => editEvidence(performance.id, evidenceIndex, evidence.name)}>
-                            <IconSymbol name="pencil" size={24} color="#FF9800" />
-                          </TouchableOpacity>
-                          {uploadedFile && (
-                            <TouchableOpacity 
-                              style={styles.evidenceActionBtn} 
-                              onPress={() => deleteFile(performance.id, evidenceIndex)}
-                            >
-                              <IconSymbol name="trash" size={24} color="#F44336" />
+                            <TouchableOpacity style={styles.evidenceActionBtn} onPress={() => editEvidence(performance.id, evidenceIndex, evidence.name)}>
+                              <IconSymbol name="pencil" size={24} color="#FF9800" />
                             </TouchableOpacity>
-                          )}
-                        </ThemedView>
+                            {uploadedFile && (
+                              <TouchableOpacity
+                                style={styles.evidenceActionBtn}
+                                onPress={() => deleteFile(performance.id, evidenceIndex)}
+                              >
+                                <IconSymbol name="trash" size={24} color="#F44336" />
+                              </TouchableOpacity>
+                            )}
+                          </ThemedView>
+                        )}
                       </ThemedView>
+
+                      {isScheduleEvidence && <WeeklyScheduleTable />}
                         </ThemedView>
                     );
                   })}
