@@ -127,6 +127,39 @@ export default function PerformanceScreen() {
     }));
   };
 
+  /**
+   * توفيق شواهد البيانات المحفوظة مع القالب الحالي (constants/performance-axes.ts)
+   * لكل محور على حدة، حتى تنعكس تعديلات القالب (إضافة/حذف شاهد) فعليًا على
+   * المستخدمين الذين لديهم بيانات محفوظة مسبقًا — دون التحقق من تطابق
+   * المحاور نفسها (isDataMatching أعلاه يتكفل بذلك عبر عناوين المحاور فقط).
+   * لكل شاهد في القالب: إن وُجد شاهد محفوظ بنفس الاسم في نفس المحور، تُستبقى
+   * حالة "متوفر" كما هي؛ وإلا يبدأ بحالة غير متوفر. أي شاهد محفوظ لم يعد
+   * موجودًا في القالب (حُذف) يُستبعد تلقائيًا لأننا نبني القائمة من القالب.
+   */
+  const reconcileEvidenceWithTemplate = (stored: any[], template: PerformanceAxis[]) => {
+    return template.map((templateAxis, axisIndex) => {
+      const storedAxis = stored[axisIndex];
+      const storedEvidenceByName = new Map<string, any>(
+        (storedAxis?.evidence || []).map((ev: any) => [ev?.name, ev])
+      );
+      const evidence = templateAxis.evidence.map(templateEv => {
+        const storedEv = storedEvidenceByName.get(templateEv.name);
+        return {
+          name: templateEv.name,
+          available: storedEv && typeof storedEv.available === 'boolean' ? storedEv.available : false,
+        };
+      });
+      return {
+        // البيانات الوصفية (العنوان/الوصف/الوزن...) من القالب دائمًا، فهو
+        // المصدر الرسمي؛ أما "score" فقيمة محسوبة لكل مستخدم يجب الحفاظ
+        // عليها من البيانات المحفوظة، لا إعادة تصفيرها من القالب (0 دائمًا).
+        ...templateAxis,
+        score: typeof storedAxis?.score === 'number' ? storedAxis.score : templateAxis.score,
+        evidence,
+      };
+    });
+  };
+
   // دالة لإعادة تعيين البطاقات بقوة حسب المهنة
   const forceUpdateCardsForProfession = async (profession: string) => {
     console.log('Force updating cards for profession:', profession);
@@ -184,15 +217,20 @@ export default function PerformanceScreen() {
           );
           
         if (isDataMatching) {
-          const normalized = normalizeEvidenceAvailable(parsedData);
+          // توفيق مع القالب الحالي على مستوى الشواهد داخل كل محور (وليس
+          // فقط عناوين المحاور) حتى تنعكس تعديلات القالب (حذف/إضافة شاهد)
+          // فعليًا حتى على من لديه بيانات محفوظة مسبقًا، مع الحفاظ على حالة
+          // "متوفر" للشواهد التي بقيت كما هي.
+          const reconciled = reconcileEvidenceWithTemplate(parsedData, currentProfessionData);
+          const normalized = normalizeEvidenceAvailable(reconciled);
           setPerformanceData(normalized);
           await AsyncStorage.setItem('performanceData', JSON.stringify(normalized));
           console.log('Loaded existing performance data for profession:', userProfession);
           
-          // عد الشواهد المحفوظة
-          const evidenceCount = parsedData.reduce((total, item) => total + (item.evidence?.length || 0), 0);
-          const availableEvidenceCount = parsedData.reduce((total, item) => 
-            total + (item.evidence?.filter(ev => ev.available).length || 0), 0);
+          // عد الشواهد بعد التوفيق مع القالب الحالي
+          const evidenceCount = normalized.reduce((total, item) => total + (item.evidence?.length || 0), 0);
+          const availableEvidenceCount = normalized.reduce((total, item) =>
+            total + (item.evidence?.filter((ev: any) => ev.available).length || 0), 0);
           console.log('Total evidence loaded:', evidenceCount, 'Available evidence:', availableEvidenceCount);
           
         } else {

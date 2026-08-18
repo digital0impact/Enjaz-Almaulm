@@ -103,9 +103,12 @@ export function PerformanceReportView() {
         const currentProfessionData = getDefaultPerformanceData(profession);
         
         if (Array.isArray(parsedData) && parsedData.length === currentProfessionData.length) {
-          // إذا كانت البيانات المحفوظة تتطابق مع المهنة الحالية
-          setPerformanceData(parsedData);
-          console.log('Loaded performanceData from AsyncStorage:', parsedData);
+          // إذا كانت البيانات المحفوظة تتطابق مع المهنة الحالية — نوفّق
+          // الشواهد داخل كل محور مع القالب الحالي (انظر التوثيق أعلى الدالة)
+          const reconciled = reconcileEvidenceWithTemplate(parsedData, currentProfessionData);
+          setPerformanceData(reconciled);
+          await AsyncStorage.setItem('performanceData', JSON.stringify(reconciled));
+          console.log('Loaded performanceData from AsyncStorage:', reconciled);
         } else {
           // إذا تغيرت المهنة أو كانت البيانات غير متطابقة، استخدم البيانات الجديدة
           setPerformanceData(currentProfessionData);
@@ -159,6 +162,34 @@ export function PerformanceReportView() {
       weight: axis.weight,
       evidence: axis.evidence,
     }));
+  };
+
+  /**
+   * توفيق شواهد البيانات المحفوظة مع القالب الحالي لكل محور — نفس المنطق
+   * المستخدم في app/(tabs)/performance.tsx، حتى ينعكس تعديل القالب (حذف/
+   * إضافة شاهد) هنا أيضًا (شاشة "التقرير الكامل") لا في شاشة البطاقات فقط.
+   * تُستبقى حالة "متوفر" للشواهد التي بقي اسمها في القالب، وتُستبعد تلقائيًا
+   * أي شواهد محفوظة لم تعد موجودة فيه.
+   */
+  const reconcileEvidenceWithTemplate = (stored: any[], template: PerformanceItem[]): PerformanceItem[] => {
+    return template.map((templateAxis, axisIndex) => {
+      const storedAxis = stored[axisIndex];
+      const storedEvidenceByName = new Map<string, any>(
+        (storedAxis?.evidence || []).map((ev: any) => [ev?.name, ev])
+      );
+      const evidence = (templateAxis.evidence || []).map(templateEv => {
+        const storedEv = storedEvidenceByName.get(templateEv.name);
+        return {
+          name: templateEv.name,
+          available: storedEv && typeof storedEv.available === 'boolean' ? storedEv.available : false,
+        };
+      });
+      return {
+        ...templateAxis,
+        score: typeof storedAxis?.score === 'number' ? storedAxis.score : templateAxis.score,
+        evidence,
+      };
+    });
   };
 
   const getScoreColor = (score: number) => {
