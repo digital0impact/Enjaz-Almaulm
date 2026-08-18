@@ -1526,7 +1526,7 @@ export const getPerformanceAxesByProfession = (profession: string): PerformanceA
           { name: 'خطط علاجية للطلاب الضعاف', available: false },
           { name: 'خطط إثرائية للمتميزين', available: false },
           { name: 'تكريم الطلاب المتحسنين', available: false },
-          { name: 'نتائج الاختبارات القبلية والبعدية', available: false }
+          { name: 'تحليل نتائج الاختبار الفتري', available: false }
         ],
       },
       {
