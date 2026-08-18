@@ -1510,10 +1510,8 @@ export const getPerformanceAxesByProfession = (profession: string): PerformanceA
         evidence: [
           { name: 'استخدام استراتيجيات متنوعة', available: false },
           { name: 'مراعاة الفروق الفردية', available: false },
-          { name: 'تقرير عن تطبيق استراتيجية', available: false },
           { name: 'ملف إنجاز للمعلم', available: false },
-          { name: 'تطبيق استراتيجيات التعلم النشط', available: false },
-          { name: 'استراتيجية التعلم باللعب', available: false }
+          { name: 'تطبيق استراتيجيات التعلم النشط', available: false }
         ],
       },
       {
