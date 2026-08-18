@@ -240,8 +240,6 @@ export const getPerformanceAxesByProfession = (profession: string): PerformanceA
         evidence: [
           { name: 'دمج التقنية في التعليم', available: false },
           { name: 'تنويع الوسائل التعليمية', available: false },
-          { name: 'صور من الوسائل التعليمية', available: false },
-          { name: 'تقرير عن برنامج تقني مستخدم', available: false }
         ],
       },
       {
@@ -462,8 +460,6 @@ export const getPerformanceAxesByProfession = (profession: string): PerformanceA
         evidence: [
           { name: 'دمج التقنية في التعليم', available: false },
           { name: 'تنويع الوسائل التعليمية', available: false },
-          { name: 'صور من الوسائل التعليمية', available: false },
-          { name: 'تقرير عن برنامج تقني مستخدم', available: false }
         ],
       },
       {
@@ -1548,8 +1544,6 @@ export const getPerformanceAxesByProfession = (profession: string): PerformanceA
         evidence: [
           { name: 'دمج التقنية في التعليم', available: false },
           { name: 'تنويع الوسائل التعليمية', available: false },
-          { name: 'صور من الوسائل التعليمية', available: false },
-          { name: 'تقرير عن برنامج تقني مستخدم', available: false },
           { name: 'استخدام السبورة التفاعلية', available: false },
           { name: 'تفعيل لوحات النقاش في منصة مدرستي', available: false },
           { name: 'استخدام برنامج تقني (Padlet)', available: false }
