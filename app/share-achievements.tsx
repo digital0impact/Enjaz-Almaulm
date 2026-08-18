@@ -68,13 +68,24 @@ export default function ShareAchievementsScreen() {
   };
 
   const buildReportSnapshot = async () => {
-    const [performanceData, basicData] = await Promise.all([
+    const [performanceData, basicDataRaw] = await Promise.all([
       AsyncStorage.getItem('performanceData'),
       AsyncStorage.getItem('basicData'),
     ]);
+    // نخزّن فقط الحقول المعروضة فعليًا في صفحة العرض العامة (share/[token].tsx):
+    // الاسم والمهنة. سياسة القراءة على جدول shared_achievements مفتوحة للجميع
+    // (USING (true)) — لذا لا نخزّن هنا أي بيانات حساسة (بريد، جوال، اسم مدرسة...)
+    // حتى لا تُعرَّض فعليًا لأي شخص يعرف الرابط أو يستعلم عن الجدول مباشرة.
+    const fullBasicData = basicDataRaw ? JSON.parse(basicDataRaw) : null;
+    const basicData = fullBasicData
+      ? {
+          fullName: fullBasicData.fullName,
+          profession: fullBasicData.profession,
+        }
+      : null;
     return {
       performanceData: performanceData ? JSON.parse(performanceData) : [],
-      basicData: basicData ? JSON.parse(basicData) : null,
+      basicData,
       generatedAt: new Date().toISOString(),
     };
   };

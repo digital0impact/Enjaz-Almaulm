@@ -50,6 +50,12 @@ export const HOME_TOOLS: ToolMenuItem[] = [
     description: 'إدخال درجات الطلاب يدوياً أو من ملف وتحليلها في تقرير واحد',
     route: '/results-analysis',
   },
+  {
+    icon: 'graduationcap.fill',
+    title: 'تحليل أنماط تعلم الطلاب',
+    description: 'إنشاء رابط استبيان VARK ومشاركته مع الطلاب، وعرض النتائج مجمّعة حسب الصف',
+    route: '/learning-styles',
+  },
 ];
 
 /** بطاقات الأدوات في شاشة الأدوات المساعدة (app/(tabs)/explore.tsx). */
