@@ -1023,8 +1023,17 @@ export default function PerformanceScreen() {
                           <ThemedText style={[styles.evidenceStatusText, getTextDirection()]}>{evidence.available ? formatRTLText('متوفر') : formatRTLText('غير متوفر')}</ThemedText>
                         </ThemedView>
                         <ThemedView style={styles.evidenceActionsRow}>
-                            <TouchableOpacity 
-                              style={[styles.evidenceActionBtn, isUploading && styles.uploadingBtn]} 
+                            {/* شاهد "جدول الحصص الأسبوعي" مرتبط مباشرة بخانة "الجدول" في تبويب الرئيسية */}
+                            {evidence.name === 'جدول الحصص الأسبوعي' && (
+                              <TouchableOpacity
+                                style={styles.evidenceActionBtn}
+                                onPress={() => router.push('/schedule')}
+                              >
+                                <IconSymbol name="calendar" size={24} color="#0d9488" />
+                              </TouchableOpacity>
+                            )}
+                            <TouchableOpacity
+                              style={[styles.evidenceActionBtn, isUploading && styles.uploadingBtn]}
                               onPress={() => !isUploading && handleFileUpload(performance.id, evidenceIndex)}
                               disabled={isUploading}
                             >
