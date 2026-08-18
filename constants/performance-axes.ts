@@ -268,7 +268,8 @@ export const getPerformanceAxesByProfession = (profession: string): PerformanceA
         evidence: [
           { name: 'تحليل نتائج الاختبارات', available: false },
           { name: 'تحديد نقاط القوة والضعف', available: false },
-          { name: 'سجل معالجة الفاقد', available: false }
+          { name: 'سجل معالجة الفاقد', available: false },
+          { name: 'تحليل أنماط التعلم لدى الطلاب (VARK)', available: false }
         ],
       },
       {
@@ -475,7 +476,8 @@ export const getPerformanceAxesByProfession = (profession: string): PerformanceA
         evidence: [
           { name: 'تحليل نتائج الاختبارات', available: false },
           { name: 'تحديد نقاط القوة والضعف', available: false },
-          { name: 'سجل معالجة الفاقد', available: false }
+          { name: 'سجل معالجة الفاقد', available: false },
+          { name: 'تحليل أنماط التعلم لدى الطلاب (VARK)', available: false }
         ],
       },
       {
