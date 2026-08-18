@@ -1,5 +1,5 @@
-import React, { useState, useEffect, useRef } from 'react';
-import { StyleSheet, ScrollView, TouchableOpacity, I18nManager, ImageBackground, Dimensions, TextInput, Platform } from 'react-native';
+import React, { useState, useEffect } from 'react';
+import { StyleSheet, ScrollView, TouchableOpacity, I18nManager, ImageBackground, Dimensions, TextInput, Platform, Modal } from 'react-native';
 import { AlertService } from '@/services/AlertService';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
@@ -33,7 +33,6 @@ export default function ScheduleScreen() {
   const [selectedDay, setSelectedDay] = useState('الأحد');
   const [showAddForm, setShowAddForm] = useState(false);
   const [editingEntry, setEditingEntry] = useState<ScheduleEntry | null>(null);
-  const daysScrollRef = useRef<ScrollView>(null);
 
   const [formData, setFormData] = useState({
     day: 'الأحد',
@@ -83,13 +82,6 @@ export default function ScheduleScreen() {
     setCurrentWeek(getCurrentWeek());
     // RTL is handled by the safe wrapper in utils/rtl-utils.ts
   }, []);
-
-  useEffect(() => {
-    if (showAddForm && daysScrollRef.current) {
-      const t = setTimeout(() => daysScrollRef.current?.scrollToEnd({ animated: false }), 50);
-      return () => clearTimeout(t);
-    }
-  }, [showAddForm]);
 
   const loadScheduleData = async () => {
     try {
@@ -233,6 +225,9 @@ export default function ScheduleScreen() {
                   : e
               );
               saveScheduleData(updatedSchedule);
+              setShowAddForm(false);
+              setEditingEntry(null);
+              resetForm();
               AlertService.alert('تم', 'تم حذف الحصة بنجاح');
             }
           }
@@ -270,165 +265,6 @@ export default function ScheduleScreen() {
 
   const stats = getScheduleStats();
 
-  if (showAddForm) {
-    return (
-      <ThemedView style={[styles.container, styles.formPageRTL]}>
-        <ImageBackground
-          source={require('@/assets/images/background.png')}
-          style={styles.backgroundImage}
-          resizeMode="cover"
-        >
-            <ScrollView 
-              style={styles.scrollContainer}
-              contentContainerStyle={[styles.formScrollContent, { paddingBottom: 150, flexGrow: 1 }]}
-              showsVerticalScrollIndicator={false}
-              keyboardShouldPersistTaps="handled"
-              keyboardDismissMode="interactive"
-              automaticallyAdjustContentInsets={false}
-            >
-              <ThemedView style={[styles.header, styles.formPageHeader]}>
-                <ThemedButton
-                  icon="chevron.left"
-                  iconColor="#1c1f33"
-                  style={[styles.backButton, styles.formBackButton]}
-                  onPress={() => setShowAddForm(false)}
-                />
-
-                <ThemedView style={styles.iconContainer}>
-                  <IconSymbol size={60} name="plus.circle.fill" color="#1c1f33" />
-                </ThemedView>
-                <ThemedText type="title" style={[styles.title, getTextDirection()]}> 
-                  {editingEntry ? 'تعديل الحصة' : 'إضافة حصة جديدة'}
-                </ThemedText>
-                <ThemedText style={[styles.subtitle, getTextDirection()]}> 
-                  إدخال تفاصيل الحصة الجديدة
-                </ThemedText>
-
-                <TouchableOpacity
-                  style={styles.addButton}
-                  onPress={addOrUpdateEntry}
-                >
-                  <IconSymbol size={24} name="checkmark" color="#1c1f33" />
-                  <ThemedText style={[styles.addButtonText, getTextDirection()]}> 
-                    {editingEntry ? 'تحديث الحصة' : 'إضافة الحصة'}
-                  </ThemedText>
-                </TouchableOpacity>
-              </ThemedView>
-
-              <ThemedView style={[styles.content, styles.formPageContent]}>
-          <ThemedCard style={styles.formCard}>
-            <ThemedView style={styles.formGroup}>
-              <ThemedText style={styles.formLabel}>الأيام</ThemedText>
-              <ScrollView 
-                ref={daysScrollRef}
-                horizontal 
-                showsHorizontalScrollIndicator={false}
-                contentContainerStyle={styles.daysScrollContainer}
-                style={styles.daysScrollView}
-              >
-                {days.map(day => (
-                  <TouchableOpacity
-                    key={day}
-                    style={[styles.dayButton, formData.day === day && styles.dayButtonSelected]}
-                    onPress={() => setFormData(prev => ({ ...prev, day }))}
-                  >
-                    <ThemedText style={[styles.dayButtonText, formData.day === day && styles.dayButtonTextSelected]}>
-                      {day}
-                    </ThemedText>
-                  </TouchableOpacity>
-                ))}
-              </ScrollView>
-            </ThemedView>
-
-            <ThemedView style={styles.formGroup}>
-              <ThemedText style={styles.formLabel}>الحصة</ThemedText>
-              <ScrollView 
-                horizontal 
-                showsHorizontalScrollIndicator={false}
-                contentContainerStyle={styles.timeScrollContainer}
-                style={styles.timeScrollView}
-              >
-                {timeSlots.map(time => (
-                  <TouchableOpacity
-                    key={time}
-                    style={[styles.timeSlot, formData.time === time && styles.timeSlotSelected]}
-                    onPress={() => setFormData(prev => ({ ...prev, time }))}
-                  >
-                    <ThemedText style={[styles.timeText, formData.time === time && styles.timeTextSelected]}>
-                      {time}
-                    </ThemedText>
-                  </TouchableOpacity>
-                ))}
-              </ScrollView>
-            </ThemedView>
-
-            {(
-              <>
-                <ThemedView style={styles.formGroup}>
-                  <ThemedText style={styles.formLabel}>المادة</ThemedText>
-                  <ThemedView style={styles.inputContainer}>
-                    <IconSymbol size={20} name="book.fill" color="#666" />
-                    <TextInput
-                      style={styles.textInput}
-                      value={formData.subject}
-                      onChangeText={(text) => setFormData(prev => ({ ...prev, subject: text }))}
-                      placeholder="أدخل اسم المادة..."
-                      placeholderTextColor="#999"
-                      textAlign="right"
-                      writingDirection="rtl"
-                    />
-                  </ThemedView>
-                </ThemedView>
-
-                <ThemedView style={styles.formGroup}>
-                  <ThemedText style={styles.formLabel}>الصف</ThemedText>
-                  <ThemedView style={styles.inputContainer}>
-                    <IconSymbol size={20} name="person.2.fill" color="#666" />
-                    <TextInput
-                      style={styles.textInput}
-                      value={formData.class}
-                      onChangeText={(text) => setFormData(prev => ({ ...prev, class: text }))}
-                      placeholder="أدخل اسم الصف..."
-                      placeholderTextColor="#999"
-                      textAlign="right"
-                      writingDirection="rtl"
-                    />
-                  </ThemedView>
-                </ThemedView>
-
-
-              </>
-            )}
-
-            <ThemedView style={styles.formActions}>
-              <TouchableOpacity style={styles.saveButton} onPress={addOrUpdateEntry}>
-                <IconSymbol size={20} name="checkmark.circle.fill" color="#1c1f33" />
-                <ThemedText style={[styles.saveButtonText, getTextDirection()]}> 
-                  {editingEntry ? 'تحديث' : 'إضافة'}
-                </ThemedText>
-              </TouchableOpacity>
-
-              <TouchableOpacity 
-                style={styles.cancelButton} 
-                onPress={() => {
-                  setShowAddForm(false);
-                  setEditingEntry(null);
-                  resetForm();
-                }}
-              >
-                <IconSymbol size={20} name="xmark.circle.fill" color="#1c1f33" />
-                <ThemedText style={[styles.cancelButtonText, getTextDirection()]}>إلغاء</ThemedText>
-              </TouchableOpacity>
-            </ThemedView>
-          </ThemedCard>
-            </ThemedView>
-          </ScrollView>
-        
-        </ImageBackground>
-      </ThemedView>
-    );
-  }
-
   return (
     <ThemedView style={styles.container}>
       <ImageBackground
@@ -456,17 +292,12 @@ export default function ScheduleScreen() {
               <ThemedText type="title" style={[styles.title, getTextDirection()]}> 
                 {formatRTLText('الجدول الدراسي')}
               </ThemedText>
-              <ThemedText style={[styles.subtitle, getTextDirection()]}> 
+              <ThemedText style={[styles.subtitle, getTextDirection()]}>
                 {formatRTLText('إدارة وتنظيم جدولك الأسبوعي')}
               </ThemedText>
-
-              <TouchableOpacity
-                style={styles.addButton}
-                onPress={() => setShowAddForm(true)}
-              >
-                <IconSymbol size={24} name="plus" color="#1c1f33" />
-                <ThemedText style={[styles.addButtonText, getTextDirection()]}>إضافة حصة جديدة</ThemedText>
-              </TouchableOpacity>
+              <ThemedText style={[styles.hintText, getTextDirection()]}>
+                {formatRTLText('اضغط على أي خانة في الجدول أدناه لإضافة حصة أو تعديلها')}
+              </ThemedText>
             </ThemedView>
 
             <ThemedView style={styles.content}>
@@ -595,6 +426,93 @@ export default function ScheduleScreen() {
 
       </ImageBackground>
       <BottomNavigationBar />
+
+      {/* نافذة سريعة لإضافة/تعديل حصة: اليوم والحصة معروفان من الخانة المضغوطة،
+          فلا حاجة لعرضهما كحقول قابلة للتغيير — فقط المادة والصف. */}
+      <Modal
+        animationType="slide"
+        transparent
+        visible={showAddForm}
+        onRequestClose={() => {
+          setShowAddForm(false);
+          setEditingEntry(null);
+          resetForm();
+        }}
+      >
+        <ThemedView style={styles.modalOverlay}>
+          <ThemedView style={styles.modalContent}>
+            <ThemedView style={styles.modalHeader}>
+              <TouchableOpacity
+                style={styles.modalCloseButton}
+                onPress={() => {
+                  setShowAddForm(false);
+                  setEditingEntry(null);
+                  resetForm();
+                }}
+              >
+                <IconSymbol size={24} name="xmark.circle.fill" color="#666" />
+              </TouchableOpacity>
+              <ThemedText style={[styles.modalTitle, getTextDirection()]}>
+                {formatRTLText(editingEntry ? 'تعديل الحصة' : 'إضافة حصة')}
+              </ThemedText>
+            </ThemedView>
+
+            <ThemedText style={[styles.modalContextText, getTextDirection()]}>
+              {formatRTLText(`${formData.day} - ${formData.time}`)}
+            </ThemedText>
+
+            <ThemedView style={styles.modalSection}>
+              <ThemedText style={[styles.modalSectionTitle, getTextDirection()]}>المادة</ThemedText>
+              <TextInput
+                style={[styles.modalTextInput, getTextDirection()]}
+                value={formData.subject}
+                onChangeText={(text) => setFormData(prev => ({ ...prev, subject: text }))}
+                placeholder={formatRTLText('أدخل اسم المادة...')}
+                placeholderTextColor="#999"
+                textAlign="right"
+                writingDirection="rtl"
+              />
+            </ThemedView>
+
+            <ThemedView style={styles.modalSection}>
+              <ThemedText style={[styles.modalSectionTitle, getTextDirection()]}>الصف</ThemedText>
+              <TextInput
+                style={[styles.modalTextInput, getTextDirection()]}
+                value={formData.class}
+                onChangeText={(text) => setFormData(prev => ({ ...prev, class: text }))}
+                placeholder={formatRTLText('أدخل اسم الصف...')}
+                placeholderTextColor="#999"
+                textAlign="right"
+                writingDirection="rtl"
+              />
+            </ThemedView>
+
+            <ThemedView style={styles.modalButtonsContainer}>
+              <TouchableOpacity
+                style={[styles.modalActionButton, styles.modalSaveButton]}
+                onPress={addOrUpdateEntry}
+              >
+                <IconSymbol size={18} name="checkmark.circle.fill" color="#fff" />
+                <ThemedText style={[styles.modalActionButtonText, getTextDirection()]}>
+                  {formatRTLText(editingEntry ? 'حفظ التغييرات' : 'إضافة')}
+                </ThemedText>
+              </TouchableOpacity>
+
+              {editingEntry && (
+                <TouchableOpacity
+                  style={[styles.modalActionButton, styles.modalDeleteButton]}
+                  onPress={() => deleteEntry(editingEntry.id)}
+                >
+                  <IconSymbol size={18} name="trash.fill" color="#fff" />
+                  <ThemedText style={[styles.modalActionButtonText, getTextDirection()]}>
+                    {formatRTLText('حذف الحصة')}
+                  </ThemedText>
+                </TouchableOpacity>
+              )}
+            </ThemedView>
+          </ThemedView>
+        </ThemedView>
+      </Modal>
     </ThemedView>
   );
 }
@@ -615,24 +533,6 @@ const styles = StyleSheet.create({
   scrollContainer: {
     flex: 1,
     paddingBottom: 20,
-  },
-  formPageRTL: {
-    direction: 'rtl',
-  },
-  formScrollContent: {
-    direction: 'rtl',
-  },
-  formPageHeader: {
-    alignItems: 'center',
-    direction: 'rtl',
-  },
-  formBackButton: {
-    left: undefined,
-    right: 20,
-  },
-  formPageContent: {
-    direction: 'rtl',
-    alignItems: 'stretch',
   },
   header: {
     alignItems: 'center',
@@ -707,33 +607,15 @@ const styles = StyleSheet.create({
     textAlign: 'right',
     writingDirection: 'rtl',
     textDirection: 'rtl',
-    marginBottom: 20,
+    marginBottom: 8,
   },
-  addButton: {
-    flexDirection: 'row-reverse',
-    alignItems: 'center',
-    justifyContent: 'center',
-    paddingVertical: 15,
-    paddingHorizontal: 25,
-    backgroundColor: 'rgba(255, 255, 255, 0.2)',
-    borderRadius: 12,
-    borderWidth: 1,
-    borderColor: 'rgba(229, 229, 234, 0.4)',
-    gap: 10,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
-    elevation: 3,
-    direction: 'rtl',
-  },
-  addButtonText: {
+  hintText: {
+    fontSize: 13,
     color: '#1c1f33',
-    fontSize: 16,
-    fontWeight: 'bold',
+    opacity: 0.7,
     textAlign: 'right',
     writingDirection: 'rtl',
-    textDirection: 'rtl',
+    marginBottom: 20,
   },
   content: {
     flex: 1,
@@ -967,14 +849,6 @@ const styles = StyleSheet.create({
     gap: 5,
     width: 100,
   },
-  timeText: {
-    fontSize: 13,
-    color: '#666',
-    fontWeight: '600',
-    textAlign: 'center',
-    writingDirection: 'rtl',
-    textDirection: 'rtl',
-  },
   entryDetails: {
     flex: 1,
   },
@@ -1027,22 +901,6 @@ const styles = StyleSheet.create({
   },
 
   ////  نموذج الإضافة
-  formCard: {
-    backgroundColor: '#e0f0f1',
-    borderRadius: 12,
-    borderWidth: 0,
-    padding: 20,
-    elevation: 2,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.1,
-    shadowRadius: 3,
-    direction: 'rtl',
-  },
-  formGroup: {
-    marginBottom: 20,
-    direction: 'rtl',
-  },
   label: {
     fontSize: 16,
     fontWeight: 'bold',
@@ -1051,14 +909,6 @@ const styles = StyleSheet.create({
     textAlign: 'left',
     writingDirection: 'ltr',
     textDirection: 'ltr',
-  },
-  formLabel: {
-    fontSize: 16,
-    fontWeight: 'bold',
-    color: '#333',
-    marginBottom: 8,
-    textAlign: 'right',
-    writingDirection: 'rtl',
   },
   radioGroup: {
     flexDirection: 'row',
@@ -1093,99 +943,12 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     gap: 8,
   },
-  daysScrollView: {
-    maxHeight: 60,
-  },
-  daysScrollContainer: {
-    flexDirection: 'row-reverse',
-    alignItems: 'center',
-    justifyContent: 'flex-end',
-    gap: 8,
-    paddingHorizontal: 8,
-    direction: 'rtl',
-  },
-  dayButton: {
-    paddingVertical: 12,
-    paddingHorizontal: 16,
-    borderRadius: 12,
-    borderWidth: 1,
-    borderColor: '#e0e0e0',
-    backgroundColor: '#f8f9fa',
-    alignItems: 'center',
-    justifyContent: 'center',
-    minWidth: 80,
-    direction: 'rtl',
-  },
-  dayButtonSelected: {
-    backgroundColor: '#2E8B57',
-    borderColor: '#2E8B57',
-    direction: 'rtl',
-  },
-  dayButtonText: {
-    fontSize: 12,
-    color: '#666',
-    fontWeight: '600',
-    textAlign: 'right',
-    writingDirection: 'rtl',
-  },
-  dayButtonTextSelected: {
-    color: '#fff',
-    textAlign: 'right',
-    writingDirection: 'rtl',
-  },
   timeGrid: {
     flexDirection: 'row',
     flexWrap: 'wrap',
     gap: 8,
     justifyContent: 'flex-start',
     alignItems: 'center',
-  },
-  timeScrollView: {
-    height: 70,
-    showsHorizontalScrollIndicator: false,
-  },
-  timeScrollContainer: {
-    flexDirection: 'row-reverse',
-    alignItems: 'center',
-    gap: 8,
-    paddingHorizontal: 12,
-    paddingVertical: 8,
-    direction: 'rtl',
-  },
-  timeSlot: {
-    paddingHorizontal: 10,
-    paddingVertical: 8,
-    borderRadius: 16,
-    borderWidth: 1.5,
-    borderColor: '#e0e0e0',
-    backgroundColor: '#f8f9fa',
-    minWidth: 85,
-    height: 50,
-    alignItems: 'center',
-    justifyContent: 'center',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
-    elevation: 2,
-    direction: 'rtl',
-  },
-  timeSlotSelected: {
-    backgroundColor: '#2E8B57',
-    borderColor: '#2E8B57',
-    shadowColor: '#2E8B57',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.3,
-    shadowRadius: 6,
-    elevation: 4,
-    direction: 'rtl',
-  },
-  timeTextSelected: {
-    color: '#fff',
-    textAlign: 'center',
-    writingDirection: 'rtl',
-    textDirection: 'rtl',
-    fontWeight: '700',
   },
   typeGrid: {
     flexDirection: 'row',
@@ -1209,82 +972,103 @@ const styles = StyleSheet.create({
     writingDirection: 'rtl',
     textDirection: 'rtl',
   },
-  inputContainer: {
-    flexDirection: 'row-reverse',
+
+  // نافذة إضافة/تعديل الحصة السريعة (المادة والصف فقط)
+  modalOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+    justifyContent: 'center',
     alignItems: 'center',
-    backgroundColor: '#f8f9fa',
-    borderRadius: 8,
+    padding: 20,
+  },
+  modalContent: {
+    backgroundColor: '#e0f0f1',
+    borderRadius: 20,
+    width: '100%',
+    maxHeight: '90%',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 10 },
+    shadowOpacity: 0.3,
+    shadowRadius: 20,
+    elevation: 20,
+  },
+  modalHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    padding: 20,
+    borderBottomWidth: 1,
+    borderBottomColor: '#E5E5EA',
+    backgroundColor: 'transparent',
+  },
+  modalCloseButton: {
+    padding: 5,
+  },
+  modalTitle: {
+    fontSize: 20,
+    fontWeight: 'bold',
+    color: '#1c1f33',
+    textAlign: 'center',
+    writingDirection: 'rtl',
+    flex: 1,
+    marginRight: 35,
+  },
+  modalContextText: {
+    fontSize: 14,
+    color: '#1c1f33',
+    opacity: 0.7,
+    textAlign: 'center',
+    writingDirection: 'rtl',
+    marginTop: 12,
+    marginBottom: 4,
+  },
+  modalSection: {
+    marginBottom: 20,
+    paddingHorizontal: 20,
+    backgroundColor: 'transparent',
+  },
+  modalSectionTitle: {
+    fontSize: 14,
+    fontWeight: 'bold',
+    marginBottom: 8,
+    color: '#1c1f33',
+    textAlign: 'right',
+    writingDirection: 'rtl',
+  },
+  modalTextInput: {
+    backgroundColor: '#fff',
+    borderRadius: 10,
     padding: 12,
     borderWidth: 1,
-    borderColor: '#e0e0e0',
-    gap: 10,
-    direction: 'rtl',
-  },
-  textInput: {
-    flex: 1,
-    fontSize: 16,
-    color: '#333',
-    textAlign: 'right',
-    writingDirection: 'rtl',
-    textDirection: 'rtl',
-  },
-  formActions: {
-    flexDirection: 'row-reverse',
-    gap: 10,
-    marginTop: 20,
-    marginBottom: 30,
-    direction: 'rtl',
-  },
-  saveButton: {
-    flex: 1,
-    flexDirection: 'row-reverse',
-    alignItems: 'center',
-    justifyContent: 'center',
-    backgroundColor: '#add4ce',
-    paddingVertical: 15,
-    paddingHorizontal: 25,
-    borderRadius: 25,
-    gap: 10,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 6 },
-    shadowOpacity: 0.4,
-    shadowRadius: 12,
-    elevation: 12,
-    direction: 'rtl',
-  },
-  saveButtonText: {
-    color: '#1c1f33',
-    fontSize: 16,
-    fontWeight: '600',
-    textAlign: 'right',
-    writingDirection: 'rtl',
-    textDirection: 'rtl',
-  },
-  cancelButton: {
-    flex: 1,
-    flexDirection: 'row-reverse',
-    alignItems: 'center',
-    justifyContent: 'center',
-    backgroundColor: '#f8f9fa',
-    paddingVertical: 15,
-    paddingHorizontal: 25,
-    borderRadius: 25,
-    gap: 10,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 6 },
-    shadowOpacity: 0.4,
-    shadowRadius: 12,
-    elevation: 12,
-    borderWidth: 1,
     borderColor: '#E5E5EA',
-    direction: 'rtl',
-  },
-  cancelButtonText: {
+    fontSize: 14,
     color: '#1c1f33',
-    fontSize: 16,
-    fontWeight: '600',
     textAlign: 'right',
     writingDirection: 'rtl',
-    textDirection: 'rtl',
+  },
+  modalButtonsContainer: {
+    gap: 12,
+    padding: 20,
+    paddingTop: 10,
+  },
+  modalActionButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    padding: 15,
+    borderRadius: 10,
+    gap: 8,
+  },
+  modalSaveButton: {
+    backgroundColor: '#4CAF50',
+  },
+  modalDeleteButton: {
+    backgroundColor: '#F44336',
+  },
+  modalActionButtonText: {
+    color: '#fff',
+    fontSize: 14,
+    fontWeight: 'bold',
+    writingDirection: 'rtl',
   },
 });
