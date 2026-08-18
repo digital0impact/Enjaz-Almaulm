@@ -202,8 +202,10 @@ export function PerformanceReportView() {
     date: string;
   };
 
+  /** الشكل الفعلي المخزَّن في AsyncStorage('uploadedFiles') من
+   * app/(tabs)/performance.tsx: كائن ملف واحد لكل مفتاح (لا مصفوفة). */
   type UploadedFiles = {
-    [key: string]: FileInfo[];
+    [key: string]: FileInfo;
   };
 
   type Category = {
@@ -386,6 +388,10 @@ export function PerformanceReportView() {
     score: number;
     weight: number;
     evidence: Evidence[];
+    /** موجود فعليًا في البيانات المحفوظة (تأتي أصلاً من PerformanceAxis عبر
+     * app/(tabs)/performance.tsx) وإن لم يكن جزءًا من الشكل المصغَّر الذي
+     * تبنيه getDefaultPerformanceData هنا؛ يُستخدم في التقرير المصدَّر. */
+    description?: string;
   };
 
   const generateReportHTML = async () => {
@@ -475,11 +481,6 @@ export function PerformanceReportView() {
     const reportAverageScore = hasAnyScore
       ? calculateOverallAverageFivePoint(reportItems.map(item => ({ score: item.score, weight: item?.weight ?? 0 })))
       : 0;
-    const reportCategories = reportItems.map(item => ({
-      name: item?.title || 'غير محدد',
-      average: item.score,
-      count: 1,
-    })).filter(cat => cat && cat.name);
     const maxScore = Math.max(...reportScores, 0);
     const minScore = reportScores.length ? Math.min(...reportScores) : 0;
     const excellentCount = reportScores.filter(s => s >= 90).length;
@@ -496,484 +497,364 @@ export function PerformanceReportView() {
     <head>
       <meta charset="UTF-8">
       <meta name="viewport" content="width=device-width, initial-scale=1.0">
-      <title>التقرير التفاعلي للأداء المهني</title>
+      <title>ملف إنجاز الأداء الوظيفي</title>
       <style>
         body {
           font-family: 'Arial', sans-serif;
-          margin: 20px;
+          margin: 0;
+          padding: 20px;
           line-height: 1.6;
           color: #333;
-          background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+          background: #f5f7fa;
         }
         .container {
           max-width: 800px;
           margin: 0 auto;
           background: white;
-          padding: 30px;
           border-radius: 15px;
+          overflow: hidden;
           box-shadow: 0 10px 30px rgba(0,0,0,0.1);
         }
-        .header {
-          text-align: center;
-          margin-bottom: 40px;
-          padding-bottom: 20px;
-          border-bottom: 3px solid #1c1f33;
-        }
-        .logo-section {
+        .top-banner {
+          background: linear-gradient(135deg, #14b8a6 0%, #2563eb 100%);
+          padding: 20px 30px;
           display: flex;
-          justify-content: center;
+          justify-content: space-between;
           align-items: center;
-          margin-bottom: 20px;
-          gap: 20px;
+          color: white;
         }
-        .logo {
-          width: 80px;
-          height: 80px;
+        .top-banner .logo {
+          width: 56px;
+          height: 56px;
           object-fit: contain;
+          background: white;
+          border-radius: 10px;
+          padding: 6px;
         }
-        .ministry-info {
+        .top-banner .ministry-text {
+          text-align: right;
+        }
+        .top-banner .ministry-text h2 {
+          margin: 0;
+          font-size: 18px;
+        }
+        .top-banner .ministry-text p {
+          margin: 4px 0 0 0;
+          font-size: 13px;
+          opacity: 0.9;
+        }
+        .title-pill-wrap {
+          padding: 20px 30px 0 30px;
           text-align: center;
         }
-        .ministry-title {
-          font-size: 24px;
-          font-weight: bold;
-          color: #1c1f33;
-          margin: 0;
-        }
-        .ministry-subtitle {
-          font-size: 16px;
-          color: #666;
-          margin: 5px 0 0 0;
-        }
-        .header h1 {
-          color: #1c1f33;
-          font-size: 28px;
-          margin-bottom: 10px;
-        }
-        .header p {
-          color: #666;
-          font-size: 16px;
-        }
-        .personal-info-section {
-          background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
-          padding: 25px;
-          border-radius: 15px;
-          margin-bottom: 30px;
-          border: 2px solid #dee2e6;
-        }
-        .personal-info-title {
-          color: #1c1f33;
+        .title-pill {
+          display: inline-block;
+          background: #14532d;
+          color: white;
           font-size: 20px;
           font-weight: bold;
+          padding: 12px 30px;
+          border-radius: 30px;
+        }
+        .content {
+          padding: 20px 30px 30px 30px;
+        }
+        .section-card {
+          background: white;
+          border: 1px solid #E5E5EA;
+          border-radius: 15px;
+          padding: 20px;
           margin-bottom: 20px;
+        }
+        .section-title {
+          color: #1c1f33;
+          font-size: 18px;
+          font-weight: bold;
+          margin: 0 0 15px 0;
           text-align: center;
           border-bottom: 2px solid #1c1f33;
           padding-bottom: 10px;
         }
-        .info-grid {
-          display: grid;
-          grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-          gap: 20px;
+        .info-table {
+          width: 100%;
+          border-collapse: collapse;
         }
-        .info-item {
-          display: flex;
-          justify-content: space-between;
-          padding: 12px 15px;
-          background: white;
-          border-radius: 8px;
-          border-right: 4px solid #add4ce;
-          box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        .info-table tr:nth-child(even) { background: #f8f9fa; }
+        .info-table td {
+          padding: 10px 12px;
+          font-size: 14px;
+          border-bottom: 1px solid #eee;
         }
-        .info-label {
+        .info-table td.label {
           font-weight: bold;
-          color: #666;
-          font-size: 14px;
+          color: #555;
+          width: 40%;
         }
-        .info-value {
-          color: #333;
-          font-size: 14px;
-          max-width: 200px;
-          text-align: left;
-        }
-
-        .summary-section {
-          background: linear-gradient(135deg, #add4ce 0%, #e1f5f4 100%);
-          padding: 25px;
-          border-radius: 15px;
-          margin-bottom: 30px;
-          text-align: center;
+        .info-table td.value {
+          color: #1c1f33;
         }
         .summary-row {
           display: flex;
           justify-content: space-around;
-          margin-top: 20px;
-        }
-        .summary-item {
           text-align: center;
+          margin-bottom: 10px;
         }
         .summary-value {
-          font-size: 32px;
+          font-size: 30px;
           font-weight: bold;
-          color: ${getScoreColor(reportAverageScore)};
-          margin-bottom: 5px;
         }
         .summary-label {
-          font-size: 14px;
+          font-size: 13px;
           color: #666;
+          margin-top: 4px;
         }
-        .stats-grid {
+        .badge-grid {
           display: grid;
-          grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-          gap: 20px;
-          margin: 30px 0;
+          grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+          gap: 12px;
         }
-        .stat-card {
-          background: #f8f9fa;
-          padding: 20px;
-          border-radius: 12px;
-          text-align: center;
-          border: 2px solid #e9ecef;
-        }
-        .stat-value {
-          font-size: 24px;
-          font-weight: bold;
-          color: #333;
-          margin: 10px 0;
-        }
-        .stat-label {
-          font-size: 14px;
-          color: #666;
-        }
-        .categories-section {
-          margin: 30px 0;
-        }
-        .category-item {
-          display: flex;
-          justify-content: space-between;
-          align-items: center;
-          padding: 15px;
-          margin-bottom: 10px;
-          background: #f8f9fa;
+        .badge-card {
+          border: 1px solid #e8b64c;
           border-radius: 10px;
-          border-right: 5px solid ${getScoreColor(reportAverageScore)};
-        }
-        .category-name {
-          font-weight: bold;
-          color: #333;
-        }
-        .category-score {
-          font-weight: bold;
-          font-size: 18px;
-        }
-        .performance-list {
-          margin-top: 30px;
-        }
-        .performance-item {
-          display: flex;
-          justify-content: space-between;
-          align-items: center;
-          padding: 12px 15px;
-          margin-bottom: 8px;
-          background: #f8f9fa;
-          border-radius: 8px;
-          border-right: 4px solid #ddd;
-        }
-        .recommendations {
-          background: #fff8e1;
-          padding: 25px;
-          border-radius: 15px;
-          margin-top: 30px;
-          border-right: 5px solid #ff9800;
-        }
-        .recommendations h3 {
-          color: #333;
-          margin-bottom: 15px;
-        }
-        .recommendation-item {
-          margin-bottom: 10px;
-          padding: 10px;
-          background: rgba(255, 152, 0, 0.1);
-          border-radius: 8px;
-        }
-        .evidence-section {
-          background: #f0f8ff;
-          padding: 25px;
-          border-radius: 15px;
-          margin-top: 30px;
-          border-right: 5px solid #4A90E2;
-        }
-        .evidence-section h3 {
-          color: #333;
-          margin-bottom: 20px;
+          padding: 10px 12px;
           text-align: center;
+          background: #fffdf5;
         }
-        .performance-evidence {
-          margin-bottom: 25px;
-          background: white;
-          padding: 20px;
-          border-radius: 12px;
-          border: 2px solid #e1f5fe;
-        }
-        .performance-evidence h4 {
-          color: #1c1f33;
-          margin-bottom: 15px;
-          border-bottom: 2px solid #4A90E2;
-          padding-bottom: 8px;
-        }
-        .evidence-list {
-          margin-left: 20px;
-        }
-        .evidence-item {
-          margin-bottom: 15px;
-          padding: 12px;
-          background: #f8f9fa;
-          border-radius: 8px;
-          border-right: 3px solid #4A90E2;
-        }
-        .evidence-name {
+        .badge-card .badge-value {
+          font-size: 18px;
           font-weight: bold;
-          color: #333;
-          margin-bottom: 8px;
+        }
+        .badge-card .badge-label {
+          font-size: 12px;
+          color: #666;
+          margin-top: 4px;
+        }
+        .axis-section {
+          margin-bottom: 24px;
+          page-break-inside: avoid;
+        }
+        .axis-banner {
+          background: #14532d;
+          color: white;
+          font-size: 16px;
+          font-weight: bold;
+          text-align: center;
+          padding: 10px 16px;
+          border-radius: 10px 10px 0 0;
+        }
+        .axis-body {
+          border: 1px solid #E5E5EA;
+          border-top: none;
+          border-radius: 0 0 12px 12px;
+          padding: 16px;
+        }
+        .axis-subtitle {
+          font-size: 13px;
+          color: #666;
+          text-align: center;
+          margin: 0 0 14px 0;
+        }
+        .evidence-banner {
+          background: #0f6e5c;
+          color: white;
+          font-size: 14px;
+          font-weight: bold;
+          text-align: center;
+          padding: 8px 12px;
+          border-radius: 8px;
+          margin: 16px 0 12px 0;
+        }
+        .evidence-grid {
+          display: grid;
+          grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+          gap: 10px;
+        }
+        .evidence-card {
+          border: 1px solid #e1f5f4;
+          border-radius: 8px;
+          padding: 10px 12px;
+          background: #f8fffe;
+        }
+        .evidence-card .evidence-name {
+          font-weight: bold;
+          color: #1c1f33;
+          font-size: 13px;
+          margin-bottom: 6px;
         }
         .evidence-status {
           display: inline-block;
-          padding: 4px 8px;
-          border-radius: 12px;
-          font-size: 12px;
+          padding: 3px 10px;
+          border-radius: 10px;
+          font-size: 11px;
           font-weight: bold;
-          margin-bottom: 8px;
         }
-        .evidence-available {
-          background: #4CAF50;
-          color: white;
-        }
-        .evidence-unavailable {
-          background: #F44336;
-          color: white;
-        }
-        .evidence-files {
-          margin-top: 10px;
-        }
-        .file-item {
-          display: flex;
-          align-items: center;
-          padding: 8px;
-          background: #e3f2fd;
-          border-radius: 6px;
-          margin-bottom: 5px;
-          font-size: 12px;
-        }
-        .file-icon {
-          margin-left: 8px;
-          font-size: 16px;
-        }
-        .file-info {
-          flex: 1;
-        }
-        .file-name {
-          font-weight: bold;
+        .evidence-available { background: #4CAF50; color: white; }
+        .evidence-unavailable { background: #9E9E9E; color: white; }
+        .evidence-file {
+          margin-top: 6px;
+          font-size: 11px;
           color: #1976d2;
         }
-        .file-details {
-          color: #666;
-          font-size: 11px;
+        .no-evidence {
+          text-align: center;
+          color: #999;
+          font-size: 13px;
+          padding: 10px 0;
+        }
+        .recommendations {
+          background: #fff8e1;
+          border-right: 5px solid #ff9800;
+        }
+        .recommendation-item {
+          margin-bottom: 8px;
+          padding: 10px;
+          background: rgba(255, 152, 0, 0.1);
+          border-radius: 8px;
+          font-size: 14px;
+        }
+        .signature-section {
+          display: flex;
+          justify-content: center;
+          margin-top: 10px;
+        }
+        .signature-box {
+          border: 1px solid #E5E5EA;
+          border-radius: 12px;
+          padding: 16px 40px;
+          text-align: center;
+          min-width: 220px;
+        }
+        .signature-box .signature-label {
+          font-weight: bold;
+          color: #1c1f33;
+          border-bottom: 1px solid #ccc;
+          padding-bottom: 10px;
+          margin-bottom: 10px;
+        }
+        .signature-box .signature-value {
+          color: #14532d;
+          font-weight: bold;
         }
         .footer {
           text-align: center;
-          margin-top: 40px;
-          padding-top: 20px;
+          padding-top: 16px;
           border-top: 2px solid #eee;
-          color: #666;
+          color: #999;
+          font-size: 12px;
         }
-        .page-break {
-          page-break-before: always;
-        }
+        .page-break { page-break-before: always; }
       </style>
     </head>
     <body>
       <div class="container">
-        <div class="header">
-          <div class="logo-section">
-            ${logoDataUri ? `<img src="${logoDataUri}" alt="شعار وزارة التعليم" class="logo">` : ''}
-            <div class="ministry-info">
-              <h2 class="ministry-title">المملكة العربية السعودية</h2>
-              <p class="ministry-subtitle">وزارة التعليم</p>
-            </div>
+        <div class="top-banner">
+          <div class="ministry-text">
+            <h2>وزارة التعليم</h2>
+            <p>${userData.school}</p>
           </div>
-          <h1>📊 التقرير التفاعلي للأداء المهني</h1>
-          <p>تحليل شامل لأداءك المهني مع مؤشرات تفاعلية</p>
-          <p><strong>المهنة:</strong> ${userData.profession}</p>
-          <p>تاريخ التقرير: ${new Date().toLocaleDateString('ar-SA')}</p>
+          ${logoDataUri ? `<img src="${logoDataUri}" alt="شعار وزارة التعليم" class="logo">` : ''}
         </div>
 
-        <div class="personal-info-section">
-          <h3 class="personal-info-title">البيانات الشخصية والمهنية</h3>
-          <div class="info-grid">
-            <div class="info-item">
-              <span class="info-label">الاسم الكامل:</span>
-              <span class="info-value">${userData.fullName}</span>
-            </div>
-            <div class="info-item">
-              <span class="info-label">المهنة:</span>
-              <span class="info-value">${userData.profession}</span>
-            </div>
-            <div class="info-item">
-              <span class="info-label">التخصص:</span>
-              <span class="info-value">${userData.specialty}</span>
-            </div>
-            <div class="info-item">
-              <span class="info-label">سنوات الخبرة:</span>
-              <span class="info-value">${userData.experience}</span>
-            </div>
-            <div class="info-item">
-              <span class="info-label">المؤهل العلمي:</span>
-              <span class="info-value">${userData.education}</span>
-            </div>
-            <div class="info-item">
-              <span class="info-label">المدرسة:</span>
-              <span class="info-value">${userData.school}</span>
-            </div>
-            <div class="info-item">
-              <span class="info-label">الإدارة التعليمية:</span>
-              <span class="info-value">${userData.educationDepartment}</span>
-            </div>
-            <div class="info-item">
-              <span class="info-label">المرحلة الدراسية:</span>
-              <span class="info-value">${userData.gradeLevel}</span>
-            </div>
-            <div class="info-item">
-              <span class="info-label">البريد الإلكتروني:</span>
-              <span class="info-value">${userData.email}</span>
-            </div>
-            <div class="info-item">
-              <span class="info-label">رقم الهاتف:</span>
-              <span class="info-value">${userData.phone}</span>
-            </div>
-          </div>
+        <div class="title-pill-wrap">
+          <span class="title-pill">ملف إنجاز الأداء الوظيفي</span>
         </div>
 
-
-
-        <div class="summary-section">
-          <h2>ملخص الأداء العام - ${userData.profession}</h2>
-          <div class="summary-row">
-            <div class="summary-item">
-              <div class="summary-value">${reportAverageScore}%</div>
-              <div class="summary-label">المتوسط العام</div>
-            </div>
-            <div class="summary-item">
-              <div class="summary-value">${getScoreLevel(reportAverageScore)}</div>
-              <div class="summary-label">مستوى الأداء</div>
-            </div>
+        <div class="content">
+          <div class="section-card">
+            <h3 class="section-title">البيانات الشخصية والمهنية</h3>
+            <table class="info-table">
+              <tr><td class="label">الاسم الكامل</td><td class="value">${userData.fullName}</td></tr>
+              <tr><td class="label">المهنة</td><td class="value">${userData.profession}</td></tr>
+              <tr><td class="label">التخصص</td><td class="value">${userData.specialty}</td></tr>
+              <tr><td class="label">سنوات الخبرة</td><td class="value">${userData.experience}</td></tr>
+              <tr><td class="label">المؤهل العلمي</td><td class="value">${userData.education}</td></tr>
+              <tr><td class="label">المدرسة</td><td class="value">${userData.school}</td></tr>
+              <tr><td class="label">الإدارة التعليمية</td><td class="value">${userData.educationDepartment}</td></tr>
+              <tr><td class="label">المرحلة الدراسية</td><td class="value">${userData.gradeLevel}</td></tr>
+              <tr><td class="label">البريد الإلكتروني</td><td class="value">${userData.email}</td></tr>
+              <tr><td class="label">رقم الهاتف</td><td class="value">${userData.phone}</td></tr>
+              <tr><td class="label">تاريخ التقرير</td><td class="value">${new Date().toLocaleDateString('ar-SA')}</td></tr>
+            </table>
           </div>
-        </div>
 
-        <div class="stats-grid">
-          <div class="stat-card">
-            <div class="stat-value">${maxScore}%</div>
-            <div class="stat-label">أعلى درجة</div>
-          </div>
-          <div class="stat-card">
-            <div class="stat-value">${minScore}%</div>
-            <div class="stat-label">أقل درجة</div>
-          </div>
-          <div class="stat-card">
-            <div class="stat-value">${excellentCount}</div>
-            <div class="stat-label">محاور ممتازة</div>
-          </div>
-          <div class="stat-card">
-            <div class="stat-value">${goodCount}</div>
-            <div class="stat-label">محاور جيدة</div>
-          </div>
-          <div class="stat-card">
-            <div class="stat-value">${needsImprovementCount}</div>
-            <div class="stat-label">تحتاج تحسين</div>
-          </div>
-        </div>
-
-        <div class="categories-section">
-          <h3>متوسط الدرجات حسب الفئة - ${userData.profession}</h3>
-          ${reportCategories.map(category => `
-            <div class="category-item">
-              <span class="category-name">${category.name}</span>
-              <span class="category-score" style="color: ${getScoreColor(category.average)}">${category.average}%</span>
-            </div>
-          `).join('')}
-        </div>
-
-        <div class="page-break"></div>
-
-        <div class="performance-list">
-          <h3>تفاصيل جميع المحاور - ${userData.profession}</h3>
-          ${reportItems
-            .sort((a, b) => b.score - a.score)
-            .map((item, index) => `
-              <div class="performance-item">
-                <span>${index + 1}. ${item.title}</span>
-                <span style="color: ${getScoreColor(item.score)}; font-weight: bold;">${item.score}%</span>
+          <div class="section-card">
+            <h3 class="section-title">ملخص الأداء العام</h3>
+            <div class="summary-row">
+              <div>
+                <div class="summary-value" style="color: ${getScoreColor(reportAverageScore)}">${reportAverageScore}%</div>
+                <div class="summary-label">المتوسط العام</div>
               </div>
-            `).join('')}
-        </div>
-
-        <div class="recommendations">
-          <h3>🔍 توصيات للتحسين - ${userData.profession}</h3>
-          ${needsImprovementItems
-            .map(item => `
-              <div class="recommendation-item">
-                • ركز على تحسين "${item.title}" (الدرجة الحالية: ${item.score}%)
+              <div>
+                <div class="summary-value" style="color: ${getScoreColor(reportAverageScore)}">${getScoreLevel(reportAverageScore)}</div>
+                <div class="summary-label">مستوى الأداء</div>
               </div>
-            `).join('')}
-          ${needsImprovementItems.length === 0 ?
-            '<div class="recommendation-item">• ممتاز! جميع المحاور تحصل على درجات عالية. استمر في الأداء المتميز.</div>' : ''}
-        </div>
+            </div>
+            <div class="badge-grid">
+              <div class="badge-card"><div class="badge-value">${maxScore}%</div><div class="badge-label">أعلى درجة</div></div>
+              <div class="badge-card"><div class="badge-value">${minScore}%</div><div class="badge-label">أقل درجة</div></div>
+              <div class="badge-card"><div class="badge-value">${excellentCount}</div><div class="badge-label">محاور ممتازة</div></div>
+              <div class="badge-card"><div class="badge-value">${goodCount}</div><div class="badge-label">محاور جيدة</div></div>
+              <div class="badge-card"><div class="badge-value">${needsImprovementCount}</div><div class="badge-label">تحتاج تحسين</div></div>
+            </div>
+          </div>
 
-        <div class="page-break"></div>
+          <div class="page-break"></div>
 
-        <div class="evidence-section">
-          <h3>📎 الشواهد المرفقة - ${userData.profession}</h3>
-          ${performanceDataWithEvidence.length > 0 ? 
-            performanceDataWithEvidence
-              .filter((item: ReportItem) => item.evidence && item.evidence.length > 0)
-              .map((item: ReportItem, index: number) => `
-                <div class="performance-evidence">
-                  <h4>${index + 1}. ${item.title}</h4>
-                  <div class="evidence-list">
+          ${reportItems.map((item, index) => `
+            <div class="axis-section">
+              <div class="axis-banner">${index + 1}. ${item.title}</div>
+              <div class="axis-body">
+                ${item.description ? `<p class="axis-subtitle">${item.description}</p>` : ''}
+                <div class="badge-grid">
+                  <div class="badge-card"><div class="badge-value">${item.weight}%</div><div class="badge-label">الوزن</div></div>
+                  <div class="badge-card"><div class="badge-value" style="color: ${getScoreColor(item.score)}">${item.score}%</div><div class="badge-label">الدرجة</div></div>
+                  <div class="badge-card"><div class="badge-value" style="color: ${getScoreColor(item.score)}">${getScoreLevel(item.score)}</div><div class="badge-label">المستوى</div></div>
+                </div>
+                ${item.evidence && item.evidence.length > 0 ? `
+                  <div class="evidence-banner">شواهد المحور</div>
+                  <div class="evidence-grid">
                     ${item.evidence.map((evidence: Evidence, evidenceIndex: number) => {
-                      const fileKey = `${item.id}_${evidenceIndex}`;
-                      const files = uploadedFiles[fileKey] || [];
+                      const fileKey = `${item.id}-${evidenceIndex}`;
+                      const file = uploadedFiles[fileKey];
                       return `
-                        <div class="evidence-item">
+                        <div class="evidence-card">
                           <div class="evidence-name">${evidence.name}</div>
-                          <div class="evidence-status ${evidence.available ? 'evidence-available' : 'evidence-unavailable'}">
+                          <span class="evidence-status ${evidence.available ? 'evidence-available' : 'evidence-unavailable'}">
                             ${evidence.available ? 'متوفر' : 'غير متوفر'}
-                          </div>
-                          ${files.length > 0 ? `
-                            <div class="evidence-files">
-                              <strong>الملفات المرفقة:</strong>
-                              ${files.map((file: FileInfo) => `
-                                <div class="file-item">
-                                  <span class="file-icon">📎</span>
-                                  <div class="file-info">
-                                    <div class="file-name">${file.name}</div>
-                                    <div class="file-details">${file.size} • ${file.type} • ${file.date}</div>
-                                  </div>
-                                </div>
-                              `).join('')}
-                            </div>
-                          ` : '<div class="evidence-files"><em>لا توجد ملفات مرفقة</em></div>'}
+                          </span>
+                          ${file ? `<div class="evidence-file">📎 ${file.name}</div>` : ''}
                         </div>
                       `;
                     }).join('')}
                   </div>
-                </div>
-              `).join('') : 
-            '<div class="performance-evidence"><p>لا توجد شواهد مرفقة حالياً</p></div>'
-          }
-        </div>
+                ` : '<div class="no-evidence">لا توجد شواهد محددة لهذا المحور.</div>'}
+              </div>
+            </div>
+          `).join('')}
 
-        <div class="footer">
-          <p>تم إنشاء هذا التقرير تلقائياً بواسطة نظام تقييم الأداء المهني</p>
-          <p>© ${new Date().getFullYear()} - جميع الحقوق محفوظة</p>
+          <div class="section-card recommendations">
+            <h3 class="section-title">🔍 توصيات للتحسين</h3>
+            ${needsImprovementItems
+              .map(item => `
+                <div class="recommendation-item">
+                  • ركز على تحسين "${item.title}" (الدرجة الحالية: ${item.score}%)
+                </div>
+              `).join('')}
+            ${needsImprovementItems.length === 0 ?
+              '<div class="recommendation-item">• ممتاز! جميع المحاور تحصل على درجات عالية. استمر في الأداء المتميز.</div>' : ''}
+          </div>
+
+          <div class="signature-section">
+            <div class="signature-box">
+              <div class="signature-label">المعلم</div>
+              <div class="signature-value">${userData.fullName}</div>
+            </div>
+          </div>
+
+          <div class="footer">
+            <p>تم إنشاء هذا التقرير تلقائياً بواسطة نظام تقييم الأداء المهني</p>
+            <p>© ${new Date().getFullYear()} - جميع الحقوق محفوظة</p>
+          </div>
         </div>
       </div>
     </body>
