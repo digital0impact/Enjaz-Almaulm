@@ -358,34 +358,62 @@ export default function LearningStylesScreen() {
                         {formatRTLText('لا توجد إجابات بعد على هذا الاختبار.')}
                       </ThemedText>
                     ) : (
-                      <>
-                        <ThemedText style={[styles.resultsSummaryText, getTextDirection()]}>
-                          {formatRTLText(`إجمالي الإجابات: ${responses.length}`)}
-                        </ThemedText>
-                        {classSummaries.map((cls) => (
-                          <ThemedView key={cls.className} style={styles.classBlock}>
-                            <ThemedText style={[styles.className, getTextDirection()]}>
-                              {formatRTLText(`الصف: ${cls.className}`)} ({cls.total})
+                      <ScrollView horizontal showsHorizontalScrollIndicator={false}>
+                        <ThemedView style={styles.resultsTable}>
+                          <ThemedView style={styles.resultsHeaderRow}>
+                            <ThemedText style={[styles.resultsHeaderCell, styles.resultsColClass]}>
+                              {formatRTLText('الصف')}
                             </ThemedText>
                             {(['V', 'A', 'R', 'K'] as VarkStyle[]).map((style) => (
-                              <ThemedView key={style} style={styles.styleRow}>
-                                <ThemedText style={[styles.styleLabel, getTextDirection()]}>
-                                  {formatRTLText(VARK_STYLE_LABELS[style])}
-                                </ThemedText>
-                                <ThemedText style={styles.styleCount}>{cls.counts[style]}</ThemedText>
-                              </ThemedView>
+                              <ThemedText key={style} style={[styles.resultsHeaderCell, styles.resultsColStyle]}>
+                                {formatRTLText(VARK_STYLE_LABELS[style])}
+                              </ThemedText>
                             ))}
-                            {cls.counts.mixed > 0 && (
-                              <ThemedView style={styles.styleRow}>
-                                <ThemedText style={[styles.styleLabel, getTextDirection()]}>
-                                  {formatRTLText('مختلط')}
-                                </ThemedText>
-                                <ThemedText style={styles.styleCount}>{cls.counts.mixed}</ThemedText>
-                              </ThemedView>
-                            )}
+                            <ThemedText style={[styles.resultsHeaderCell, styles.resultsColStyle]}>
+                              {formatRTLText('مختلط')}
+                            </ThemedText>
+                            <ThemedText style={[styles.resultsHeaderCell, styles.resultsColTotal]}>
+                              {formatRTLText('الإجمالي')}
+                            </ThemedText>
                           </ThemedView>
-                        ))}
-                      </>
+
+                          {classSummaries.map((cls) => (
+                            <ThemedView key={cls.className} style={styles.resultsDataRow}>
+                              <ThemedText style={[styles.resultsCell, styles.resultsColClass]} numberOfLines={1}>
+                                {formatRTLText(cls.className)}
+                              </ThemedText>
+                              {(['V', 'A', 'R', 'K'] as VarkStyle[]).map((style) => (
+                                <ThemedText key={style} style={[styles.resultsCell, styles.resultsColStyle]}>
+                                  {cls.counts[style]}
+                                </ThemedText>
+                              ))}
+                              <ThemedText style={[styles.resultsCell, styles.resultsColStyle]}>
+                                {cls.counts.mixed}
+                              </ThemedText>
+                              <ThemedText style={[styles.resultsCell, styles.resultsColTotal, styles.resultsTotalText]}>
+                                {cls.total}
+                              </ThemedText>
+                            </ThemedView>
+                          ))}
+
+                          <ThemedView style={[styles.resultsDataRow, styles.resultsGrandTotalRow]}>
+                            <ThemedText style={[styles.resultsCell, styles.resultsColClass, styles.resultsTotalText]}>
+                              {formatRTLText('الإجمالي')}
+                            </ThemedText>
+                            {(['V', 'A', 'R', 'K'] as VarkStyle[]).map((style) => (
+                              <ThemedText key={style} style={[styles.resultsCell, styles.resultsColStyle, styles.resultsTotalText]}>
+                                {classSummaries.reduce((sum, cls) => sum + cls.counts[style], 0)}
+                              </ThemedText>
+                            ))}
+                            <ThemedText style={[styles.resultsCell, styles.resultsColStyle, styles.resultsTotalText]}>
+                              {classSummaries.reduce((sum, cls) => sum + cls.counts.mixed, 0)}
+                            </ThemedText>
+                            <ThemedText style={[styles.resultsCell, styles.resultsColTotal, styles.resultsTotalText]}>
+                              {responses.length}
+                            </ThemedText>
+                          </ThemedView>
+                        </ThemedView>
+                      </ScrollView>
                     )}
                     </ThemedView>
                   )}
@@ -517,19 +545,37 @@ const styles = StyleSheet.create({
     borderBottomWidth: 1,
     borderBottomColor: '#E5E5EA',
   },
-  resultsSummaryText: { fontSize: 14, fontWeight: '600', color: '#1c1f33', marginBottom: 12 },
-  classBlock: {
-    marginBottom: 14,
-    paddingBottom: 14,
+  resultsTable: { borderRadius: 10, overflow: 'hidden', borderWidth: 1, borderColor: '#E5E5EA' },
+  resultsHeaderRow: {
+    flexDirection: 'row-reverse',
+    backgroundColor: '#e9edf1',
     borderBottomWidth: 1,
     borderBottomColor: '#E5E5EA',
   },
-  className: { fontSize: 15, fontWeight: '700', color: '#1c1f33', marginBottom: 8 },
-  styleRow: {
-    flexDirection: 'row-reverse',
-    justifyContent: 'space-between',
-    paddingVertical: 4,
+  resultsHeaderCell: {
+    fontSize: 12,
+    fontWeight: '700',
+    color: '#555',
+    textAlign: 'center',
+    paddingVertical: 10,
+    paddingHorizontal: 8,
   },
-  styleLabel: { fontSize: 14, color: '#333' },
-  styleCount: { fontSize: 14, fontWeight: '700', color: '#1c1f33' },
+  resultsDataRow: {
+    flexDirection: 'row-reverse',
+    backgroundColor: '#fff',
+    borderBottomWidth: 1,
+    borderBottomColor: '#EEEEEE',
+  },
+  resultsGrandTotalRow: { backgroundColor: '#f0f2f5', borderBottomWidth: 0 },
+  resultsCell: {
+    fontSize: 13,
+    color: '#333',
+    textAlign: 'center',
+    paddingVertical: 10,
+    paddingHorizontal: 8,
+  },
+  resultsColClass: { width: 100, textAlign: 'right' },
+  resultsColStyle: { width: 64 },
+  resultsColTotal: { width: 70, fontWeight: '700' },
+  resultsTotalText: { fontWeight: '700', color: '#1c1f33' },
 });
