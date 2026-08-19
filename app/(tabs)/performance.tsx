@@ -1000,6 +1000,7 @@ export default function PerformanceScreen() {
                     const isUploading = uploadingStates[fileKey];
 
                     const isScheduleEvidence = evidence.name === 'جدول الحصص الأسبوعي';
+                    const isVarkEvidence = evidence.name === 'تحليل أنماط التعلم لدى الطلاب (VARK)';
 
                     return (
                     <ThemedView key={evidenceIndex} style={styles.evidenceCardRow}>
@@ -1029,6 +1030,16 @@ export default function PerformanceScreen() {
                             مباشرة أدناه (مرتبط بنفس بيانات خانة "الجدول" في تبويب الرئيسية) */}
                         {!isScheduleEvidence && (
                           <ThemedView style={styles.evidenceActionsRow}>
+                            {/* شاهد "تحليل أنماط التعلم لدى الطلاب (VARK)" مرتبط مباشرة بشاشة
+                                "تحليل أنماط تعلم الطلاب" (استبيان VARK) */}
+                            {isVarkEvidence && (
+                              <TouchableOpacity
+                                style={styles.evidenceActionBtn}
+                                onPress={() => router.push('/learning-styles')}
+                              >
+                                <IconSymbol name="graduationcap.fill" size={24} color="#0d9488" />
+                              </TouchableOpacity>
+                            )}
                             <TouchableOpacity
                               style={[styles.evidenceActionBtn, isUploading && styles.uploadingBtn]}
                               onPress={() => !isUploading && handleFileUpload(performance.id, evidenceIndex)}
