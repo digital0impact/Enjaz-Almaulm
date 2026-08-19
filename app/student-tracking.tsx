@@ -1956,9 +1956,8 @@ export default function StudentTrackingScreen() {
                 onPress={() => router.push('/(tabs)')}
               />
               <ThemedView style={styles.titleRow}>
-                <ThemedView style={styles.tealBar} />
                 <ThemedText type="title" style={[styles.mainTitle, getTextDirection()]}>
-                  {formatRTLText('تتبع حالة المتعلمين')}
+                  {formatRTLText('تتبع حالة المتعلمين ( الخطط العلاجية والاثرائية )')}
                 </ThemedText>
               </ThemedView>
               <ThemedText style={[styles.headerSubtitle, getTextDirection()]}>
@@ -2118,7 +2117,6 @@ const styles = StyleSheet.create({
     zIndex: 1,
   },
   titleRow: { flexDirection: 'row-reverse', alignItems: 'center', width: '100%', justifyContent: 'center' },
-  tealBar: { width: 6, height: 44, backgroundColor: TEAL, borderRadius: 3, marginLeft: 10 },
   mainTitle: { fontSize: 22, fontWeight: 'bold', color: '#1c1f33', textAlign: 'center' },
   headerSubtitle: { fontSize: 14, color: '#6b7280', textAlign: 'center', marginTop: 6 },
   quickActionsSection: {
