@@ -383,16 +383,7 @@ export default function StudentTrackingScreen() {
     }
   };
 
-  // ===== نموذج الإضافة/التعديل =====
-
-  const openAddForm = () => {
-    setFormData(EMPTY_STUDENT_FORM);
-    setEditingId(null);
-    setShowGoalForm(false);
-    setShowNeedForm(false);
-    setShowEvidenceForm(false);
-    setFormVisible(true);
-  };
+  // ===== نموذج التعديل =====
 
   const openEditForm = (student: Student) => {
     setFormData({
@@ -608,12 +599,6 @@ export default function StudentTrackingScreen() {
   const handleSuccessDone = () => {
     setSuccessModalVisible(false);
     closeForm();
-  };
-
-  const handleSuccessAddAnother = () => {
-    setSuccessModalVisible(false);
-    setFormData(EMPTY_STUDENT_FORM);
-    setEditingId(null);
   };
 
   const handleErrorRetry = () => {
@@ -1077,7 +1062,7 @@ export default function StudentTrackingScreen() {
     <ThemedView style={styles.pageSection}>
       <ThemedView style={[styles.pageSectionHeader, styles.pageSectionHeaderRow]}>
         <ThemedText style={[styles.pageSectionTitle, getTextDirection()]}>
-          {formatRTLText(editingId ? 'تعديل بيانات المتعلم' : 'إضافة متعلم جديد')}
+          {formatRTLText('تعديل بيانات المتعلم')}
         </ThemedText>
         <TouchableOpacity onPress={closeForm}>
           <IconSymbol size={20} name="xmark.circle.fill" color="#fff" />
@@ -2025,12 +2010,6 @@ export default function StudentTrackingScreen() {
 
             <ThemedView style={styles.quickActionsSection}>
               <ThemedView style={styles.quickActionsRow}>
-                <TouchableOpacity style={styles.quickActionButtonPrimary} onPress={openAddForm}>
-                  <IconSymbol size={20} name="person.badge.plus" color="#fff" />
-                  <ThemedText style={[styles.quickActionButtonText, getTextDirection()]}>
-                    {formatRTLText('إضافة متعلم جديد')}
-                  </ThemedText>
-                </TouchableOpacity>
                 <TouchableOpacity style={styles.quickActionButtonSecondary} onPress={() => router.push('/remedial-plans')}>
                   <IconSymbol size={20} name="doc.text.fill" color="#fff" />
                   <ThemedText style={[styles.quickActionButtonText, getTextDirection()]}>
@@ -2068,9 +2047,6 @@ export default function StudentTrackingScreen() {
                   <ThemedView style={styles.emptyState}>
                     <IconSymbol size={40} name="person.3.fill" color="#9ca3af" />
                     <ThemedText style={[styles.emptyTitle, getTextDirection()]}>{formatRTLText('لا يوجد متعلمون بعد')}</ThemedText>
-                    <ThemedText style={[styles.emptySubtitle, getTextDirection()]}>
-                      {formatRTLText('اضغط "إضافة متعلم جديد" للبدء')}
-                    </ThemedText>
                   </ThemedView>
                 ) : (
                   students.map((student) => (
@@ -2110,11 +2086,6 @@ export default function StudentTrackingScreen() {
               <TouchableOpacity style={[styles.modalButton, styles.modalButtonConfirm]} onPress={handleSuccessDone}>
                 <ThemedText style={styles.modalButtonConfirmText}>تم</ThemedText>
               </TouchableOpacity>
-              {!editingId && (
-                <TouchableOpacity style={[styles.modalButton, styles.modalButtonCancel]} onPress={handleSuccessAddAnother}>
-                  <ThemedText style={styles.modalButtonCancelText}>إضافة متعلم آخر</ThemedText>
-                </TouchableOpacity>
-              )}
             </View>
           </View>
         </View>
@@ -2209,18 +2180,6 @@ const styles = StyleSheet.create({
     borderColor: '#e5e7eb',
   },
   quickActionsRow: { flexDirection: 'row-reverse', flexWrap: 'wrap', gap: 10 },
-  quickActionButtonPrimary: {
-    flex: 1,
-    minWidth: 150,
-    flexDirection: 'row-reverse',
-    alignItems: 'center',
-    justifyContent: 'center',
-    gap: 8,
-    backgroundColor: GREEN,
-    paddingVertical: 12,
-    paddingHorizontal: 16,
-    borderRadius: 10,
-  },
   quickActionButtonSecondary: {
     flex: 1,
     minWidth: 150,
