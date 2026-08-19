@@ -1968,16 +1968,12 @@ export default function StudentTrackingScreen() {
             <ThemedView style={styles.quickActionsSection}>
               <ThemedView style={styles.quickActionsRow}>
                 <TouchableOpacity style={styles.quickActionButtonTertiary} onPress={openDifficultyCard}>
-                  <IconSymbol size={20} name="exclamationmark.triangle.fill" color="#fff" />
                   <ThemedText style={[styles.quickActionButtonText, getTextDirection()]}>
                     {formatRTLText('بطاقة متابعة متعلم ( الخطط العلاجية والاثرائية )')}
                   </ThemedText>
+                  <IconSymbol size={20} name="plus" color="#fff" />
                 </TouchableOpacity>
               </ThemedView>
-            </ThemedView>
-
-            <ThemedView style={styles.difficultyIconWrap}>
-              <IconSymbol size={32} name="person.2.fill" color={TEAL} />
             </ThemedView>
 
             {formVisible && renderStudentForm()}
@@ -2132,11 +2128,10 @@ const styles = StyleSheet.create({
     borderColor: '#e5e7eb',
   },
   quickActionsRow: { flexDirection: 'row-reverse', flexWrap: 'wrap', gap: 10 },
-  difficultyIconWrap: { alignItems: 'center', marginBottom: 16 },
   quickActionButtonTertiary: {
     flex: 1,
     minWidth: 150,
-    flexDirection: 'row-reverse',
+    flexDirection: 'column',
     alignItems: 'center',
     justifyContent: 'center',
     gap: 8,
