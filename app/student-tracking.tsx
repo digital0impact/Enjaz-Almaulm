@@ -2010,12 +2010,6 @@ export default function StudentTrackingScreen() {
 
             <ThemedView style={styles.quickActionsSection}>
               <ThemedView style={styles.quickActionsRow}>
-                <TouchableOpacity style={styles.quickActionButtonSecondary} onPress={() => router.push('/remedial-plans')}>
-                  <IconSymbol size={20} name="doc.text.fill" color="#fff" />
-                  <ThemedText style={[styles.quickActionButtonText, getTextDirection()]}>
-                    {formatRTLText('الخطط العلاجية والإثرائية')}
-                  </ThemedText>
-                </TouchableOpacity>
                 <TouchableOpacity style={styles.quickActionButtonTertiary} onPress={openDifficultyCard}>
                   <IconSymbol size={20} name="exclamationmark.triangle.fill" color="#fff" />
                   <ThemedText style={[styles.quickActionButtonText, getTextDirection()]}>
@@ -2180,18 +2174,6 @@ const styles = StyleSheet.create({
     borderColor: '#e5e7eb',
   },
   quickActionsRow: { flexDirection: 'row-reverse', flexWrap: 'wrap', gap: 10 },
-  quickActionButtonSecondary: {
-    flex: 1,
-    minWidth: 150,
-    flexDirection: 'row-reverse',
-    alignItems: 'center',
-    justifyContent: 'center',
-    gap: 8,
-    backgroundColor: TEAL,
-    paddingVertical: 12,
-    paddingHorizontal: 16,
-    borderRadius: 10,
-  },
   quickActionButtonTertiary: {
     flex: 1,
     minWidth: 150,
