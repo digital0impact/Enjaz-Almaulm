@@ -1976,6 +1976,10 @@ export default function StudentTrackingScreen() {
               </ThemedView>
             </ThemedView>
 
+            <ThemedView style={styles.difficultyIconWrap}>
+              <IconSymbol size={32} name="person.2.fill" color={TEAL} />
+            </ThemedView>
+
             {formVisible && renderStudentForm()}
 
             {difficultyCardVisible && renderDifficultyCard()}
@@ -2128,6 +2132,7 @@ const styles = StyleSheet.create({
     borderColor: '#e5e7eb',
   },
   quickActionsRow: { flexDirection: 'row-reverse', flexWrap: 'wrap', gap: 10 },
+  difficultyIconWrap: { alignItems: 'center', marginBottom: 16 },
   quickActionButtonTertiary: {
     flex: 1,
     minWidth: 150,
