@@ -14,6 +14,7 @@ import { getTextDirection, formatRTLText } from '@/utils/rtl-utils';
 import { getPerformanceAxesByProfession, PerformanceAxis } from '@/constants/performance-axes';
 import { PerformanceReportView } from '@/components/PerformanceReportView';
 import { WeeklyScheduleTable } from '@/components/WeeklyScheduleTable';
+import { VarkResultsTable } from '@/components/VarkResultsTable';
 import { calculateOverallAverageFivePoint } from '@/utils/performance-five-point';
 import { useLocalSearchParams } from 'expo-router';
 
@@ -1001,13 +1002,16 @@ export default function PerformanceScreen() {
 
                     const isScheduleEvidence = evidence.name === 'جدول الحصص الأسبوعي';
                     const isVarkEvidence = evidence.name === 'تحليل أنماط التعلم لدى الطلاب (VARK)';
+                    // شاهدان يُعرَض لهما جدول بيانات فعلي مباشرة بدل أزرار
+                    // التحميل/التعديل المعتادة: الجدول الدراسي وجدول نتائج VARK.
+                    const hasEmbeddedTable = isScheduleEvidence || isVarkEvidence;
 
                     return (
                     <ThemedView key={evidenceIndex} style={styles.evidenceCardRow}>
                       <ThemedText style={[styles.evidenceName, getTextDirection()]}>{formatRTLText(evidence.name)}</ThemedText>
 
-                        {/* عرض الملف المرفوع إذا كان موجود (لا ينطبق على شاهد الجدول، فهو معروض مباشرة أدناه) */}
-                        {uploadedFile && !isScheduleEvidence && (
+                        {/* عرض الملف المرفوع إذا كان موجود (لا ينطبق على الشواهد ذات الجدول المضمَّن) */}
+                        {uploadedFile && !hasEmbeddedTable && (
                           <ThemedView style={styles.uploadedFileContainer}>
                             <ThemedView style={styles.fileInfo}>
                               <IconSymbol
@@ -1026,20 +1030,10 @@ export default function PerformanceScreen() {
                           <IconSymbol name={evidence.available ? "checkmark" : "xmark"} size={18} color={evidence.available ? '#fff' : '#fff'} />
                           <ThemedText style={[styles.evidenceStatusText, getTextDirection()]}>{evidence.available ? formatRTLText('متوفر') : formatRTLText('غير متوفر')}</ThemedText>
                         </ThemedView>
-                        {/* شاهد "جدول الحصص الأسبوعي": لا أزرار تحميل/تعديل — الجدول نفسه معروض
-                            مباشرة أدناه (مرتبط بنفس بيانات خانة "الجدول" في تبويب الرئيسية) */}
-                        {!isScheduleEvidence && (
+                        {/* شاهدا الجدول الدراسي ونتائج VARK: لا أزرار تحميل/تعديل — الجدول
+                            نفسه معروض مباشرة أدناه، مرتبط ببياناته الفعلية */}
+                        {!hasEmbeddedTable && (
                           <ThemedView style={styles.evidenceActionsRow}>
-                            {/* شاهد "تحليل أنماط التعلم لدى الطلاب (VARK)" مرتبط مباشرة بشاشة
-                                "تحليل أنماط تعلم الطلاب" (استبيان VARK) */}
-                            {isVarkEvidence && (
-                              <TouchableOpacity
-                                style={styles.evidenceActionBtn}
-                                onPress={() => router.push('/learning-styles')}
-                              >
-                                <IconSymbol name="graduationcap.fill" size={24} color="#0d9488" />
-                              </TouchableOpacity>
-                            )}
                             <TouchableOpacity
                               style={[styles.evidenceActionBtn, isUploading && styles.uploadingBtn]}
                               onPress={() => !isUploading && handleFileUpload(performance.id, evidenceIndex)}
@@ -1067,6 +1061,7 @@ export default function PerformanceScreen() {
                       </ThemedView>
 
                       {isScheduleEvidence && <WeeklyScheduleTable />}
+                      {isVarkEvidence && <VarkResultsTable />}
                         </ThemedView>
                     );
                   })}
