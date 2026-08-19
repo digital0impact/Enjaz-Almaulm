@@ -1003,7 +1003,7 @@ export default function StudentTrackingScreen() {
       if (Platform.OS === 'ios') {
         await Sharing.shareAsync(uri, { UTI: '.pdf', mimeType: 'application/pdf' });
       } else {
-        const pdfName = `متابعة_متعلم_${new Date().toISOString().split('T')[0]}.pdf`;
+        const pdfName = `متابعة_متعلم_الخطط_العلاجية_والاثرائية_${new Date().toISOString().split('T')[0]}.pdf`;
         const dest = `${FileSystem.documentDirectory}${pdfName}`;
         await FileSystem.moveAsync({ from: uri, to: dest });
         await Sharing.shareAsync(dest, { mimeType: 'application/pdf', dialogTitle: 'تصدير البطاقة PDF' });
@@ -1023,7 +1023,7 @@ export default function StudentTrackingScreen() {
     setIsExportingDifficulty(true);
     try {
       const htmlContent = await generateDifficultyHtml(difficultyCard);
-      const fileName = `متابعة_متعلم_${new Date().toISOString().split('T')[0]}.doc`;
+      const fileName = `متابعة_متعلم_الخطط_العلاجية_والاثرائية_${new Date().toISOString().split('T')[0]}.doc`;
       if (Platform.OS === 'web') {
         if (typeof window === 'undefined' || typeof document === 'undefined') {
           AlertService.alert('تنبيه', 'تصدير Word غير متاح في هذا السياق.');
