@@ -81,14 +81,6 @@ interface Student {
   performanceEvidence: PerformanceEvidence[];
 }
 
-/** فئات إحصائيات حالة المتعلمين، بنفس الألوان المعتمدة سابقاً في بطاقة الإحصائيات */
-const STATUS_LEVELS: Array<{ key: string; label: string; color: string; statuses: string[] }> = [
-  { key: 'excellent', label: 'متفوقون', color: '#4CAF50', statuses: ['تفوق', 'ممتاز'] },
-  { key: 'needsDevelopment', label: 'يحتاجون تطوير', color: '#FF5722', statuses: ['يحتاج إلى تطوير', 'مقبول'] },
-  { key: 'learningDifficulties', label: 'صعوبات التعلم', color: '#9C27B0', statuses: ['صعوبات التعلم'] },
-  { key: 'weak', label: 'ضعف', color: '#F44336', statuses: ['ضعف', 'ضعيف'] },
-];
-
 const EMPTY_STUDENT_FORM: Student = {
   id: '',
   name: '',
@@ -1936,40 +1928,6 @@ export default function StudentTrackingScreen() {
     );
   };
 
-  const renderStatsCard = () => {
-    const totalStudents = students.length;
-    const levels = STATUS_LEVELS.map((level) => ({
-      ...level,
-      count: students.filter((s) => level.statuses.includes(s.status)).length,
-    }));
-
-    return (
-      <ThemedView style={styles.pageSection}>
-        <ThemedView style={styles.pageSectionHeader}>
-          <ThemedText style={[styles.pageSectionTitle, getTextDirection()]}>
-            {formatRTLText('إحصائيات المتعلمين')}
-          </ThemedText>
-        </ThemedView>
-        <ThemedView style={styles.statsGrid}>
-          <ThemedView style={styles.statBox}>
-            <ThemedText style={styles.statValue}>{totalStudents}</ThemedText>
-            <ThemedText style={[styles.statLabel, getTextDirection()]}>{formatRTLText('إجمالي المتعلمين')}</ThemedText>
-          </ThemedView>
-        </ThemedView>
-        <ThemedView style={styles.levelsTable}>
-          {levels.map((level) => (
-            <ThemedView key={level.key} style={styles.levelRow}>
-              <ThemedView style={[styles.levelBadge, { backgroundColor: level.color }]}>
-                <ThemedText style={styles.levelBadgeText}>{formatRTLText(level.label)}</ThemedText>
-              </ThemedView>
-              <ThemedText style={[styles.levelCount, getTextDirection()]}>{level.count}</ThemedText>
-            </ThemedView>
-          ))}
-        </ThemedView>
-      </ThemedView>
-    );
-  };
-
   return (
     <ThemedView style={styles.container}>
       <ImageBackground
@@ -2022,8 +1980,6 @@ export default function StudentTrackingScreen() {
             {formVisible && renderStudentForm()}
 
             {difficultyCardVisible && renderDifficultyCard()}
-
-            {renderStatsCard()}
 
             <ThemedView style={styles.pageSection}>
               <ThemedView style={styles.pageSectionHeader}>
@@ -2271,33 +2227,6 @@ const styles = StyleSheet.create({
   pageSectionHeader: { backgroundColor: TEAL, paddingVertical: 12, paddingHorizontal: 16 },
   pageSectionHeaderRow: { flexDirection: 'row-reverse', justifyContent: 'space-between', alignItems: 'center' },
   pageSectionTitle: { fontSize: 16, fontWeight: '700', color: '#fff' },
-  statBox: {
-    width: '100%',
-    alignItems: 'center',
-    backgroundColor: '#f9fafb',
-    borderRadius: 10,
-    borderWidth: 1,
-    borderColor: '#e5e7eb',
-    paddingVertical: 12,
-  },
-  statValue: { fontSize: 22, fontWeight: '800', color: '#1c1f33' },
-  statsGrid: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    padding: 12,
-    paddingBottom: 0,
-    gap: 10,
-  },
-  statLabel: {
-    fontSize: 12,
-    color: '#666',
-    textAlign: 'center',
-  },
-  levelsTable: { paddingHorizontal: 12, paddingBottom: 12, gap: 8, marginTop: 12 },
-  levelRow: { flexDirection: 'row-reverse', alignItems: 'center', gap: 10 },
-  levelBadge: { borderRadius: 8, paddingVertical: 5, paddingHorizontal: 12, minWidth: 120, alignItems: 'center' },
-  levelBadgeText: { color: '#fff', fontSize: 13, fontWeight: '700' },
-  levelCount: { fontSize: 15, fontWeight: '700', color: '#1c1f33', flex: 1, textAlign: 'center' },
   studentsListInner: { padding: 12, gap: 12 },
   scrollContainer: {
     flex: 1,
