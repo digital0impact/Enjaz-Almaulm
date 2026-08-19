@@ -116,7 +116,7 @@ const EVIDENCE_TYPES = [
   { value: 'سلوك', label: 'سلوك', icon: 'person.circle' },
 ] as const;
 
-/** ===== بطاقة متابعة متعلم والخطة العلاجية المختصرة ===== */
+/** ===== بطاقة متابعة متعلم ( الخطط العلاجية والاثرائية ) ===== */
 
 const DIFFICULTY_NEEDS_OPTIONS = [
   'ضعف فهم المفهوم',
@@ -245,7 +245,7 @@ export default function StudentTrackingScreen() {
   const [errorModalMessage, setErrorModalMessage] = useState('');
   const proceedWithSaveRef = useRef<(() => Promise<void>) | null>(null);
 
-  // بطاقة متابعة متعلم والخطة العلاجية المختصرة
+  // بطاقة متابعة متعلم ( الخطط العلاجية والاثرائية )
   const [difficultyCardVisible, setDifficultyCardVisible] = useState(false);
   const [difficultyCard, setDifficultyCard] = useState<DifficultyCard>(EMPTY_DIFFICULTY_CARD);
   const [isExportingDifficulty, setIsExportingDifficulty] = useState(false);
@@ -606,7 +606,7 @@ export default function StudentTrackingScreen() {
     saveStudentForm();
   };
 
-  // ===== بطاقة متابعة متعلم =====
+  // ===== بطاقة متابعة متعلم ( الخطط العلاجية والاثرائية ) =====
 
   const openDifficultyCard = () => setDifficultyCardVisible(true);
 
@@ -807,7 +807,7 @@ export default function StudentTrackingScreen() {
 <html dir="rtl" lang="ar">
 <head>
   <meta charset="utf-8"/>
-  <title>بطاقة متابعة متعلم</title>
+  <title>بطاقة متابعة متعلم ( الخطط العلاجية والاثرائية )</title>
   <style>
     @page { size: A4; margin: 0; }
     html, body { margin: 0; padding: 0; background: #e5e7eb; }
@@ -858,7 +858,7 @@ export default function StudentTrackingScreen() {
     ${logoDataUri ? `<img src="${logoDataUri}" alt="شعار وزارة التعليم" class="doc-logo">` : ''}
   </div>
 
-  <div class="title-banner">بطاقة متابعة متعلم والخطة العلاجية المختصرة</div>
+  <div class="title-banner">بطاقة متابعة متعلم ( الخطط العلاجية والاثرائية )</div>
   <div class="dot-divider"></div>
 
   <div class="card">
@@ -1405,7 +1405,7 @@ export default function StudentTrackingScreen() {
       <ThemedView style={styles.pageSection}>
         <ThemedView style={[styles.pageSectionHeader, styles.pageSectionHeaderRow]}>
           <ThemedText style={[styles.pageSectionTitle, getTextDirection()]}>
-            {formatRTLText('بطاقة متابعة متعلم والخطة العلاجية')}
+            {formatRTLText('بطاقة متابعة متعلم ( الخطط العلاجية والاثرائية )')}
           </ThemedText>
           <TouchableOpacity onPress={closeDifficultyCard}>
             <IconSymbol size={20} name="xmark.circle.fill" color="#fff" />
@@ -2013,7 +2013,7 @@ export default function StudentTrackingScreen() {
                 <TouchableOpacity style={styles.quickActionButtonTertiary} onPress={openDifficultyCard}>
                   <IconSymbol size={20} name="exclamationmark.triangle.fill" color="#fff" />
                   <ThemedText style={[styles.quickActionButtonText, getTextDirection()]}>
-                    {formatRTLText('بطاقة متابعة متعلم')}
+                    {formatRTLText('بطاقة متابعة متعلم ( الخطط العلاجية والاثرائية )')}
                   </ThemedText>
                 </TouchableOpacity>
               </ThemedView>
@@ -2188,7 +2188,7 @@ const styles = StyleSheet.create({
   },
   quickActionButtonText: { fontSize: 14, fontWeight: '600', color: '#fff' },
 
-  // ===== بطاقة متابعة متعلم (dc = difficulty card) =====
+  // ===== بطاقة متابعة متعلم ( الخطط العلاجية والاثرائية ) (dc = difficulty card) =====
   dcFieldRow: { flexDirection: 'row-reverse', flexWrap: 'wrap', gap: 12 },
   dcFieldBlock: { flex: 1, minWidth: 150 },
   dcFieldBlockSmall: { flex: 1, minWidth: 100 },
