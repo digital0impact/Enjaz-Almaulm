@@ -222,8 +222,10 @@ export default function ImprovementPlanScreen() {
               <IconSymbol size={20} name="chevron.left" color="#1c1f33" />
             </TouchableOpacity>
             <ThemedView style={styles.headerContent}>
-              <IconSymbol size={50} name="chart.line.uptrend.xyaxis" color="#1c1f33" />
-              <ThemedText type="title" style={[styles.headerTitle, getTextDirection()]}> 
+              <ThemedView style={styles.iconContainer}>
+                <IconSymbol size={60} name="chart.line.uptrend.xyaxis" color="#1c1f33" />
+              </ThemedView>
+              <ThemedText type="title" style={[styles.headerTitle, getTextDirection()]}>
                 {formatRTLText('خطة التحسين المهني')}
               </ThemedText>
               <ThemedText style={[styles.headerSubtitle, getTextDirection()]}> 
@@ -476,6 +478,19 @@ const styles = StyleSheet.create({
   headerContent: {
     flex: 1,
     alignItems: 'center',
+  },
+  iconContainer: {
+    marginBottom: 20,
+    padding: 20,
+    backgroundColor: '#F8F9FA',
+    borderRadius: 50,
+    borderWidth: 1,
+    borderColor: '#E5E5EA',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 6 },
+    shadowOpacity: 0.25,
+    shadowRadius: 12,
+    elevation: 10,
   },
   headerTitle: {
     color: '#1c1f33',

@@ -1955,6 +1955,9 @@ export default function StudentTrackingScreen() {
                 style={styles.backButton}
                 onPress={() => router.push('/(tabs)')}
               />
+              <ThemedView style={styles.iconContainer}>
+                <IconSymbol size={60} name="person.2.fill" color="#1c1f33" />
+              </ThemedView>
               <ThemedView style={styles.titleRow}>
                 <ThemedText type="title" style={[styles.mainTitle, getTextDirection()]}>
                   {formatRTLText('تتبع حالة المتعلمين ( الخطط العلاجية والاثرائية )')}
@@ -2115,6 +2118,19 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
     zIndex: 1,
+  },
+  iconContainer: {
+    marginBottom: 20,
+    padding: 20,
+    backgroundColor: '#F8F9FA',
+    borderRadius: 50,
+    borderWidth: 1,
+    borderColor: '#E5E5EA',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 6 },
+    shadowOpacity: 0.25,
+    shadowRadius: 12,
+    elevation: 10,
   },
   titleRow: { flexDirection: 'row-reverse', alignItems: 'center', width: '100%', justifyContent: 'center' },
   mainTitle: { fontSize: 22, fontWeight: 'bold', color: '#1c1f33', textAlign: 'center' },
