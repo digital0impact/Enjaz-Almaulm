@@ -34,7 +34,9 @@ export function ToolsGrid({ tools }: ToolsGridProps) {
 
 const styles = StyleSheet.create({
   toolsGrid: {
-    flexDirection: 'column',
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    justifyContent: 'space-between',
     gap: 15,
     backgroundColor: 'transparent',
   },

@@ -30,7 +30,7 @@ export function ToolCard({ icon, title, description, onPress }: ToolCardProps) {
 
 const styles = StyleSheet.create({
   toolCard: {
-    width: '100%',
+    width: '48%',
     alignItems: 'center',
     padding: 20,
     backgroundColor: '#F8F9FA',
@@ -42,7 +42,6 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.25,
     shadowRadius: 12,
     elevation: 10,
-    marginBottom: 15,
   },
   toolIconWrapper: {
     marginBottom: 15,
