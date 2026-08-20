@@ -18,6 +18,7 @@ import * as FileSystem from 'expo-file-system';
 import { getTextDirection, formatRTLText, isRTL } from '@/utils/rtl-utils';
 import { calculateOverallAverageFivePoint } from '@/utils/performance-five-point';
 import { getPerformanceAxesByProfession } from '@/constants/performance-axes';
+import { supabase } from '@/config/supabase';
 
 const { width } = Dimensions.get('window');
 
@@ -34,6 +35,14 @@ type PerformanceItem = {
   evidence?: Evidence[];
 };
 
+/** تعليق زائر تُرك على رابط التقرير العام (shared_achievement_comments). */
+type VisitorComment = {
+  id: string;
+  author_name: string | null;
+  comment_text: string;
+  created_at: string;
+};
+
 export function PerformanceReportView() {
   const router = useRouter();
   const [performanceData, setPerformanceData] = useState<PerformanceItem[]>([]);
@@ -41,15 +50,40 @@ export function PerformanceReportView() {
   const [isExporting, setIsExporting] = useState(false);
   /** تحميل Word على الويب: عرض نافذة تحتوي على رابط التحميل */
   const [wordDownload, setWordDownload] = useState<{ url: string; name: string } | null>(null);
-  /** توليد رابط مشاركة الإنجازات ومشاركته مباشرة عبر شاشة المشاركة الأصلية للجهاز، بلا أي صفحة أو نافذة وسيطة. */
+  /** توليد رابط مشاركة التقرير ومشاركته مباشرة عبر شاشة المشاركة الأصلية للجهاز، بلا أي صفحة أو نافذة وسيطة. */
   const { generating: isGeneratingShareLink, generateAndShare: handleShareAchievements } = useAchievementsShareLink();
+  /** تعليقات الزوار على رابط التقرير العام (shared_achievement_comments)، تُعرض هنا لتصل للمعلم دون زيارة الرابط نفسه. */
+  const [visitorComments, setVisitorComments] = useState<VisitorComment[]>([]);
+  const [loadingComments, setLoadingComments] = useState(false);
   // إضافة مستمع للتركيز على الصفحة باستخدام useFocusEffect
   useFocusEffect(
     React.useCallback(() => {
       // إعادة تحميل البيانات عند العودة إلى الصفحة
       loadPerformanceData();
+      loadVisitorComments();
     }, [])
   );
+
+  const loadVisitorComments = async () => {
+    setLoadingComments(true);
+    try {
+      const user = await AuthService.getCurrentUser();
+      if (!user) {
+        setVisitorComments([]);
+        return;
+      }
+      const { data, error } = await supabase
+        .from('shared_achievement_comments')
+        .select('id, author_name, comment_text, created_at')
+        .eq('token', `public-${user.id}`)
+        .order('created_at', { ascending: false });
+      if (!error && data) setVisitorComments(data as VisitorComment[]);
+    } catch (e) {
+      console.warn('Could not load visitor comments:', e);
+    } finally {
+      setLoadingComments(false);
+    }
+  };
 
   // تحميل البيانات الفعلية من AsyncStorage
   useEffect(() => {
@@ -1203,7 +1237,7 @@ export function PerformanceReportView() {
                   <IconSymbol size={20} name="square.and.arrow.up" color="#1c1f33" />
                 )}
                 <ThemedText style={styles.buttonText}>
-                  {isGeneratingShareLink ? formatRTLText('جارٍ التجهيز...') : formatRTLText('مشاركة الإنجازات')}
+                  {isGeneratingShareLink ? formatRTLText('جارٍ التجهيز...') : formatRTLText('مشاركة التقرير')}
                 </ThemedText>
               </TouchableOpacity>
               <ThemedText style={styles.exportSectionTitle}>
@@ -1241,6 +1275,30 @@ export function PerformanceReportView() {
                   </ThemedText>
                 </TouchableOpacity>
               </View>
+            </ThemedView>
+
+            <ThemedView style={styles.visitorCommentsCard}>
+              <ThemedText style={styles.exportSectionTitle}>
+                {formatRTLText('تعليقات الزوار على التقرير')}
+              </ThemedText>
+              {loadingComments ? (
+                <ActivityIndicator color="#1c1f33" style={styles.visitorCommentsLoading} />
+              ) : visitorComments.length === 0 ? (
+                <ThemedText style={[styles.noVisitorComments, getTextDirection()]}>
+                  {formatRTLText('لا توجد تعليقات بعد. تظهر هنا تعليقات الزوار على رابط التقرير الذي تشاركينه.')}
+                </ThemedText>
+              ) : (
+                visitorComments.map((comment) => (
+                  <ThemedView key={comment.id} style={styles.visitorCommentItem}>
+                    <ThemedText style={[styles.visitorCommentMeta, getTextDirection()]}>
+                      {formatRTLText(comment.author_name || 'زائر')} · {new Date(comment.created_at).toLocaleDateString('ar-SA')}
+                    </ThemedText>
+                    <ThemedText style={[styles.visitorCommentText, getTextDirection()]}>
+                      {formatRTLText(comment.comment_text)}
+                    </ThemedText>
+                  </ThemedView>
+                ))
+              )}
             </ThemedView>
             </ThemedView>
 
@@ -1721,6 +1779,42 @@ const styles = StyleSheet.create<any>({
     flexDirection: 'column',
     gap: 12,
     marginBottom: 20,
+  },
+  visitorCommentsCard: {
+    backgroundColor: '#F8F9FA',
+    borderRadius: 14,
+    padding: 16,
+    marginBottom: 20,
+    borderWidth: 1,
+    borderColor: '#E5E5EA',
+  },
+  visitorCommentsLoading: { marginTop: 8 },
+  noVisitorComments: {
+    fontSize: 13,
+    color: '#888888',
+    textAlign: 'center',
+    marginTop: 4,
+  },
+  visitorCommentItem: {
+    backgroundColor: '#FFFFFF',
+    borderRadius: 10,
+    padding: 12,
+    marginTop: 10,
+    borderWidth: 1,
+    borderColor: '#E5E5EA',
+  },
+  visitorCommentMeta: {
+    fontSize: 12,
+    fontWeight: '600',
+    color: '#0d9488',
+    marginBottom: 4,
+    textAlign: 'right',
+  },
+  visitorCommentText: {
+    fontSize: 14,
+    color: '#1c1f33',
+    lineHeight: 20,
+    textAlign: 'right',
   },
   exportSectionTitle: {
     fontSize: 15,

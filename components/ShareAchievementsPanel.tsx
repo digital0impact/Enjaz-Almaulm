@@ -33,9 +33,9 @@ export interface ShareAchievementsPanelProps {
 }
 
 /**
- * محتوى صفحة "مشاركة الإنجازات" المستقلة (app/share-achievements.tsx):
+ * محتوى صفحة "مشاركة التقرير" المستقلة (app/share-achievements.tsx):
  * تُنشئ رابطًا عامًا وتعرضه في بطاقة مع خياري نسخ/مشاركة صريحين.
- * لزر "مشاركة الإنجازات" السريع من داخل التقرير الشامل بلا أي صفحة
+ * لزر "مشاركة التقرير" السريع من داخل التقرير الشامل بلا أي صفحة
  * وسيطة، انظر hooks/useAchievementsShareLink.ts (يشارك معها منطق
  * توليد الرابط عبر utils/shareAchievements.ts).
  */
@@ -79,7 +79,7 @@ export function ShareAchievementsPanel({ onClose }: ShareAchievementsPanelProps)
     if (!PAID_PLANS.includes(plan)) {
       AlertService.alert(
         formatRTLText('ترقية الاشتراك مطلوبة'),
-        formatRTLText('مشاركة الإنجازات متاحة للاشتراك السنوي أو النصف سنوي فقط. يرجى ترقية اشتراكك للاستفادة من هذه الميزة.'),
+        formatRTLText('مشاركة التقرير متاحة للاشتراك السنوي أو النصف سنوي فقط. يرجى ترقية اشتراكك للاستفادة من هذه الميزة.'),
         [
           { text: formatRTLText('إلغاء'), style: 'cancel' },
           { text: formatRTLText('عرض خطط الاشتراك'), onPress: () => router.push('/subscription') },
@@ -113,7 +113,7 @@ export function ShareAchievementsPanel({ onClose }: ShareAchievementsPanelProps)
     try {
       await Share.share({
         message: shareLink,
-        title: formatRTLText('رابط الإنجازات'),
+        title: formatRTLText('رابط التقرير'),
       });
     } catch {
       AlertService.alert('الرابط', shareLink);
@@ -122,11 +122,11 @@ export function ShareAchievementsPanel({ onClose }: ShareAchievementsPanelProps)
 
   const handleShare = async () => {
     if (!shareLink) return;
-    const message = `${formatRTLText('رابط عرض إنجازاتي المهنية')}\n\n${shareLink}\n\n${formatRTLText('يمكنك مشاركة هذا الرابط مع: المشرف، المدرسة، لجنة التقييم')}`;
+    const message = `${formatRTLText('رابط عرض تقرير الأداء المهني')}\n\n${shareLink}\n\n${formatRTLText('يمكنك مشاركة هذا الرابط مع: المشرف، المدرسة، لجنة التقييم')}`;
     try {
       await Share.share({
         message,
-        title: formatRTLText('مشاركة الإنجازات'),
+        title: formatRTLText('مشاركة التقرير'),
         url: Platform.OS !== 'web' ? shareLink : undefined,
       });
     } catch (e) {
@@ -162,7 +162,7 @@ export function ShareAchievementsPanel({ onClose }: ShareAchievementsPanelProps)
               <IconSymbol size={60} name="square.and.arrow.up" color="#1c1f33" />
             </ThemedView>
             <ThemedText type="title" style={[styles.title, getTextDirection()]}>
-              {formatRTLText('مشاركة الإنجازات')}
+              {formatRTLText('مشاركة التقرير')}
             </ThemedText>
             <ThemedText style={[styles.subtitle, getTextDirection()]}>
               {formatRTLText('إنشاء رابط عام لعرض ملخص أدائك المهني ومشاركته مع المشرف أو المدرسة أو لجنة التقييم')}
@@ -174,7 +174,7 @@ export function ShareAchievementsPanel({ onClose }: ShareAchievementsPanelProps)
               <IconSymbol size={24} name="lock.fill" color="#FF9800" />
               <ThemedView style={styles.upgradeBannerTextWrap}>
                 <ThemedText style={[styles.upgradeBannerTitle, getTextDirection()]}>
-                  {formatRTLText('مشاركة الإنجازات للخطط المدفوعة')}
+                  {formatRTLText('مشاركة التقرير للخطط المدفوعة')}
                 </ThemedText>
                 <ThemedText style={[styles.upgradeBannerDesc, getTextDirection()]}>
                   {formatRTLText('هذه الميزة متاحة للاشتراك السنوي أو النصف سنوي فقط. يمكن للزائر عرض التقرير والتعليق عليه دون إمكانية التحرير.')}

@@ -14,7 +14,7 @@ import {
 const PAID_PLANS = ['yearly', 'half_yearly'];
 
 /**
- * يولّد رابط مشاركة الإنجازات العام ثم يفتح شاشة المشاركة الأصلية
+ * يولّد رابط مشاركة التقرير العام ثم يفتح شاشة المشاركة الأصلية
  * للجهاز مباشرة (Share.share على الجوال، navigator.share على الويب)
  * بلا أي شاشة أو نافذة وسيطة داخل التطبيق.
  */
@@ -42,7 +42,7 @@ export function useAchievementsShareLink() {
     if (!PAID_PLANS.includes(plan)) {
       AlertService.alert(
         formatRTLText('ترقية الاشتراك مطلوبة'),
-        formatRTLText('مشاركة الإنجازات متاحة للاشتراك السنوي أو النصف سنوي فقط. يرجى ترقية اشتراكك للاستفادة من هذه الميزة.'),
+        formatRTLText('مشاركة التقرير متاحة للاشتراك السنوي أو النصف سنوي فقط. يرجى ترقية اشتراكك للاستفادة من هذه الميزة.'),
         [
           { text: formatRTLText('إلغاء'), style: 'cancel' },
           { text: formatRTLText('عرض خطط الاشتراك'), onPress: () => router.push('/subscription') },
@@ -56,7 +56,7 @@ export function useAchievementsShareLink() {
       const reportSnapshot = await buildAchievementsReportSnapshot();
       const storageToken = await upsertAchievementsShare(user.id, reportSnapshot);
       const link = `${baseUrl}/share/${storageToken}`;
-      const message = `${formatRTLText('رابط عرض إنجازاتي المهنية')}\n\n${link}\n\n${formatRTLText('يمكنك مشاركة هذا الرابط مع: المشرف، المدرسة، لجنة التقييم')}`;
+      const message = `${formatRTLText('رابط عرض تقرير الأداء المهني')}\n\n${link}\n\n${formatRTLText('يمكنك مشاركة هذا الرابط مع: المشرف، المدرسة، لجنة التقييم')}`;
 
       if (
         Platform.OS === 'web' &&
@@ -64,7 +64,7 @@ export function useAchievementsShareLink() {
         typeof (navigator as any).share === 'function'
       ) {
         try {
-          await (navigator as any).share({ title: formatRTLText('مشاركة الإنجازات'), text: message, url: link });
+          await (navigator as any).share({ title: formatRTLText('مشاركة التقرير'), text: message, url: link });
           return;
         } catch (e) {
           if ((e as any)?.name === 'AbortError') return; // ألغى المستخدم نافذة المشاركة
@@ -75,7 +75,7 @@ export function useAchievementsShareLink() {
       try {
         await Share.share({
           message,
-          title: formatRTLText('مشاركة الإنجازات'),
+          title: formatRTLText('مشاركة التقرير'),
           url: Platform.OS !== 'web' ? link : undefined,
         });
         return;
