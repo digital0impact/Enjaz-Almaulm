@@ -17,16 +17,34 @@ export interface ToolsGridProps {
 export function ToolsGrid({ tools }: ToolsGridProps) {
   const router = useRouter();
 
+  /**
+   * الشبكة مبنية من صفوف بطاقتين، لا من flexWrap واحد على كل العناصر،
+   * حتى يمكن توسيط البطاقة الأخيرة عندما يكون عدد البطاقات فرديًا
+   * (بدل أن تلتصق بأحد طرفي الصف الأخير كما يحدث مع justifyContent
+   * ثابت لكل الصفوف).
+   */
+  const rows: ToolMenuItem[][] = [];
+  for (let i = 0; i < tools.length; i += 2) {
+    rows.push(tools.slice(i, i + 2));
+  }
+
   return (
     <ThemedView style={styles.toolsGrid}>
-      {tools.map((tool) => (
-        <ToolCard
-          key={tool.title}
-          icon={tool.icon}
-          title={tool.title}
-          description={tool.description}
-          onPress={() => router.push(tool.route)}
-        />
+      {rows.map((row, rowIndex) => (
+        <ThemedView
+          key={rowIndex}
+          style={[styles.toolsRow, { justifyContent: row.length === 2 ? 'space-between' : 'center' }]}
+        >
+          {row.map((tool) => (
+            <ToolCard
+              key={tool.title}
+              icon={tool.icon}
+              title={tool.title}
+              description={tool.description}
+              onPress={() => router.push(tool.route)}
+            />
+          ))}
+        </ThemedView>
       ))}
     </ThemedView>
   );
@@ -34,9 +52,12 @@ export function ToolsGrid({ tools }: ToolsGridProps) {
 
 const styles = StyleSheet.create({
   toolsGrid: {
+    flexDirection: 'column',
+    gap: 15,
+    backgroundColor: 'transparent',
+  },
+  toolsRow: {
     flexDirection: 'row',
-    flexWrap: 'wrap',
-    justifyContent: 'space-between',
     gap: 15,
     backgroundColor: 'transparent',
   },
