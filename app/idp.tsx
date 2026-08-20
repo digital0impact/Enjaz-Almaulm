@@ -857,6 +857,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     marginBottom: 20,
     position: 'relative',
+    backgroundColor: 'transparent',
   },
   backButton: {
     position: 'absolute',
@@ -888,6 +889,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     width: '100%',
     justifyContent: 'center',
+    backgroundColor: 'transparent',
   },
   mainTitle: {
     fontSize: 22,

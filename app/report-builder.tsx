@@ -1402,7 +1402,7 @@ const styles = StyleSheet.create({
   backgroundImage: { flex: 1, width: '100%', height: '100%' },
   scroll: { flex: 1 },
   scrollContent: { paddingHorizontal: 16, paddingTop: Platform.OS === 'ios' ? 56 : 40 },
-  header: { alignItems: 'center', marginBottom: 20, position: 'relative' },
+  header: { alignItems: 'center', marginBottom: 20, position: 'relative', backgroundColor: 'transparent' },
   backButton: {
     position: 'absolute',
     left: 0,
@@ -1428,7 +1428,7 @@ const styles = StyleSheet.create({
     shadowRadius: 12,
     elevation: 10,
   },
-  titleRow: { flexDirection: 'row-reverse', alignItems: 'center', width: '100%', justifyContent: 'center' },
+  titleRow: { flexDirection: 'row-reverse', alignItems: 'center', width: '100%', justifyContent: 'center', backgroundColor: 'transparent' },
   mainTitle: { fontSize: 22, fontWeight: 'bold', color: '#1c1f33', textAlign: 'center' },
   headerSubtitle: { fontSize: 14, color: '#6b7280', textAlign: 'center', marginTop: 6 },
   section: {

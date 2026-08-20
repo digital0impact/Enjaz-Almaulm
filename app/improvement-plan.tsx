@@ -478,6 +478,7 @@ const styles = StyleSheet.create({
   headerContent: {
     flex: 1,
     alignItems: 'center',
+    backgroundColor: 'transparent',
   },
   iconContainer: {
     marginBottom: 20,
