@@ -205,7 +205,7 @@ export default function ShareAchievementsScreen() {
           showsVerticalScrollIndicator={false}
         >
           <ThemedButton
-            icon="chevron.right"
+            icon="chevron.left"
             iconColor="#1c1f33"
             style={styles.backButton}
             onPress={() => router.back()}
@@ -374,13 +374,12 @@ const styles = StyleSheet.create({
   },
   backButton: {
     position: 'absolute',
-    top: Platform.OS === 'ios' ? 50 : 44,
-    right: 20,
-    zIndex: 10,
+    top: Platform.OS === 'ios' ? 60 : 50,
+    left: 20,
     width: 40,
     height: 40,
     borderRadius: 20,
-    backgroundColor: '#abd6ce',
+    backgroundColor: '#add4ce',
     justifyContent: 'center',
     alignItems: 'center',
     shadowColor: '#000',
@@ -388,6 +387,7 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.2,
     shadowRadius: 8,
     elevation: 8,
+    zIndex: 1,
   },
   header: {
     alignItems: 'center',

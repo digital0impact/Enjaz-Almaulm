@@ -160,7 +160,7 @@ const StudentCategoryDetailsScreen = () => {
             {/* Header */}
             <ThemedView style={styles.header}>
               <ThemedButton
-                icon="chevron.right"
+                icon="chevron.left"
                 iconColor="#1c1f33"
                 style={styles.backButton}
                 onPress={() => router.back()}
@@ -407,7 +407,7 @@ const styles = StyleSheet.create({
     width: 40,
     height: 40,
     borderRadius: 20,
-    backgroundColor: '#FFFFFF',
+    backgroundColor: '#add4ce',
     alignItems: 'center',
     justifyContent: 'center',
     marginLeft: 15,

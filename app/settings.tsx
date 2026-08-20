@@ -785,7 +785,7 @@ const styles = StyleSheet.create({
   },
   header: {
     alignItems: 'center',
-    paddingTop: Platform.OS === 'ios' ? 20 : 15,
+    paddingTop: Platform.OS === 'ios' ? 60 : 50,
     paddingHorizontal: 30,
     paddingBottom: 10,
     backgroundColor: 'transparent',
@@ -793,7 +793,7 @@ const styles = StyleSheet.create({
   },
   backButton: {
     position: 'absolute',
-    top: Platform.OS === 'ios' ? 20 : 15,
+    top: Platform.OS === 'ios' ? 60 : 50,
     left: 20,
     backgroundColor: '#add4ce',
     width: 40,
