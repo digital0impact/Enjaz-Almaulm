@@ -7,6 +7,7 @@ import { useFocusEffect } from '@react-navigation/native';
 import { ThemedText } from '@/components/ThemedText';
 import { ThemedView } from '@/components/ThemedView';
 import { IconSymbol } from '@/components/ui/IconSymbol';
+import { ShareAchievementsPanel } from '@/components/ShareAchievementsPanel';
 import { useRouter } from 'expo-router';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import AuthService from '@/services/AuthService';
@@ -40,6 +41,8 @@ export function PerformanceReportView() {
   const [isExporting, setIsExporting] = useState(false);
   /** تحميل Word على الويب: عرض نافذة تحتوي على رابط التحميل */
   const [wordDownload, setWordDownload] = useState<{ url: string; name: string } | null>(null);
+  /** نافذة "مشاركة الإنجازات" المنزلقة (بدل الانتقال لصفحة منفصلة). */
+  const [shareModalVisible, setShareModalVisible] = useState(false);
   // إضافة مستمع للتركيز على الصفحة باستخدام useFocusEffect
   useFocusEffect(
     React.useCallback(() => {
@@ -1188,9 +1191,9 @@ export function PerformanceReportView() {
             </ThemedView>
 
             <ThemedView style={styles.actionButtons}>
-              <TouchableOpacity 
+              <TouchableOpacity
                 style={styles.exportButton}
-                onPress={() => router.push('/share-achievements')}
+                onPress={() => setShareModalVisible(true)}
                 activeOpacity={0.7}
               >
                 <IconSymbol size={20} name="square.and.arrow.up" color="#1c1f33" />
@@ -1273,6 +1276,14 @@ export function PerformanceReportView() {
             </TouchableOpacity>
           </View>
         </View>
+      </Modal>
+
+      <Modal
+        visible={shareModalVisible}
+        animationType="slide"
+        onRequestClose={() => setShareModalVisible(false)}
+      >
+        <ShareAchievementsPanel onClose={() => setShareModalVisible(false)} />
       </Modal>
     </>
   );
