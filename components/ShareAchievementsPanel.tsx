@@ -16,35 +16,28 @@ import { ThemedView } from '@/components/ThemedView';
 import { ThemedButton } from '@/components/ThemedButton';
 import { ThemedCard } from '@/components/ThemedCard';
 import { IconSymbol } from '@/components/ui/IconSymbol';
-import AsyncStorage from '@react-native-async-storage/async-storage';
 import AuthService from '@/services/AuthService';
 import { SubscriptionService } from '@/services/SubscriptionService';
 import { getTextDirection, formatRTLText } from '@/utils/rtl-utils';
-import { supabase } from '@/config/supabase';
-
-function getShareBaseUrl(): string {
-  if (typeof window !== 'undefined' && window.location?.origin) {
-    return window.location.origin;
-  }
-  const env = typeof process !== 'undefined' ? process.env : undefined;
-  const url = (env?.EXPO_PUBLIC_APP_URL ?? '').trim();
-  return url ? url.replace(/\/$/, '') : '';
-}
+import {
+  getShareBaseUrl,
+  buildAchievementsReportSnapshot,
+  upsertAchievementsShare,
+} from '@/utils/shareAchievements';
 
 const PAID_PLANS = ['yearly', 'half_yearly'];
 
 export interface ShareAchievementsPanelProps {
-  /** يُستدعى عند الضغط على زر الرجوع/الإغلاق. */
+  /** يُستدعى عند الضغط على زر الرجوع. */
   onClose: () => void;
 }
 
 /**
- * محتوى شاشة "مشاركة الإنجازات" مستخرَج كمكوّن مشترك حتى يمكن عرضه إما
- * كصفحة كاملة مستقلة (app/share-achievements.tsx) أو كنافذة منزلقة فوق
- * صفحة أخرى (مثل التقرير الشامل في PerformanceReportView.tsx) بلا أي
- * انتقال فعلي بين الصفحات — لأن presentation: 'modal' على مستوى
- * الـ Stack (React Navigation native-stack) ليس له أي أثر بصري على الويب،
- * فاستُبدل بنافذة Modal حقيقية تعمل بنفس الشكل على كل المنصات.
+ * محتوى صفحة "مشاركة الإنجازات" المستقلة (app/share-achievements.tsx):
+ * تُنشئ رابطًا عامًا وتعرضه في بطاقة مع خياري نسخ/مشاركة صريحين.
+ * لزر "مشاركة الإنجازات" السريع من داخل التقرير الشامل بلا أي صفحة
+ * وسيطة، انظر hooks/useAchievementsShareLink.ts (يشارك معها منطق
+ * توليد الرابط عبر utils/shareAchievements.ts).
  */
 export function ShareAchievementsPanel({ onClose }: ShareAchievementsPanelProps) {
   const router = useRouter();
@@ -65,29 +58,6 @@ export function ShareAchievementsPanel({ onClose }: ShareAchievementsPanelProps)
       setCanUseShare(PAID_PLANS.includes(plan));
     })();
   }, []);
-
-  const buildReportSnapshot = async () => {
-    const [performanceData, basicDataRaw] = await Promise.all([
-      AsyncStorage.getItem('performanceData'),
-      AsyncStorage.getItem('basicData'),
-    ]);
-    // نخزّن فقط الحقول المعروضة فعليًا في صفحة العرض العامة (share/[token].tsx):
-    // الاسم والمهنة. سياسة القراءة على جدول shared_achievements مفتوحة للجميع
-    // (USING (true)) — لذا لا نخزّن هنا أي بيانات حساسة (بريد، جوال، اسم مدرسة...)
-    // حتى لا تُعرَّض فعليًا لأي شخص يعرف الرابط أو يستعلم عن الجدول مباشرة.
-    const fullBasicData = basicDataRaw ? JSON.parse(basicDataRaw) : null;
-    const basicData = fullBasicData
-      ? {
-          fullName: fullBasicData.fullName,
-          profession: fullBasicData.profession,
-        }
-      : null;
-    return {
-      performanceData: performanceData ? JSON.parse(performanceData) : [],
-      basicData,
-      generatedAt: new Date().toISOString(),
-    };
-  };
 
   const handleGenerateLink = async () => {
     const baseUrl = getShareBaseUrl();
@@ -121,25 +91,9 @@ export function ShareAchievementsPanel({ onClose }: ShareAchievementsPanelProps)
     setGenerating(true);
     setShareLink('');
     try {
-      const reportSnapshot = await buildReportSnapshot();
-      const storageToken = `public-${user.id}`;
-      try {
-        await supabase.from('shared_achievements').upsert(
-          {
-            token: storageToken,
-            user_id: user.id,
-            share_type: 'public',
-            report_data: reportSnapshot,
-            updated_at: new Date().toISOString(),
-          },
-          { onConflict: 'token' }
-        );
-      } catch (e) {
-        console.warn('Could not save shared report (table may not exist):', e);
-      }
-
-      const path = `/share/${storageToken}`;
-      setShareLink(`${baseUrl}${path}`);
+      const reportSnapshot = await buildAchievementsReportSnapshot();
+      const storageToken = await upsertAchievementsShare(user.id, reportSnapshot);
+      setShareLink(`${baseUrl}/share/${storageToken}`);
     } catch (e) {
       console.error(e);
       AlertService.alert('خطأ', 'حدث خطأ أثناء إنشاء الرابط');

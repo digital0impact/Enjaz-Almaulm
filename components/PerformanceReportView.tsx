@@ -7,7 +7,7 @@ import { useFocusEffect } from '@react-navigation/native';
 import { ThemedText } from '@/components/ThemedText';
 import { ThemedView } from '@/components/ThemedView';
 import { IconSymbol } from '@/components/ui/IconSymbol';
-import { ShareAchievementsPanel } from '@/components/ShareAchievementsPanel';
+import { useAchievementsShareLink } from '@/hooks/useAchievementsShareLink';
 import { useRouter } from 'expo-router';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import AuthService from '@/services/AuthService';
@@ -41,8 +41,8 @@ export function PerformanceReportView() {
   const [isExporting, setIsExporting] = useState(false);
   /** تحميل Word على الويب: عرض نافذة تحتوي على رابط التحميل */
   const [wordDownload, setWordDownload] = useState<{ url: string; name: string } | null>(null);
-  /** نافذة "مشاركة الإنجازات" المنزلقة (بدل الانتقال لصفحة منفصلة). */
-  const [shareModalVisible, setShareModalVisible] = useState(false);
+  /** توليد رابط مشاركة الإنجازات ومشاركته مباشرة عبر شاشة المشاركة الأصلية للجهاز، بلا أي صفحة أو نافذة وسيطة. */
+  const { generating: isGeneratingShareLink, generateAndShare: handleShareAchievements } = useAchievementsShareLink();
   // إضافة مستمع للتركيز على الصفحة باستخدام useFocusEffect
   useFocusEffect(
     React.useCallback(() => {
@@ -1193,12 +1193,17 @@ export function PerformanceReportView() {
             <ThemedView style={styles.actionButtons}>
               <TouchableOpacity
                 style={styles.exportButton}
-                onPress={() => setShareModalVisible(true)}
+                onPress={handleShareAchievements}
+                disabled={isGeneratingShareLink}
                 activeOpacity={0.7}
               >
-                <IconSymbol size={20} name="square.and.arrow.up" color="#1c1f33" />
+                {isGeneratingShareLink ? (
+                  <ActivityIndicator color="#1c1f33" size="small" />
+                ) : (
+                  <IconSymbol size={20} name="square.and.arrow.up" color="#1c1f33" />
+                )}
                 <ThemedText style={styles.buttonText}>
-                  {formatRTLText('مشاركة الإنجازات')}
+                  {isGeneratingShareLink ? formatRTLText('جارٍ التجهيز...') : formatRTLText('مشاركة الإنجازات')}
                 </ThemedText>
               </TouchableOpacity>
               <ThemedText style={styles.exportSectionTitle}>
@@ -1276,14 +1281,6 @@ export function PerformanceReportView() {
             </TouchableOpacity>
           </View>
         </View>
-      </Modal>
-
-      <Modal
-        visible={shareModalVisible}
-        animationType="slide"
-        onRequestClose={() => setShareModalVisible(false)}
-      >
-        <ShareAchievementsPanel onClose={() => setShareModalVisible(false)} />
       </Modal>
     </>
   );
