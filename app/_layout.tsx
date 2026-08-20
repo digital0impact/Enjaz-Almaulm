@@ -33,7 +33,12 @@ export default function Layout() {
               screenOptions={{
                 headerShown: false,
               }}
-            />
+            >
+              {/* نافذة منزلقة من أسفل الشاشة بدل صفحة كاملة منفصلة،
+                  حتى لا يشعر المستخدم بمغادرة الصفحة التي فتح منها
+                  المشاركة (مثل التقرير الشامل). */}
+              <Stack.Screen name="share-achievements" options={{ presentation: 'modal' }} />
+            </Stack>
           </AppLayoutWrapper>
         </View>
       </AppAlertProvider>
