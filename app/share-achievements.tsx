@@ -12,7 +12,6 @@ import {
 import { AlertService } from '@/services/AlertService';
 import { useRouter } from 'expo-router';
 import Constants from 'expo-constants';
-import * as Crypto from 'expo-crypto';
 
 import { ThemedText } from '@/components/ThemedText';
 import { ThemedView } from '@/components/ThemedView';
@@ -25,8 +24,6 @@ import AuthService from '@/services/AuthService';
 import { SubscriptionService } from '@/services/SubscriptionService';
 import { getTextDirection, formatRTLText } from '@/utils/rtl-utils';
 import { supabase } from '@/config/supabase';
-
-type LinkType = 'public' | 'private';
 
 function getShareBaseUrl(): string {
   if (typeof window !== 'undefined' && window.location?.origin) {
@@ -41,7 +38,6 @@ const PAID_PLANS = ['yearly', 'half_yearly'];
 
 export default function ShareAchievementsScreen() {
   const router = useRouter();
-  const [linkType, setLinkType] = useState<LinkType>('private');
   const [shareLink, setShareLink] = useState<string>('');
   const [generating, setGenerating] = useState(false);
   const [copied, setCopied] = useState(false);
@@ -59,13 +55,6 @@ export default function ShareAchievementsScreen() {
       setCanUseShare(PAID_PLANS.includes(plan));
     })();
   }, []);
-
-  const generateToken = async (): Promise<string> => {
-    const bytes = await Crypto.getRandomBytesAsync(32);
-    return Array.from(bytes)
-      .map((b) => b.toString(16).padStart(2, '0'))
-      .join('');
-  };
 
   const buildReportSnapshot = async () => {
     const [performanceData, basicDataRaw] = await Promise.all([
@@ -124,15 +113,13 @@ export default function ShareAchievementsScreen() {
     try {
 
       const reportSnapshot = await buildReportSnapshot();
-      const token = linkType === 'private' ? await generateToken() : encodeURIComponent(user.id);
-
-      const storageToken = linkType === 'private' ? token : `public-${user.id}`;
+      const storageToken = `public-${user.id}`;
       try {
         await supabase.from('shared_achievements').upsert(
           {
             token: storageToken,
             user_id: user.id,
-            share_type: linkType,
+            share_type: 'public',
             report_data: reportSnapshot,
             updated_at: new Date().toISOString(),
           },
@@ -142,7 +129,7 @@ export default function ShareAchievementsScreen() {
         console.warn('Could not save shared report (table may not exist):', e);
       }
 
-      const path = `/share/${linkType === 'private' ? token : `public-${user.id}`}`;
+      const path = `/share/${storageToken}`;
       setShareLink(`${baseUrl}${path}`);
     } catch (e) {
       console.error(e);
@@ -220,7 +207,7 @@ export default function ShareAchievementsScreen() {
               {formatRTLText('مشاركة الإنجازات')}
             </ThemedText>
             <ThemedText style={[styles.subtitle, getTextDirection()]}>
-              {formatRTLText('إنشاء رابط عام أو خاص لعرض ملخص أدائك المهني ومشاركته مع المشرف أو المدرسة أو لجنة التقييم')}
+              {formatRTLText('إنشاء رابط عام لعرض ملخص أدائك المهني ومشاركته مع المشرف أو المدرسة أو لجنة التقييم')}
             </ThemedText>
           </ThemedView>
 
@@ -246,57 +233,6 @@ export default function ShareAchievementsScreen() {
               </ThemedView>
             </ThemedCard>
           )}
-
-          <ThemedCard style={styles.card}>
-            <ThemedText style={[styles.cardTitle, getTextDirection()]}>
-              {formatRTLText('نوع الرابط')}
-            </ThemedText>
-            <ThemedView style={styles.toggleRow}>
-              <TouchableOpacity
-                style={[styles.toggleOption, linkType === 'private' && styles.toggleOptionActive]}
-                onPress={() => setLinkType('private')}
-              >
-                <IconSymbol
-                  size={22}
-                  name="lock.fill"
-                  color={linkType === 'private' ? '#fff' : '#666'}
-                />
-                <ThemedText
-                  style={[
-                    styles.toggleText,
-                    getTextDirection(),
-                    linkType === 'private' && styles.toggleTextActive,
-                  ]}
-                >
-                  {formatRTLText('رابط خاص')}
-                </ThemedText>
-              </TouchableOpacity>
-              <TouchableOpacity
-                style={[styles.toggleOption, linkType === 'public' && styles.toggleOptionActive]}
-                onPress={() => setLinkType('public')}
-              >
-                <IconSymbol
-                  size={22}
-                  name="globe"
-                  color={linkType === 'public' ? '#fff' : '#666'}
-                />
-                <ThemedText
-                  style={[
-                    styles.toggleText,
-                    getTextDirection(),
-                    linkType === 'public' && styles.toggleTextActive,
-                  ]}
-                >
-                  {formatRTLText('رابط عام')}
-                </ThemedText>
-              </TouchableOpacity>
-            </ThemedView>
-            <ThemedText style={[styles.toggleHint, getTextDirection()]}>
-              {linkType === 'private'
-                ? formatRTLText('الرابط الخاص: لا يصل إليه إلا من يملك الرابط.')
-                : formatRTLText('الرابط العام: يمكن الوصول إليه من يعرف الرابط.')}
-            </ThemedText>
-          </ThemedCard>
 
           <TouchableOpacity
             style={[
@@ -468,51 +404,6 @@ const styles = StyleSheet.create({
     color: '#fff',
     fontSize: 14,
     fontWeight: '600',
-  },
-  card: {
-    backgroundColor: '#FFFFFF',
-    borderRadius: 16,
-    padding: 20,
-    marginBottom: 16,
-    borderWidth: 1,
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.2,
-    shadowRadius: 8,
-    elevation: 6,
-  },
-  cardTitle: {
-    fontSize: 20,
-    fontWeight: 'bold',
-    color: '#1c1f33',
-    marginBottom: 12,
-    textAlign: 'right',
-    writingDirection: 'rtl',
-  },
-  toggleRow: { flexDirection: 'row-reverse', gap: 12, marginBottom: 8 },
-  toggleOption: {
-    flex: 1,
-    flexDirection: 'row-reverse',
-    alignItems: 'center',
-    justifyContent: 'center',
-    gap: 8,
-    paddingVertical: 14,
-    paddingHorizontal: 16,
-    borderRadius: 12,
-    borderWidth: 2,
-    borderColor: '#E5E5EA',
-    backgroundColor: '#F8F9FA',
-  },
-  toggleOptionActive: {
-    borderColor: '#abd6ce',
-    backgroundColor: '#abd6ce',
-  },
-  toggleText: { fontSize: 16, fontWeight: '600', color: '#666666', writingDirection: 'rtl' },
-  toggleTextActive: { color: '#fff' },
-  toggleHint: {
-    fontSize: 13,
-    color: '#888888',
-    textAlign: 'right',
-    writingDirection: 'rtl',
   },
   primaryButton: {
     flexDirection: 'row-reverse',
