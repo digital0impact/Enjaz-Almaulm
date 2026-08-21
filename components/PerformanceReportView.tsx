@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
-import { StyleSheet, TouchableOpacity, Platform, View, ActivityIndicator, Linking, Modal } from 'react-native';
+import { StyleSheet, TouchableOpacity, Platform, View, ActivityIndicator, Linking, Modal, Dimensions } from 'react-native';
 import { AlertService } from '@/services/AlertService';
+import { PieChart, ProgressChart } from 'react-native-chart-kit';
 import { useFocusEffect } from '@react-navigation/native';
 
 import { ThemedText } from '@/components/ThemedText';
@@ -243,120 +244,124 @@ export function PerformanceReportView() {
   };
 
   /**
-   * شريط ملخص مضغوط (بدل لوحة القيادة الكبيرة السابقة التي كانت تضم
-   * أقوى/أضعف 3 محاور ورسمين بيانيين) — المتوسط العام فقط مع 3 شارات
-   * صغيرة (ممتاز/جيد/يحتاج تحسين)، تاركًا الحيّز الأكبر من الصفحة
-   * لقسم "تفاصيل محاور الأداء" الجديد أدناه (renderAxisDetails).
+   * لوحة قيادة برسوم بيانية (حلقة إكمال + مخطط دائري لتوزيع المستويات
+   * + قائمة أشرطة لترتيب المحاور)، بدل عرض تفاصيل كل محور وشواهده —
+   * مستوحاة من قوالب لوحات المعلومات المرئية (أرقام إجمالية أعلى
+   * الصفحة، ثم رسوم دائرية/حلقية، ثم رسم شريطي)، بحسب طلب المستخدم.
    */
-  const renderDashboardSummary = () => {
+  const renderDashboard = () => {
     const overallAverage = calculateOverallAverage();
     const scores = performanceData.map(item => Number(item?.score ?? 0));
     const excellentCount = scores.filter(s => s >= 90).length;
     const goodCount = scores.filter(s => s >= 80 && s < 90).length;
+    const fairCount = scores.filter(s => s >= 70 && s < 80).length;
     const needsImprovementCount = scores.filter(s => s < 70).length;
+    const chartWidth = Dimensions.get('window').width - 64;
+    const halfChartWidth = Math.max(120, chartWidth / 2 - 12);
+
+    const levelPieData = [
+      { name: formatRTLText('ممتاز'), count: excellentCount, color: '#4CAF50', legendFontColor: '#1c1f33', legendFontSize: 11 },
+      { name: formatRTLText('جيد'), count: goodCount, color: '#FF9800', legendFontColor: '#1c1f33', legendFontSize: 11 },
+      { name: formatRTLText('متوسط'), count: fairCount, color: '#FFC107', legendFontColor: '#1c1f33', legendFontSize: 11 },
+      { name: formatRTLText('يحتاج تحسين'), count: needsImprovementCount, color: '#F44336', legendFontColor: '#1c1f33', legendFontSize: 11 },
+    ].filter(d => d.count > 0);
+
+    const sortedByScore = [...performanceData].sort((a, b) => b.score - a.score);
 
     return (
-      <ThemedView style={styles.summaryStrip}>
-        <ThemedView style={styles.summaryStripOverall}>
-          <ThemedText style={[styles.summaryStripOverallValue, { color: getScoreColor(overallAverage) }]}>
-            {overallAverage}%
-          </ThemedText>
-          <ThemedText style={styles.summaryStripOverallLabel}>
-            {formatRTLText(`المتوسط العام — ${getScoreLevel(overallAverage)}`)}
-          </ThemedText>
-        </ThemedView>
-        <ThemedView style={styles.summaryStripBadges}>
-          <ThemedView style={styles.summaryStripBadge}>
-            <ThemedText style={styles.summaryStripBadgeValue}>{excellentCount}</ThemedText>
-            <ThemedText style={styles.summaryStripBadgeLabel}>{formatRTLText('ممتاز')}</ThemedText>
+      <ThemedView style={styles.dashboardCard}>
+        <ThemedText type="subtitle" style={styles.summaryTitle}>{formatRTLText('لوحة القيادة')}</ThemedText>
+
+        {/* صف الأرقام الإجمالية */}
+        <ThemedView style={styles.statsGrid}>
+          <ThemedView style={styles.statCard}>
+            <ThemedText style={styles.statValue}>{performanceData.length}</ThemedText>
+            <ThemedText style={styles.statLabel}>{formatRTLText('عدد المحاور')}</ThemedText>
           </ThemedView>
-          <ThemedView style={styles.summaryStripBadge}>
-            <ThemedText style={styles.summaryStripBadgeValue}>{goodCount}</ThemedText>
-            <ThemedText style={styles.summaryStripBadgeLabel}>{formatRTLText('جيد')}</ThemedText>
+          <ThemedView style={styles.statCard}>
+            <ThemedText style={[styles.statValue, { color: getScoreColor(overallAverage) }]}>{overallAverage}%</ThemedText>
+            <ThemedText style={styles.statLabel}>{formatRTLText('المتوسط العام')}</ThemedText>
           </ThemedView>
-          <ThemedView style={styles.summaryStripBadge}>
-            <ThemedText style={[styles.summaryStripBadgeValue, needsImprovementCount > 0 && styles.summaryStripBadgeValueWarning]}>
+          <ThemedView style={styles.statCard}>
+            <ThemedText style={[styles.statValue, { color: '#4CAF50' }]}>{excellentCount}</ThemedText>
+            <ThemedText style={styles.statLabel}>{formatRTLText('ممتاز')}</ThemedText>
+          </ThemedView>
+          <ThemedView style={styles.statCard}>
+            <ThemedText style={[styles.statValue, needsImprovementCount > 0 && { color: '#F44336' }]}>
               {needsImprovementCount}
             </ThemedText>
-            <ThemedText style={styles.summaryStripBadgeLabel}>{formatRTLText('يحتاج تحسين')}</ThemedText>
+            <ThemedText style={styles.statLabel}>{formatRTLText('يحتاج تحسين')}</ThemedText>
           </ThemedView>
+        </ThemedView>
+
+        {/* صف الرسوم الدائرية: حلقة الإكمال العام + توزيع المستويات */}
+        <ThemedView style={styles.chartsRow}>
+          <ThemedView style={styles.chartBox}>
+            <ThemedText style={styles.chartBoxTitle}>{formatRTLText('نسبة الإكمال العامة')}</ThemedText>
+            <ThemedView style={styles.progressRingWrap}>
+              <ProgressChart
+                data={{ data: [Math.max(0, Math.min(1, overallAverage / 100))] }}
+                width={halfChartWidth}
+                height={130}
+                strokeWidth={10}
+                radius={40}
+                hideLegend
+                chartConfig={{
+                  backgroundGradientFrom: '#fff',
+                  backgroundGradientTo: '#fff',
+                  color: () => getScoreColor(overallAverage),
+                }}
+              />
+              <ThemedView style={styles.progressRingCenterOverlay} pointerEvents="none">
+                <ThemedText style={[styles.progressRingCenterText, { color: getScoreColor(overallAverage) }]}>
+                  {overallAverage}%
+                </ThemedText>
+              </ThemedView>
+            </ThemedView>
+          </ThemedView>
+
+          <ThemedView style={styles.chartBox}>
+            <ThemedText style={styles.chartBoxTitle}>{formatRTLText('توزيع المستويات')}</ThemedText>
+            {levelPieData.length > 0 ? (
+              <PieChart
+                data={levelPieData}
+                width={halfChartWidth}
+                height={130}
+                chartConfig={{ color: (opacity = 1) => `rgba(28, 31, 51, ${opacity})` }}
+                accessor="count"
+                backgroundColor="transparent"
+                paddingLeft="8"
+                hasLegend={false}
+              />
+            ) : (
+              <ThemedText style={styles.chartEmptyText}>{formatRTLText('لا توجد بيانات')}</ThemedText>
+            )}
+          </ThemedView>
+        </ThemedView>
+
+        {/* رسم شريطي: ترتيب المحاور حسب الأداء */}
+        <ThemedView style={styles.barListSection}>
+          <ThemedText style={styles.chartBoxTitle}>{formatRTLText('ترتيب المحاور حسب الأداء')}</ThemedText>
+          {sortedByScore.map((item) => (
+            <ThemedView key={item.id} style={styles.barListRow}>
+              <ThemedView style={styles.barListLabelRow}>
+                <ThemedText style={styles.barListTitle} numberOfLines={1}>{formatRTLText(item.title)}</ThemedText>
+                <ThemedText style={[styles.barListScore, { color: getScoreColor(item.score) }]}>{item.score}%</ThemedText>
+              </ThemedView>
+              <ThemedView style={styles.barListTrack}>
+                <ThemedView
+                  style={[
+                    styles.barListFill,
+                    { width: `${Math.min(100, Math.max(0, item.score))}%`, backgroundColor: getScoreColor(item.score) },
+                  ]}
+                />
+              </ThemedView>
+            </ThemedView>
+          ))}
         </ThemedView>
       </ThemedView>
     );
   };
-
-  /**
-   * قسم "تفاصيل محاور الأداء" — يعرض كل محور بعنوانه ودرجته وشريط تقدّمه
-   * وقائمة شواهده (متوفر/غير متوفر)، وهو المحتوى الرئيسي الذي كان
-   * سابقًا موجودًا فقط داخل ملف Word/PDF المصدَّر ولم يظهر على الشاشة.
-   */
-  const renderAxisDetails = () => (
-    <ThemedView style={styles.axisDetailsSection}>
-      <ThemedText type="subtitle" style={styles.sectionTitle}>
-        {formatRTLText('تفاصيل محاور الأداء')}
-      </ThemedText>
-      {performanceData.map((item, index) => {
-        const evidence = item.evidence || [];
-        const availableEvidence = evidence.filter(e => e.available);
-        const missingEvidence = evidence.filter(e => !e.available);
-        return (
-          <ThemedView key={item.id} style={styles.axisDetailCard}>
-            <ThemedView style={styles.axisDetailHeader}>
-              <ThemedView style={styles.axisDetailNumber}>
-                <ThemedText style={styles.axisDetailNumberText}>{index + 1}</ThemedText>
-              </ThemedView>
-              <ThemedView style={styles.axisDetailTitleWrap}>
-                <ThemedText style={styles.axisDetailTitle}>{formatRTLText(item.title)}</ThemedText>
-                <ThemedText style={[styles.axisDetailScore, { color: getScoreColor(item.score) }]}>
-                  {formatRTLText(`الدرجة: ${item.score}% — ${getScoreLevel(item.score)}`)}
-                </ThemedText>
-              </ThemedView>
-            </ThemedView>
-
-            <ThemedView style={styles.axisDetailProgressBar}>
-              <ThemedView
-                style={[
-                  styles.axisDetailProgressFill,
-                  { width: `${Math.min(100, Math.max(0, item.score))}%`, backgroundColor: getScoreColor(item.score) },
-                ]}
-              />
-            </ThemedView>
-
-            {evidence.length > 0 && (
-              <ThemedView style={styles.axisDetailEvidence}>
-                {availableEvidence.length > 0 && (
-                  <>
-                    <ThemedText style={styles.axisDetailEvidenceHeader}>
-                      {formatRTLText('الشواهد المتوفرة:')}
-                    </ThemedText>
-                    {availableEvidence.map((e, i) => (
-                      <ThemedView key={`available-${i}`} style={styles.axisDetailEvidenceItem}>
-                        <IconSymbol size={12} name="checkmark.circle.fill" color="#4CAF50" />
-                        <ThemedText style={styles.axisDetailEvidenceAvailableText}>{formatRTLText(e.name)}</ThemedText>
-                      </ThemedView>
-                    ))}
-                  </>
-                )}
-                {missingEvidence.length > 0 && (
-                  <>
-                    <ThemedText style={[styles.axisDetailEvidenceHeader, styles.axisDetailEvidenceHeaderSpaced]}>
-                      {formatRTLText('الشواهد غير المتوفرة:')}
-                    </ThemedText>
-                    {missingEvidence.map((e, i) => (
-                      <ThemedView key={`missing-${i}`} style={styles.axisDetailEvidenceItem}>
-                        <IconSymbol size={12} name="xmark.circle.fill" color="#F44336" />
-                        <ThemedText style={styles.axisDetailEvidenceMissingText}>{formatRTLText(e.name)}</ThemedText>
-                      </ThemedView>
-                    ))}
-                  </>
-                )}
-              </ThemedView>
-            )}
-          </ThemedView>
-        );
-      })}
-    </ThemedView>
-  );
 
   type ReportData = {
     performanceId: number;
@@ -1141,8 +1146,7 @@ export function PerformanceReportView() {
   return (
     <>
             <ThemedView style={styles.content}>
-              {renderDashboardSummary()}
-              {renderAxisDetails()}
+              {renderDashboard()}
 
             <ThemedView style={styles.recommendationsCard}>
                               <ThemedText style={styles.recommendationsTitle}>
@@ -1366,12 +1370,11 @@ const styles = StyleSheet.create<any>({
     padding: 20,
     backgroundColor: 'transparent',
   },
-  summaryStrip: {
-    flexDirection: 'row-reverse',
-    alignItems: 'center',
-    gap: 14,
+  dashboardCard: {
+    width: '100%',
+    overflow: 'hidden',
     marginBottom: 20,
-    padding: 16,
+    padding: 20,
     backgroundColor: 'rgba(255, 255, 255, 0.9)',
     borderRadius: 16,
     borderWidth: 1,
@@ -1382,150 +1385,124 @@ const styles = StyleSheet.create<any>({
     shadowRadius: 8,
     elevation: 6,
   },
-  summaryStripOverall: {
-    alignItems: 'center',
-    backgroundColor: 'transparent',
-  },
-  summaryStripOverallValue: {
-    fontSize: 28,
+  summaryTitle: {
+    fontSize: 20,
     fontWeight: 'bold',
-    textAlign: 'center',
-  },
-  summaryStripOverallLabel: {
-    fontSize: 11,
-    fontWeight: '600',
+    marginBottom: 16,
     color: '#1c1f33',
     textAlign: 'center',
-    marginTop: 2,
-    writingDirection: 'rtl',
   },
-  summaryStripBadges: {
-    flex: 1,
+  statsGrid: {
     flexDirection: 'row-reverse',
     gap: 8,
-    backgroundColor: 'transparent',
+    marginBottom: 20,
   },
-  summaryStripBadge: {
+  statCard: {
     flex: 1,
+    paddingVertical: 12,
+    paddingHorizontal: 6,
+    borderRadius: 12,
     alignItems: 'center',
-    paddingVertical: 8,
     backgroundColor: '#f8f9fa',
-    borderRadius: 10,
     borderWidth: 1,
     borderColor: '#e9ecef',
   },
-  summaryStripBadgeValue: {
-    fontSize: 16,
+  statValue: {
+    fontSize: 18,
     fontWeight: 'bold',
     color: '#1c1f33',
+    textAlign: 'center',
+    writingDirection: 'rtl',
   },
-  summaryStripBadgeValueWarning: {
-    color: '#F44336',
-  },
-  summaryStripBadgeLabel: {
+  statLabel: {
     fontSize: 10,
     color: '#666666',
-    marginTop: 2,
+    textAlign: 'center',
+    marginTop: 4,
     writingDirection: 'rtl',
   },
-  axisDetailsSection: {
+  chartsRow: {
+    flexDirection: 'row-reverse',
+    gap: 12,
     marginBottom: 20,
   },
-  axisDetailCard: {
-    borderRadius: 15,
-    marginBottom: 16,
-    padding: 16,
-    backgroundColor: 'rgba(255, 255, 255, 0.9)',
-    borderWidth: 1,
-    borderColor: 'rgba(229, 229, 234, 0.5)',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
-    elevation: 3,
-  },
-  axisDetailHeader: {
-    flexDirection: 'row-reverse',
-    alignItems: 'center',
-    marginBottom: 12,
-    backgroundColor: 'transparent',
-  },
-  axisDetailNumber: {
-    backgroundColor: '#add4ce',
-    width: 32,
-    height: 32,
-    borderRadius: 16,
-    justifyContent: 'center',
-    alignItems: 'center',
-    marginLeft: 12,
-  },
-  axisDetailNumberText: {
-    fontSize: 14,
-    fontWeight: 'bold',
-    color: '#1c1f33',
-  },
-  axisDetailTitleWrap: {
+  chartBox: {
     flex: 1,
-    backgroundColor: 'transparent',
+    alignItems: 'center',
+    backgroundColor: '#f8f9fa',
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: '#e9ecef',
+    paddingVertical: 12,
   },
-  axisDetailTitle: {
-    fontSize: 15,
+  chartBoxTitle: {
+    fontSize: 13,
     fontWeight: 'bold',
     color: '#1c1f33',
-    textAlign: 'right',
-    writingDirection: 'rtl',
+    textAlign: 'center',
     marginBottom: 4,
-  },
-  axisDetailScore: {
-    fontSize: 13,
-    fontWeight: '600',
-    textAlign: 'right',
     writingDirection: 'rtl',
   },
-  axisDetailProgressBar: {
-    height: 6,
-    backgroundColor: '#E5E5EA',
-    borderRadius: 3,
-    marginBottom: 12,
-    overflow: 'hidden',
+  progressRingWrap: {
+    alignItems: 'center',
+    justifyContent: 'center',
   },
-  axisDetailProgressFill: {
-    height: '100%',
-    borderRadius: 3,
-  },
-  axisDetailEvidence: {
+  progressRingCenterOverlay: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    alignItems: 'center',
+    justifyContent: 'center',
     backgroundColor: 'transparent',
   },
-  axisDetailEvidenceHeader: {
+  progressRingCenterText: {
+    fontSize: 18,
+    fontWeight: 'bold',
+  },
+  chartEmptyText: {
+    fontSize: 13,
+    color: '#999',
+    textAlign: 'center',
+    paddingVertical: 30,
+  },
+  barListSection: {
+    backgroundColor: 'transparent',
+  },
+  barListRow: {
+    marginBottom: 10,
+    backgroundColor: 'transparent',
+  },
+  barListLabelRow: {
+    flexDirection: 'row-reverse',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 4,
+    backgroundColor: 'transparent',
+  },
+  barListTitle: {
+    fontSize: 12,
+    fontWeight: '600',
+    color: '#1c1f33',
+    flex: 1,
+    textAlign: 'right',
+    writingDirection: 'rtl',
+  },
+  barListScore: {
     fontSize: 12,
     fontWeight: 'bold',
-    color: '#333',
-    marginBottom: 8,
-    textAlign: 'right',
-    writingDirection: 'rtl',
+    marginLeft: 8,
   },
-  axisDetailEvidenceHeaderSpaced: {
-    marginTop: 12,
+  barListTrack: {
+    height: 10,
+    backgroundColor: '#E5E5EA',
+    borderRadius: 5,
+    overflow: 'hidden',
   },
-  axisDetailEvidenceItem: {
-    flexDirection: 'row-reverse',
-    alignItems: 'center',
-    gap: 6,
-    marginBottom: 6,
-    backgroundColor: 'transparent',
-  },
-  axisDetailEvidenceAvailableText: {
-    fontSize: 11,
-    color: '#2E7D32',
-    flex: 1,
-    textAlign: 'right',
-    writingDirection: 'rtl',
-  },
-  axisDetailEvidenceMissingText: {
-    fontSize: 11,
-    color: '#D32F2F',
-    flex: 1,
-    textAlign: 'right',
-    writingDirection: 'rtl',
+  barListFill: {
+    height: '100%',
+    borderRadius: 5,
   },
   horizontalScrollContainer: {
     marginVertical: 10,
@@ -1699,37 +1676,6 @@ const styles = StyleSheet.create<any>({
     shadowOpacity: 0.3,
     shadowRadius: 3,
     elevation: 3,
-  },
-
-  statsGrid: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    justifyContent: 'space-between',
-    gap: 10,
-  },
-  statCard: {
-    width: '48%',
-    padding: 15,
-    borderRadius: 12,
-    alignItems: 'center',
-    marginBottom: 10,
-    backgroundColor: 'rgba(255, 255, 255, 0.3)',
-  },
-  statValue: {
-    fontSize: 20,
-    fontWeight: 'bold',
-    color: '#333',
-    marginVertical: 5,
-    textAlign: 'center',
-    writingDirection: 'rtl',
-    textDirection: 'rtl',
-  },
-  statLabel: {
-    fontSize: 12,
-    color: '#666',
-    textAlign: 'center',
-    writingDirection: 'rtl',
-    textDirection: 'rtl',
   },
   recommendationsCard: {
     marginBottom: 20,
