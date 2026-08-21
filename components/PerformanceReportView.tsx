@@ -1,7 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import { StyleSheet, TouchableOpacity, Platform, Dimensions, View, ActivityIndicator, Linking, Modal } from 'react-native';
+import { StyleSheet, TouchableOpacity, Platform, View, ActivityIndicator, Linking, Modal } from 'react-native';
 import { AlertService } from '@/services/AlertService';
-import { PieChart } from 'react-native-chart-kit';
 import { useFocusEffect } from '@react-navigation/native';
 
 import { ThemedText } from '@/components/ThemedText';
@@ -19,8 +18,6 @@ import { getTextDirection, formatRTLText, isRTL } from '@/utils/rtl-utils';
 import { calculateOverallAverageFivePoint } from '@/utils/performance-five-point';
 import { getPerformanceAxesByProfession } from '@/constants/performance-axes';
 import { supabase } from '@/config/supabase';
-
-const { width } = Dimensions.get('window');
 
 type Evidence = {
   name: string;
@@ -245,172 +242,121 @@ export function PerformanceReportView() {
     [key: string]: FileInfo;
   };
 
-  type Category = {
-    name: string;
-    average: number;
-    count: number;
-  };
-
-  const getCategories = (): Category[] => {
-    if (!performanceData || !Array.isArray(performanceData) || performanceData.length === 0) {
-      return [];
-    }
-    
-    // استخدام عناوين المحاور بدلاً من الفئات
-    return performanceData.map(item => ({
-      name: item?.title || 'غير محدد',
-      average: item?.score || 0,
-      count: 1
-    })).filter(cat => cat && cat.name);
-  };
-
-  const renderProgressChart = () => {
-    const sortedData = [...performanceData].sort((a: PerformanceItem, b: PerformanceItem) => b.score - a.score);
-    return (
-      <ThemedView style={styles.chartContainer}>
-        <ThemedText style={styles.chartTitle}>ترتيب المحاور حسب الأداء</ThemedText>
-        <ThemedView>
-          {sortedData.map((item: PerformanceItem, index: number) => (
-            <ThemedView key={item.id} style={{ marginBottom: 8 }}>
-              <ThemedView style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 4 }}>
-                <ThemedText style={{ fontSize: 12, fontWeight: 'bold' }}>{item.title}</ThemedText>
-                <ThemedText style={{ fontSize: 12, color: getScoreColor(item.score) }}>{item.score}%</ThemedText>
-              </ThemedView>
-              <ThemedView style={{ height: 20, backgroundColor: '#f0f0f0', borderRadius: 10, overflow: 'hidden' }}>
-                <ThemedView 
-                  style={{ 
-                    height: '100%', 
-                    backgroundColor: getScoreColor(item.score),
-                    width: `${Math.min(100, item.score)}%`,
-                    borderRadius: 10
-                  }} 
-                />
-              </ThemedView>
-            </ThemedView>
-          ))}
-        </ThemedView>
-      </ThemedView>
-    );
-  };
-
-
-  const CATEGORY_PIE_COLORS = [
-    '#4CAF50', '#2196F3', '#FF9800', '#9C27B0', '#F44336',
-    '#00BCD4', '#8BC34A', '#FFC107', '#3F51B5', '#E91E63', '#795548',
-  ];
-
-  const renderCategoriesChart = () => {
-    const categories = getCategories();
-
-    // التأكد من وجود بيانات
-    if (!categories || categories.length === 0) {
-      return (
-        <ThemedView style={styles.chartContainer}>
-          <ThemedText style={styles.chartTitle}>توزيع محاور الأداء المهني</ThemedText>
-          <ThemedView style={styles.emptyState}>
-            <ThemedText style={styles.emptyStateText}>لا توجد بيانات متاحة للعرض</ThemedText>
-          </ThemedView>
-        </ThemedView>
-      );
-    }
-
-    // التأكد من أن البيانات صحيحة
-    const validCategories = categories.filter(cat => cat && cat.name && typeof cat.average === 'number');
-
-    if (validCategories.length === 0) {
-      return (
-        <ThemedView style={styles.chartContainer}>
-          <ThemedText style={styles.chartTitle}>توزيع محاور الأداء المهني</ThemedText>
-          <ThemedView style={styles.emptyState}>
-            <ThemedText style={styles.emptyStateText}>البيانات غير صحيحة</ThemedText>
-          </ThemedView>
-        </ThemedView>
-      );
-    }
-
-    const pieData = validCategories.map((cat, index) => {
-      const name = String(cat.name || 'غير محدد');
-      return {
-        name: name.length > 12 ? name.substring(0, 12) + '…' : name,
-        score: Math.max(0, cat.average || 0),
-        color: CATEGORY_PIE_COLORS[index % CATEGORY_PIE_COLORS.length],
-        legendFontColor: '#1c1f33',
-        legendFontSize: 11,
-      };
-    });
-
-    return (
-      <ThemedView style={styles.chartContainer}>
-        <ThemedText style={styles.chartTitle}>توزيع محاور الأداء المهني</ThemedText>
-        <PieChart
-          data={pieData}
-          width={Dimensions.get('window').width - 80}
-          height={220}
-          chartConfig={{ color: (opacity = 1) => `rgba(28, 31, 51, ${opacity})` }}
-          accessor="score"
-          backgroundColor="transparent"
-          paddingLeft="15"
-          absolute={false}
-          avoidFalseZero
-          hasLegend
-          style={{ marginVertical: 10 }}
-        />
-      </ThemedView>
-    );
-  };
-
-  const renderDashboard = () => {
+  /**
+   * شريط ملخص مضغوط (بدل لوحة القيادة الكبيرة السابقة التي كانت تضم
+   * أقوى/أضعف 3 محاور ورسمين بيانيين) — المتوسط العام فقط مع 3 شارات
+   * صغيرة (ممتاز/جيد/يحتاج تحسين)، تاركًا الحيّز الأكبر من الصفحة
+   * لقسم "تفاصيل محاور الأداء" الجديد أدناه (renderAxisDetails).
+   */
+  const renderDashboardSummary = () => {
     const overallAverage = calculateOverallAverage();
-    const sortedByScore = [...performanceData].sort((a, b) => b.score - a.score);
-    const strongest = sortedByScore.slice(0, 3);
-    const weakest = [...sortedByScore].reverse().slice(0, 3);
+    const scores = performanceData.map(item => Number(item?.score ?? 0));
+    const excellentCount = scores.filter(s => s >= 90).length;
+    const goodCount = scores.filter(s => s >= 80 && s < 90).length;
+    const needsImprovementCount = scores.filter(s => s < 70).length;
 
     return (
-      <ThemedView style={styles.dashboardCard}>
-        <ThemedText type="subtitle" style={styles.summaryTitle}>لوحة القيادة</ThemedText>
-
-        {/* متوسط الجودة العام */}
-        <ThemedView style={styles.dashboardOverallRow}>
-          <ThemedText style={[styles.dashboardOverallValue, { color: getScoreColor(overallAverage) }]}>
+      <ThemedView style={styles.summaryStrip}>
+        <ThemedView style={styles.summaryStripOverall}>
+          <ThemedText style={[styles.summaryStripOverallValue, { color: getScoreColor(overallAverage) }]}>
             {overallAverage}%
           </ThemedText>
-          <ThemedText style={styles.dashboardOverallLabel}>
-            {formatRTLText(`متوسط الجودة العام — ${getScoreLevel(overallAverage)}`)}
+          <ThemedText style={styles.summaryStripOverallLabel}>
+            {formatRTLText(`المتوسط العام — ${getScoreLevel(overallAverage)}`)}
           </ThemedText>
         </ThemedView>
-
-        {/* أقوى وأضعف ثلاثة محاور */}
-        <ThemedView style={styles.dashboardTopBottomRow}>
-          <ThemedView style={styles.dashboardMiniList}>
-            <ThemedText style={styles.dashboardMiniListTitle}>🏆 أقوى 3 محاور</ThemedText>
-            {strongest.map((item, i) => (
-              <ThemedView key={item.id} style={styles.dashboardMiniRow}>
-                <ThemedText style={styles.dashboardMiniRank}>{i + 1}</ThemedText>
-                <ThemedText style={styles.dashboardMiniName} numberOfLines={1}>{item.title}</ThemedText>
-                <ThemedText style={[styles.dashboardMiniScore, { color: getScoreColor(item.score) }]}>{item.score}%</ThemedText>
-              </ThemedView>
-            ))}
+        <ThemedView style={styles.summaryStripBadges}>
+          <ThemedView style={styles.summaryStripBadge}>
+            <ThemedText style={styles.summaryStripBadgeValue}>{excellentCount}</ThemedText>
+            <ThemedText style={styles.summaryStripBadgeLabel}>{formatRTLText('ممتاز')}</ThemedText>
           </ThemedView>
-          <ThemedView style={styles.dashboardMiniList}>
-            <ThemedText style={styles.dashboardMiniListTitle}>⚠️ أضعف 3 محاور</ThemedText>
-            {weakest.map((item, i) => (
-              <ThemedView key={item.id} style={styles.dashboardMiniRow}>
-                <ThemedText style={styles.dashboardMiniRank}>{i + 1}</ThemedText>
-                <ThemedText style={styles.dashboardMiniName} numberOfLines={1}>{item.title}</ThemedText>
-                <ThemedText style={[styles.dashboardMiniScore, { color: getScoreColor(item.score) }]}>{item.score}%</ThemedText>
-              </ThemedView>
-            ))}
+          <ThemedView style={styles.summaryStripBadge}>
+            <ThemedText style={styles.summaryStripBadgeValue}>{goodCount}</ThemedText>
+            <ThemedText style={styles.summaryStripBadgeLabel}>{formatRTLText('جيد')}</ThemedText>
+          </ThemedView>
+          <ThemedView style={styles.summaryStripBadge}>
+            <ThemedText style={[styles.summaryStripBadgeValue, needsImprovementCount > 0 && styles.summaryStripBadgeValueWarning]}>
+              {needsImprovementCount}
+            </ThemedText>
+            <ThemedText style={styles.summaryStripBadgeLabel}>{formatRTLText('يحتاج تحسين')}</ThemedText>
           </ThemedView>
         </ThemedView>
-
-        {/* درجة كل محور */}
-        {renderProgressChart()}
-
-        {/* رسم بياني تشخيصي مبسط */}
-        {renderCategoriesChart()}
       </ThemedView>
     );
   };
+
+  /**
+   * قسم "تفاصيل محاور الأداء" — يعرض كل محور بعنوانه ودرجته وشريط تقدّمه
+   * وقائمة شواهده (متوفر/غير متوفر)، وهو المحتوى الرئيسي الذي كان
+   * سابقًا موجودًا فقط داخل ملف Word/PDF المصدَّر ولم يظهر على الشاشة.
+   */
+  const renderAxisDetails = () => (
+    <ThemedView style={styles.axisDetailsSection}>
+      <ThemedText type="subtitle" style={styles.sectionTitle}>
+        {formatRTLText('تفاصيل محاور الأداء')}
+      </ThemedText>
+      {performanceData.map((item, index) => {
+        const evidence = item.evidence || [];
+        const availableEvidence = evidence.filter(e => e.available);
+        const missingEvidence = evidence.filter(e => !e.available);
+        return (
+          <ThemedView key={item.id} style={styles.axisDetailCard}>
+            <ThemedView style={styles.axisDetailHeader}>
+              <ThemedView style={styles.axisDetailNumber}>
+                <ThemedText style={styles.axisDetailNumberText}>{index + 1}</ThemedText>
+              </ThemedView>
+              <ThemedView style={styles.axisDetailTitleWrap}>
+                <ThemedText style={styles.axisDetailTitle}>{formatRTLText(item.title)}</ThemedText>
+                <ThemedText style={[styles.axisDetailScore, { color: getScoreColor(item.score) }]}>
+                  {formatRTLText(`الدرجة: ${item.score}% — ${getScoreLevel(item.score)}`)}
+                </ThemedText>
+              </ThemedView>
+            </ThemedView>
+
+            <ThemedView style={styles.axisDetailProgressBar}>
+              <ThemedView
+                style={[
+                  styles.axisDetailProgressFill,
+                  { width: `${Math.min(100, Math.max(0, item.score))}%`, backgroundColor: getScoreColor(item.score) },
+                ]}
+              />
+            </ThemedView>
+
+            {evidence.length > 0 && (
+              <ThemedView style={styles.axisDetailEvidence}>
+                {availableEvidence.length > 0 && (
+                  <>
+                    <ThemedText style={styles.axisDetailEvidenceHeader}>
+                      {formatRTLText('الشواهد المتوفرة:')}
+                    </ThemedText>
+                    {availableEvidence.map((e, i) => (
+                      <ThemedView key={`available-${i}`} style={styles.axisDetailEvidenceItem}>
+                        <IconSymbol size={12} name="checkmark.circle.fill" color="#4CAF50" />
+                        <ThemedText style={styles.axisDetailEvidenceAvailableText}>{formatRTLText(e.name)}</ThemedText>
+                      </ThemedView>
+                    ))}
+                  </>
+                )}
+                {missingEvidence.length > 0 && (
+                  <>
+                    <ThemedText style={[styles.axisDetailEvidenceHeader, styles.axisDetailEvidenceHeaderSpaced]}>
+                      {formatRTLText('الشواهد غير المتوفرة:')}
+                    </ThemedText>
+                    {missingEvidence.map((e, i) => (
+                      <ThemedView key={`missing-${i}`} style={styles.axisDetailEvidenceItem}>
+                        <IconSymbol size={12} name="xmark.circle.fill" color="#F44336" />
+                        <ThemedText style={styles.axisDetailEvidenceMissingText}>{formatRTLText(e.name)}</ThemedText>
+                      </ThemedView>
+                    ))}
+                  </>
+                )}
+              </ThemedView>
+            )}
+          </ThemedView>
+        );
+      })}
+    </ThemedView>
+  );
 
   type ReportData = {
     performanceId: number;
@@ -1195,7 +1141,8 @@ export function PerformanceReportView() {
   return (
     <>
             <ThemedView style={styles.content}>
-              {renderDashboard()}
+              {renderDashboardSummary()}
+              {renderAxisDetails()}
 
             <ThemedView style={styles.recommendationsCard}>
                               <ThemedText style={styles.recommendationsTitle}>
@@ -1419,11 +1366,12 @@ const styles = StyleSheet.create<any>({
     padding: 20,
     backgroundColor: 'transparent',
   },
-  dashboardCard: {
-    width: '100%',
-    overflow: 'hidden',
+  summaryStrip: {
+    flexDirection: 'row-reverse',
+    alignItems: 'center',
+    gap: 14,
     marginBottom: 20,
-    padding: 20,
+    padding: 16,
     backgroundColor: 'rgba(255, 255, 255, 0.9)',
     borderRadius: 16,
     borderWidth: 1,
@@ -1434,97 +1382,150 @@ const styles = StyleSheet.create<any>({
     shadowRadius: 8,
     elevation: 6,
   },
-  summaryTitle: {
-    fontSize: 22,
-    fontWeight: 'bold',
-    marginBottom: 20,
-    color: '#1c1f33',
-    textAlign: 'center',
-
-  },
-  dashboardOverallRow: {
+  summaryStripOverall: {
     alignItems: 'center',
-    paddingVertical: 16,
-    paddingHorizontal: 15,
-    backgroundColor: 'rgba(173, 212, 206, 0.15)',
-    borderRadius: 12,
-    borderWidth: 1,
-    borderColor: 'rgba(173, 212, 206, 0.3)',
-    marginBottom: 16,
+    backgroundColor: 'transparent',
   },
-  dashboardOverallValue: {
-    fontSize: 36,
+  summaryStripOverallValue: {
+    fontSize: 28,
     fontWeight: 'bold',
     textAlign: 'center',
-    lineHeight: 40,
   },
-  dashboardOverallLabel: {
-    fontSize: 14,
+  summaryStripOverallLabel: {
+    fontSize: 11,
     fontWeight: '600',
     color: '#1c1f33',
     textAlign: 'center',
-    marginTop: 4,
+    marginTop: 2,
     writingDirection: 'rtl',
   },
-  dashboardTopBottomRow: {
-    flexDirection: 'row',
-    gap: 10,
-    marginBottom: 16,
-  },
-  dashboardMiniList: {
+  summaryStripBadges: {
     flex: 1,
-    minWidth: 0,
+    flexDirection: 'row-reverse',
+    gap: 8,
+    backgroundColor: 'transparent',
+  },
+  summaryStripBadge: {
+    flex: 1,
+    alignItems: 'center',
+    paddingVertical: 8,
     backgroundColor: '#f8f9fa',
-    borderRadius: 12,
+    borderRadius: 10,
     borderWidth: 1,
     borderColor: '#e9ecef',
-    padding: 12,
   },
-  dashboardMiniListTitle: {
-    fontSize: 13,
+  summaryStripBadgeValue: {
+    fontSize: 16,
     fontWeight: 'bold',
     color: '#1c1f33',
-    textAlign: 'center',
-    marginBottom: 10,
+  },
+  summaryStripBadgeValueWarning: {
+    color: '#F44336',
+  },
+  summaryStripBadgeLabel: {
+    fontSize: 10,
+    color: '#666666',
+    marginTop: 2,
     writingDirection: 'rtl',
   },
-  dashboardMiniRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    minWidth: 0,
-    gap: 6,
-    paddingVertical: 6,
-    borderTopWidth: 1,
-    borderTopColor: '#eef0ef',
-  },
-  dashboardMiniRank: {
-    fontSize: 11,
-    fontWeight: 'bold',
-    color: '#999',
-    width: 14,
-    textAlign: 'center',
-  },
-  dashboardMiniName: {
-    flex: 1,
-    minWidth: 0,
-    fontSize: 11,
-    fontWeight: '600',
-    color: '#1c1f33',
-    writingDirection: 'rtl',
-    textAlign: 'right',
-  },
-  dashboardMiniScore: {
-    fontSize: 12,
-    fontWeight: 'bold',
-  },
-  chartContainer: {
+  axisDetailsSection: {
     marginBottom: 20,
-    padding: 20,
+  },
+  axisDetailCard: {
+    borderRadius: 15,
+    marginBottom: 16,
+    padding: 16,
     backgroundColor: 'rgba(255, 255, 255, 0.9)',
-    borderRadius: 16,
     borderWidth: 1,
     borderColor: 'rgba(229, 229, 234, 0.5)',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    elevation: 3,
+  },
+  axisDetailHeader: {
+    flexDirection: 'row-reverse',
     alignItems: 'center',
+    marginBottom: 12,
+    backgroundColor: 'transparent',
+  },
+  axisDetailNumber: {
+    backgroundColor: '#add4ce',
+    width: 32,
+    height: 32,
+    borderRadius: 16,
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginLeft: 12,
+  },
+  axisDetailNumberText: {
+    fontSize: 14,
+    fontWeight: 'bold',
+    color: '#1c1f33',
+  },
+  axisDetailTitleWrap: {
+    flex: 1,
+    backgroundColor: 'transparent',
+  },
+  axisDetailTitle: {
+    fontSize: 15,
+    fontWeight: 'bold',
+    color: '#1c1f33',
+    textAlign: 'right',
+    writingDirection: 'rtl',
+    marginBottom: 4,
+  },
+  axisDetailScore: {
+    fontSize: 13,
+    fontWeight: '600',
+    textAlign: 'right',
+    writingDirection: 'rtl',
+  },
+  axisDetailProgressBar: {
+    height: 6,
+    backgroundColor: '#E5E5EA',
+    borderRadius: 3,
+    marginBottom: 12,
+    overflow: 'hidden',
+  },
+  axisDetailProgressFill: {
+    height: '100%',
+    borderRadius: 3,
+  },
+  axisDetailEvidence: {
+    backgroundColor: 'transparent',
+  },
+  axisDetailEvidenceHeader: {
+    fontSize: 12,
+    fontWeight: 'bold',
+    color: '#333',
+    marginBottom: 8,
+    textAlign: 'right',
+    writingDirection: 'rtl',
+  },
+  axisDetailEvidenceHeaderSpaced: {
+    marginTop: 12,
+  },
+  axisDetailEvidenceItem: {
+    flexDirection: 'row-reverse',
+    alignItems: 'center',
+    gap: 6,
+    marginBottom: 6,
+    backgroundColor: 'transparent',
+  },
+  axisDetailEvidenceAvailableText: {
+    fontSize: 11,
+    color: '#2E7D32',
+    flex: 1,
+    textAlign: 'right',
+    writingDirection: 'rtl',
+  },
+  axisDetailEvidenceMissingText: {
+    fontSize: 11,
+    color: '#D32F2F',
+    flex: 1,
+    textAlign: 'right',
+    writingDirection: 'rtl',
   },
   horizontalScrollContainer: {
     marginVertical: 10,
@@ -1572,14 +1573,6 @@ const styles = StyleSheet.create<any>({
     textAlign: 'left',
 
     flex: 1,
-  },
-  chartTitle: {
-    fontSize: 18,
-    fontWeight: 'bold',
-    color: '#1c1f33',
-    textAlign: 'center',
-
-    marginBottom: 15,
   },
   pieLegendContainer: {
     marginTop: 20,
@@ -2015,19 +2008,5 @@ const styles = StyleSheet.create<any>({
     shadowOpacity: 0.2,
     shadowRadius: 2,
     elevation: 2,
-  },
-  emptyState: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-    padding: 40,
-    minHeight: 200,
-  },
-  emptyStateText: {
-    fontSize: 16,
-    color: '#666666',
-    textAlign: 'center',
-    writingDirection: 'rtl',
-    textDirection: 'rtl',
   },
 });
