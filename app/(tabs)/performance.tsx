@@ -13,6 +13,8 @@ import * as DocumentPicker from 'expo-document-picker';
 import { getTextDirection, formatRTLText } from '@/utils/rtl-utils';
 import { getPerformanceAxesByProfession, PerformanceAxis } from '@/constants/performance-axes';
 import { PerformanceReportView } from '@/components/PerformanceReportView';
+import { WeeklyScheduleTable } from '@/components/WeeklyScheduleTable';
+import { VarkResultsTable } from '@/components/VarkResultsTable';
 import { calculateOverallAverageFivePoint } from '@/utils/performance-five-point';
 import { useLocalSearchParams } from 'expo-router';
 
@@ -127,6 +129,39 @@ export default function PerformanceScreen() {
     }));
   };
 
+  /**
+   * توفيق شواهد البيانات المحفوظة مع القالب الحالي (constants/performance-axes.ts)
+   * لكل محور على حدة، حتى تنعكس تعديلات القالب (إضافة/حذف شاهد) فعليًا على
+   * المستخدمين الذين لديهم بيانات محفوظة مسبقًا — دون التحقق من تطابق
+   * المحاور نفسها (isDataMatching أعلاه يتكفل بذلك عبر عناوين المحاور فقط).
+   * لكل شاهد في القالب: إن وُجد شاهد محفوظ بنفس الاسم في نفس المحور، تُستبقى
+   * حالة "متوفر" كما هي؛ وإلا يبدأ بحالة غير متوفر. أي شاهد محفوظ لم يعد
+   * موجودًا في القالب (حُذف) يُستبعد تلقائيًا لأننا نبني القائمة من القالب.
+   */
+  const reconcileEvidenceWithTemplate = (stored: any[], template: PerformanceAxis[]) => {
+    return template.map((templateAxis, axisIndex) => {
+      const storedAxis = stored[axisIndex];
+      const storedEvidenceByName = new Map<string, any>(
+        (storedAxis?.evidence || []).map((ev: any) => [ev?.name, ev])
+      );
+      const evidence = templateAxis.evidence.map(templateEv => {
+        const storedEv = storedEvidenceByName.get(templateEv.name);
+        return {
+          name: templateEv.name,
+          available: storedEv && typeof storedEv.available === 'boolean' ? storedEv.available : false,
+        };
+      });
+      return {
+        // البيانات الوصفية (العنوان/الوصف/الوزن...) من القالب دائمًا، فهو
+        // المصدر الرسمي؛ أما "score" فقيمة محسوبة لكل مستخدم يجب الحفاظ
+        // عليها من البيانات المحفوظة، لا إعادة تصفيرها من القالب (0 دائمًا).
+        ...templateAxis,
+        score: typeof storedAxis?.score === 'number' ? storedAxis.score : templateAxis.score,
+        evidence,
+      };
+    });
+  };
+
   // دالة لإعادة تعيين البطاقات بقوة حسب المهنة
   const forceUpdateCardsForProfession = async (profession: string) => {
     console.log('Force updating cards for profession:', profession);
@@ -184,15 +219,20 @@ export default function PerformanceScreen() {
           );
           
         if (isDataMatching) {
-          const normalized = normalizeEvidenceAvailable(parsedData);
+          // توفيق مع القالب الحالي على مستوى الشواهد داخل كل محور (وليس
+          // فقط عناوين المحاور) حتى تنعكس تعديلات القالب (حذف/إضافة شاهد)
+          // فعليًا حتى على من لديه بيانات محفوظة مسبقًا، مع الحفاظ على حالة
+          // "متوفر" للشواهد التي بقيت كما هي.
+          const reconciled = reconcileEvidenceWithTemplate(parsedData, currentProfessionData);
+          const normalized = normalizeEvidenceAvailable(reconciled);
           setPerformanceData(normalized);
           await AsyncStorage.setItem('performanceData', JSON.stringify(normalized));
           console.log('Loaded existing performance data for profession:', userProfession);
           
-          // عد الشواهد المحفوظة
-          const evidenceCount = parsedData.reduce((total, item) => total + (item.evidence?.length || 0), 0);
-          const availableEvidenceCount = parsedData.reduce((total, item) => 
-            total + (item.evidence?.filter(ev => ev.available).length || 0), 0);
+          // عد الشواهد بعد التوفيق مع القالب الحالي
+          const evidenceCount = normalized.reduce((total, item) => total + (item.evidence?.length || 0), 0);
+          const availableEvidenceCount = normalized.reduce((total, item) =>
+            total + (item.evidence?.filter((ev: any) => ev.available).length || 0), 0);
           console.log('Total evidence loaded:', evidenceCount, 'Available evidence:', availableEvidenceCount);
           
         } else {
@@ -960,18 +1000,24 @@ export default function PerformanceScreen() {
                     const uploadedFile = uploadedFiles[fileKey];
                     const isUploading = uploadingStates[fileKey];
 
+                    const isScheduleEvidence = evidence.name === 'جدول الحصص الأسبوعي';
+                    const isVarkEvidence = evidence.name === 'تحليل أنماط التعلم لدى الطلاب (VARK)';
+                    // شاهدان يُعرَض لهما جدول بيانات فعلي مباشرة بدل أزرار
+                    // التحميل/التعديل المعتادة: الجدول الدراسي وجدول نتائج VARK.
+                    const hasEmbeddedTable = isScheduleEvidence || isVarkEvidence;
+
                     return (
                     <ThemedView key={evidenceIndex} style={styles.evidenceCardRow}>
                       <ThemedText style={[styles.evidenceName, getTextDirection()]}>{formatRTLText(evidence.name)}</ThemedText>
-                        
-                        {/* عرض الملف المرفوع إذا كان موجود */}
-                        {uploadedFile && (
+
+                        {/* عرض الملف المرفوع إذا كان موجود (لا ينطبق على الشواهد ذات الجدول المضمَّن) */}
+                        {uploadedFile && !hasEmbeddedTable && (
                           <ThemedView style={styles.uploadedFileContainer}>
                             <ThemedView style={styles.fileInfo}>
-                              <IconSymbol 
-                                name={uploadedFile.type === 'صورة' ? "photo.fill" : uploadedFile.type === 'فيديو' ? "video.fill" : "doc.fill"} 
-                                size={20} 
-                                color="#4A90E2" 
+                              <IconSymbol
+                                name={uploadedFile.type === 'صورة' ? "photo.fill" : uploadedFile.type === 'فيديو' ? "video.fill" : "doc.fill"}
+                                size={20}
+                                color="#4A90E2"
                               />
                               <ThemedText style={[styles.fileName, getTextDirection()]}>{uploadedFile.name}</ThemedText>
                               <ThemedText style={[styles.fileDetails, getTextDirection()]}>{uploadedFile.size} • {uploadedFile.date}</ThemedText>
@@ -984,9 +1030,12 @@ export default function PerformanceScreen() {
                           <IconSymbol name={evidence.available ? "checkmark" : "xmark"} size={18} color={evidence.available ? '#fff' : '#fff'} />
                           <ThemedText style={[styles.evidenceStatusText, getTextDirection()]}>{evidence.available ? formatRTLText('متوفر') : formatRTLText('غير متوفر')}</ThemedText>
                         </ThemedView>
-                        <ThemedView style={styles.evidenceActionsRow}>
-                            <TouchableOpacity 
-                              style={[styles.evidenceActionBtn, isUploading && styles.uploadingBtn]} 
+                        {/* شاهدا الجدول الدراسي ونتائج VARK: لا أزرار تحميل/تعديل — الجدول
+                            نفسه معروض مباشرة أدناه، مرتبط ببياناته الفعلية */}
+                        {!hasEmbeddedTable && (
+                          <ThemedView style={styles.evidenceActionsRow}>
+                            <TouchableOpacity
+                              style={[styles.evidenceActionBtn, isUploading && styles.uploadingBtn]}
                               onPress={() => !isUploading && handleFileUpload(performance.id, evidenceIndex)}
                               disabled={isUploading}
                             >
@@ -996,19 +1045,23 @@ export default function PerformanceScreen() {
                                 <IconSymbol name="arrow.up.doc.fill" size={24} color="#4A90E2" />
                               )}
                             </TouchableOpacity>
-                          <TouchableOpacity style={styles.evidenceActionBtn} onPress={() => editEvidence(performance.id, evidenceIndex, evidence.name)}>
-                            <IconSymbol name="pencil" size={24} color="#FF9800" />
-                          </TouchableOpacity>
-                          {uploadedFile && (
-                            <TouchableOpacity 
-                              style={styles.evidenceActionBtn} 
-                              onPress={() => deleteFile(performance.id, evidenceIndex)}
-                            >
-                              <IconSymbol name="trash" size={24} color="#F44336" />
+                            <TouchableOpacity style={styles.evidenceActionBtn} onPress={() => editEvidence(performance.id, evidenceIndex, evidence.name)}>
+                              <IconSymbol name="pencil" size={24} color="#FF9800" />
                             </TouchableOpacity>
-                          )}
-                        </ThemedView>
+                            {uploadedFile && (
+                              <TouchableOpacity
+                                style={styles.evidenceActionBtn}
+                                onPress={() => deleteFile(performance.id, evidenceIndex)}
+                              >
+                                <IconSymbol name="trash" size={24} color="#F44336" />
+                              </TouchableOpacity>
+                            )}
+                          </ThemedView>
+                        )}
                       </ThemedView>
+
+                      {isScheduleEvidence && <WeeklyScheduleTable />}
+                      {isVarkEvidence && <VarkResultsTable />}
                         </ThemedView>
                     );
                   })}

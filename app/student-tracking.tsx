@@ -81,14 +81,6 @@ interface Student {
   performanceEvidence: PerformanceEvidence[];
 }
 
-/** فئات إحصائيات حالة المتعلمين، بنفس الألوان المعتمدة سابقاً في بطاقة الإحصائيات */
-const STATUS_LEVELS: Array<{ key: string; label: string; color: string; statuses: string[] }> = [
-  { key: 'excellent', label: 'متفوقون', color: '#4CAF50', statuses: ['تفوق', 'ممتاز'] },
-  { key: 'needsDevelopment', label: 'يحتاجون تطوير', color: '#FF5722', statuses: ['يحتاج إلى تطوير', 'مقبول'] },
-  { key: 'learningDifficulties', label: 'صعوبات التعلم', color: '#9C27B0', statuses: ['صعوبات التعلم'] },
-  { key: 'weak', label: 'ضعف', color: '#F44336', statuses: ['ضعف', 'ضعيف'] },
-];
-
 const EMPTY_STUDENT_FORM: Student = {
   id: '',
   name: '',
@@ -116,7 +108,7 @@ const EVIDENCE_TYPES = [
   { value: 'سلوك', label: 'سلوك', icon: 'person.circle' },
 ] as const;
 
-/** ===== بطاقة متابعة التعثر الدراسي والخطة العلاجية المختصرة ===== */
+/** ===== بطاقة متابعة متعلم ( الخطط العلاجية والاثرائية ) ===== */
 
 const DIFFICULTY_NEEDS_OPTIONS = [
   'ضعف فهم المفهوم',
@@ -245,7 +237,7 @@ export default function StudentTrackingScreen() {
   const [errorModalMessage, setErrorModalMessage] = useState('');
   const proceedWithSaveRef = useRef<(() => Promise<void>) | null>(null);
 
-  // بطاقة متابعة التعثر الدراسي والخطة العلاجية المختصرة
+  // بطاقة متابعة متعلم ( الخطط العلاجية والاثرائية )
   const [difficultyCardVisible, setDifficultyCardVisible] = useState(false);
   const [difficultyCard, setDifficultyCard] = useState<DifficultyCard>(EMPTY_DIFFICULTY_CARD);
   const [isExportingDifficulty, setIsExportingDifficulty] = useState(false);
@@ -383,16 +375,7 @@ export default function StudentTrackingScreen() {
     }
   };
 
-  // ===== نموذج الإضافة/التعديل =====
-
-  const openAddForm = () => {
-    setFormData(EMPTY_STUDENT_FORM);
-    setEditingId(null);
-    setShowGoalForm(false);
-    setShowNeedForm(false);
-    setShowEvidenceForm(false);
-    setFormVisible(true);
-  };
+  // ===== نموذج التعديل =====
 
   const openEditForm = (student: Student) => {
     setFormData({
@@ -610,18 +593,12 @@ export default function StudentTrackingScreen() {
     closeForm();
   };
 
-  const handleSuccessAddAnother = () => {
-    setSuccessModalVisible(false);
-    setFormData(EMPTY_STUDENT_FORM);
-    setEditingId(null);
-  };
-
   const handleErrorRetry = () => {
     setErrorModalVisible(false);
     saveStudentForm();
   };
 
-  // ===== بطاقة متابعة التعثر الدراسي =====
+  // ===== بطاقة متابعة متعلم ( الخطط العلاجية والاثرائية ) =====
 
   const openDifficultyCard = () => setDifficultyCardVisible(true);
 
@@ -822,7 +799,7 @@ export default function StudentTrackingScreen() {
 <html dir="rtl" lang="ar">
 <head>
   <meta charset="utf-8"/>
-  <title>بطاقة متابعة التعثر الدراسي</title>
+  <title>بطاقة متابعة متعلم ( الخطط العلاجية والاثرائية )</title>
   <style>
     @page { size: A4; margin: 0; }
     html, body { margin: 0; padding: 0; background: #e5e7eb; }
@@ -873,7 +850,7 @@ export default function StudentTrackingScreen() {
     ${logoDataUri ? `<img src="${logoDataUri}" alt="شعار وزارة التعليم" class="doc-logo">` : ''}
   </div>
 
-  <div class="title-banner">بطاقة متابعة التعثر الدراسي والخطة العلاجية المختصرة</div>
+  <div class="title-banner">بطاقة متابعة متعلم ( الخطط العلاجية والاثرائية )</div>
   <div class="dot-divider"></div>
 
   <div class="card">
@@ -1018,7 +995,7 @@ export default function StudentTrackingScreen() {
       if (Platform.OS === 'ios') {
         await Sharing.shareAsync(uri, { UTI: '.pdf', mimeType: 'application/pdf' });
       } else {
-        const pdfName = `متابعة_التعثر_الدراسي_${new Date().toISOString().split('T')[0]}.pdf`;
+        const pdfName = `متابعة_متعلم_الخطط_العلاجية_والاثرائية_${new Date().toISOString().split('T')[0]}.pdf`;
         const dest = `${FileSystem.documentDirectory}${pdfName}`;
         await FileSystem.moveAsync({ from: uri, to: dest });
         await Sharing.shareAsync(dest, { mimeType: 'application/pdf', dialogTitle: 'تصدير البطاقة PDF' });
@@ -1038,7 +1015,7 @@ export default function StudentTrackingScreen() {
     setIsExportingDifficulty(true);
     try {
       const htmlContent = await generateDifficultyHtml(difficultyCard);
-      const fileName = `متابعة_التعثر_الدراسي_${new Date().toISOString().split('T')[0]}.doc`;
+      const fileName = `متابعة_متعلم_الخطط_العلاجية_والاثرائية_${new Date().toISOString().split('T')[0]}.doc`;
       if (Platform.OS === 'web') {
         if (typeof window === 'undefined' || typeof document === 'undefined') {
           AlertService.alert('تنبيه', 'تصدير Word غير متاح في هذا السياق.');
@@ -1077,7 +1054,7 @@ export default function StudentTrackingScreen() {
     <ThemedView style={styles.pageSection}>
       <ThemedView style={[styles.pageSectionHeader, styles.pageSectionHeaderRow]}>
         <ThemedText style={[styles.pageSectionTitle, getTextDirection()]}>
-          {formatRTLText(editingId ? 'تعديل بيانات المتعلم' : 'إضافة متعلم جديد')}
+          {formatRTLText('تعديل بيانات المتعلم')}
         </ThemedText>
         <TouchableOpacity onPress={closeForm}>
           <IconSymbol size={20} name="xmark.circle.fill" color="#fff" />
@@ -1420,7 +1397,7 @@ export default function StudentTrackingScreen() {
       <ThemedView style={styles.pageSection}>
         <ThemedView style={[styles.pageSectionHeader, styles.pageSectionHeaderRow]}>
           <ThemedText style={[styles.pageSectionTitle, getTextDirection()]}>
-            {formatRTLText('بطاقة متابعة التعثر الدراسي والخطة العلاجية')}
+            {formatRTLText('بطاقة متابعة متعلم ( الخطط العلاجية والاثرائية )')}
           </ThemedText>
           <TouchableOpacity onPress={closeDifficultyCard}>
             <IconSymbol size={20} name="xmark.circle.fill" color="#fff" />
@@ -1951,40 +1928,6 @@ export default function StudentTrackingScreen() {
     );
   };
 
-  const renderStatsCard = () => {
-    const totalStudents = students.length;
-    const levels = STATUS_LEVELS.map((level) => ({
-      ...level,
-      count: students.filter((s) => level.statuses.includes(s.status)).length,
-    }));
-
-    return (
-      <ThemedView style={styles.pageSection}>
-        <ThemedView style={styles.pageSectionHeader}>
-          <ThemedText style={[styles.pageSectionTitle, getTextDirection()]}>
-            {formatRTLText('إحصائيات المتعلمين')}
-          </ThemedText>
-        </ThemedView>
-        <ThemedView style={styles.statsGrid}>
-          <ThemedView style={styles.statBox}>
-            <ThemedText style={styles.statValue}>{totalStudents}</ThemedText>
-            <ThemedText style={[styles.statLabel, getTextDirection()]}>{formatRTLText('إجمالي المتعلمين')}</ThemedText>
-          </ThemedView>
-        </ThemedView>
-        <ThemedView style={styles.levelsTable}>
-          {levels.map((level) => (
-            <ThemedView key={level.key} style={styles.levelRow}>
-              <ThemedView style={[styles.levelBadge, { backgroundColor: level.color }]}>
-                <ThemedText style={styles.levelBadgeText}>{formatRTLText(level.label)}</ThemedText>
-              </ThemedView>
-              <ThemedText style={[styles.levelCount, getTextDirection()]}>{level.count}</ThemedText>
-            </ThemedView>
-          ))}
-        </ThemedView>
-      </ThemedView>
-    );
-  };
-
   return (
     <ThemedView style={styles.container}>
       <ImageBackground
@@ -2012,10 +1955,12 @@ export default function StudentTrackingScreen() {
                 style={styles.backButton}
                 onPress={() => router.push('/(tabs)')}
               />
+              <ThemedView style={styles.iconContainer}>
+                <IconSymbol size={60} name="person.2.fill" color="#1c1f33" />
+              </ThemedView>
               <ThemedView style={styles.titleRow}>
-                <ThemedView style={styles.tealBar} />
                 <ThemedText type="title" style={[styles.mainTitle, getTextDirection()]}>
-                  {formatRTLText('تتبع حالة المتعلمين')}
+                  {formatRTLText('تتبع حالة المتعلمين ( الخطط العلاجية والاثرائية )')}
                 </ThemedText>
               </ThemedView>
               <ThemedText style={[styles.headerSubtitle, getTextDirection()]}>
@@ -2025,23 +1970,11 @@ export default function StudentTrackingScreen() {
 
             <ThemedView style={styles.quickActionsSection}>
               <ThemedView style={styles.quickActionsRow}>
-                <TouchableOpacity style={styles.quickActionButtonPrimary} onPress={openAddForm}>
-                  <IconSymbol size={20} name="person.badge.plus" color="#fff" />
-                  <ThemedText style={[styles.quickActionButtonText, getTextDirection()]}>
-                    {formatRTLText('إضافة متعلم جديد')}
-                  </ThemedText>
-                </TouchableOpacity>
-                <TouchableOpacity style={styles.quickActionButtonSecondary} onPress={() => router.push('/remedial-plans')}>
-                  <IconSymbol size={20} name="doc.text.fill" color="#fff" />
-                  <ThemedText style={[styles.quickActionButtonText, getTextDirection()]}>
-                    {formatRTLText('الخطط العلاجية والإثرائية')}
-                  </ThemedText>
-                </TouchableOpacity>
                 <TouchableOpacity style={styles.quickActionButtonTertiary} onPress={openDifficultyCard}>
-                  <IconSymbol size={20} name="exclamationmark.triangle.fill" color="#fff" />
                   <ThemedText style={[styles.quickActionButtonText, getTextDirection()]}>
-                    {formatRTLText('بطاقة متابعة التعثر الدراسي')}
+                    {formatRTLText('بطاقة متابعة متعلم ( الخطط العلاجية والاثرائية )')}
                   </ThemedText>
+                  <IconSymbol size={20} name="plus" color="#fff" />
                 </TouchableOpacity>
               </ThemedView>
             </ThemedView>
@@ -2049,8 +1982,6 @@ export default function StudentTrackingScreen() {
             {formVisible && renderStudentForm()}
 
             {difficultyCardVisible && renderDifficultyCard()}
-
-            {renderStatsCard()}
 
             <ThemedView style={styles.pageSection}>
               <ThemedView style={styles.pageSectionHeader}>
@@ -2068,9 +1999,6 @@ export default function StudentTrackingScreen() {
                   <ThemedView style={styles.emptyState}>
                     <IconSymbol size={40} name="person.3.fill" color="#9ca3af" />
                     <ThemedText style={[styles.emptyTitle, getTextDirection()]}>{formatRTLText('لا يوجد متعلمون بعد')}</ThemedText>
-                    <ThemedText style={[styles.emptySubtitle, getTextDirection()]}>
-                      {formatRTLText('اضغط "إضافة متعلم جديد" للبدء')}
-                    </ThemedText>
                   </ThemedView>
                 ) : (
                   students.map((student) => (
@@ -2110,11 +2038,6 @@ export default function StudentTrackingScreen() {
               <TouchableOpacity style={[styles.modalButton, styles.modalButtonConfirm]} onPress={handleSuccessDone}>
                 <ThemedText style={styles.modalButtonConfirmText}>تم</ThemedText>
               </TouchableOpacity>
-              {!editingId && (
-                <TouchableOpacity style={[styles.modalButton, styles.modalButtonCancel]} onPress={handleSuccessAddAnother}>
-                  <ThemedText style={styles.modalButtonCancelText}>إضافة متعلم آخر</ThemedText>
-                </TouchableOpacity>
-              )}
             </View>
           </View>
         </View>
@@ -2181,23 +2104,42 @@ const styles = StyleSheet.create({
   },
   header: {
     alignItems: 'center',
+    paddingTop: Platform.OS === 'ios' ? 60 : 50,
     marginBottom: 20,
     position: 'relative',
+    backgroundColor: 'transparent',
   },
   backButton: {
     position: 'absolute',
-    left: 0,
-    top: Platform.OS === 'ios' ? 0 : -8,
+    top: Platform.OS === 'ios' ? 60 : 50,
+    left: 20,
     backgroundColor: '#add4ce',
     width: 40,
     height: 40,
     borderRadius: 20,
     justifyContent: 'center',
     alignItems: 'center',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.2,
+    shadowRadius: 8,
+    elevation: 8,
     zIndex: 1,
   },
-  titleRow: { flexDirection: 'row-reverse', alignItems: 'center', width: '100%', justifyContent: 'center' },
-  tealBar: { width: 6, height: 44, backgroundColor: TEAL, borderRadius: 3, marginLeft: 10 },
+  iconContainer: {
+    marginBottom: 20,
+    padding: 20,
+    backgroundColor: '#F8F9FA',
+    borderRadius: 50,
+    borderWidth: 1,
+    borderColor: '#E5E5EA',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 6 },
+    shadowOpacity: 0.25,
+    shadowRadius: 12,
+    elevation: 10,
+  },
+  titleRow: { flexDirection: 'row-reverse', alignItems: 'center', width: '100%', justifyContent: 'center', backgroundColor: 'transparent' },
   mainTitle: { fontSize: 22, fontWeight: 'bold', color: '#1c1f33', textAlign: 'center' },
   headerSubtitle: { fontSize: 14, color: '#6b7280', textAlign: 'center', marginTop: 6 },
   quickActionsSection: {
@@ -2209,34 +2151,10 @@ const styles = StyleSheet.create({
     borderColor: '#e5e7eb',
   },
   quickActionsRow: { flexDirection: 'row-reverse', flexWrap: 'wrap', gap: 10 },
-  quickActionButtonPrimary: {
-    flex: 1,
-    minWidth: 150,
-    flexDirection: 'row-reverse',
-    alignItems: 'center',
-    justifyContent: 'center',
-    gap: 8,
-    backgroundColor: GREEN,
-    paddingVertical: 12,
-    paddingHorizontal: 16,
-    borderRadius: 10,
-  },
-  quickActionButtonSecondary: {
-    flex: 1,
-    minWidth: 150,
-    flexDirection: 'row-reverse',
-    alignItems: 'center',
-    justifyContent: 'center',
-    gap: 8,
-    backgroundColor: TEAL,
-    paddingVertical: 12,
-    paddingHorizontal: 16,
-    borderRadius: 10,
-  },
   quickActionButtonTertiary: {
     flex: 1,
     minWidth: 150,
-    flexDirection: 'row-reverse',
+    flexDirection: 'column',
     alignItems: 'center',
     justifyContent: 'center',
     gap: 8,
@@ -2247,7 +2165,7 @@ const styles = StyleSheet.create({
   },
   quickActionButtonText: { fontSize: 14, fontWeight: '600', color: '#fff' },
 
-  // ===== بطاقة متابعة التعثر الدراسي (dc = difficulty card) =====
+  // ===== بطاقة متابعة متعلم ( الخطط العلاجية والاثرائية ) (dc = difficulty card) =====
   dcFieldRow: { flexDirection: 'row-reverse', flexWrap: 'wrap', gap: 12 },
   dcFieldBlock: { flex: 1, minWidth: 150 },
   dcFieldBlockSmall: { flex: 1, minWidth: 100 },
@@ -2330,33 +2248,6 @@ const styles = StyleSheet.create({
   pageSectionHeader: { backgroundColor: TEAL, paddingVertical: 12, paddingHorizontal: 16 },
   pageSectionHeaderRow: { flexDirection: 'row-reverse', justifyContent: 'space-between', alignItems: 'center' },
   pageSectionTitle: { fontSize: 16, fontWeight: '700', color: '#fff' },
-  statBox: {
-    width: '100%',
-    alignItems: 'center',
-    backgroundColor: '#f9fafb',
-    borderRadius: 10,
-    borderWidth: 1,
-    borderColor: '#e5e7eb',
-    paddingVertical: 12,
-  },
-  statValue: { fontSize: 22, fontWeight: '800', color: '#1c1f33' },
-  statsGrid: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    padding: 12,
-    paddingBottom: 0,
-    gap: 10,
-  },
-  statLabel: {
-    fontSize: 12,
-    color: '#666',
-    textAlign: 'center',
-  },
-  levelsTable: { paddingHorizontal: 12, paddingBottom: 12, gap: 8, marginTop: 12 },
-  levelRow: { flexDirection: 'row-reverse', alignItems: 'center', gap: 10 },
-  levelBadge: { borderRadius: 8, paddingVertical: 5, paddingHorizontal: 12, minWidth: 120, alignItems: 'center' },
-  levelBadgeText: { color: '#fff', fontSize: 13, fontWeight: '700' },
-  levelCount: { fontSize: 15, fontWeight: '700', color: '#1c1f33', flex: 1, textAlign: 'center' },
   studentsListInner: { padding: 12, gap: 12 },
   scrollContainer: {
     flex: 1,

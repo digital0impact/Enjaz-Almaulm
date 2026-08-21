@@ -226,7 +226,7 @@ export default function LearningStylesScreen() {
           showsVerticalScrollIndicator={false}
         >
           <ThemedButton
-            icon="chevron.right"
+            icon="chevron.left"
             iconColor="#1c1f33"
             style={styles.backButton}
             onPress={() => router.back()}
@@ -437,31 +437,47 @@ const styles = StyleSheet.create({
     position: 'absolute',
     top: Platform.OS === 'ios' ? 60 : 50,
     left: 20,
-    zIndex: 10,
+    backgroundColor: '#add4ce',
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    justifyContent: 'center',
+    alignItems: 'center',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.2,
+    shadowRadius: 8,
+    elevation: 8,
+    zIndex: 1,
   },
   header: {
     alignItems: 'center',
     marginTop: Platform.OS === 'ios' ? 90 : 80,
     marginBottom: 24,
+    backgroundColor: 'transparent',
   },
   iconContainer: {
-    width: 100,
-    height: 100,
+    marginBottom: 20,
+    padding: 20,
+    backgroundColor: '#F8F9FA',
     borderRadius: 50,
-    backgroundColor: 'rgba(255,255,255,0.6)',
-    justifyContent: 'center',
-    alignItems: 'center',
-    marginBottom: 16,
+    borderWidth: 1,
+    borderColor: '#E5E5EA',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 6 },
+    shadowOpacity: 0.25,
+    shadowRadius: 12,
+    elevation: 10,
   },
   title: {
-    fontSize: 24,
-    fontWeight: '700',
+    fontSize: 28,
+    fontWeight: 'bold',
     color: '#1c1f33',
     textAlign: 'center',
   },
   subtitle: {
-    fontSize: 14,
-    color: '#555',
+    fontSize: 16,
+    color: '#666666',
     textAlign: 'center',
     marginTop: 8,
     paddingHorizontal: 16,

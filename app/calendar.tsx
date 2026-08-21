@@ -791,6 +791,7 @@ const styles = StyleSheet.create({
     padding: 30,
     paddingTop: Platform.OS === 'ios' ? 60 : 50,
     position: 'relative',
+    backgroundColor: 'transparent',
   },
   backButton: {
     position: 'absolute',

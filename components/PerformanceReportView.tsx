@@ -1,12 +1,13 @@
 import React, { useState, useEffect } from 'react';
-import { StyleSheet, ScrollView, TouchableOpacity, Platform, Dimensions, View, ActivityIndicator, Linking, Modal, Image } from 'react-native';
+import { StyleSheet, TouchableOpacity, Platform, View, ActivityIndicator, Linking, Modal, Dimensions } from 'react-native';
 import { AlertService } from '@/services/AlertService';
-import { PieChart } from 'react-native-chart-kit';
+import { PieChart, ProgressChart } from 'react-native-chart-kit';
 import { useFocusEffect } from '@react-navigation/native';
 
 import { ThemedText } from '@/components/ThemedText';
 import { ThemedView } from '@/components/ThemedView';
 import { IconSymbol } from '@/components/ui/IconSymbol';
+import { useAchievementsShareLink } from '@/hooks/useAchievementsShareLink';
 import { useRouter } from 'expo-router';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import AuthService from '@/services/AuthService';
@@ -17,8 +18,7 @@ import * as FileSystem from 'expo-file-system';
 import { getTextDirection, formatRTLText, isRTL } from '@/utils/rtl-utils';
 import { calculateOverallAverageFivePoint } from '@/utils/performance-five-point';
 import { getPerformanceAxesByProfession } from '@/constants/performance-axes';
-
-const { width } = Dimensions.get('window');
+import { supabase } from '@/config/supabase';
 
 type Evidence = {
   name: string;
@@ -33,25 +33,55 @@ type PerformanceItem = {
   evidence?: Evidence[];
 };
 
+/** تعليق زائر تُرك على رابط التقرير العام (shared_achievement_comments). */
+type VisitorComment = {
+  id: string;
+  author_name: string | null;
+  comment_text: string;
+  created_at: string;
+};
+
 export function PerformanceReportView() {
   const router = useRouter();
   const [performanceData, setPerformanceData] = useState<PerformanceItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [isExporting, setIsExporting] = useState(false);
-  /** الملفات المرفقة للشواهد (مفتاح: محور-رقم_شاهد) لمعاينة الشاهد */
-  const [uploadedFilesMap, setUploadedFilesMap] = useState<Record<string, { name: string; size: string; date: string; type: string; uri?: string }>>({});
-  /** معاينة الصورة: URI المعروض وحالة ظهور الـ Modal */
-  const [previewVisible, setPreviewVisible] = useState(false);
-  const [previewImageUri, setPreviewImageUri] = useState<string | null>(null);
   /** تحميل Word على الويب: عرض نافذة تحتوي على رابط التحميل */
   const [wordDownload, setWordDownload] = useState<{ url: string; name: string } | null>(null);
+  /** توليد رابط مشاركة التقرير ومشاركته مباشرة عبر شاشة المشاركة الأصلية للجهاز، بلا أي صفحة أو نافذة وسيطة. */
+  const { generating: isGeneratingShareLink, generateAndShare: handleShareAchievements } = useAchievementsShareLink();
+  /** تعليقات الزوار على رابط التقرير العام (shared_achievement_comments)، تُعرض هنا لتصل للمعلم دون زيارة الرابط نفسه. */
+  const [visitorComments, setVisitorComments] = useState<VisitorComment[]>([]);
+  const [loadingComments, setLoadingComments] = useState(false);
   // إضافة مستمع للتركيز على الصفحة باستخدام useFocusEffect
   useFocusEffect(
     React.useCallback(() => {
       // إعادة تحميل البيانات عند العودة إلى الصفحة
       loadPerformanceData();
+      loadVisitorComments();
     }, [])
   );
+
+  const loadVisitorComments = async () => {
+    setLoadingComments(true);
+    try {
+      const user = await AuthService.getCurrentUser();
+      if (!user) {
+        setVisitorComments([]);
+        return;
+      }
+      const { data, error } = await supabase
+        .from('shared_achievement_comments')
+        .select('id, author_name, comment_text, created_at')
+        .eq('token', `public-${user.id}`)
+        .order('created_at', { ascending: false });
+      if (!error && data) setVisitorComments(data as VisitorComment[]);
+    } catch (e) {
+      console.warn('Could not load visitor comments:', e);
+    } finally {
+      setLoadingComments(false);
+    }
+  };
 
   // تحميل البيانات الفعلية من AsyncStorage
   useEffect(() => {
@@ -103,9 +133,12 @@ export function PerformanceReportView() {
         const currentProfessionData = getDefaultPerformanceData(profession);
         
         if (Array.isArray(parsedData) && parsedData.length === currentProfessionData.length) {
-          // إذا كانت البيانات المحفوظة تتطابق مع المهنة الحالية
-          setPerformanceData(parsedData);
-          console.log('Loaded performanceData from AsyncStorage:', parsedData);
+          // إذا كانت البيانات المحفوظة تتطابق مع المهنة الحالية — نوفّق
+          // الشواهد داخل كل محور مع القالب الحالي (انظر التوثيق أعلى الدالة)
+          const reconciled = reconcileEvidenceWithTemplate(parsedData, currentProfessionData);
+          setPerformanceData(reconciled);
+          await AsyncStorage.setItem('performanceData', JSON.stringify(reconciled));
+          console.log('Loaded performanceData from AsyncStorage:', reconciled);
         } else {
           // إذا تغيرت المهنة أو كانت البيانات غير متطابقة، استخدم البيانات الجديدة
           setPerformanceData(currentProfessionData);
@@ -121,25 +154,11 @@ export function PerformanceReportView() {
         await AsyncStorage.setItem('performanceData', JSON.stringify(currentProfessionData));
       }
 
-      // تحميل الملفات المرفقة للشواهد (للمعاينة)
-      const storedFiles = await AsyncStorage.getItem('uploadedFiles');
-      if (storedFiles) {
-        try {
-          const parsed = JSON.parse(storedFiles) as Record<string, { name: string; size: string; date: string; type: string; uri?: string }>;
-          setUploadedFilesMap(typeof parsed === 'object' && parsed !== null ? parsed : {});
-        } catch (_) {
-          setUploadedFilesMap({});
-        }
-      } else {
-        setUploadedFilesMap({});
-      }
-
       setLoading(false);
     } catch (error) {
       console.log('Error loading performance data:', error);
       const fallbackData = getDefaultPerformanceData('معلم/ة');
       setPerformanceData(fallbackData);
-      setUploadedFilesMap({});
       // حفظ البيانات الافتراضية في حالة الخطأ
       try {
         await AsyncStorage.setItem('performanceData', JSON.stringify(fallbackData));
@@ -159,6 +178,34 @@ export function PerformanceReportView() {
       weight: axis.weight,
       evidence: axis.evidence,
     }));
+  };
+
+  /**
+   * توفيق شواهد البيانات المحفوظة مع القالب الحالي لكل محور — نفس المنطق
+   * المستخدم في app/(tabs)/performance.tsx، حتى ينعكس تعديل القالب (حذف/
+   * إضافة شاهد) هنا أيضًا (شاشة "التقرير الكامل") لا في شاشة البطاقات فقط.
+   * تُستبقى حالة "متوفر" للشواهد التي بقي اسمها في القالب، وتُستبعد تلقائيًا
+   * أي شواهد محفوظة لم تعد موجودة فيه.
+   */
+  const reconcileEvidenceWithTemplate = (stored: any[], template: PerformanceItem[]): PerformanceItem[] => {
+    return template.map((templateAxis, axisIndex) => {
+      const storedAxis = stored[axisIndex];
+      const storedEvidenceByName = new Map<string, any>(
+        (storedAxis?.evidence || []).map((ev: any) => [ev?.name, ev])
+      );
+      const evidence = (templateAxis.evidence || []).map(templateEv => {
+        const storedEv = storedEvidenceByName.get(templateEv.name);
+        return {
+          name: templateEv.name,
+          available: storedEv && typeof storedEv.available === 'boolean' ? storedEv.available : false,
+        };
+      });
+      return {
+        ...templateAxis,
+        score: typeof storedAxis?.score === 'number' ? storedAxis.score : templateAxis.score,
+        evidence,
+      };
+    });
   };
 
   const getScoreColor = (score: number) => {
@@ -190,262 +237,128 @@ export function PerformanceReportView() {
     date: string;
   };
 
+  /** الشكل الفعلي المخزَّن في AsyncStorage('uploadedFiles') من
+   * app/(tabs)/performance.tsx: كائن ملف واحد لكل مفتاح (لا مصفوفة). */
   type UploadedFiles = {
-    [key: string]: FileInfo[];
+    [key: string]: FileInfo;
   };
 
-  type Category = {
-    name: string;
-    average: number;
-    count: number;
-  };
+  /**
+   * لوحة قيادة برسوم بيانية (حلقة إكمال + مخطط دائري لتوزيع المستويات
+   * + قائمة أشرطة لترتيب المحاور)، بدل عرض تفاصيل كل محور وشواهده —
+   * مستوحاة من قوالب لوحات المعلومات المرئية (أرقام إجمالية أعلى
+   * الصفحة، ثم رسوم دائرية/حلقية، ثم رسم شريطي)، بحسب طلب المستخدم.
+   */
+  const renderDashboard = () => {
+    const overallAverage = calculateOverallAverage();
+    const scores = performanceData.map(item => Number(item?.score ?? 0));
+    const excellentCount = scores.filter(s => s >= 90).length;
+    const goodCount = scores.filter(s => s >= 80 && s < 90).length;
+    const fairCount = scores.filter(s => s >= 70 && s < 80).length;
+    const needsImprovementCount = scores.filter(s => s < 70).length;
+    const chartWidth = Dimensions.get('window').width - 64;
+    const halfChartWidth = Math.max(120, chartWidth / 2 - 12);
 
-  const getCategories = (): Category[] => {
-    if (!performanceData || !Array.isArray(performanceData) || performanceData.length === 0) {
-      return [];
-    }
-    
-    // استخدام عناوين المحاور بدلاً من الفئات
-    return performanceData.map(item => ({
-      name: item?.title || 'غير محدد',
-      average: item?.score || 0,
-      count: 1
-    })).filter(cat => cat && cat.name);
-  };
+    const levelPieData = [
+      { name: formatRTLText('ممتاز'), count: excellentCount, color: '#4CAF50', legendFontColor: '#1c1f33', legendFontSize: 11 },
+      { name: formatRTLText('جيد'), count: goodCount, color: '#FF9800', legendFontColor: '#1c1f33', legendFontSize: 11 },
+      { name: formatRTLText('متوسط'), count: fairCount, color: '#FFC107', legendFontColor: '#1c1f33', legendFontSize: 11 },
+      { name: formatRTLText('يحتاج تحسين'), count: needsImprovementCount, color: '#F44336', legendFontColor: '#1c1f33', legendFontSize: 11 },
+    ].filter(d => d.count > 0);
 
-  const renderProgressChart = () => {
-    const sortedData = [...performanceData].sort((a: PerformanceItem, b: PerformanceItem) => b.score - a.score);
+    const sortedByScore = [...performanceData].sort((a, b) => b.score - a.score);
+
     return (
-      <ThemedView style={styles.chartContainer}>
-        <ThemedText style={styles.chartTitle}>ترتيب المحاور حسب الأداء</ThemedText>
-        <ThemedView>
-          {sortedData.map((item: PerformanceItem, index: number) => (
-            <ThemedView key={item.id} style={{ marginBottom: 8 }}>
-              <ThemedView style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 4 }}>
-                <ThemedText style={{ fontSize: 12, fontWeight: 'bold' }}>{item.title}</ThemedText>
-                <ThemedText style={{ fontSize: 12, color: getScoreColor(item.score) }}>{item.score}%</ThemedText>
+      <ThemedView style={styles.dashboardCard}>
+        <ThemedText type="subtitle" style={styles.summaryTitle}>{formatRTLText('لوحة القيادة')}</ThemedText>
+
+        {/* صف الأرقام الإجمالية */}
+        <ThemedView style={styles.statsGrid}>
+          <ThemedView style={styles.statCard}>
+            <ThemedText style={styles.statValue}>{performanceData.length}</ThemedText>
+            <ThemedText style={styles.statLabel}>{formatRTLText('عدد المحاور')}</ThemedText>
+          </ThemedView>
+          <ThemedView style={styles.statCard}>
+            <ThemedText style={[styles.statValue, { color: getScoreColor(overallAverage) }]}>{overallAverage}%</ThemedText>
+            <ThemedText style={styles.statLabel}>{formatRTLText('المتوسط العام')}</ThemedText>
+          </ThemedView>
+          <ThemedView style={styles.statCard}>
+            <ThemedText style={[styles.statValue, { color: '#4CAF50' }]}>{excellentCount}</ThemedText>
+            <ThemedText style={styles.statLabel}>{formatRTLText('ممتاز')}</ThemedText>
+          </ThemedView>
+          <ThemedView style={styles.statCard}>
+            <ThemedText style={[styles.statValue, needsImprovementCount > 0 && { color: '#F44336' }]}>
+              {needsImprovementCount}
+            </ThemedText>
+            <ThemedText style={styles.statLabel}>{formatRTLText('يحتاج تحسين')}</ThemedText>
+          </ThemedView>
+        </ThemedView>
+
+        {/* صف الرسوم الدائرية: حلقة الإكمال العام + توزيع المستويات */}
+        <ThemedView style={styles.chartsRow}>
+          <ThemedView style={styles.chartBox}>
+            <ThemedText style={styles.chartBoxTitle}>{formatRTLText('نسبة الإكمال العامة')}</ThemedText>
+            <ThemedView style={styles.progressRingWrap}>
+              <ProgressChart
+                data={{ data: [Math.max(0, Math.min(1, overallAverage / 100))] }}
+                width={halfChartWidth}
+                height={130}
+                strokeWidth={10}
+                radius={40}
+                hideLegend
+                chartConfig={{
+                  backgroundGradientFrom: '#fff',
+                  backgroundGradientTo: '#fff',
+                  color: () => getScoreColor(overallAverage),
+                }}
+              />
+              <ThemedView style={styles.progressRingCenterOverlay} pointerEvents="none">
+                <ThemedText style={[styles.progressRingCenterText, { color: getScoreColor(overallAverage) }]}>
+                  {overallAverage}%
+                </ThemedText>
               </ThemedView>
-              <ThemedView style={{ height: 20, backgroundColor: '#f0f0f0', borderRadius: 10, overflow: 'hidden' }}>
-                <ThemedView 
-                  style={{ 
-                    height: '100%', 
-                    backgroundColor: getScoreColor(item.score),
-                    width: `${Math.min(100, item.score)}%`,
-                    borderRadius: 10
-                  }} 
+            </ThemedView>
+          </ThemedView>
+
+          <ThemedView style={styles.chartBox}>
+            <ThemedText style={styles.chartBoxTitle}>{formatRTLText('توزيع المستويات')}</ThemedText>
+            {levelPieData.length > 0 ? (
+              <PieChart
+                data={levelPieData}
+                width={halfChartWidth}
+                height={130}
+                chartConfig={{ color: (opacity = 1) => `rgba(28, 31, 51, ${opacity})` }}
+                accessor="count"
+                backgroundColor="transparent"
+                paddingLeft="8"
+                hasLegend={false}
+              />
+            ) : (
+              <ThemedText style={styles.chartEmptyText}>{formatRTLText('لا توجد بيانات')}</ThemedText>
+            )}
+          </ThemedView>
+        </ThemedView>
+
+        {/* رسم شريطي: ترتيب المحاور حسب الأداء */}
+        <ThemedView style={styles.barListSection}>
+          <ThemedText style={styles.chartBoxTitle}>{formatRTLText('ترتيب المحاور حسب الأداء')}</ThemedText>
+          {sortedByScore.map((item) => (
+            <ThemedView key={item.id} style={styles.barListRow}>
+              <ThemedView style={styles.barListLabelRow}>
+                <ThemedText style={styles.barListTitle} numberOfLines={1}>{formatRTLText(item.title)}</ThemedText>
+                <ThemedText style={[styles.barListScore, { color: getScoreColor(item.score) }]}>{item.score}%</ThemedText>
+              </ThemedView>
+              <ThemedView style={styles.barListTrack}>
+                <ThemedView
+                  style={[
+                    styles.barListFill,
+                    { width: `${Math.min(100, Math.max(0, item.score))}%`, backgroundColor: getScoreColor(item.score) },
+                  ]}
                 />
               </ThemedView>
             </ThemedView>
           ))}
         </ThemedView>
-      </ThemedView>
-    );
-  };
-
-  const renderEvidence = () => {
-    const itemsWithEvidence = performanceData.filter(
-      (item) => item.evidence && item.evidence.length > 0
-    );
-
-    if (itemsWithEvidence.length === 0) {
-      return (
-        <ThemedView style={styles.evidenceContainer}>
-          <ThemedText style={styles.sectionTitle}>الشواهد - محاور الأداء المهني</ThemedText>
-          <ThemedView style={styles.emptyState}>
-            <ThemedText style={styles.emptyStateText}>
-              لا توجد شواهد مُدخلة في محاور الأداء المهني. أضف الشواهد من تبويب محاور الأداء المهني.
-            </ThemedText>
-          </ThemedView>
-        </ThemedView>
-      );
-    }
-
-    return (
-      <ThemedView style={styles.evidenceContainer}>
-        <ThemedText style={styles.sectionTitle}>الشواهد - محاور الأداء المهني</ThemedText>
-        <ThemedText style={styles.evidenceIntro}>
-          الشواهد المُدخلة في كل محور من محاور الأداء المهني:
-        </ThemedText>
-        <ScrollView
-          style={styles.evidenceScroll}
-          showsVerticalScrollIndicator={false}
-          nestedScrollEnabled
-        >
-          {itemsWithEvidence.map((item) => (
-            <ThemedView key={String(item.id)} style={styles.evidenceAxisCard}>
-              <ThemedText style={styles.evidenceAxisTitle}>{item.title}</ThemedText>
-              <ThemedView style={styles.evidenceList}>
-                {(item.evidence || []).map((ev, idx) => {
-                  const fileKey = `${item.id}-${idx}`;
-                  const file = uploadedFilesMap[fileKey];
-                  const canPreview = ev.available && file?.uri;
-                  const isImage = file?.type === 'صورة';
-                  return (
-                    <ThemedView key={idx} style={styles.evidenceRow}>
-                      <ThemedView style={styles.evidenceRowContent}>
-                        <ThemedText style={styles.evidenceName}>{ev.name}</ThemedText>
-                      </ThemedView>
-                      <ThemedView style={styles.evidenceRowBadge}>
-                        <ThemedView
-                          style={[
-                            styles.evidenceBadge,
-                            ev.available ? styles.evidenceBadgeAvailable : styles.evidenceBadgeUnavailable,
-                          ]}
-                        >
-                          <ThemedText
-                            style={[
-                              styles.evidenceBadgeText,
-                              ev.available ? styles.evidenceBadgeTextAvailable : styles.evidenceBadgeTextUnavailable,
-                            ]}
-                          >
-                            {ev.available ? 'متوفر' : 'غير متوفر'}
-                          </ThemedText>
-                        </ThemedView>
-                        {canPreview && (
-                          <TouchableOpacity
-                            style={styles.evidencePreviewButton}
-                            onPress={() => {
-                              if (isImage) {
-                                setPreviewImageUri(file.uri!);
-                                setPreviewVisible(true);
-                              } else {
-                                Linking.openURL(file.uri!).catch(() =>
-                                  AlertService.alert('لا يمكن فتح الملف', 'المعاينة غير متاحة لهذا النوع على هذا الجهاز.')
-                                );
-                              }
-                            }}
-                            activeOpacity={0.7}
-                          >
-                            <IconSymbol size={16} name="eye.fill" color="#1c1f33" />
-                            <ThemedText style={styles.evidencePreviewButtonText}>معاينة</ThemedText>
-                          </TouchableOpacity>
-                        )}
-                      </ThemedView>
-                    </ThemedView>
-                  );
-                })}
-              </ThemedView>
-            </ThemedView>
-          ))}
-        </ScrollView>
-      </ThemedView>
-    );
-  };
-
-  const CATEGORY_PIE_COLORS = [
-    '#4CAF50', '#2196F3', '#FF9800', '#9C27B0', '#F44336',
-    '#00BCD4', '#8BC34A', '#FFC107', '#3F51B5', '#E91E63', '#795548',
-  ];
-
-  const renderCategoriesChart = () => {
-    const categories = getCategories();
-
-    // التأكد من وجود بيانات
-    if (!categories || categories.length === 0) {
-      return (
-        <ThemedView style={styles.chartContainer}>
-          <ThemedText style={styles.chartTitle}>توزيع محاور الأداء المهني</ThemedText>
-          <ThemedView style={styles.emptyState}>
-            <ThemedText style={styles.emptyStateText}>لا توجد بيانات متاحة للعرض</ThemedText>
-          </ThemedView>
-        </ThemedView>
-      );
-    }
-
-    // التأكد من أن البيانات صحيحة
-    const validCategories = categories.filter(cat => cat && cat.name && typeof cat.average === 'number');
-
-    if (validCategories.length === 0) {
-      return (
-        <ThemedView style={styles.chartContainer}>
-          <ThemedText style={styles.chartTitle}>توزيع محاور الأداء المهني</ThemedText>
-          <ThemedView style={styles.emptyState}>
-            <ThemedText style={styles.emptyStateText}>البيانات غير صحيحة</ThemedText>
-          </ThemedView>
-        </ThemedView>
-      );
-    }
-
-    const pieData = validCategories.map((cat, index) => {
-      const name = String(cat.name || 'غير محدد');
-      return {
-        name: name.length > 12 ? name.substring(0, 12) + '…' : name,
-        score: Math.max(0, cat.average || 0),
-        color: CATEGORY_PIE_COLORS[index % CATEGORY_PIE_COLORS.length],
-        legendFontColor: '#1c1f33',
-        legendFontSize: 11,
-      };
-    });
-
-    return (
-      <ThemedView style={styles.chartContainer}>
-        <ThemedText style={styles.chartTitle}>توزيع محاور الأداء المهني</ThemedText>
-        <PieChart
-          data={pieData}
-          width={Dimensions.get('window').width - 80}
-          height={220}
-          chartConfig={{ color: (opacity = 1) => `rgba(28, 31, 51, ${opacity})` }}
-          accessor="score"
-          backgroundColor="transparent"
-          paddingLeft="15"
-          absolute={false}
-          avoidFalseZero
-          hasLegend
-          style={{ marginVertical: 10 }}
-        />
-      </ThemedView>
-    );
-  };
-
-  const renderDashboard = () => {
-    const overallAverage = calculateOverallAverage();
-    const sortedByScore = [...performanceData].sort((a, b) => b.score - a.score);
-    const strongest = sortedByScore.slice(0, 3);
-    const weakest = [...sortedByScore].reverse().slice(0, 3);
-
-    return (
-      <ThemedView style={styles.dashboardCard}>
-        <ThemedText type="subtitle" style={styles.summaryTitle}>لوحة القيادة</ThemedText>
-
-        {/* متوسط الجودة العام */}
-        <ThemedView style={styles.dashboardOverallRow}>
-          <ThemedText style={[styles.dashboardOverallValue, { color: getScoreColor(overallAverage) }]}>
-            {overallAverage}%
-          </ThemedText>
-          <ThemedText style={styles.dashboardOverallLabel}>
-            {formatRTLText(`متوسط الجودة العام — ${getScoreLevel(overallAverage)}`)}
-          </ThemedText>
-        </ThemedView>
-
-        {/* أقوى وأضعف ثلاثة محاور */}
-        <ThemedView style={styles.dashboardTopBottomRow}>
-          <ThemedView style={styles.dashboardMiniList}>
-            <ThemedText style={styles.dashboardMiniListTitle}>🏆 أقوى 3 محاور</ThemedText>
-            {strongest.map((item, i) => (
-              <ThemedView key={item.id} style={styles.dashboardMiniRow}>
-                <ThemedText style={styles.dashboardMiniRank}>{i + 1}</ThemedText>
-                <ThemedText style={styles.dashboardMiniName} numberOfLines={1}>{item.title}</ThemedText>
-                <ThemedText style={[styles.dashboardMiniScore, { color: getScoreColor(item.score) }]}>{item.score}%</ThemedText>
-              </ThemedView>
-            ))}
-          </ThemedView>
-          <ThemedView style={styles.dashboardMiniList}>
-            <ThemedText style={styles.dashboardMiniListTitle}>⚠️ أضعف 3 محاور</ThemedText>
-            {weakest.map((item, i) => (
-              <ThemedView key={item.id} style={styles.dashboardMiniRow}>
-                <ThemedText style={styles.dashboardMiniRank}>{i + 1}</ThemedText>
-                <ThemedText style={styles.dashboardMiniName} numberOfLines={1}>{item.title}</ThemedText>
-                <ThemedText style={[styles.dashboardMiniScore, { color: getScoreColor(item.score) }]}>{item.score}%</ThemedText>
-              </ThemedView>
-            ))}
-          </ThemedView>
-        </ThemedView>
-
-        {/* درجة كل محور */}
-        {renderProgressChart()}
-
-        {/* رسم بياني تشخيصي مبسط */}
-        {renderCategoriesChart()}
       </ThemedView>
     );
   };
@@ -463,6 +376,10 @@ export function PerformanceReportView() {
     score: number;
     weight: number;
     evidence: Evidence[];
+    /** موجود فعليًا في البيانات المحفوظة (تأتي أصلاً من PerformanceAxis عبر
+     * app/(tabs)/performance.tsx) وإن لم يكن جزءًا من الشكل المصغَّر الذي
+     * تبنيه getDefaultPerformanceData هنا؛ يُستخدم في التقرير المصدَّر. */
+    description?: string;
   };
 
   const generateReportHTML = async () => {
@@ -552,11 +469,6 @@ export function PerformanceReportView() {
     const reportAverageScore = hasAnyScore
       ? calculateOverallAverageFivePoint(reportItems.map(item => ({ score: item.score, weight: item?.weight ?? 0 })))
       : 0;
-    const reportCategories = reportItems.map(item => ({
-      name: item?.title || 'غير محدد',
-      average: item.score,
-      count: 1,
-    })).filter(cat => cat && cat.name);
     const maxScore = Math.max(...reportScores, 0);
     const minScore = reportScores.length ? Math.min(...reportScores) : 0;
     const excellentCount = reportScores.filter(s => s >= 90).length;
@@ -573,484 +485,364 @@ export function PerformanceReportView() {
     <head>
       <meta charset="UTF-8">
       <meta name="viewport" content="width=device-width, initial-scale=1.0">
-      <title>التقرير التفاعلي للأداء المهني</title>
+      <title>ملف إنجاز الأداء الوظيفي</title>
       <style>
         body {
           font-family: 'Arial', sans-serif;
-          margin: 20px;
+          margin: 0;
+          padding: 20px;
           line-height: 1.6;
           color: #333;
-          background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+          background: #f5f7fa;
         }
         .container {
           max-width: 800px;
           margin: 0 auto;
           background: white;
-          padding: 30px;
           border-radius: 15px;
+          overflow: hidden;
           box-shadow: 0 10px 30px rgba(0,0,0,0.1);
         }
-        .header {
-          text-align: center;
-          margin-bottom: 40px;
-          padding-bottom: 20px;
-          border-bottom: 3px solid #1c1f33;
-        }
-        .logo-section {
+        .top-banner {
+          background: linear-gradient(135deg, #14b8a6 0%, #2563eb 100%);
+          padding: 20px 30px;
           display: flex;
-          justify-content: center;
+          justify-content: space-between;
           align-items: center;
-          margin-bottom: 20px;
-          gap: 20px;
+          color: white;
         }
-        .logo {
-          width: 80px;
-          height: 80px;
+        .top-banner .logo {
+          width: 56px;
+          height: 56px;
           object-fit: contain;
+          background: white;
+          border-radius: 10px;
+          padding: 6px;
         }
-        .ministry-info {
+        .top-banner .ministry-text {
+          text-align: right;
+        }
+        .top-banner .ministry-text h2 {
+          margin: 0;
+          font-size: 18px;
+        }
+        .top-banner .ministry-text p {
+          margin: 4px 0 0 0;
+          font-size: 13px;
+          opacity: 0.9;
+        }
+        .title-pill-wrap {
+          padding: 20px 30px 0 30px;
           text-align: center;
         }
-        .ministry-title {
-          font-size: 24px;
-          font-weight: bold;
-          color: #1c1f33;
-          margin: 0;
-        }
-        .ministry-subtitle {
-          font-size: 16px;
-          color: #666;
-          margin: 5px 0 0 0;
-        }
-        .header h1 {
-          color: #1c1f33;
-          font-size: 28px;
-          margin-bottom: 10px;
-        }
-        .header p {
-          color: #666;
-          font-size: 16px;
-        }
-        .personal-info-section {
-          background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
-          padding: 25px;
-          border-radius: 15px;
-          margin-bottom: 30px;
-          border: 2px solid #dee2e6;
-        }
-        .personal-info-title {
-          color: #1c1f33;
+        .title-pill {
+          display: inline-block;
+          background: #14532d;
+          color: white;
           font-size: 20px;
           font-weight: bold;
+          padding: 12px 30px;
+          border-radius: 30px;
+        }
+        .content {
+          padding: 20px 30px 30px 30px;
+        }
+        .section-card {
+          background: white;
+          border: 1px solid #E5E5EA;
+          border-radius: 15px;
+          padding: 20px;
           margin-bottom: 20px;
+        }
+        .section-title {
+          color: #1c1f33;
+          font-size: 18px;
+          font-weight: bold;
+          margin: 0 0 15px 0;
           text-align: center;
           border-bottom: 2px solid #1c1f33;
           padding-bottom: 10px;
         }
-        .info-grid {
-          display: grid;
-          grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-          gap: 20px;
+        .info-table {
+          width: 100%;
+          border-collapse: collapse;
         }
-        .info-item {
-          display: flex;
-          justify-content: space-between;
-          padding: 12px 15px;
-          background: white;
-          border-radius: 8px;
-          border-right: 4px solid #add4ce;
-          box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        .info-table tr:nth-child(even) { background: #f8f9fa; }
+        .info-table td {
+          padding: 10px 12px;
+          font-size: 14px;
+          border-bottom: 1px solid #eee;
         }
-        .info-label {
+        .info-table td.label {
           font-weight: bold;
-          color: #666;
-          font-size: 14px;
+          color: #555;
+          width: 40%;
         }
-        .info-value {
-          color: #333;
-          font-size: 14px;
-          max-width: 200px;
-          text-align: left;
-        }
-
-        .summary-section {
-          background: linear-gradient(135deg, #add4ce 0%, #e1f5f4 100%);
-          padding: 25px;
-          border-radius: 15px;
-          margin-bottom: 30px;
-          text-align: center;
+        .info-table td.value {
+          color: #1c1f33;
         }
         .summary-row {
           display: flex;
           justify-content: space-around;
-          margin-top: 20px;
-        }
-        .summary-item {
           text-align: center;
+          margin-bottom: 10px;
         }
         .summary-value {
-          font-size: 32px;
+          font-size: 30px;
           font-weight: bold;
-          color: ${getScoreColor(reportAverageScore)};
-          margin-bottom: 5px;
         }
         .summary-label {
-          font-size: 14px;
+          font-size: 13px;
           color: #666;
+          margin-top: 4px;
         }
-        .stats-grid {
+        .badge-grid {
           display: grid;
-          grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-          gap: 20px;
-          margin: 30px 0;
+          grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+          gap: 12px;
         }
-        .stat-card {
-          background: #f8f9fa;
-          padding: 20px;
-          border-radius: 12px;
-          text-align: center;
-          border: 2px solid #e9ecef;
-        }
-        .stat-value {
-          font-size: 24px;
-          font-weight: bold;
-          color: #333;
-          margin: 10px 0;
-        }
-        .stat-label {
-          font-size: 14px;
-          color: #666;
-        }
-        .categories-section {
-          margin: 30px 0;
-        }
-        .category-item {
-          display: flex;
-          justify-content: space-between;
-          align-items: center;
-          padding: 15px;
-          margin-bottom: 10px;
-          background: #f8f9fa;
+        .badge-card {
+          border: 1px solid #e8b64c;
           border-radius: 10px;
-          border-right: 5px solid ${getScoreColor(reportAverageScore)};
-        }
-        .category-name {
-          font-weight: bold;
-          color: #333;
-        }
-        .category-score {
-          font-weight: bold;
-          font-size: 18px;
-        }
-        .performance-list {
-          margin-top: 30px;
-        }
-        .performance-item {
-          display: flex;
-          justify-content: space-between;
-          align-items: center;
-          padding: 12px 15px;
-          margin-bottom: 8px;
-          background: #f8f9fa;
-          border-radius: 8px;
-          border-right: 4px solid #ddd;
-        }
-        .recommendations {
-          background: #fff8e1;
-          padding: 25px;
-          border-radius: 15px;
-          margin-top: 30px;
-          border-right: 5px solid #ff9800;
-        }
-        .recommendations h3 {
-          color: #333;
-          margin-bottom: 15px;
-        }
-        .recommendation-item {
-          margin-bottom: 10px;
-          padding: 10px;
-          background: rgba(255, 152, 0, 0.1);
-          border-radius: 8px;
-        }
-        .evidence-section {
-          background: #f0f8ff;
-          padding: 25px;
-          border-radius: 15px;
-          margin-top: 30px;
-          border-right: 5px solid #4A90E2;
-        }
-        .evidence-section h3 {
-          color: #333;
-          margin-bottom: 20px;
+          padding: 10px 12px;
           text-align: center;
+          background: #fffdf5;
         }
-        .performance-evidence {
-          margin-bottom: 25px;
-          background: white;
-          padding: 20px;
-          border-radius: 12px;
-          border: 2px solid #e1f5fe;
-        }
-        .performance-evidence h4 {
-          color: #1c1f33;
-          margin-bottom: 15px;
-          border-bottom: 2px solid #4A90E2;
-          padding-bottom: 8px;
-        }
-        .evidence-list {
-          margin-left: 20px;
-        }
-        .evidence-item {
-          margin-bottom: 15px;
-          padding: 12px;
-          background: #f8f9fa;
-          border-radius: 8px;
-          border-right: 3px solid #4A90E2;
-        }
-        .evidence-name {
+        .badge-card .badge-value {
+          font-size: 18px;
           font-weight: bold;
-          color: #333;
-          margin-bottom: 8px;
+        }
+        .badge-card .badge-label {
+          font-size: 12px;
+          color: #666;
+          margin-top: 4px;
+        }
+        .axis-section {
+          margin-bottom: 24px;
+          page-break-inside: avoid;
+        }
+        .axis-banner {
+          background: #14532d;
+          color: white;
+          font-size: 16px;
+          font-weight: bold;
+          text-align: center;
+          padding: 10px 16px;
+          border-radius: 10px 10px 0 0;
+        }
+        .axis-body {
+          border: 1px solid #E5E5EA;
+          border-top: none;
+          border-radius: 0 0 12px 12px;
+          padding: 16px;
+        }
+        .axis-subtitle {
+          font-size: 13px;
+          color: #666;
+          text-align: center;
+          margin: 0 0 14px 0;
+        }
+        .evidence-banner {
+          background: #0f6e5c;
+          color: white;
+          font-size: 14px;
+          font-weight: bold;
+          text-align: center;
+          padding: 8px 12px;
+          border-radius: 8px;
+          margin: 16px 0 12px 0;
+        }
+        .evidence-grid {
+          display: grid;
+          grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+          gap: 10px;
+        }
+        .evidence-card {
+          border: 1px solid #e1f5f4;
+          border-radius: 8px;
+          padding: 10px 12px;
+          background: #f8fffe;
+        }
+        .evidence-card .evidence-name {
+          font-weight: bold;
+          color: #1c1f33;
+          font-size: 13px;
+          margin-bottom: 6px;
         }
         .evidence-status {
           display: inline-block;
-          padding: 4px 8px;
-          border-radius: 12px;
-          font-size: 12px;
+          padding: 3px 10px;
+          border-radius: 10px;
+          font-size: 11px;
           font-weight: bold;
-          margin-bottom: 8px;
         }
-        .evidence-available {
-          background: #4CAF50;
-          color: white;
-        }
-        .evidence-unavailable {
-          background: #F44336;
-          color: white;
-        }
-        .evidence-files {
-          margin-top: 10px;
-        }
-        .file-item {
-          display: flex;
-          align-items: center;
-          padding: 8px;
-          background: #e3f2fd;
-          border-radius: 6px;
-          margin-bottom: 5px;
-          font-size: 12px;
-        }
-        .file-icon {
-          margin-left: 8px;
-          font-size: 16px;
-        }
-        .file-info {
-          flex: 1;
-        }
-        .file-name {
-          font-weight: bold;
+        .evidence-available { background: #4CAF50; color: white; }
+        .evidence-unavailable { background: #9E9E9E; color: white; }
+        .evidence-file {
+          margin-top: 6px;
+          font-size: 11px;
           color: #1976d2;
         }
-        .file-details {
-          color: #666;
-          font-size: 11px;
+        .no-evidence {
+          text-align: center;
+          color: #999;
+          font-size: 13px;
+          padding: 10px 0;
+        }
+        .recommendations {
+          background: #fff8e1;
+          border-right: 5px solid #ff9800;
+        }
+        .recommendation-item {
+          margin-bottom: 8px;
+          padding: 10px;
+          background: rgba(255, 152, 0, 0.1);
+          border-radius: 8px;
+          font-size: 14px;
+        }
+        .signature-section {
+          display: flex;
+          justify-content: center;
+          margin-top: 10px;
+        }
+        .signature-box {
+          border: 1px solid #E5E5EA;
+          border-radius: 12px;
+          padding: 16px 40px;
+          text-align: center;
+          min-width: 220px;
+        }
+        .signature-box .signature-label {
+          font-weight: bold;
+          color: #1c1f33;
+          border-bottom: 1px solid #ccc;
+          padding-bottom: 10px;
+          margin-bottom: 10px;
+        }
+        .signature-box .signature-value {
+          color: #14532d;
+          font-weight: bold;
         }
         .footer {
           text-align: center;
-          margin-top: 40px;
-          padding-top: 20px;
+          padding-top: 16px;
           border-top: 2px solid #eee;
-          color: #666;
+          color: #999;
+          font-size: 12px;
         }
-        .page-break {
-          page-break-before: always;
-        }
+        .page-break { page-break-before: always; }
       </style>
     </head>
     <body>
       <div class="container">
-        <div class="header">
-          <div class="logo-section">
-            ${logoDataUri ? `<img src="${logoDataUri}" alt="شعار وزارة التعليم" class="logo">` : ''}
-            <div class="ministry-info">
-              <h2 class="ministry-title">المملكة العربية السعودية</h2>
-              <p class="ministry-subtitle">وزارة التعليم</p>
-            </div>
+        <div class="top-banner">
+          <div class="ministry-text">
+            <h2>وزارة التعليم</h2>
+            <p>${userData.school}</p>
           </div>
-          <h1>📊 التقرير التفاعلي للأداء المهني</h1>
-          <p>تحليل شامل لأداءك المهني مع مؤشرات تفاعلية</p>
-          <p><strong>المهنة:</strong> ${userData.profession}</p>
-          <p>تاريخ التقرير: ${new Date().toLocaleDateString('ar-SA')}</p>
+          ${logoDataUri ? `<img src="${logoDataUri}" alt="شعار وزارة التعليم" class="logo">` : ''}
         </div>
 
-        <div class="personal-info-section">
-          <h3 class="personal-info-title">البيانات الشخصية والمهنية</h3>
-          <div class="info-grid">
-            <div class="info-item">
-              <span class="info-label">الاسم الكامل:</span>
-              <span class="info-value">${userData.fullName}</span>
-            </div>
-            <div class="info-item">
-              <span class="info-label">المهنة:</span>
-              <span class="info-value">${userData.profession}</span>
-            </div>
-            <div class="info-item">
-              <span class="info-label">التخصص:</span>
-              <span class="info-value">${userData.specialty}</span>
-            </div>
-            <div class="info-item">
-              <span class="info-label">سنوات الخبرة:</span>
-              <span class="info-value">${userData.experience}</span>
-            </div>
-            <div class="info-item">
-              <span class="info-label">المؤهل العلمي:</span>
-              <span class="info-value">${userData.education}</span>
-            </div>
-            <div class="info-item">
-              <span class="info-label">المدرسة:</span>
-              <span class="info-value">${userData.school}</span>
-            </div>
-            <div class="info-item">
-              <span class="info-label">الإدارة التعليمية:</span>
-              <span class="info-value">${userData.educationDepartment}</span>
-            </div>
-            <div class="info-item">
-              <span class="info-label">المرحلة الدراسية:</span>
-              <span class="info-value">${userData.gradeLevel}</span>
-            </div>
-            <div class="info-item">
-              <span class="info-label">البريد الإلكتروني:</span>
-              <span class="info-value">${userData.email}</span>
-            </div>
-            <div class="info-item">
-              <span class="info-label">رقم الهاتف:</span>
-              <span class="info-value">${userData.phone}</span>
-            </div>
-          </div>
+        <div class="title-pill-wrap">
+          <span class="title-pill">ملف إنجاز الأداء الوظيفي</span>
         </div>
 
-
-
-        <div class="summary-section">
-          <h2>ملخص الأداء العام - ${userData.profession}</h2>
-          <div class="summary-row">
-            <div class="summary-item">
-              <div class="summary-value">${reportAverageScore}%</div>
-              <div class="summary-label">المتوسط العام</div>
-            </div>
-            <div class="summary-item">
-              <div class="summary-value">${getScoreLevel(reportAverageScore)}</div>
-              <div class="summary-label">مستوى الأداء</div>
-            </div>
+        <div class="content">
+          <div class="section-card">
+            <h3 class="section-title">البيانات الشخصية والمهنية</h3>
+            <table class="info-table">
+              <tr><td class="label">الاسم الكامل</td><td class="value">${userData.fullName}</td></tr>
+              <tr><td class="label">المهنة</td><td class="value">${userData.profession}</td></tr>
+              <tr><td class="label">التخصص</td><td class="value">${userData.specialty}</td></tr>
+              <tr><td class="label">سنوات الخبرة</td><td class="value">${userData.experience}</td></tr>
+              <tr><td class="label">المؤهل العلمي</td><td class="value">${userData.education}</td></tr>
+              <tr><td class="label">المدرسة</td><td class="value">${userData.school}</td></tr>
+              <tr><td class="label">الإدارة التعليمية</td><td class="value">${userData.educationDepartment}</td></tr>
+              <tr><td class="label">المرحلة الدراسية</td><td class="value">${userData.gradeLevel}</td></tr>
+              <tr><td class="label">البريد الإلكتروني</td><td class="value">${userData.email}</td></tr>
+              <tr><td class="label">رقم الهاتف</td><td class="value">${userData.phone}</td></tr>
+              <tr><td class="label">تاريخ التقرير</td><td class="value">${new Date().toLocaleDateString('ar-SA')}</td></tr>
+            </table>
           </div>
-        </div>
 
-        <div class="stats-grid">
-          <div class="stat-card">
-            <div class="stat-value">${maxScore}%</div>
-            <div class="stat-label">أعلى درجة</div>
-          </div>
-          <div class="stat-card">
-            <div class="stat-value">${minScore}%</div>
-            <div class="stat-label">أقل درجة</div>
-          </div>
-          <div class="stat-card">
-            <div class="stat-value">${excellentCount}</div>
-            <div class="stat-label">محاور ممتازة</div>
-          </div>
-          <div class="stat-card">
-            <div class="stat-value">${goodCount}</div>
-            <div class="stat-label">محاور جيدة</div>
-          </div>
-          <div class="stat-card">
-            <div class="stat-value">${needsImprovementCount}</div>
-            <div class="stat-label">تحتاج تحسين</div>
-          </div>
-        </div>
-
-        <div class="categories-section">
-          <h3>متوسط الدرجات حسب الفئة - ${userData.profession}</h3>
-          ${reportCategories.map(category => `
-            <div class="category-item">
-              <span class="category-name">${category.name}</span>
-              <span class="category-score" style="color: ${getScoreColor(category.average)}">${category.average}%</span>
-            </div>
-          `).join('')}
-        </div>
-
-        <div class="page-break"></div>
-
-        <div class="performance-list">
-          <h3>تفاصيل جميع المحاور - ${userData.profession}</h3>
-          ${reportItems
-            .sort((a, b) => b.score - a.score)
-            .map((item, index) => `
-              <div class="performance-item">
-                <span>${index + 1}. ${item.title}</span>
-                <span style="color: ${getScoreColor(item.score)}; font-weight: bold;">${item.score}%</span>
+          <div class="section-card">
+            <h3 class="section-title">ملخص الأداء العام</h3>
+            <div class="summary-row">
+              <div>
+                <div class="summary-value" style="color: ${getScoreColor(reportAverageScore)}">${reportAverageScore}%</div>
+                <div class="summary-label">المتوسط العام</div>
               </div>
-            `).join('')}
-        </div>
-
-        <div class="recommendations">
-          <h3>🔍 توصيات للتحسين - ${userData.profession}</h3>
-          ${needsImprovementItems
-            .map(item => `
-              <div class="recommendation-item">
-                • ركز على تحسين "${item.title}" (الدرجة الحالية: ${item.score}%)
+              <div>
+                <div class="summary-value" style="color: ${getScoreColor(reportAverageScore)}">${getScoreLevel(reportAverageScore)}</div>
+                <div class="summary-label">مستوى الأداء</div>
               </div>
-            `).join('')}
-          ${needsImprovementItems.length === 0 ?
-            '<div class="recommendation-item">• ممتاز! جميع المحاور تحصل على درجات عالية. استمر في الأداء المتميز.</div>' : ''}
-        </div>
+            </div>
+            <div class="badge-grid">
+              <div class="badge-card"><div class="badge-value">${maxScore}%</div><div class="badge-label">أعلى درجة</div></div>
+              <div class="badge-card"><div class="badge-value">${minScore}%</div><div class="badge-label">أقل درجة</div></div>
+              <div class="badge-card"><div class="badge-value">${excellentCount}</div><div class="badge-label">محاور ممتازة</div></div>
+              <div class="badge-card"><div class="badge-value">${goodCount}</div><div class="badge-label">محاور جيدة</div></div>
+              <div class="badge-card"><div class="badge-value">${needsImprovementCount}</div><div class="badge-label">تحتاج تحسين</div></div>
+            </div>
+          </div>
 
-        <div class="page-break"></div>
+          <div class="page-break"></div>
 
-        <div class="evidence-section">
-          <h3>📎 الشواهد المرفقة - ${userData.profession}</h3>
-          ${performanceDataWithEvidence.length > 0 ? 
-            performanceDataWithEvidence
-              .filter((item: ReportItem) => item.evidence && item.evidence.length > 0)
-              .map((item: ReportItem, index: number) => `
-                <div class="performance-evidence">
-                  <h4>${index + 1}. ${item.title}</h4>
-                  <div class="evidence-list">
+          ${reportItems.map((item, index) => `
+            <div class="axis-section">
+              <div class="axis-banner">${index + 1}. ${item.title}</div>
+              <div class="axis-body">
+                ${item.description ? `<p class="axis-subtitle">${item.description}</p>` : ''}
+                <div class="badge-grid">
+                  <div class="badge-card"><div class="badge-value">${item.weight}%</div><div class="badge-label">الوزن</div></div>
+                  <div class="badge-card"><div class="badge-value" style="color: ${getScoreColor(item.score)}">${item.score}%</div><div class="badge-label">الدرجة</div></div>
+                  <div class="badge-card"><div class="badge-value" style="color: ${getScoreColor(item.score)}">${getScoreLevel(item.score)}</div><div class="badge-label">المستوى</div></div>
+                </div>
+                ${item.evidence && item.evidence.length > 0 ? `
+                  <div class="evidence-banner">شواهد المحور</div>
+                  <div class="evidence-grid">
                     ${item.evidence.map((evidence: Evidence, evidenceIndex: number) => {
-                      const fileKey = `${item.id}_${evidenceIndex}`;
-                      const files = uploadedFiles[fileKey] || [];
+                      const fileKey = `${item.id}-${evidenceIndex}`;
+                      const file = uploadedFiles[fileKey];
                       return `
-                        <div class="evidence-item">
+                        <div class="evidence-card">
                           <div class="evidence-name">${evidence.name}</div>
-                          <div class="evidence-status ${evidence.available ? 'evidence-available' : 'evidence-unavailable'}">
+                          <span class="evidence-status ${evidence.available ? 'evidence-available' : 'evidence-unavailable'}">
                             ${evidence.available ? 'متوفر' : 'غير متوفر'}
-                          </div>
-                          ${files.length > 0 ? `
-                            <div class="evidence-files">
-                              <strong>الملفات المرفقة:</strong>
-                              ${files.map((file: FileInfo) => `
-                                <div class="file-item">
-                                  <span class="file-icon">📎</span>
-                                  <div class="file-info">
-                                    <div class="file-name">${file.name}</div>
-                                    <div class="file-details">${file.size} • ${file.type} • ${file.date}</div>
-                                  </div>
-                                </div>
-                              `).join('')}
-                            </div>
-                          ` : '<div class="evidence-files"><em>لا توجد ملفات مرفقة</em></div>'}
+                          </span>
+                          ${file ? `<div class="evidence-file">📎 ${file.name}</div>` : ''}
                         </div>
                       `;
                     }).join('')}
                   </div>
-                </div>
-              `).join('') : 
-            '<div class="performance-evidence"><p>لا توجد شواهد مرفقة حالياً</p></div>'
-          }
-        </div>
+                ` : '<div class="no-evidence">لا توجد شواهد محددة لهذا المحور.</div>'}
+              </div>
+            </div>
+          `).join('')}
 
-        <div class="footer">
-          <p>تم إنشاء هذا التقرير تلقائياً بواسطة نظام تقييم الأداء المهني</p>
-          <p>© ${new Date().getFullYear()} - جميع الحقوق محفوظة</p>
+          <div class="section-card recommendations">
+            <h3 class="section-title">🔍 توصيات للتحسين</h3>
+            ${needsImprovementItems
+              .map(item => `
+                <div class="recommendation-item">
+                  • ركز على تحسين "${item.title}" (الدرجة الحالية: ${item.score}%)
+                </div>
+              `).join('')}
+            ${needsImprovementItems.length === 0 ?
+              '<div class="recommendation-item">• ممتاز! جميع المحاور تحصل على درجات عالية. استمر في الأداء المتميز.</div>' : ''}
+          </div>
+
+          <div class="signature-section">
+            <div class="signature-box">
+              <div class="signature-label">المعلم</div>
+              <div class="signature-value">${userData.fullName}</div>
+            </div>
+          </div>
+
+          <div class="footer">
+            <p>تم إنشاء هذا التقرير تلقائياً بواسطة نظام تقييم الأداء المهني</p>
+            <p>© ${new Date().getFullYear()} - جميع الحقوق محفوظة</p>
+          </div>
         </div>
       </div>
     </body>
@@ -1356,8 +1148,6 @@ export function PerformanceReportView() {
             <ThemedView style={styles.content}>
               {renderDashboard()}
 
-              {renderEvidence()}
-
             <ThemedView style={styles.recommendationsCard}>
                               <ThemedText style={styles.recommendationsTitle}>
                   <IconSymbol size={20} name="lightbulb.fill" color="#FF9800" /> توصيات للتحسين
@@ -1386,14 +1176,19 @@ export function PerformanceReportView() {
             </ThemedView>
 
             <ThemedView style={styles.actionButtons}>
-              <TouchableOpacity 
+              <TouchableOpacity
                 style={styles.exportButton}
-                onPress={() => router.push('/share-achievements')}
+                onPress={handleShareAchievements}
+                disabled={isGeneratingShareLink}
                 activeOpacity={0.7}
               >
-                <IconSymbol size={20} name="square.and.arrow.up" color="#1c1f33" />
+                {isGeneratingShareLink ? (
+                  <ActivityIndicator color="#1c1f33" size="small" />
+                ) : (
+                  <IconSymbol size={20} name="square.and.arrow.up" color="#1c1f33" />
+                )}
                 <ThemedText style={styles.buttonText}>
-                  {formatRTLText('مشاركة الإنجازات')}
+                  {isGeneratingShareLink ? formatRTLText('جارٍ التجهيز...') : formatRTLText('مشاركة التقرير')}
                 </ThemedText>
               </TouchableOpacity>
               <ThemedText style={styles.exportSectionTitle}>
@@ -1432,33 +1227,31 @@ export function PerformanceReportView() {
                 </TouchableOpacity>
               </View>
             </ThemedView>
-            </ThemedView>
 
-      <Modal
-        visible={previewVisible}
-        transparent
-        animationType="fade"
-        onRequestClose={() => setPreviewVisible(false)}
-      >
-        <TouchableOpacity
-          style={styles.previewOverlay}
-          activeOpacity={1}
-          onPress={() => setPreviewVisible(false)}
-        >
-          <View style={styles.previewContent} pointerEvents="box-none">
-            {previewImageUri ? (
-              <Image source={{ uri: previewImageUri }} style={styles.previewImage} resizeMode="contain" />
-            ) : null}
-            <TouchableOpacity
-              style={styles.previewCloseButton}
-              onPress={() => setPreviewVisible(false)}
-              activeOpacity={0.8}
-            >
-              <ThemedText style={styles.previewCloseText}>إغلاق</ThemedText>
-            </TouchableOpacity>
-          </View>
-        </TouchableOpacity>
-      </Modal>
+            <ThemedView style={styles.visitorCommentsCard}>
+              <ThemedText style={styles.exportSectionTitle}>
+                {formatRTLText('تعليقات الزوار على التقرير')}
+              </ThemedText>
+              {loadingComments ? (
+                <ActivityIndicator color="#1c1f33" style={styles.visitorCommentsLoading} />
+              ) : visitorComments.length === 0 ? (
+                <ThemedText style={[styles.noVisitorComments, getTextDirection()]}>
+                  {formatRTLText('لا توجد تعليقات بعد. تظهر هنا تعليقات الزوار على رابط التقرير الذي تشاركينه.')}
+                </ThemedText>
+              ) : (
+                visitorComments.map((comment) => (
+                  <ThemedView key={comment.id} style={styles.visitorCommentItem}>
+                    <ThemedText style={[styles.visitorCommentMeta, getTextDirection()]}>
+                      {formatRTLText(comment.author_name || 'زائر')} · {new Date(comment.created_at).toLocaleDateString('ar-SA')}
+                    </ThemedText>
+                    <ThemedText style={[styles.visitorCommentText, getTextDirection()]}>
+                      {formatRTLText(comment.comment_text)}
+                    </ThemedText>
+                  </ThemedView>
+                ))
+              )}
+            </ThemedView>
+            </ThemedView>
 
       <Modal
         visible={!!wordDownload}
@@ -1593,96 +1386,123 @@ const styles = StyleSheet.create<any>({
     elevation: 6,
   },
   summaryTitle: {
-    fontSize: 22,
+    fontSize: 20,
     fontWeight: 'bold',
-    marginBottom: 20,
-    color: '#1c1f33',
-    textAlign: 'center',
-
-  },
-  dashboardOverallRow: {
-    alignItems: 'center',
-    paddingVertical: 16,
-    paddingHorizontal: 15,
-    backgroundColor: 'rgba(173, 212, 206, 0.15)',
-    borderRadius: 12,
-    borderWidth: 1,
-    borderColor: 'rgba(173, 212, 206, 0.3)',
     marginBottom: 16,
-  },
-  dashboardOverallValue: {
-    fontSize: 36,
-    fontWeight: 'bold',
-    textAlign: 'center',
-    lineHeight: 40,
-  },
-  dashboardOverallLabel: {
-    fontSize: 14,
-    fontWeight: '600',
     color: '#1c1f33',
+    textAlign: 'center',
+  },
+  statsGrid: {
+    flexDirection: 'row-reverse',
+    gap: 8,
+    marginBottom: 20,
+  },
+  statCard: {
+    flex: 1,
+    paddingVertical: 12,
+    paddingHorizontal: 6,
+    borderRadius: 12,
+    alignItems: 'center',
+    backgroundColor: '#f8f9fa',
+    borderWidth: 1,
+    borderColor: '#e9ecef',
+  },
+  statValue: {
+    fontSize: 18,
+    fontWeight: 'bold',
+    color: '#1c1f33',
+    textAlign: 'center',
+    writingDirection: 'rtl',
+  },
+  statLabel: {
+    fontSize: 10,
+    color: '#666666',
     textAlign: 'center',
     marginTop: 4,
     writingDirection: 'rtl',
   },
-  dashboardTopBottomRow: {
-    flexDirection: 'row',
-    gap: 10,
-    marginBottom: 16,
+  chartsRow: {
+    flexDirection: 'row-reverse',
+    gap: 12,
+    marginBottom: 20,
   },
-  dashboardMiniList: {
+  chartBox: {
     flex: 1,
-    minWidth: 0,
+    alignItems: 'center',
     backgroundColor: '#f8f9fa',
     borderRadius: 12,
     borderWidth: 1,
     borderColor: '#e9ecef',
-    padding: 12,
+    paddingVertical: 12,
   },
-  dashboardMiniListTitle: {
+  chartBoxTitle: {
     fontSize: 13,
     fontWeight: 'bold',
     color: '#1c1f33',
     textAlign: 'center',
-    marginBottom: 10,
+    marginBottom: 4,
     writingDirection: 'rtl',
   },
-  dashboardMiniRow: {
-    flexDirection: 'row',
+  progressRingWrap: {
     alignItems: 'center',
-    minWidth: 0,
-    gap: 6,
-    paddingVertical: 6,
-    borderTopWidth: 1,
-    borderTopColor: '#eef0ef',
+    justifyContent: 'center',
   },
-  dashboardMiniRank: {
-    fontSize: 11,
+  progressRingCenterOverlay: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: 'transparent',
+  },
+  progressRingCenterText: {
+    fontSize: 18,
     fontWeight: 'bold',
-    color: '#999',
-    width: 14,
-    textAlign: 'center',
   },
-  dashboardMiniName: {
-    flex: 1,
-    minWidth: 0,
-    fontSize: 11,
+  chartEmptyText: {
+    fontSize: 13,
+    color: '#999',
+    textAlign: 'center',
+    paddingVertical: 30,
+  },
+  barListSection: {
+    backgroundColor: 'transparent',
+  },
+  barListRow: {
+    marginBottom: 10,
+    backgroundColor: 'transparent',
+  },
+  barListLabelRow: {
+    flexDirection: 'row-reverse',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 4,
+    backgroundColor: 'transparent',
+  },
+  barListTitle: {
+    fontSize: 12,
     fontWeight: '600',
     color: '#1c1f33',
-    writingDirection: 'rtl',
+    flex: 1,
     textAlign: 'right',
+    writingDirection: 'rtl',
   },
-  dashboardMiniScore: {
+  barListScore: {
     fontSize: 12,
     fontWeight: 'bold',
+    marginLeft: 8,
   },
-  chartContainer: {
-    marginBottom: 20,
-    padding: 20,
-    backgroundColor: 'rgba(255, 255, 255, 0.9)',
-    borderRadius: 16,
-    borderWidth: 1,
-    borderColor: 'rgba(229, 229, 234, 0.5)',
-    alignItems: 'center',
+  barListTrack: {
+    height: 10,
+    backgroundColor: '#E5E5EA',
+    borderRadius: 5,
+    overflow: 'hidden',
+  },
+  barListFill: {
+    height: '100%',
+    borderRadius: 5,
   },
   horizontalScrollContainer: {
     marginVertical: 10,
@@ -1730,14 +1550,6 @@ const styles = StyleSheet.create<any>({
     textAlign: 'left',
 
     flex: 1,
-  },
-  chartTitle: {
-    fontSize: 18,
-    fontWeight: 'bold',
-    color: '#1c1f33',
-    textAlign: 'center',
-
-    marginBottom: 15,
   },
   pieLegendContainer: {
     marginTop: 20,
@@ -1865,37 +1677,6 @@ const styles = StyleSheet.create<any>({
     shadowRadius: 3,
     elevation: 3,
   },
-
-  statsGrid: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    justifyContent: 'space-between',
-    gap: 10,
-  },
-  statCard: {
-    width: '48%',
-    padding: 15,
-    borderRadius: 12,
-    alignItems: 'center',
-    marginBottom: 10,
-    backgroundColor: 'rgba(255, 255, 255, 0.3)',
-  },
-  statValue: {
-    fontSize: 20,
-    fontWeight: 'bold',
-    color: '#333',
-    marginVertical: 5,
-    textAlign: 'center',
-    writingDirection: 'rtl',
-    textDirection: 'rtl',
-  },
-  statLabel: {
-    fontSize: 12,
-    color: '#666',
-    textAlign: 'center',
-    writingDirection: 'rtl',
-    textDirection: 'rtl',
-  },
   recommendationsCard: {
     marginBottom: 20,
     padding: 20,
@@ -1937,6 +1718,42 @@ const styles = StyleSheet.create<any>({
     flexDirection: 'column',
     gap: 12,
     marginBottom: 20,
+  },
+  visitorCommentsCard: {
+    backgroundColor: '#F8F9FA',
+    borderRadius: 14,
+    padding: 16,
+    marginBottom: 20,
+    borderWidth: 1,
+    borderColor: '#E5E5EA',
+  },
+  visitorCommentsLoading: { marginTop: 8 },
+  noVisitorComments: {
+    fontSize: 13,
+    color: '#888888',
+    textAlign: 'center',
+    marginTop: 4,
+  },
+  visitorCommentItem: {
+    backgroundColor: '#FFFFFF',
+    borderRadius: 10,
+    padding: 12,
+    marginTop: 10,
+    borderWidth: 1,
+    borderColor: '#E5E5EA',
+  },
+  visitorCommentMeta: {
+    fontSize: 12,
+    fontWeight: '600',
+    color: '#0d9488',
+    marginBottom: 4,
+    textAlign: 'right',
+  },
+  visitorCommentText: {
+    fontSize: 14,
+    color: '#1c1f33',
+    lineHeight: 20,
+    textAlign: 'right',
   },
   exportSectionTitle: {
     fontSize: 15,
@@ -2002,136 +1819,6 @@ const styles = StyleSheet.create<any>({
     borderRadius: 16,
     borderWidth: 1,
     borderColor: 'rgba(229, 229, 234, 0.5)',
-  },
-  evidenceContainer: {
-    marginBottom: 20,
-    padding: 20,
-    backgroundColor: 'rgba(255, 255, 255, 0.9)',
-    borderRadius: 16,
-    borderWidth: 1,
-    borderColor: 'rgba(229, 229, 234, 0.5)',
-  },
-  evidenceIntro: {
-    fontSize: 14,
-    color: '#555',
-    textAlign: 'right',
-    writingDirection: 'rtl',
-    textDirection: 'rtl',
-    marginBottom: 12,
-  },
-  evidenceScroll: {
-    maxHeight: 380,
-  },
-  evidenceAxisCard: {
-    marginBottom: 16,
-    padding: 14,
-    backgroundColor: 'rgba(245, 245, 247, 0.9)',
-    borderRadius: 12,
-    borderWidth: 1,
-    borderColor: 'rgba(229, 229, 234, 0.5)',
-  },
-  evidenceAxisTitle: {
-    fontSize: 16,
-    fontWeight: '600',
-    color: '#1c1f33',
-    textAlign: 'right',
-    writingDirection: 'rtl',
-    textDirection: 'rtl',
-    marginBottom: 10,
-  },
-  evidenceList: {
-    gap: 8,
-  },
-  evidenceRow: {
-    flexDirection: 'row-reverse',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    paddingVertical: 6,
-    paddingHorizontal: 10,
-    backgroundColor: '#fff',
-    borderRadius: 8,
-    borderWidth: 1,
-    borderColor: 'rgba(229, 229, 234, 0.4)',
-  },
-  evidenceName: {
-    flex: 1,
-    fontSize: 13,
-    color: '#333',
-    textAlign: 'right',
-    writingDirection: 'rtl',
-    textDirection: 'rtl',
-  },
-  evidenceBadge: {
-    paddingHorizontal: 10,
-    paddingVertical: 4,
-    borderRadius: 8,
-    marginLeft: 8,
-  },
-  evidenceBadgeAvailable: {
-    backgroundColor: 'rgba(76, 175, 80, 0.2)',
-  },
-  evidenceBadgeUnavailable: {
-    backgroundColor: 'rgba(158, 158, 158, 0.2)',
-  },
-  evidenceBadgeText: {
-    fontSize: 12,
-    fontWeight: '600',
-  },
-  evidenceBadgeTextAvailable: {
-    color: '#2e7d32',
-  },
-  evidenceBadgeTextUnavailable: {
-    color: '#616161',
-  },
-  evidenceRowContent: {
-    flex: 1,
-  },
-  evidenceRowBadge: {
-    flexDirection: 'row-reverse',
-    alignItems: 'center',
-    gap: 10,
-  },
-  evidencePreviewButton: {
-    flexDirection: 'row-reverse',
-    alignItems: 'center',
-    gap: 6,
-    paddingVertical: 6,
-    paddingHorizontal: 12,
-    backgroundColor: 'rgba(28, 31, 51, 0.08)',
-    borderRadius: 8,
-  },
-  evidencePreviewButtonText: {
-    fontSize: 13,
-    fontWeight: '600',
-    color: '#1c1f33',
-  },
-  previewOverlay: {
-    flex: 1,
-    backgroundColor: 'rgba(0,0,0,0.85)',
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  previewContent: {
-    width: '90%',
-    maxWidth: 400,
-    alignItems: 'center',
-  },
-  previewImage: {
-    width: '100%',
-    height: 360,
-    borderRadius: 12,
-  },
-  previewCloseButton: {
-    marginTop: 16,
-    paddingVertical: 12,
-    paddingHorizontal: 24,
-    backgroundColor: 'rgba(255,255,255,0.2)',
-    borderRadius: 12,
-  },
-  previewCloseText: {
-    color: '#fff',
-    fontSize: 16,
-    fontWeight: '600',
   },
   wordDownloadOverlay: {
     flex: 1,
@@ -2267,19 +1954,5 @@ const styles = StyleSheet.create<any>({
     shadowOpacity: 0.2,
     shadowRadius: 2,
     elevation: 2,
-  },
-  emptyState: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-    padding: 40,
-    minHeight: 200,
-  },
-  emptyStateText: {
-    fontSize: 16,
-    color: '#666666',
-    textAlign: 'center',
-    writingDirection: 'rtl',
-    textDirection: 'rtl',
   },
 });

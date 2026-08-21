@@ -965,8 +965,10 @@ export default function ReportBuilderScreen() {
             <TouchableOpacity style={styles.backButton} onPress={() => router.back()}>
               <IconSymbol size={20} name="chevron.left" color="#1c1f33" />
             </TouchableOpacity>
+            <ThemedView style={styles.iconContainer}>
+              <IconSymbol size={60} name="doc.text.fill" color="#1c1f33" />
+            </ThemedView>
             <ThemedView style={styles.titleRow}>
-              <ThemedView style={styles.tealBar} />
               <ThemedText type="title" style={[styles.mainTitle, getTextDirection()]}>
                 {formatRTLText('منشئ التقارير')}
               </ThemedText>
@@ -1400,7 +1402,7 @@ const styles = StyleSheet.create({
   backgroundImage: { flex: 1, width: '100%', height: '100%' },
   scroll: { flex: 1 },
   scrollContent: { paddingHorizontal: 16, paddingTop: Platform.OS === 'ios' ? 56 : 40 },
-  header: { alignItems: 'center', marginBottom: 20, position: 'relative' },
+  header: { alignItems: 'center', marginBottom: 20, position: 'relative', backgroundColor: 'transparent' },
   backButton: {
     position: 'absolute',
     left: 0,
@@ -1413,8 +1415,20 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     zIndex: 1,
   },
-  titleRow: { flexDirection: 'row-reverse', alignItems: 'center', width: '100%', justifyContent: 'center' },
-  tealBar: { width: 6, height: 44, backgroundColor: TEAL, borderRadius: 3, marginLeft: 10 },
+  iconContainer: {
+    marginBottom: 20,
+    padding: 20,
+    backgroundColor: '#F8F9FA',
+    borderRadius: 50,
+    borderWidth: 1,
+    borderColor: '#E5E5EA',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 6 },
+    shadowOpacity: 0.25,
+    shadowRadius: 12,
+    elevation: 10,
+  },
+  titleRow: { flexDirection: 'row-reverse', alignItems: 'center', width: '100%', justifyContent: 'center', backgroundColor: 'transparent' },
   mainTitle: { fontSize: 22, fontWeight: 'bold', color: '#1c1f33', textAlign: 'center' },
   headerSubtitle: { fontSize: 14, color: '#6b7280', textAlign: 'center', marginTop: 6 },
   section: {

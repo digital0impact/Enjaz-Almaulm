@@ -185,7 +185,7 @@ function SharedAchievementsViewScreenInner() {
     <ScrollView style={styles.container} contentContainerStyle={styles.content}>
       <ThemedView style={styles.header}>
         <ThemedText style={[styles.title, getTextDirection()]}>
-          {formatRTLText('عرض الإنجازات المهنية')}
+          {formatRTLText('عرض التقرير المهني')}
         </ThemedText>
         {basicData?.fullName && (
           <ThemedText style={[styles.subtitle, getTextDirection()]}>
@@ -194,7 +194,7 @@ function SharedAchievementsViewScreenInner() {
           </ThemedText>
         )}
         <ThemedText style={[styles.viewOnlyNotice, getTextDirection()]}>
-          {formatRTLText('عرض فقط — لا يمكنك التحرير. يمكنك التعليق على الإنجازات أدناه.')}
+          {formatRTLText('عرض فقط — لا يمكنك التحرير. يمكنك التعليق على التقرير أدناه.')}
         </ThemedText>
       </ThemedView>
 
@@ -232,7 +232,7 @@ function SharedAchievementsViewScreenInner() {
 
       <ThemedView style={styles.card}>
         <ThemedText style={[styles.cardTitle, getTextDirection()]}>
-          {formatRTLText('التعليقات على الإنجازات')}
+          {formatRTLText('التعليقات على التقرير')}
         </ThemedText>
         <ThemedText style={[styles.commentsHint, getTextDirection()]}>
           {formatRTLText('يمكنك إضافة تعليقك دون إمكانية تعديل التقرير.')}

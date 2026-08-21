@@ -566,7 +566,7 @@ const styles = StyleSheet.create({
   },
   backButton: {
     position: 'absolute',
-    top: 50,
+    top: Platform.OS === 'ios' ? 60 : 50,
     left: 20,
     backgroundColor: '#add4ce',
     width: 40,

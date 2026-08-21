@@ -147,15 +147,9 @@ export const getPerformanceAxesByProfession = (profession: string): PerformanceA
         title: 'أداء الواجبات الوظيفية',
         score: 0,
         weight: 10,
-        description: 'التقيد بالدوام الرسمي، تأدية الحصص وفق الجدول الدراسي، المشاركة في الإشراف والانتظار والمناوبة، إعداد الدروس والاختبارات والواجبات',
-        details: 'التزام بالدوام الرسمي، تنفيذ الحصص الدراسية وفق الجدول المحدد، ومشاركة في الإشراف والمناوبة والانتظار. إعداد منتظم للدروس والاختبارات والواجبات.',
+        description: 'خطة توزيع المنهج',
+        details: 'تخطيط لتوزيع المنهج بما يتناسب مع الزمن المتاح.',
         evidence: [
-          { name: 'التقيد بالدوام الرسمي', available: false },
-          { name: 'تأدية الحصص وفق الجدول الدراسي', available: false },
-          { name: 'المشاركة في الإشراف والمناوبة', available: false },
-          { name: 'إعداد الدروس والاختبارات ومتابعتها', available: false },
-          { name: 'التوقيع في سجل الدوام', available: false },
-          { name: 'التوقيع في سجل المناوبة أو الانتظار', available: false },
           { name: 'خطة توزيع المنهج', available: false }
         ],
       },
@@ -164,13 +158,11 @@ export const getPerformanceAxesByProfession = (profession: string): PerformanceA
         title: 'التفاعل مع المجتمع المهني',
         score: 0,
         weight: 10,
-        description: 'المشاركة في مجتمعات التعلم المهنية، تبادل الزيارات الصفية، تنفيذ الدروس التطبيقية، بحث الدرس، حضور الدورات والورش التدريبية',
-        details: 'مشاركة في مجتمعات التعلم المهنية، تبادل للزيارات الصفية، وتنفيذ دروس تطبيقية. إجراء بحوث دروس وحضور للدورات التدريبية والورش التطويرية.',
+        description: 'المشاركة في مجتمعات التعلم المهنية، تبادل الزيارات الصفية، حضور الدورات والورش التدريبية',
+        details: 'مشاركة في مجتمعات التعلم المهنية، تبادل للزيارات الصفية، وحضور للدورات التدريبية والورش التطويرية.',
         evidence: [
           { name: 'المشاركة في مجتمعات التعلم المهنية', available: false },
           { name: 'الزيارات التبادلية', available: false },
-          { name: 'تنفيذ درس تطبيقي', available: false },
-          { name: 'بحث درس', available: false },
           { name: 'حضور ورش ودورات تدريبية', available: false }
         ],
       },
@@ -179,14 +171,12 @@ export const getPerformanceAxesByProfession = (profession: string): PerformanceA
         title: 'التفاعل مع أولياء الأمور',
         score: 0,
         weight: 10,
-        description: 'التواصل الفعّال مع أولياء الأمور، تزويد أولياء الأمور بمستويات الطلاب، إيصال الملاحظات الهامة، تفعيل الخطة الأسبوعية للمدرسة، المشاركة في الجمعية العمومية',
-        details: 'تواصل مع أولياء الأمور وتزويدهم بمستويات أبنائهم، إيصال الملاحظات الهامة، وتفعيل للخطة الأسبوعية. مشاركة في الجمعية العمومية.',
+        description: 'التواصل الفعّال مع أولياء الأمور، التنسيق مع الموجه الطلابي، تفعيل الخطة الأسبوعية للمدرسة',
+        details: 'تواصل مع أولياء الأمور وتنسيق مع الموجه الطلابي، وتفعيل للخطة الأسبوعية.',
         evidence: [
           { name: 'التواصل الفعال مع أولياء الأمور', available: false },
           { name: 'التنسيق مع الموجه الطلابي', available: false },
-          { name: 'إيصال الملاحظات الهامة', available: false },
-          { name: 'تفعيل الخطة الأسبوعية', available: false },
-          { name: 'المشاركة في الجمعية العمومية', available: false }
+          { name: 'تفعيل الخطة الأسبوعية', available: false }
         ],
       },
       {
@@ -194,12 +184,11 @@ export const getPerformanceAxesByProfession = (profession: string): PerformanceA
         title: 'التنويع في استراتيجيات التدريس',
         score: 0,
         weight: 5,
-        description: 'استخدام استراتيجيات متنوعة، مراعاة الفروق الفردية، تطبيق استراتيجيات تناسب مستويات الطلاب',
-        details: 'تطبيق لاستراتيجيات تدريس متنوعة، مراعاة للفروق الفردية بين الطلاب، واستخدام استراتيجيات تلائم مستويات الطلاب المختلفة.',
+        description: 'استخدام استراتيجيات متنوعة، مراعاة الفروق الفردية',
+        details: 'تطبيق لاستراتيجيات تدريس متنوعة، مراعاة للفروق الفردية بين الطلاب.',
         evidence: [
           { name: 'استخدام استراتيجيات متنوعة', available: false },
           { name: 'مراعاة الفروق الفردية', available: false },
-          { name: 'تقرير عن تطبيق استراتيجية', available: false },
           { name: 'ملف إنجاز للمعلم', available: false }
         ],
       },
@@ -215,7 +204,7 @@ export const getPerformanceAxesByProfession = (profession: string): PerformanceA
           { name: 'خطط علاجية للطلاب الضعاف', available: false },
           { name: 'خطط إثرائية للمتميزين', available: false },
           { name: 'تكريم الطلاب المتحسنين', available: false },
-          { name: 'نتائج الاختبارات القبلية والبعدية', available: false }
+          { name: 'تحليل نتائج الاختبار الفتري', available: false }
         ],
       },
       {
@@ -223,11 +212,9 @@ export const getPerformanceAxesByProfession = (profession: string): PerformanceA
         title: 'إعداد وتنفيذ خطة التعلم',
         score: 0,
         weight: 5,
-        description: 'توزيع المنهج، إعداد الدروس والواجبات والاختبارات',
-        details: 'تخطيط لتوزيع المنهج بما يتناسب مع الزمن المتاح، إعداد دروس، وتصميم واجبات واختبارات تتماشى مع أهداف التعلم.',
+        description: 'نماذج من إعداد الدروس، ونماذج من الواجبات والاختبارات',
+        details: 'إعداد نماذج دروس، وتصميم واجبات واختبارات تتماشى مع أهداف التعلم.',
         evidence: [
-          { name: 'خطة توزيع المنهج', available: false },
-          { name: 'إعداد الدروس والاختبارات', available: false },
           { name: 'نماذج من إعداد الدروس', available: false },
           { name: 'نماذج من الواجبات والاختبارات', available: false }
         ],
@@ -242,8 +229,6 @@ export const getPerformanceAxesByProfession = (profession: string): PerformanceA
         evidence: [
           { name: 'دمج التقنية في التعليم', available: false },
           { name: 'تنويع الوسائل التعليمية', available: false },
-          { name: 'صور من الوسائل التعليمية', available: false },
-          { name: 'تقرير عن برنامج تقني مستخدم', available: false }
         ],
       },
       {
@@ -265,13 +250,12 @@ export const getPerformanceAxesByProfession = (profession: string): PerformanceA
         title: 'الإدارة الصفية',
         score: 0,
         weight: 5,
-        description: 'ضبط سلوك الطلاب، شد انتباه الطلاب، مراعاة الفروق الفردية',
-        details: 'إدارة للصف، مهارات في ضبط سلوك الطلاب وشد انتباههم، مع مراعاة للفروق الفردية ومتابعة للحضور والانضباط.',
+        description: 'قواعد السلوك الصفي، إدارة الوقت، التعزيز والتحفيز',
+        details: 'إدارة للصف عبر قواعد سلوك صفي واضحة، إدارة فعّالة للوقت، وأنظمة تعزيز وتحفيز للطلاب.',
         evidence: [
-          { name: 'ضبط سلوك الطلاب', available: false },
-          { name: 'شد انتباه الطلاب', available: false },
-          { name: 'مراعاة الفروق الفردية', available: false },
-          { name: 'متابعة الحضور والغياب', available: false }
+          { name: 'قواعد السلوك الصفي', available: false },
+          { name: 'إدارة الوقت', available: false },
+          { name: 'التعزيز والتحفيز', available: false }
         ],
       },
       {
@@ -279,13 +263,13 @@ export const getPerformanceAxesByProfession = (profession: string): PerformanceA
         title: 'تحليل نتائج المتعلمين وتشخيص مستوياتهم',
         score: 0,
         weight: 5,
-        description: 'تحليل نتائج الاختبارات الفصلية والنهائية، تصنيف الطلاب حسب نتائجهم، معالجة الفاقد التعليمي',
-        details: 'تحليل لنتائج الاختبارات الفصلية والنهائية، تصنيف للطلاب حسب نتائجهم ومستوياتهم، ووضع خطط لمعالجة الفاقد التعليمي.',
+        description: 'تحليل نتائج الاختبارات الفصلية والنهائية، معالجة الفاقد التعليمي',
+        details: 'تحليل لنتائج الاختبارات الفصلية والنهائية، تحديد نقاط القوة والضعف، ووضع خطط لمعالجة الفاقد التعليمي.',
         evidence: [
           { name: 'تحليل نتائج الاختبارات', available: false },
-          { name: 'تصنيف الطلاب وفق نتائجهم', available: false },
           { name: 'تحديد نقاط القوة والضعف', available: false },
-          { name: 'سجل معالجة الفاقد', available: false }
+          { name: 'سجل معالجة الفاقد', available: false },
+          { name: 'تحليل أنماط التعلم لدى الطلاب (VARK)', available: false }
         ],
       },
       {
@@ -371,15 +355,9 @@ export const getPerformanceAxesByProfession = (profession: string): PerformanceA
         title: 'أداء الواجبات الوظيفية',
         score: 0,
         weight: 10,
-        description: 'التقيد بالدوام الرسمي، تأدية الحصص وفق الجدول الدراسي، المشاركة في الإشراف والانتظار والمناوبة، إعداد الدروس والاختبارات والواجبات',
-        details: 'التزام بالدوام الرسمي، تنفيذ الحصص الدراسية وفق الجدول المحدد، ومشاركة في الإشراف والمناوبة والانتظار. إعداد منتظم للدروس والاختبارات والواجبات.',
+        description: 'خطة توزيع المنهج',
+        details: 'تخطيط لتوزيع المنهج بما يتناسب مع الزمن المتاح.',
         evidence: [
-          { name: 'التقيد بالدوام الرسمي', available: false },
-          { name: 'تأدية الحصص وفق الجدول الدراسي', available: false },
-          { name: 'المشاركة في الإشراف والمناوبة', available: false },
-          { name: 'إعداد الدروس والاختبارات ومتابعتها', available: false },
-          { name: 'التوقيع في سجل الدوام', available: false },
-          { name: 'التوقيع في سجل المناوبة أو الانتظار', available: false },
           { name: 'خطة توزيع المنهج', available: false }
         ],
       },
@@ -388,13 +366,11 @@ export const getPerformanceAxesByProfession = (profession: string): PerformanceA
         title: 'التفاعل مع المجتمع المهني',
         score: 0,
         weight: 10,
-        description: 'المشاركة في مجتمعات التعلم المهنية، تبادل الزيارات الصفية، تنفيذ الدروس التطبيقية، بحث الدرس، حضور الدورات والورش التدريبية',
-        details: 'مشاركة في مجتمعات التعلم المهنية، تبادل للزيارات الصفية، وتنفيذ دروس تطبيقية. إجراء بحوث دروس وحضور للدورات التدريبية والورش التطويرية.',
+        description: 'المشاركة في مجتمعات التعلم المهنية، تبادل الزيارات الصفية، حضور الدورات والورش التدريبية',
+        details: 'مشاركة في مجتمعات التعلم المهنية، تبادل للزيارات الصفية، وحضور للدورات التدريبية والورش التطويرية.',
         evidence: [
           { name: 'المشاركة في مجتمعات التعلم المهنية', available: false },
           { name: 'الزيارات التبادلية', available: false },
-          { name: 'تنفيذ درس تطبيقي', available: false },
-          { name: 'بحث درس', available: false },
           { name: 'حضور ورش ودورات تدريبية', available: false }
         ],
       },
@@ -403,14 +379,12 @@ export const getPerformanceAxesByProfession = (profession: string): PerformanceA
         title: 'التفاعل مع أولياء الأمور',
         score: 0,
         weight: 10,
-        description: 'التواصل الفعّال مع أولياء الأمور، تزويد أولياء الأمور بمستويات الطلاب، إيصال الملاحظات الهامة، تفعيل الخطة الأسبوعية للمدرسة، المشاركة في الجمعية العمومية',
-        details: 'تواصل مع أولياء الأمور وتزويدهم بمستويات أبنائهم، إيصال الملاحظات الهامة، وتفعيل للخطة الأسبوعية. مشاركة في الجمعية العمومية.',
+        description: 'التواصل الفعّال مع أولياء الأمور، التنسيق مع الموجه الطلابي، تفعيل الخطة الأسبوعية للمدرسة',
+        details: 'تواصل مع أولياء الأمور وتنسيق مع الموجه الطلابي، وتفعيل للخطة الأسبوعية.',
         evidence: [
           { name: 'التواصل الفعال مع أولياء الأمور', available: false },
           { name: 'التنسيق مع الموجه الطلابي', available: false },
-          { name: 'إيصال الملاحظات الهامة', available: false },
-          { name: 'تفعيل الخطة الأسبوعية', available: false },
-          { name: 'المشاركة في الجمعية العمومية', available: false }
+          { name: 'تفعيل الخطة الأسبوعية', available: false }
         ],
       },
       {
@@ -418,12 +392,11 @@ export const getPerformanceAxesByProfession = (profession: string): PerformanceA
         title: 'التنويع في استراتيجيات التدريس',
         score: 0,
         weight: 5,
-        description: 'استخدام استراتيجيات متنوعة، مراعاة الفروق الفردية، تطبيق استراتيجيات تناسب مستويات الطلاب',
-        details: 'تطبيق لاستراتيجيات تدريس متنوعة، مراعاة للفروق الفردية بين الطلاب، واستخدام استراتيجيات تلائم مستويات الطلاب المختلفة.',
+        description: 'استخدام استراتيجيات متنوعة، مراعاة الفروق الفردية',
+        details: 'تطبيق لاستراتيجيات تدريس متنوعة، مراعاة للفروق الفردية بين الطلاب.',
         evidence: [
           { name: 'استخدام استراتيجيات متنوعة', available: false },
           { name: 'مراعاة الفروق الفردية', available: false },
-          { name: 'تقرير عن تطبيق استراتيجية', available: false },
           { name: 'ملف إنجاز للمعلم', available: false }
         ],
       },
@@ -439,7 +412,7 @@ export const getPerformanceAxesByProfession = (profession: string): PerformanceA
           { name: 'خطط علاجية للطلاب الضعاف', available: false },
           { name: 'خطط إثرائية للمتميزين', available: false },
           { name: 'تكريم الطلاب المتحسنين', available: false },
-          { name: 'نتائج الاختبارات القبلية والبعدية', available: false }
+          { name: 'تحليل نتائج الاختبار الفتري', available: false }
         ],
       },
       {
@@ -447,11 +420,9 @@ export const getPerformanceAxesByProfession = (profession: string): PerformanceA
         title: 'إعداد وتنفيذ خطة التعلم',
         score: 0,
         weight: 5,
-        description: 'توزيع المنهج، إعداد الدروس والواجبات والاختبارات',
-        details: 'تخطيط لتوزيع المنهج بما يتناسب مع الزمن المتاح، إعداد دروس، وتصميم واجبات واختبارات تتماشى مع أهداف التعلم.',
+        description: 'نماذج من إعداد الدروس، ونماذج من الواجبات والاختبارات',
+        details: 'إعداد نماذج دروس، وتصميم واجبات واختبارات تتماشى مع أهداف التعلم.',
         evidence: [
-          { name: 'خطة توزيع المنهج', available: false },
-          { name: 'إعداد الدروس والاختبارات', available: false },
           { name: 'نماذج من إعداد الدروس', available: false },
           { name: 'نماذج من الواجبات والاختبارات', available: false }
         ],
@@ -466,8 +437,6 @@ export const getPerformanceAxesByProfession = (profession: string): PerformanceA
         evidence: [
           { name: 'دمج التقنية في التعليم', available: false },
           { name: 'تنويع الوسائل التعليمية', available: false },
-          { name: 'صور من الوسائل التعليمية', available: false },
-          { name: 'تقرير عن برنامج تقني مستخدم', available: false }
         ],
       },
       {
@@ -489,13 +458,12 @@ export const getPerformanceAxesByProfession = (profession: string): PerformanceA
         title: 'الإدارة الصفية',
         score: 0,
         weight: 5,
-        description: 'ضبط سلوك الطلاب، شد انتباه الطلاب، مراعاة الفروق الفردية',
-        details: 'إدارة للصف، مهارات في ضبط سلوك الطلاب وشد انتباههم، مع مراعاة للفروق الفردية ومتابعة للحضور والانضباط.',
+        description: 'قواعد السلوك الصفي، إدارة الوقت، التعزيز والتحفيز',
+        details: 'إدارة للصف عبر قواعد سلوك صفي واضحة، إدارة فعّالة للوقت، وأنظمة تعزيز وتحفيز للطلاب.',
         evidence: [
-          { name: 'ضبط سلوك الطلاب', available: false },
-          { name: 'شد انتباه الطلاب', available: false },
-          { name: 'مراعاة الفروق الفردية', available: false },
-          { name: 'متابعة الحضور والغياب', available: false }
+          { name: 'قواعد السلوك الصفي', available: false },
+          { name: 'إدارة الوقت', available: false },
+          { name: 'التعزيز والتحفيز', available: false }
         ],
       },
       {
@@ -503,13 +471,13 @@ export const getPerformanceAxesByProfession = (profession: string): PerformanceA
         title: 'تحليل نتائج المتعلمين وتشخيص مستوياتهم',
         score: 0,
         weight: 5,
-        description: 'تحليل نتائج الاختبارات الفصلية والنهائية، تصنيف الطلاب حسب نتائجهم، معالجة الفاقد التعليمي',
-        details: 'تحليل لنتائج الاختبارات الفصلية والنهائية، تصنيف للطلاب حسب نتائجهم ومستوياتهم، ووضع خطط لمعالجة الفاقد التعليمي.',
+        description: 'تحليل نتائج الاختبارات الفصلية والنهائية، معالجة الفاقد التعليمي',
+        details: 'تحليل لنتائج الاختبارات الفصلية والنهائية، تحديد نقاط القوة والضعف، ووضع خطط لمعالجة الفاقد التعليمي.',
         evidence: [
           { name: 'تحليل نتائج الاختبارات', available: false },
-          { name: 'تصنيف الطلاب وفق نتائجهم', available: false },
           { name: 'تحديد نقاط القوة والضعف', available: false },
-          { name: 'سجل معالجة الفاقد', available: false }
+          { name: 'سجل معالجة الفاقد', available: false },
+          { name: 'تحليل أنماط التعلم لدى الطلاب (VARK)', available: false }
         ],
       },
       {
@@ -1462,15 +1430,9 @@ export const getPerformanceAxesByProfession = (profession: string): PerformanceA
         title: 'أداء الواجبات الوظيفية',
         score: 0,
         weight: 10,
-        description: 'التقيد بالدوام الرسمي، تأدية الحصص وفق الجدول الدراسي، المشاركة في الإشراف والانتظار والمناوبة، إعداد الدروس والاختبارات والواجبات',
-        details: 'التزام بالدوام الرسمي، تنفيذ الحصص الدراسية وفق الجدول المحدد، ومشاركة في الإشراف والمناوبة والانتظار. إعداد منتظم للدروس والاختبارات والواجبات.',
+        description: 'خطة توزيع المنهج، جدول الحصص الأسبوعي، إعداد الدروس والواجبات في منصة مدرستي، متابعة الأداء والتحصيل الدراسي',
+        details: 'تخطيط لتوزيع المنهج وجدول الحصص، إعداد الدروس والواجبات عبر منصة مدرستي، متابعة يومية للأداء والتحصيل، وتقديم تغذية راجعة مستمرة.',
         evidence: [
-          { name: 'التقيد بالدوام الرسمي', available: false },
-          { name: 'تأدية الحصص وفق الجدول الدراسي', available: false },
-          { name: 'المشاركة في الإشراف والمناوبة', available: false },
-          { name: 'إعداد الدروس والاختبارات ومتابعتها', available: false },
-          { name: 'التوقيع في سجل الدوام', available: false },
-          { name: 'التوقيع في سجل المناوبة أو الانتظار', available: false },
           { name: 'خطة توزيع المنهج', available: false },
           { name: 'جدول الحصص الأسبوعي', available: false },
           { name: 'إعداد الدروس والواجبات في منصة مدرستي', available: false },
@@ -1484,13 +1446,11 @@ export const getPerformanceAxesByProfession = (profession: string): PerformanceA
         title: 'التفاعل مع المجتمع المهني',
         score: 0,
         weight: 10,
-        description: 'المشاركة في مجتمعات التعلم المهنية، تبادل الزيارات الصفية، تنفيذ الدروس التطبيقية، بحث الدرس، حضور الدورات والورش التدريبية',
-        details: 'مشاركة في مجتمعات التعلم المهنية، تبادل للزيارات الصفية، وتنفيذ دروس تطبيقية. إجراء بحوث دروس وحضور للدورات التدريبية والورش التطويرية.',
+        description: 'المشاركة في مجتمعات التعلم المهنية، تبادل الزيارات الصفية، حضور الدورات والورش التدريبية',
+        details: 'مشاركة في مجتمعات التعلم المهنية، تبادل للزيارات الصفية، وحضور للدورات التدريبية والورش التطويرية.',
         evidence: [
           { name: 'المشاركة في مجتمعات التعلم المهنية', available: false },
           { name: 'الزيارات التبادلية', available: false },
-          { name: 'تنفيذ درس تطبيقي', available: false },
-          { name: 'بحث درس', available: false },
           { name: 'حضور ورش ودورات تدريبية', available: false },
           { name: 'العمل التطوعي والمسؤولية المجتمعية', available: false }
         ],
@@ -1500,15 +1460,12 @@ export const getPerformanceAxesByProfession = (profession: string): PerformanceA
         title: 'التفاعل مع أولياء الأمور',
         score: 0,
         weight: 10,
-        description: 'التواصل الفعّال مع أولياء الأمور، تزويد أولياء الأمور بمستويات الطلاب، إيصال الملاحظات الهامة، تفعيل الخطة الأسبوعية للمدرسة، المشاركة في الجمعية العمومية',
-        details: 'تواصل مع أولياء الأمور وتزويدهم بمستويات أبنائهم، إيصال الملاحظات الهامة، وتفعيل للخطة الأسبوعية. مشاركة في الجمعية العمومية.',
+        description: 'التواصل الفعّال مع أولياء الأمور، التنسيق مع الموجه الطلابي، تفعيل الخطة الأسبوعية للمدرسة',
+        details: 'تواصل مع أولياء الأمور وتنسيق مع الموجه الطلابي، وتفعيل للخطة الأسبوعية.',
         evidence: [
           { name: 'التواصل الفعال مع أولياء الأمور', available: false },
           { name: 'التنسيق مع الموجه الطلابي', available: false },
-          { name: 'إيصال الملاحظات الهامة', available: false },
-          { name: 'تفعيل الخطة الأسبوعية', available: false },
-          { name: 'المشاركة في الجمعية العمومية', available: false },
-          { name: 'إشعار ولي الأمر بمستوى الطالب', available: false }
+          { name: 'تفعيل الخطة الأسبوعية', available: false }
         ],
       },
       {
@@ -1521,10 +1478,8 @@ export const getPerformanceAxesByProfession = (profession: string): PerformanceA
         evidence: [
           { name: 'استخدام استراتيجيات متنوعة', available: false },
           { name: 'مراعاة الفروق الفردية', available: false },
-          { name: 'تقرير عن تطبيق استراتيجية', available: false },
           { name: 'ملف إنجاز للمعلم', available: false },
-          { name: 'تطبيق استراتيجيات التعلم النشط', available: false },
-          { name: 'استراتيجية التعلم باللعب', available: false }
+          { name: 'تطبيق استراتيجيات التعلم النشط', available: false }
         ],
       },
       {
@@ -1539,7 +1494,7 @@ export const getPerformanceAxesByProfession = (profession: string): PerformanceA
           { name: 'خطط علاجية للطلاب الضعاف', available: false },
           { name: 'خطط إثرائية للمتميزين', available: false },
           { name: 'تكريم الطلاب المتحسنين', available: false },
-          { name: 'نتائج الاختبارات القبلية والبعدية', available: false }
+          { name: 'تحليل نتائج الاختبار الفتري', available: false }
         ],
       },
       {
@@ -1547,11 +1502,9 @@ export const getPerformanceAxesByProfession = (profession: string): PerformanceA
         title: 'إعداد وتنفيذ خطة التعلم',
         score: 0,
         weight: 10,
-        description: 'توزيع المنهج، إعداد الدروس والواجبات والاختبارات',
-        details: 'تخطيط لتوزيع المنهج بما يتناسب مع الزمن المتاح، إعداد دروس، وتصميم واجبات واختبارات تتماشى مع أهداف التعلم.',
+        description: 'نماذج من إعداد الدروس، ونماذج من الواجبات والاختبارات',
+        details: 'إعداد نماذج دروس، وتصميم واجبات واختبارات تتماشى مع أهداف التعلم.',
         evidence: [
-          { name: 'خطة توزيع المنهج', available: false },
-          { name: 'إعداد الدروس والاختبارات', available: false },
           { name: 'نماذج من إعداد الدروس', available: false },
           { name: 'نماذج من الواجبات والاختبارات', available: false },
           { name: 'إرسال ملف الخطة الأسبوعية (PDF أو صورة) عبر منصة مدرستي', available: false }
@@ -1567,8 +1520,6 @@ export const getPerformanceAxesByProfession = (profession: string): PerformanceA
         evidence: [
           { name: 'دمج التقنية في التعليم', available: false },
           { name: 'تنويع الوسائل التعليمية', available: false },
-          { name: 'صور من الوسائل التعليمية', available: false },
-          { name: 'تقرير عن برنامج تقني مستخدم', available: false },
           { name: 'استخدام السبورة التفاعلية', available: false },
           { name: 'تفعيل لوحات النقاش في منصة مدرستي', available: false },
           { name: 'استخدام برنامج تقني (Padlet)', available: false }
@@ -1579,15 +1530,10 @@ export const getPerformanceAxesByProfession = (profession: string): PerformanceA
         title: 'تهيئة البيئة التعليمية',
         score: 0,
         weight: 5,
-        description: 'مراعاة حاجات الطلاب، تهيئة نفسية ومادية ومعنوية مناسبة',
-        details: 'اهتمام بتهيئة بيئة تعليمية محفزة ومناسبة، مراعاة لحاجات الطلاب النفسية والمادية والمعنوية.',
+        description: 'توفير بيئة تعليمية غنية بالمصادر',
+        details: 'اهتمام بتهيئة بيئة تعليمية محفزة ومناسبة، مع توفير مصادر تعليمية غنية للطلاب.',
         evidence: [
-          { name: 'مراعاة حاجات الطلاب', available: false },
-          { name: 'تهيئة نفسية للطلاب', available: false },
-          { name: 'تحفيز مادي ومعنوي', available: false },
-          { name: 'توفير متطلبات الدرس', available: false },
-          { name: 'توفير بيئة تعليمية غنية بالمصادر (بوابة عين)', available: false },
-          { name: 'تحليل أنماط التعلم لدى الطلاب (VARK)', available: false }
+          { name: 'توفير بيئة تعليمية غنية بالمصادر (بوابة عين)', available: false }
         ],
       },
       {
@@ -1595,15 +1541,12 @@ export const getPerformanceAxesByProfession = (profession: string): PerformanceA
         title: 'الإدارة الصفية',
         score: 0,
         weight: 5,
-        description: 'ضبط سلوك الطلاب، شد انتباه الطلاب، مراعاة الفروق الفردية',
-        details: 'إدارة للصف، مهارات في ضبط سلوك الطلاب وشد انتباههم، مع مراعاة للفروق الفردية ومتابعة للحضور والانضباط.',
+        description: 'قواعد السلوك الصفي، إدارة الوقت، التعزيز والتحفيز',
+        details: 'إدارة للصف عبر قواعد سلوك صفي واضحة، إدارة فعّالة للوقت، وأنظمة تعزيز وتحفيز للطلاب.',
         evidence: [
-          { name: 'ضبط سلوك الطلاب', available: false },
-          { name: 'شد انتباه الطلاب', available: false },
-          { name: 'مراعاة الفروق الفردية', available: false },
-          { name: 'متابعة الحضور والغياب', available: false },
-          { name: 'استراتيجيات إدارة الوقت', available: false },
-          { name: 'أنظمة التعزيز والتحفيز', available: false }
+          { name: 'قواعد السلوك الصفي', available: false },
+          { name: 'إدارة الوقت', available: false },
+          { name: 'التعزيز والتحفيز', available: false }
         ],
       },
       {
@@ -1611,13 +1554,13 @@ export const getPerformanceAxesByProfession = (profession: string): PerformanceA
         title: 'تحليل نتائج المتعلمين وتشخيص مستوياتهم',
         score: 0,
         weight: 10,
-        description: 'تحليل نتائج الاختبارات الفصلية والنهائية، تصنيف الطلاب حسب نتائجهم، معالجة الفاقد التعليمي',
-        details: 'تحليل لنتائج الاختبارات الفصلية والنهائية، تصنيف للطلاب حسب نتائجهم ومستوياتهم، ووضع خطط لمعالجة الفاقد التعليمي.',
+        description: 'تحليل نتائج الاختبارات الفصلية والنهائية، معالجة الفاقد التعليمي',
+        details: 'تحليل لنتائج الاختبارات الفصلية والنهائية، تحديد نقاط القوة والضعف، ووضع خطط لمعالجة الفاقد التعليمي.',
         evidence: [
           { name: 'تحليل نتائج الاختبارات', available: false },
-          { name: 'تصنيف الطلاب وفق نتائجهم', available: false },
           { name: 'تحديد نقاط القوة والضعف', available: false },
-          { name: 'سجل معالجة الفاقد', available: false }
+          { name: 'سجل معالجة الفاقد', available: false },
+          { name: 'تحليل أنماط التعلم لدى الطلاب (VARK)', available: false }
         ],
       },
       {
