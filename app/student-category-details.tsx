@@ -160,29 +160,31 @@ const StudentCategoryDetailsScreen = () => {
             {/* Header */}
             <ThemedView style={styles.header}>
               <ThemedButton
-                icon="chevron.right"
+                icon="chevron.left"
                 iconColor="#1c1f33"
                 style={styles.backButton}
                 onPress={() => router.back()}
               />
 
-              <ThemedView style={styles.headerContent}>
-                <ThemedText style={[styles.title, getTextDirection()]}> 
-                  {formatRTLText(categoryLabel)}
-                </ThemedText>
-                <ThemedView style={styles.headerActions}>
-                  <TouchableOpacity 
-                    style={styles.downloadButton}
-                    onPress={() => setShowExportOptions(true)}
-                  >
-                    <IconSymbol size={20} name="arrow.down.circle" color="#1c1f33" />
-                    <ThemedText style={[styles.downloadButtonText, getTextDirection()]}>تحميل الجدول</ThemedText>
-                  </TouchableOpacity>
-                  <ThemedText style={[styles.subtitle, getTextDirection()]}> 
-                    {students.length} {formatRTLText('متعلم')}
-                  </ThemedText>
-                </ThemedView>
+              <ThemedView style={styles.iconContainer}>
+                <IconSymbol size={60} name="person.3.fill" color="#1c1f33" />
               </ThemedView>
+              <ThemedText type="title" style={[styles.title, getTextDirection()]}>
+                {formatRTLText(categoryLabel)}
+              </ThemedText>
+              <ThemedText style={[styles.subtitle, getTextDirection()]}>
+                {students.length} {formatRTLText('متعلم')}
+              </ThemedText>
+            </ThemedView>
+
+            <ThemedView style={styles.downloadRow}>
+              <TouchableOpacity
+                style={styles.downloadButton}
+                onPress={() => setShowExportOptions(true)}
+              >
+                <IconSymbol size={20} name="arrow.down.circle" color="#1c1f33" />
+                <ThemedText style={[styles.downloadButtonText, getTextDirection()]}>تحميل الجدول</ThemedText>
+              </TouchableOpacity>
             </ThemedView>
 
             {/* Students Table */}
@@ -368,22 +370,59 @@ const styles = StyleSheet.create({
     direction: 'rtl',
   },
   header: {
-    paddingHorizontal: 20,
-    paddingTop: 60,
-    paddingBottom: 20,
-    flexDirection: 'row-reverse',
     alignItems: 'center',
-    justifyContent: 'flex-start',
+    paddingTop: Platform.OS === 'ios' ? 60 : 50,
+    paddingHorizontal: 30,
+    paddingBottom: 15,
+    backgroundColor: 'transparent',
+    position: 'relative',
   },
-  headerContent: {
-    flex: 1,
-    alignItems: 'flex-end',
-  },
-  headerActions: {
-    flexDirection: 'row-reverse',
+  backButton: {
+    position: 'absolute',
+    top: Platform.OS === 'ios' ? 60 : 50,
+    left: 20,
+    backgroundColor: '#add4ce',
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    justifyContent: 'center',
     alignItems: 'center',
-    justifyContent: 'space-between',
-    width: '100%',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.2,
+    shadowRadius: 8,
+    elevation: 8,
+    zIndex: 1,
+  },
+  iconContainer: {
+    marginBottom: 20,
+    padding: 20,
+    backgroundColor: '#F8F9FA',
+    borderRadius: 50,
+    borderWidth: 1,
+    borderColor: '#E5E5EA',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 6 },
+    shadowOpacity: 0.25,
+    shadowRadius: 12,
+    elevation: 10,
+  },
+  title: {
+    fontSize: 28,
+    fontWeight: 'bold',
+    color: '#1c1f33',
+    textAlign: 'center',
+  },
+  subtitle: {
+    fontSize: 16,
+    color: '#666666',
+    textAlign: 'center',
+    marginTop: 8,
+  },
+  downloadRow: {
+    alignItems: 'center',
+    marginBottom: 20,
+    backgroundColor: 'transparent',
   },
   downloadButton: {
     flexDirection: 'row-reverse',
@@ -402,32 +441,6 @@ const styles = StyleSheet.create({
     fontSize: 14,
     color: '#1c1f33',
     marginRight: 8,
-  },
-  backButton: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
-    backgroundColor: '#FFFFFF',
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginLeft: 15,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
-    elevation: 3,
-  },
-  title: {
-    fontSize: 24,
-    fontWeight: 'bold',
-    color: '#1c1f33',
-    marginBottom: 4,
-    textAlign: 'right',
-  },
-  subtitle: {
-    fontSize: 16,
-    color: '#666666',
-    textAlign: 'right',
   },
   tableContainer: {
     margin: 20,
