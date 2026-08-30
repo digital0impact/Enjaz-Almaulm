@@ -1188,57 +1188,65 @@ export function PerformanceReportView() {
               {renderRecommendationsCard()}
             </ThemedView>
 
-            <ThemedView style={styles.actionButtons}>
-              <TouchableOpacity
-                style={styles.exportButton}
-                onPress={handleShareAchievements}
-                disabled={isGeneratingShareLink}
-                activeOpacity={0.7}
-              >
-                {isGeneratingShareLink ? (
-                  <ActivityIndicator color="#1c1f33" size="small" />
-                ) : (
-                  <IconSymbol size={20} name="square.and.arrow.up" color="#1c1f33" />
-                )}
-                <ThemedText style={styles.buttonText}>
-                  {isGeneratingShareLink ? formatRTLText('جارٍ التجهيز...') : formatRTLText('مشاركة التقرير')}
+            <ThemedView style={styles.twoColumnRow}>
+              <ThemedView style={styles.shareCard}>
+                <ThemedText style={styles.exportSectionTitle}>
+                  {formatRTLText('مشاركة التقرير')}
                 </ThemedText>
-              </TouchableOpacity>
-              <ThemedText style={styles.exportSectionTitle}>
-                {formatRTLText('تصدير التقرير')}
-              </ThemedText>
-              <View style={styles.exportButtonsRow}>
-                <TouchableOpacity 
-                  style={[styles.exportButton, styles.exportButtonPdf, isExporting && styles.exportButtonDisabled]}
-                  onPress={handleExportPDF}
-                  disabled={isExporting}
+                <TouchableOpacity
+                  style={styles.exportButton}
+                  onPress={handleShareAchievements}
+                  disabled={isGeneratingShareLink}
                   activeOpacity={0.7}
                 >
-                  {isExporting ? (
-                    <ActivityIndicator color="#fff" size="small" />
+                  {isGeneratingShareLink ? (
+                    <ActivityIndicator color="#1c1f33" size="small" />
                   ) : (
-                    <IconSymbol size={20} name="doc.pdf" color="#fff" />
+                    <IconSymbol size={20} name="square.and.arrow.up" color="#1c1f33" />
                   )}
-                  <ThemedText style={[styles.buttonText, styles.exportOptionButtonText]}>
-                    {isExporting ? formatRTLText('جاري التصدير...') : formatRTLText('تصدير PDF')}
+                  <ThemedText style={styles.buttonText}>
+                    {isGeneratingShareLink ? formatRTLText('جارٍ التجهيز...') : formatRTLText('مشاركة التقرير')}
                   </ThemedText>
                 </TouchableOpacity>
-                <TouchableOpacity 
-                  style={[styles.exportButton, styles.exportButtonWord, isExporting && styles.exportButtonDisabled]}
-                  onPress={handleExportWord}
-                  disabled={isExporting}
-                  activeOpacity={0.7}
-                >
-                  {isExporting ? (
-                    <ActivityIndicator color="#fff" size="small" />
-                  ) : (
-                    <IconSymbol size={20} name="doc.text.fill" color="#fff" />
-                  )}
-                  <ThemedText style={[styles.buttonText, styles.exportOptionButtonText]}>
-                    {formatRTLText('تصدير Word')}
-                  </ThemedText>
-                </TouchableOpacity>
-              </View>
+              </ThemedView>
+
+              <ThemedView style={styles.shareCard}>
+                <ThemedText style={styles.exportSectionTitle}>
+                  {formatRTLText('تصدير التقرير')}
+                </ThemedText>
+                <View style={styles.exportButtonsRow}>
+                  <TouchableOpacity
+                    style={[styles.exportButton, styles.exportButtonPdf, isExporting && styles.exportButtonDisabled]}
+                    onPress={handleExportPDF}
+                    disabled={isExporting}
+                    activeOpacity={0.7}
+                  >
+                    {isExporting ? (
+                      <ActivityIndicator color="#fff" size="small" />
+                    ) : (
+                      <IconSymbol size={20} name="doc.pdf" color="#fff" />
+                    )}
+                    <ThemedText style={[styles.buttonText, styles.exportOptionButtonText]}>
+                      {isExporting ? formatRTLText('جاري التصدير...') : formatRTLText('تصدير PDF')}
+                    </ThemedText>
+                  </TouchableOpacity>
+                  <TouchableOpacity
+                    style={[styles.exportButton, styles.exportButtonWord, isExporting && styles.exportButtonDisabled]}
+                    onPress={handleExportWord}
+                    disabled={isExporting}
+                    activeOpacity={0.7}
+                  >
+                    {isExporting ? (
+                      <ActivityIndicator color="#fff" size="small" />
+                    ) : (
+                      <IconSymbol size={20} name="doc.text.fill" color="#fff" />
+                    )}
+                    <ThemedText style={[styles.buttonText, styles.exportOptionButtonText]}>
+                      {formatRTLText('تصدير Word')}
+                    </ThemedText>
+                  </TouchableOpacity>
+                </View>
+              </ThemedView>
             </ThemedView>
 
             <ThemedView style={styles.visitorCommentsCard}>
@@ -1746,18 +1754,24 @@ const styles = StyleSheet.create<any>({
     textDirection: 'rtl',
     lineHeight: 20,
   },
-  actionButtons: {
+  shareCard: {
+    flex: 1,
+    minWidth: 260,
     flexDirection: 'column',
     gap: 12,
-    marginBottom: 20,
+    padding: 20,
+    backgroundColor: 'rgba(255, 255, 255, 0.9)',
+    borderRadius: 16,
+    borderWidth: 1,
+    borderColor: 'rgba(229, 229, 234, 0.5)',
   },
   visitorCommentsCard: {
-    backgroundColor: '#F8F9FA',
-    borderRadius: 14,
-    padding: 16,
-    marginBottom: 20,
+    padding: 20,
+    backgroundColor: 'rgba(255, 255, 255, 0.9)',
+    borderRadius: 16,
     borderWidth: 1,
-    borderColor: '#E5E5EA',
+    borderColor: 'rgba(229, 229, 234, 0.5)',
+    marginBottom: 20,
   },
   visitorCommentsLoading: { marginTop: 8 },
   noVisitorComments: {
