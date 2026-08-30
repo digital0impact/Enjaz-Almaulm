@@ -6,8 +6,9 @@ import { ThemedView } from '@/components/ThemedView';
 import { IconSymbol } from '@/components/ui/IconSymbol';
 import { VersionTracker } from '@/components/VersionTracker';
 import { ToolsGrid } from '@/components/ToolsGrid';
+import { BottomNavigationBar } from '@/components/BottomNavigationBar';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { useRouter, useNavigation } from 'expo-router';
+import { useRouter } from 'expo-router';
 import { useFocusEffect } from '@react-navigation/native';
 
 import { getTextDirection, formatRTLText } from '@/utils/rtl-utils';
@@ -22,7 +23,6 @@ const LOGO_MIN_SIZE = 160;
 
 export default function HomeScreen() {
   const router = useRouter();
-  const navigation = useNavigation();
   const { width: screenWidth, height: screenHeight } = useWindowDimensions();
   const [currentScreen, setCurrentScreen] = useState('welcome');
   const [teacherName, setTeacherName] = useState('المعلم');
@@ -95,23 +95,6 @@ export default function HomeScreen() {
       startRotation();
     }
   }, [currentScreen, rotateAnim]);
-
-  useEffect(() => {
-    // إخفاء شريط التنقل في شاشات الترحيب وتسجيل الدخول فقط
-    if (currentScreen === 'welcome' || currentScreen === 'login') {
-      navigation.setOptions({
-        tabBarStyle: { display: 'none' }
-      });
-    } else {
-      navigation.setOptions({
-        tabBarStyle: { 
-          display: 'flex',
-          position: 'absolute',
-          backgroundColor: '#E8F5F4',
-        }
-      });
-    }
-  }, [currentScreen, navigation]);
 
   const loadTeacherName = async () => {
     try {
@@ -314,9 +297,9 @@ export default function HomeScreen() {
             style={{ flex: 1 }}
             behavior={Platform.OS === 'ios' ? 'padding' : undefined}
           >
-            <ScrollView 
+            <ScrollView
               style={styles.scrollContainer}
-              contentContainerStyle={{ paddingBottom: 40, paddingTop: 8 }}
+              contentContainerStyle={{ paddingBottom: 90, paddingTop: 8 }}
               showsVerticalScrollIndicator={false}
               keyboardShouldPersistTaps="handled"
             >
@@ -382,6 +365,7 @@ export default function HomeScreen() {
             </ScrollView>
           </KeyboardAvoidingView>
       </ImageBackground>
+      <BottomNavigationBar />
     </ThemedView>
   );
 }

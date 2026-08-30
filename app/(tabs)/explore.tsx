@@ -5,6 +5,7 @@ import { ThemedText } from '@/components/ThemedText';
 import { ThemedView } from '@/components/ThemedView';
 import { IconSymbol } from '@/components/ui/IconSymbol';
 import { ToolsGrid } from '@/components/ToolsGrid';
+import { BottomNavigationBar } from '@/components/BottomNavigationBar';
 import { useRouter } from 'expo-router';
 import { getTextDirection, formatRTLText } from '@/utils/rtl-utils';
 import { EXPLORE_TOOLS } from '@/data/toolsMenu';
@@ -47,6 +48,7 @@ export default function ExploreScreen() {
             </ThemedView>
           </ScrollView>
       </ImageBackground>
+      <BottomNavigationBar />
     </ThemedView>
   );
 }
@@ -66,7 +68,7 @@ const styles = StyleSheet.create({
   scrollContainer: {
     flex: 1,
     paddingHorizontal: 20,
-    paddingBottom: 30,
+    paddingBottom: 90,
     backgroundColor: 'transparent',
   },
   header: {

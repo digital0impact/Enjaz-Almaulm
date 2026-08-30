@@ -48,10 +48,13 @@ export const BottomNavigationBar: React.FC = () => {
   const insets = useSafeAreaInsets();
 
   const isActive = (route: string): boolean => {
-    if (route === '/(tabs)' && pathname === '/') {
-      return true;
+    // مجموعات المسارات مثل (tabs) لا تظهر في pathname الفعلي (usePathname)،
+    // لذا نطابق بعد إزالتها بدلًا من مطابقة النص الخام لمسار التبويب
+    const normalized = route.replace('/(tabs)', '') || '/';
+    if (normalized === '/') {
+      return pathname === '/';
     }
-    return pathname.includes(route);
+    return pathname === normalized || pathname.startsWith(`${normalized}/`);
   };
 
   const handleTabPress = (tab: TabRoute) => {
