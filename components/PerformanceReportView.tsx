@@ -53,6 +53,8 @@ export function PerformanceReportView() {
   /** تعليقات الزوار على رابط التقرير العام (shared_achievement_comments)، تُعرض هنا لتصل للمعلم دون زيارة الرابط نفسه. */
   const [visitorComments, setVisitorComments] = useState<VisitorComment[]>([]);
   const [loadingComments, setLoadingComments] = useState(false);
+  /** بطاقة "ترتيب المحاور وتوصيات التحسين" منسدلة، مطوية افتراضيًا */
+  const [axisAndRecommendationsExpanded, setAxisAndRecommendationsExpanded] = useState(false);
   // إضافة مستمع للتركيز على الصفحة باستخدام useFocusEffect
   useFocusEffect(
     React.useCallback(() => {
@@ -81,6 +83,33 @@ export function PerformanceReportView() {
     } finally {
       setLoadingComments(false);
     }
+  };
+
+  const handleDeleteComment = (comment: VisitorComment) => {
+    AlertService.alert(
+      formatRTLText('حذف التعليق'),
+      formatRTLText('هل تريدين حذف هذا التعليق؟ لا يمكن التراجع عن هذا الإجراء.'),
+      [
+        { text: formatRTLText('إلغاء'), style: 'cancel' },
+        {
+          text: formatRTLText('حذف'),
+          style: 'destructive',
+          onPress: async () => {
+            try {
+              const { error } = await supabase
+                .from('shared_achievement_comments')
+                .delete()
+                .eq('id', comment.id);
+              if (error) throw error;
+              setVisitorComments((prev) => prev.filter((c) => c.id !== comment.id));
+            } catch (e) {
+              console.error(e);
+              AlertService.alert('خطأ', formatRTLText('تعذّر حذف التعليق'));
+            }
+          },
+        },
+      ]
+    );
   };
 
   // تحميل البيانات الفعلية من AsyncStorage
@@ -266,8 +295,6 @@ export function PerformanceReportView() {
       { name: formatRTLText('يحتاج تحسين'), count: needsImprovementCount, color: '#F44336', legendFontColor: '#1c1f33', legendFontSize: 11 },
     ].filter(d => d.count > 0);
 
-    const sortedByScore = [...performanceData].sort((a, b) => b.score - a.score);
-
     return (
       <ThemedView style={styles.dashboardCard}>
         <ThemedText type="subtitle" style={styles.summaryTitle}>{formatRTLText('لوحة القيادة')}</ThemedText>
@@ -338,10 +365,17 @@ export function PerformanceReportView() {
             )}
           </ThemedView>
         </ThemedView>
+      </ThemedView>
+    );
+  };
 
-        {/* رسم شريطي: ترتيب المحاور حسب الأداء */}
+  /** بطاقة مستقلة لترتيب المحاور حسب الأداء (تُعرض بجانب بطاقة توصيات التحسين) */
+  const renderAxisRankingCard = () => {
+    const sortedByScore = [...performanceData].sort((a, b) => b.score - a.score);
+    return (
+      <ThemedView style={styles.axisRankingCard}>
+        <ThemedText style={styles.recommendationsTitle}>{formatRTLText('ترتيب المحاور حسب الأداء')}</ThemedText>
         <ThemedView style={styles.barListSection}>
-          <ThemedText style={styles.chartBoxTitle}>{formatRTLText('ترتيب المحاور حسب الأداء')}</ThemedText>
           {sortedByScore.map((item) => (
             <ThemedView key={item.id} style={styles.barListRow}>
               <ThemedView style={styles.barListLabelRow}>
@@ -362,6 +396,36 @@ export function PerformanceReportView() {
       </ThemedView>
     );
   };
+
+  /** بطاقة مستقلة لتوصيات التحسين (تُعرض بجانب بطاقة ترتيب المحاور) */
+  const renderRecommendationsCard = () => (
+    <ThemedView style={styles.recommendationsCard}>
+      <ThemedText style={styles.recommendationsTitle}>
+        <IconSymbol size={20} name="lightbulb.fill" color="#FF9800" /> توصيات للتحسين
+      </ThemedText>
+      <ThemedView style={styles.recommendationsList}>
+        {performanceData
+          .map(item => ({ ...item, scoreNum: Number(item?.score ?? 0) }))
+          .filter(item => item.scoreNum < 85)
+          .sort((a, b) => a.scoreNum - b.scoreNum)
+          .slice(0, 3)
+          .map((item) => (
+            <ThemedView key={item.id} style={styles.recommendationItem}>
+              <ThemedText style={styles.recommendationText}>
+                {`• ركز على تحسين "${item.title}" (الدرجة الحالية: ${item.scoreNum}%)`}
+              </ThemedText>
+            </ThemedView>
+          ))}
+        {performanceData.filter(item => Number(item?.score ?? 0) < 85).length === 0 && (
+          <ThemedView key="no-improvements-needed" style={styles.recommendationItem}>
+            <ThemedText style={styles.recommendationText}>
+              • ممتاز! جميع المحاور تحصل على درجات عالية. استمر في الأداء المتميز.
+            </ThemedText>
+          </ThemedView>
+        )}
+      </ThemedView>
+    </ThemedView>
+  );
 
   type ReportData = {
     performanceId: number;
@@ -1148,84 +1212,88 @@ export function PerformanceReportView() {
             <ThemedView style={styles.content}>
               {renderDashboard()}
 
-            <ThemedView style={styles.recommendationsCard}>
-                              <ThemedText style={styles.recommendationsTitle}>
-                  <IconSymbol size={20} name="lightbulb.fill" color="#FF9800" /> توصيات للتحسين
-                </ThemedText>
-              <ThemedView style={styles.recommendationsList}>
-                {performanceData
-                  .map(item => ({ ...item, scoreNum: Number(item?.score ?? 0) }))
-                  .filter(item => item.scoreNum < 85)
-                  .sort((a, b) => a.scoreNum - b.scoreNum)
-                  .slice(0, 3)
-                  .map((item) => (
-                    <ThemedView key={item.id} style={styles.recommendationItem}>
-                      <ThemedText style={styles.recommendationText}>
-                        {`• ركز على تحسين "${item.title}" (الدرجة الحالية: ${item.scoreNum}%)`}
-                      </ThemedText>
-                    </ThemedView>
-                  ))}
-                {performanceData.filter(item => Number(item?.score ?? 0) < 85).length === 0 && (
-                  <ThemedView key="no-improvements-needed" style={styles.recommendationItem}>
-                                        <ThemedText style={styles.recommendationText}>
-                      • ممتاز! جميع المحاور تحصل على درجات عالية. استمر في الأداء المتميز.
-                    </ThemedText>
-                  </ThemedView>
-                )}
-              </ThemedView>
-            </ThemedView>
-
-            <ThemedView style={styles.actionButtons}>
+            <ThemedView style={styles.axisAndRecommendationsCard}>
               <TouchableOpacity
-                style={styles.exportButton}
-                onPress={handleShareAchievements}
-                disabled={isGeneratingShareLink}
+                style={styles.axisAndRecommendationsHeader}
+                onPress={() => setAxisAndRecommendationsExpanded((prev) => !prev)}
                 activeOpacity={0.7}
               >
-                {isGeneratingShareLink ? (
-                  <ActivityIndicator color="#1c1f33" size="small" />
-                ) : (
-                  <IconSymbol size={20} name="square.and.arrow.up" color="#1c1f33" />
-                )}
-                <ThemedText style={styles.buttonText}>
-                  {isGeneratingShareLink ? formatRTLText('جارٍ التجهيز...') : formatRTLText('مشاركة التقرير')}
+                <ThemedText style={styles.axisAndRecommendationsTitle}>
+                  {formatRTLText('ترتيب المحاور وتوصيات التحسين')}
                 </ThemedText>
+                <IconSymbol
+                  size={20}
+                  name={axisAndRecommendationsExpanded ? 'chevron.down' : 'chevron.left'}
+                  color="#1c1f33"
+                />
               </TouchableOpacity>
-              <ThemedText style={styles.exportSectionTitle}>
-                {formatRTLText('تصدير التقرير')}
-              </ThemedText>
-              <View style={styles.exportButtonsRow}>
-                <TouchableOpacity 
-                  style={[styles.exportButton, styles.exportButtonPdf, isExporting && styles.exportButtonDisabled]}
-                  onPress={handleExportPDF}
-                  disabled={isExporting}
+              {axisAndRecommendationsExpanded && (
+                <ThemedView style={styles.twoColumnRowNested}>
+                  {renderAxisRankingCard()}
+                  {renderRecommendationsCard()}
+                </ThemedView>
+              )}
+            </ThemedView>
+
+            <ThemedView style={styles.twoColumnRow}>
+              <ThemedView style={styles.shareCard}>
+                <ThemedText style={styles.exportSectionTitle}>
+                  {formatRTLText('مشاركة التقرير')}
+                </ThemedText>
+                <TouchableOpacity
+                  style={[styles.exportButton, styles.exportButtonShare]}
+                  onPress={handleShareAchievements}
+                  disabled={isGeneratingShareLink}
                   activeOpacity={0.7}
                 >
-                  {isExporting ? (
+                  {isGeneratingShareLink ? (
                     <ActivityIndicator color="#fff" size="small" />
                   ) : (
-                    <IconSymbol size={20} name="doc.pdf" color="#fff" />
+                    <IconSymbol size={20} name="square.and.arrow.up" color="#fff" />
                   )}
-                  <ThemedText style={[styles.buttonText, styles.exportOptionButtonText]}>
-                    {isExporting ? formatRTLText('جاري التصدير...') : formatRTLText('تصدير PDF')}
+                  <ThemedText style={styles.buttonText}>
+                    {isGeneratingShareLink ? formatRTLText('جارٍ التجهيز...') : formatRTLText('مشاركة التقرير')}
                   </ThemedText>
                 </TouchableOpacity>
-                <TouchableOpacity 
-                  style={[styles.exportButton, styles.exportButtonWord, isExporting && styles.exportButtonDisabled]}
-                  onPress={handleExportWord}
-                  disabled={isExporting}
-                  activeOpacity={0.7}
-                >
-                  {isExporting ? (
-                    <ActivityIndicator color="#fff" size="small" />
-                  ) : (
-                    <IconSymbol size={20} name="doc.text.fill" color="#fff" />
-                  )}
-                  <ThemedText style={[styles.buttonText, styles.exportOptionButtonText]}>
-                    {formatRTLText('تصدير Word')}
-                  </ThemedText>
-                </TouchableOpacity>
-              </View>
+              </ThemedView>
+
+              <ThemedView style={styles.shareCard}>
+                <ThemedText style={styles.exportSectionTitle}>
+                  {formatRTLText('تصدير التقرير')}
+                </ThemedText>
+                <View style={styles.exportButtonsRow}>
+                  <TouchableOpacity
+                    style={[styles.exportButton, styles.exportButtonPdf, isExporting && styles.exportButtonDisabled]}
+                    onPress={handleExportPDF}
+                    disabled={isExporting}
+                    activeOpacity={0.7}
+                  >
+                    {isExporting ? (
+                      <ActivityIndicator color="#fff" size="small" />
+                    ) : (
+                      <IconSymbol size={20} name="doc.pdf" color="#fff" />
+                    )}
+                    <ThemedText style={styles.buttonText}>
+                      {isExporting ? formatRTLText('جاري التصدير...') : formatRTLText('تصدير PDF')}
+                    </ThemedText>
+                  </TouchableOpacity>
+                  <TouchableOpacity
+                    style={[styles.exportButton, styles.exportButtonWord, isExporting && styles.exportButtonDisabled]}
+                    onPress={handleExportWord}
+                    disabled={isExporting}
+                    activeOpacity={0.7}
+                  >
+                    {isExporting ? (
+                      <ActivityIndicator color="#fff" size="small" />
+                    ) : (
+                      <IconSymbol size={20} name="doc.text.fill" color="#fff" />
+                    )}
+                    <ThemedText style={styles.buttonText}>
+                      {formatRTLText('تصدير Word')}
+                    </ThemedText>
+                  </TouchableOpacity>
+                </View>
+              </ThemedView>
             </ThemedView>
 
             <ThemedView style={styles.visitorCommentsCard}>
@@ -1241,9 +1309,17 @@ export function PerformanceReportView() {
               ) : (
                 visitorComments.map((comment) => (
                   <ThemedView key={comment.id} style={styles.visitorCommentItem}>
-                    <ThemedText style={[styles.visitorCommentMeta, getTextDirection()]}>
-                      {formatRTLText(comment.author_name || 'زائر')} · {new Date(comment.created_at).toLocaleDateString('ar-SA')}
-                    </ThemedText>
+                    <ThemedView style={styles.visitorCommentHeader}>
+                      <ThemedText style={[styles.visitorCommentMeta, getTextDirection()]}>
+                        {formatRTLText(comment.author_name || 'زائر')} · {new Date(comment.created_at).toLocaleDateString('ar-SA')}
+                      </ThemedText>
+                      <TouchableOpacity
+                        onPress={() => handleDeleteComment(comment)}
+                        hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+                      >
+                        <IconSymbol size={18} name="trash" color="#F44336" />
+                      </TouchableOpacity>
+                    </ThemedView>
                     <ThemedText style={[styles.visitorCommentText, getTextDirection()]}>
                       {formatRTLText(comment.comment_text)}
                     </ThemedText>
@@ -1375,15 +1451,15 @@ const styles = StyleSheet.create<any>({
     overflow: 'hidden',
     marginBottom: 20,
     padding: 20,
-    backgroundColor: 'rgba(255, 255, 255, 0.9)',
-    borderRadius: 16,
+    backgroundColor: '#F8F9FA',
+    borderRadius: 15,
     borderWidth: 1,
-    borderColor: 'rgba(229, 229, 234, 0.5)',
+    borderColor: '#E5E5EA',
     shadowColor: '#000',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.15,
-    shadowRadius: 8,
-    elevation: 6,
+    shadowOffset: { width: 0, height: 6 },
+    shadowOpacity: 0.25,
+    shadowRadius: 12,
+    elevation: 10,
   },
   summaryTitle: {
     fontSize: 20,
@@ -1393,7 +1469,9 @@ const styles = StyleSheet.create<any>({
     textAlign: 'center',
   },
   statsGrid: {
-    flexDirection: 'row-reverse',
+    // 'row' وليس 'row-reverse': اتجاه الصفحة موروث rtl من <html dir="rtl">،
+    // فـ row-reverse معه يعكس ترتيب البطاقات إلى يسار←يمين خطأً
+    flexDirection: 'row',
     gap: 8,
     marginBottom: 20,
   },
@@ -1422,7 +1500,7 @@ const styles = StyleSheet.create<any>({
     writingDirection: 'rtl',
   },
   chartsRow: {
-    flexDirection: 'row-reverse',
+    flexDirection: 'row',
     gap: 12,
     marginBottom: 20,
   },
@@ -1475,7 +1553,7 @@ const styles = StyleSheet.create<any>({
     backgroundColor: 'transparent',
   },
   barListLabelRow: {
-    flexDirection: 'row-reverse',
+    flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
     marginBottom: 4,
@@ -1677,13 +1755,72 @@ const styles = StyleSheet.create<any>({
     shadowRadius: 3,
     elevation: 3,
   },
-  recommendationsCard: {
+  twoColumnRow: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 16,
+    marginBottom: 20,
+  },
+  /** بطاقة منسدلة موحّدة تجمع "ترتيب المحاور حسب الأداء" و"توصيات التحسين" */
+  axisAndRecommendationsCard: {
     marginBottom: 20,
     padding: 20,
-    backgroundColor: 'rgba(255, 255, 255, 0.9)',
-    borderRadius: 16,
+    backgroundColor: '#F8F9FA',
+    borderRadius: 15,
     borderWidth: 1,
-    borderColor: 'rgba(229, 229, 234, 0.5)',
+    borderColor: '#E5E5EA',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 6 },
+    shadowOpacity: 0.25,
+    shadowRadius: 12,
+    elevation: 10,
+  },
+  axisAndRecommendationsHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    backgroundColor: 'transparent',
+  },
+  axisAndRecommendationsTitle: {
+    fontSize: 16,
+    fontWeight: 'bold',
+    color: '#1c1f33',
+    textAlign: 'right',
+    writingDirection: 'rtl',
+  },
+  twoColumnRowNested: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 16,
+    marginTop: 16,
+  },
+  axisRankingCard: {
+    flex: 1,
+    minWidth: 260,
+    padding: 20,
+    backgroundColor: '#F8F9FA',
+    borderRadius: 15,
+    borderWidth: 1,
+    borderColor: '#E5E5EA',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 6 },
+    shadowOpacity: 0.25,
+    shadowRadius: 12,
+    elevation: 10,
+  },
+  recommendationsCard: {
+    flex: 1,
+    minWidth: 260,
+    padding: 20,
+    backgroundColor: '#F8F9FA',
+    borderRadius: 15,
+    borderWidth: 1,
+    borderColor: '#E5E5EA',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 6 },
+    shadowOpacity: 0.25,
+    shadowRadius: 12,
+    elevation: 10,
   },
   recommendationsTitle: {
     fontSize: 16,
@@ -1714,18 +1851,34 @@ const styles = StyleSheet.create<any>({
     textDirection: 'rtl',
     lineHeight: 20,
   },
-  actionButtons: {
+  shareCard: {
+    flex: 1,
+    minWidth: 260,
     flexDirection: 'column',
     gap: 12,
-    marginBottom: 20,
-  },
-  visitorCommentsCard: {
+    padding: 20,
     backgroundColor: '#F8F9FA',
-    borderRadius: 14,
-    padding: 16,
-    marginBottom: 20,
+    borderRadius: 15,
     borderWidth: 1,
     borderColor: '#E5E5EA',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 6 },
+    shadowOpacity: 0.25,
+    shadowRadius: 12,
+    elevation: 10,
+  },
+  visitorCommentsCard: {
+    padding: 20,
+    backgroundColor: '#F8F9FA',
+    borderRadius: 15,
+    borderWidth: 1,
+    borderColor: '#E5E5EA',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 6 },
+    shadowOpacity: 0.25,
+    shadowRadius: 12,
+    elevation: 10,
+    marginBottom: 20,
   },
   visitorCommentsLoading: { marginTop: 8 },
   noVisitorComments: {
@@ -1742,11 +1895,18 @@ const styles = StyleSheet.create<any>({
     borderWidth: 1,
     borderColor: '#E5E5EA',
   },
+  visitorCommentHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 4,
+    backgroundColor: 'transparent',
+  },
   visitorCommentMeta: {
+    flex: 1,
     fontSize: 12,
     fontWeight: '600',
     color: '#0d9488',
-    marginBottom: 4,
     textAlign: 'right',
   },
   visitorCommentText: {
@@ -1768,23 +1928,16 @@ const styles = StyleSheet.create<any>({
     gap: 12,
     flexWrap: 'wrap',
   },
+  // نفس الشكل بالضبط (الحشو/الزوايا/الظل) لأزرار مشاركة/تصدير التقرير الثلاثة،
+  // بلون خلفية مختلف لكل زر فقط للتمييز بين الإجراءات
+  exportButtonShare: {
+    backgroundColor: '#1c1f33',
+  },
   exportButtonPdf: {
     backgroundColor: '#0d9488',
-    paddingVertical: 12,
-    paddingHorizontal: 16,
-    borderRadius: 12,
-    minWidth: 120,
   },
   exportButtonWord: {
     backgroundColor: '#2563eb',
-    paddingVertical: 12,
-    paddingHorizontal: 16,
-    borderRadius: 12,
-    minWidth: 120,
-  },
-  exportOptionButtonText: {
-    color: '#fff',
-    fontWeight: '600',
   },
   exportButton: {
     flex: 1,
@@ -1792,10 +1945,10 @@ const styles = StyleSheet.create<any>({
     alignItems: 'center',
     justifyContent: 'center',
     gap: 10,
-    backgroundColor: '#add4ce',
-    paddingVertical: 15,
-    paddingHorizontal: 25,
-    borderRadius: 25,
+    paddingVertical: 14,
+    paddingHorizontal: 20,
+    borderRadius: 14,
+    minWidth: 140,
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 6 },
     shadowOpacity: 0.4,
@@ -1806,10 +1959,9 @@ const styles = StyleSheet.create<any>({
     opacity: 0.7,
   },
   buttonText: {
-    color: '#1c1f33',
+    color: '#fff',
     fontSize: 16,
     fontWeight: '600',
-
     textAlign: 'center',
   },
   statisticsContainer: {
