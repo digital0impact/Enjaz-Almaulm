@@ -24,21 +24,16 @@ import AuthService from '@/services/AuthService';
 import { getTextDirection, formatRTLText } from '@/utils/rtl-utils';
 import { supabase } from '@/config/supabase';
 import { VARK_STYLE_LABELS, VarkStyle } from '@/constants/varkQuestions';
-
-function getShareBaseUrl(): string {
-  if (typeof window !== 'undefined' && window.location?.origin) {
-    return window.location.origin;
-  }
-  const env = typeof process !== 'undefined' ? process.env : undefined;
-  const url = (env?.EXPO_PUBLIC_APP_URL ?? '').trim();
-  return url ? url.replace(/\/$/, '') : '';
-}
+import { ClassSummary, summarizeVarkByClass, getShareBaseUrl } from '@/utils/varkResults';
 
 interface VarkTestRow {
   id: string;
   token: string;
   title: string | null;
   created_at: string;
+  /** غير فارغة فقط للاختبارات المستوردة من نتائج معلمة أخرى (انظر vark_shared_results) */
+  imported_summary?: ClassSummary[] | null;
+  imported_total?: number | null;
 }
 
 interface VarkResponseRow {
@@ -47,35 +42,6 @@ interface VarkResponseRow {
   student_name: string;
   dominant_style: string;
   created_at: string;
-}
-
-interface ClassSummary {
-  className: string;
-  total: number;
-  counts: Record<VarkStyle | 'mixed', number>;
-}
-
-const EMPTY_COUNTS = (): Record<VarkStyle | 'mixed', number> => ({
-  V: 0,
-  A: 0,
-  R: 0,
-  K: 0,
-  mixed: 0,
-});
-
-function summarizeByClass(responses: VarkResponseRow[]): ClassSummary[] {
-  const map = new Map<string, ClassSummary>();
-  responses.forEach((r) => {
-    const className = r.class_name || 'غير محدد';
-    if (!map.has(className)) {
-      map.set(className, { className, total: 0, counts: EMPTY_COUNTS() });
-    }
-    const entry = map.get(className)!;
-    entry.total += 1;
-    const style = (r.dominant_style as VarkStyle | 'mixed') || 'mixed';
-    entry.counts[style] = (entry.counts[style] || 0) + 1;
-  });
-  return Array.from(map.values()).sort((a, b) => a.className.localeCompare(b.className, 'ar'));
 }
 
 export default function LearningStylesScreen() {
@@ -101,7 +67,7 @@ export default function LearningStylesScreen() {
       }
       const { data, error } = await supabase
         .from('vark_tests')
-        .select('id, token, title, created_at')
+        .select('id, token, title, created_at, imported_summary, imported_total')
         .eq('user_id', user.id)
         .order('created_at', { ascending: false });
       if (!error && data) setTests(data as VarkTestRow[]);
@@ -172,6 +138,78 @@ export default function LearningStylesScreen() {
     }
   };
 
+  const handleShareResults = async (test: VarkTestRow) => {
+    try {
+      const user = await AuthService.getCurrentUser();
+      if (!user) {
+        AlertService.alert('تنبيه', formatRTLText('يجب تسجيل الدخول أولاً'));
+        return;
+      }
+
+      const baseUrl = getShareBaseUrl();
+      // ننشر لقطة (snapshot) لملخص النتائج بالرمز حتى تستطيع معلمة أخرى فتح
+      // الرابط ثم إضافة نسخة منه إلى حسابها دون الوصول لبيانات الطلاب الخام
+      if (baseUrl) {
+        const { error: upsertError } = await supabase.from('vark_shared_results').upsert({
+          token: test.token,
+          owner_user_id: user.id,
+          title: test.title,
+          class_summary: classSummaries,
+          total_responses: totalResponses,
+          updated_at: new Date().toISOString(),
+        });
+        if (upsertError) throw upsertError;
+      }
+
+      const lines: string[] = [
+        formatRTLText('نتائج اختبار نمط التعلم (VARK)'),
+        formatRTLText(`عنوان الاختبار: ${test.title || 'اختبار بدون عنوان'}`),
+        '',
+      ];
+      classSummaries.forEach((cls) => {
+        lines.push(formatRTLText(`الصف: ${cls.className}`));
+        (['V', 'A', 'R', 'K'] as VarkStyle[]).forEach((style) => {
+          lines.push(formatRTLText(`  ${VARK_STYLE_LABELS[style]}: ${cls.counts[style]}`));
+        });
+        lines.push(formatRTLText(`  مختلط: ${cls.counts.mixed}`));
+        lines.push(formatRTLText(`  الإجمالي: ${cls.total}`));
+        lines.push('');
+      });
+      lines.push(formatRTLText(`الإجمالي الكلي: ${totalResponses}`));
+      const resultsLink = baseUrl ? `${baseUrl}/vark-results/${test.token}` : '';
+      if (resultsLink) {
+        lines.push('');
+        lines.push(formatRTLText('لإضافة هذه النتائج مباشرة إلى حسابك (لمعلمة تُدرّس نفس الصف):'));
+        lines.push(resultsLink);
+      }
+      const message = lines.join('\n');
+      const shareTitle = formatRTLText('نتائج اختبار نمط التعلم');
+
+      if (Platform.OS === 'web' && typeof navigator !== 'undefined' && typeof (navigator as any).share === 'function') {
+        try {
+          await (navigator as any).share({ title: shareTitle, text: message });
+          return;
+        } catch (e) {
+          if ((e as any)?.name === 'AbortError') return;
+        }
+      }
+      try {
+        await Share.share({
+          message,
+          title: shareTitle,
+          url: Platform.OS !== 'web' && resultsLink ? resultsLink : undefined,
+        });
+      } catch (e) {
+        if ((e as any)?.message !== 'User did not share') {
+          AlertService.alert('تنبيه', formatRTLText('تعذّرت مشاركة النتائج'));
+        }
+      }
+    } catch (e) {
+      console.error(e);
+      AlertService.alert('خطأ', formatRTLText('حدث خطأ أثناء تجهيز مشاركة النتائج'));
+    }
+  };
+
   const handleCopyLink = async (link: string) => {
     if (Platform.OS === 'web' && typeof navigator !== 'undefined' && navigator.clipboard?.writeText) {
       await navigator.clipboard.writeText(link);
@@ -181,19 +219,26 @@ export default function LearningStylesScreen() {
     await handleShareLink(link);
   };
 
-  const handleSelectTest = async (token: string) => {
-    if (selectedToken === token) {
+  const handleSelectTest = async (test: VarkTestRow) => {
+    if (selectedToken === test.token) {
       setSelectedToken(null);
       setResponses([]);
       return;
     }
-    setSelectedToken(token);
+    setSelectedToken(test.token);
+    // نسخة مستوردة من نتائج معلمة أخرى: البيانات لقطة مجمّدة محفوظة في
+    // vark_tests.imported_summary مباشرة، لا صفوف vark_responses فعلية لها
+    // (ولا صلاحية أصلًا لقراءة استجابات اختبار معلمة أخرى)
+    if (test.imported_summary) {
+      setResponses([]);
+      return;
+    }
     setLoadingResponses(true);
     try {
       const { data, error } = await supabase
         .from('vark_responses')
         .select('id, class_name, student_name, dominant_style, created_at')
-        .eq('test_token', token)
+        .eq('test_token', test.token)
         .order('created_at', { ascending: false });
       if (!error && data) setResponses(data as VarkResponseRow[]);
       else setResponses([]);
@@ -205,7 +250,11 @@ export default function LearningStylesScreen() {
     }
   };
 
-  const classSummaries = summarizeByClass(responses);
+  const selectedTest = tests.find((t) => t.token === selectedToken) || null;
+  const classSummaries = selectedTest?.imported_summary ?? summarizeVarkByClass(responses);
+  const totalResponses = selectedTest?.imported_summary
+    ? selectedTest.imported_total ?? classSummaries.reduce((sum, cls) => sum + cls.total, 0)
+    : responses.length;
 
   return (
     <ThemedView style={styles.container}>
@@ -322,7 +371,7 @@ export default function LearningStylesScreen() {
 
               {tests.map((test) => (
                 <React.Fragment key={test.id}>
-                  <TouchableOpacity onPress={() => handleSelectTest(test.token)} activeOpacity={0.7}>
+                  <TouchableOpacity onPress={() => handleSelectTest(test)} activeOpacity={0.7}>
                     <ThemedView
                       style={[styles.tableRow, selectedToken === test.token && styles.tableRowActive]}
                     >
@@ -331,6 +380,7 @@ export default function LearningStylesScreen() {
                         numberOfLines={1}
                       >
                         {formatRTLText(test.title || 'اختبار بدون عنوان')}
+                        {test.imported_summary ? formatRTLText('  (مستوردة)') : ''}
                       </ThemedText>
                       <ThemedText style={[styles.tableCell, styles.tableColDate, getTextDirection()]}>
                         {new Date(test.created_at).toLocaleDateString('ar-SA', {
@@ -353,11 +403,21 @@ export default function LearningStylesScreen() {
                     <ThemedView style={styles.resultsRow}>
                     {loadingResponses ? (
                       <ActivityIndicator color="#1c1f33" />
-                    ) : responses.length === 0 ? (
+                    ) : classSummaries.length === 0 ? (
                       <ThemedText style={[styles.emptyText, getTextDirection()]}>
                         {formatRTLText('لا توجد إجابات بعد على هذا الاختبار.')}
                       </ThemedText>
                     ) : (
+                      <>
+                      <TouchableOpacity
+                        style={styles.resultsShareButton}
+                        onPress={() => handleShareResults(test)}
+                      >
+                        <IconSymbol size={18} name="square.and.arrow.up" color="#1c1f33" />
+                        <ThemedText style={styles.resultsShareButtonText}>
+                          {formatRTLText('مشاركة النتائج')}
+                        </ThemedText>
+                      </TouchableOpacity>
                       <ScrollView horizontal showsHorizontalScrollIndicator={false}>
                         <ThemedView style={styles.resultsTable}>
                           <ThemedView style={styles.resultsHeaderRow}>
@@ -409,11 +469,12 @@ export default function LearningStylesScreen() {
                               {classSummaries.reduce((sum, cls) => sum + cls.counts.mixed, 0)}
                             </ThemedText>
                             <ThemedText style={[styles.resultsCell, styles.resultsColTotal, styles.resultsTotalText]}>
-                              {responses.length}
+                              {totalResponses}
                             </ThemedText>
                           </ThemedView>
                         </ThemedView>
                       </ScrollView>
+                      </>
                     )}
                     </ThemedView>
                   )}
@@ -526,6 +587,20 @@ const styles = StyleSheet.create({
     borderColor: '#E5E5EA',
   },
   linkActionText: { fontSize: 13, color: '#1c1f33', fontWeight: '600' },
+  resultsShareButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    alignSelf: 'flex-start',
+    gap: 6,
+    paddingVertical: 8,
+    paddingHorizontal: 14,
+    borderRadius: 8,
+    backgroundColor: '#fff',
+    borderWidth: 1,
+    borderColor: '#E5E5EA',
+    marginBottom: 12,
+  },
+  resultsShareButtonText: { fontSize: 13, color: '#1c1f33', fontWeight: '600' },
   sectionHeader: { marginBottom: 12 },
   sectionTitle: { fontSize: 18, fontWeight: '700', color: '#1c1f33' },
   loader: { marginTop: 20 },
