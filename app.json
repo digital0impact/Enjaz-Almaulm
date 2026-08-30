@@ -2,7 +2,7 @@
   "expo": {
     "name": "إنجاز المعلم",
     "slug": "teacher-performance-app",
-    "version": "1.4.1",
+    "version": "1.5.0",
     "orientation": "portrait",
     "icon": "./assets/images/Logo.png",
     "userInterfaceStyle": "light",
