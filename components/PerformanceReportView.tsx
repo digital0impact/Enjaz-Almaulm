@@ -85,6 +85,33 @@ export function PerformanceReportView() {
     }
   };
 
+  const handleDeleteComment = (comment: VisitorComment) => {
+    AlertService.alert(
+      formatRTLText('حذف التعليق'),
+      formatRTLText('هل تريدين حذف هذا التعليق؟ لا يمكن التراجع عن هذا الإجراء.'),
+      [
+        { text: formatRTLText('إلغاء'), style: 'cancel' },
+        {
+          text: formatRTLText('حذف'),
+          style: 'destructive',
+          onPress: async () => {
+            try {
+              const { error } = await supabase
+                .from('shared_achievement_comments')
+                .delete()
+                .eq('id', comment.id);
+              if (error) throw error;
+              setVisitorComments((prev) => prev.filter((c) => c.id !== comment.id));
+            } catch (e) {
+              console.error(e);
+              AlertService.alert('خطأ', formatRTLText('تعذّر حذف التعليق'));
+            }
+          },
+        },
+      ]
+    );
+  };
+
   // تحميل البيانات الفعلية من AsyncStorage
   useEffect(() => {
     loadPerformanceData();
@@ -1214,15 +1241,15 @@ export function PerformanceReportView() {
                   {formatRTLText('مشاركة التقرير')}
                 </ThemedText>
                 <TouchableOpacity
-                  style={styles.exportButton}
+                  style={[styles.exportButton, styles.exportButtonShare]}
                   onPress={handleShareAchievements}
                   disabled={isGeneratingShareLink}
                   activeOpacity={0.7}
                 >
                   {isGeneratingShareLink ? (
-                    <ActivityIndicator color="#1c1f33" size="small" />
+                    <ActivityIndicator color="#fff" size="small" />
                   ) : (
-                    <IconSymbol size={20} name="square.and.arrow.up" color="#1c1f33" />
+                    <IconSymbol size={20} name="square.and.arrow.up" color="#fff" />
                   )}
                   <ThemedText style={styles.buttonText}>
                     {isGeneratingShareLink ? formatRTLText('جارٍ التجهيز...') : formatRTLText('مشاركة التقرير')}
@@ -1246,7 +1273,7 @@ export function PerformanceReportView() {
                     ) : (
                       <IconSymbol size={20} name="doc.pdf" color="#fff" />
                     )}
-                    <ThemedText style={[styles.buttonText, styles.exportOptionButtonText]}>
+                    <ThemedText style={styles.buttonText}>
                       {isExporting ? formatRTLText('جاري التصدير...') : formatRTLText('تصدير PDF')}
                     </ThemedText>
                   </TouchableOpacity>
@@ -1261,7 +1288,7 @@ export function PerformanceReportView() {
                     ) : (
                       <IconSymbol size={20} name="doc.text.fill" color="#fff" />
                     )}
-                    <ThemedText style={[styles.buttonText, styles.exportOptionButtonText]}>
+                    <ThemedText style={styles.buttonText}>
                       {formatRTLText('تصدير Word')}
                     </ThemedText>
                   </TouchableOpacity>
@@ -1282,9 +1309,17 @@ export function PerformanceReportView() {
               ) : (
                 visitorComments.map((comment) => (
                   <ThemedView key={comment.id} style={styles.visitorCommentItem}>
-                    <ThemedText style={[styles.visitorCommentMeta, getTextDirection()]}>
-                      {formatRTLText(comment.author_name || 'زائر')} · {new Date(comment.created_at).toLocaleDateString('ar-SA')}
-                    </ThemedText>
+                    <ThemedView style={styles.visitorCommentHeader}>
+                      <ThemedText style={[styles.visitorCommentMeta, getTextDirection()]}>
+                        {formatRTLText(comment.author_name || 'زائر')} · {new Date(comment.created_at).toLocaleDateString('ar-SA')}
+                      </ThemedText>
+                      <TouchableOpacity
+                        onPress={() => handleDeleteComment(comment)}
+                        hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+                      >
+                        <IconSymbol size={18} name="trash" color="#F44336" />
+                      </TouchableOpacity>
+                    </ThemedView>
                     <ThemedText style={[styles.visitorCommentText, getTextDirection()]}>
                       {formatRTLText(comment.comment_text)}
                     </ThemedText>
@@ -1860,11 +1895,18 @@ const styles = StyleSheet.create<any>({
     borderWidth: 1,
     borderColor: '#E5E5EA',
   },
+  visitorCommentHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 4,
+    backgroundColor: 'transparent',
+  },
   visitorCommentMeta: {
+    flex: 1,
     fontSize: 12,
     fontWeight: '600',
     color: '#0d9488',
-    marginBottom: 4,
     textAlign: 'right',
   },
   visitorCommentText: {
@@ -1886,23 +1928,16 @@ const styles = StyleSheet.create<any>({
     gap: 12,
     flexWrap: 'wrap',
   },
+  // نفس الشكل بالضبط (الحشو/الزوايا/الظل) لأزرار مشاركة/تصدير التقرير الثلاثة،
+  // بلون خلفية مختلف لكل زر فقط للتمييز بين الإجراءات
+  exportButtonShare: {
+    backgroundColor: '#1c1f33',
+  },
   exportButtonPdf: {
     backgroundColor: '#0d9488',
-    paddingVertical: 12,
-    paddingHorizontal: 16,
-    borderRadius: 12,
-    minWidth: 120,
   },
   exportButtonWord: {
     backgroundColor: '#2563eb',
-    paddingVertical: 12,
-    paddingHorizontal: 16,
-    borderRadius: 12,
-    minWidth: 120,
-  },
-  exportOptionButtonText: {
-    color: '#fff',
-    fontWeight: '600',
   },
   exportButton: {
     flex: 1,
@@ -1910,10 +1945,10 @@ const styles = StyleSheet.create<any>({
     alignItems: 'center',
     justifyContent: 'center',
     gap: 10,
-    backgroundColor: '#add4ce',
-    paddingVertical: 15,
-    paddingHorizontal: 25,
-    borderRadius: 25,
+    paddingVertical: 14,
+    paddingHorizontal: 20,
+    borderRadius: 14,
+    minWidth: 140,
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 6 },
     shadowOpacity: 0.4,
@@ -1924,10 +1959,9 @@ const styles = StyleSheet.create<any>({
     opacity: 0.7,
   },
   buttonText: {
-    color: '#1c1f33',
+    color: '#fff',
     fontSize: 16,
     fontWeight: '600',
-
     textAlign: 'center',
   },
   statisticsContainer: {
