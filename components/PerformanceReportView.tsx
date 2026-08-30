@@ -266,8 +266,6 @@ export function PerformanceReportView() {
       { name: formatRTLText('يحتاج تحسين'), count: needsImprovementCount, color: '#F44336', legendFontColor: '#1c1f33', legendFontSize: 11 },
     ].filter(d => d.count > 0);
 
-    const sortedByScore = [...performanceData].sort((a, b) => b.score - a.score);
-
     return (
       <ThemedView style={styles.dashboardCard}>
         <ThemedText type="subtitle" style={styles.summaryTitle}>{formatRTLText('لوحة القيادة')}</ThemedText>
@@ -338,10 +336,17 @@ export function PerformanceReportView() {
             )}
           </ThemedView>
         </ThemedView>
+      </ThemedView>
+    );
+  };
 
-        {/* رسم شريطي: ترتيب المحاور حسب الأداء */}
+  /** بطاقة مستقلة لترتيب المحاور حسب الأداء (تُعرض بجانب بطاقة توصيات التحسين) */
+  const renderAxisRankingCard = () => {
+    const sortedByScore = [...performanceData].sort((a, b) => b.score - a.score);
+    return (
+      <ThemedView style={styles.axisRankingCard}>
+        <ThemedText style={styles.recommendationsTitle}>{formatRTLText('ترتيب المحاور حسب الأداء')}</ThemedText>
         <ThemedView style={styles.barListSection}>
-          <ThemedText style={styles.chartBoxTitle}>{formatRTLText('ترتيب المحاور حسب الأداء')}</ThemedText>
           {sortedByScore.map((item) => (
             <ThemedView key={item.id} style={styles.barListRow}>
               <ThemedView style={styles.barListLabelRow}>
@@ -362,6 +367,36 @@ export function PerformanceReportView() {
       </ThemedView>
     );
   };
+
+  /** بطاقة مستقلة لتوصيات التحسين (تُعرض بجانب بطاقة ترتيب المحاور) */
+  const renderRecommendationsCard = () => (
+    <ThemedView style={styles.recommendationsCard}>
+      <ThemedText style={styles.recommendationsTitle}>
+        <IconSymbol size={20} name="lightbulb.fill" color="#FF9800" /> توصيات للتحسين
+      </ThemedText>
+      <ThemedView style={styles.recommendationsList}>
+        {performanceData
+          .map(item => ({ ...item, scoreNum: Number(item?.score ?? 0) }))
+          .filter(item => item.scoreNum < 85)
+          .sort((a, b) => a.scoreNum - b.scoreNum)
+          .slice(0, 3)
+          .map((item) => (
+            <ThemedView key={item.id} style={styles.recommendationItem}>
+              <ThemedText style={styles.recommendationText}>
+                {`• ركز على تحسين "${item.title}" (الدرجة الحالية: ${item.scoreNum}%)`}
+              </ThemedText>
+            </ThemedView>
+          ))}
+        {performanceData.filter(item => Number(item?.score ?? 0) < 85).length === 0 && (
+          <ThemedView key="no-improvements-needed" style={styles.recommendationItem}>
+            <ThemedText style={styles.recommendationText}>
+              • ممتاز! جميع المحاور تحصل على درجات عالية. استمر في الأداء المتميز.
+            </ThemedText>
+          </ThemedView>
+        )}
+      </ThemedView>
+    </ThemedView>
+  );
 
   type ReportData = {
     performanceId: number;
@@ -1148,31 +1183,9 @@ export function PerformanceReportView() {
             <ThemedView style={styles.content}>
               {renderDashboard()}
 
-            <ThemedView style={styles.recommendationsCard}>
-                              <ThemedText style={styles.recommendationsTitle}>
-                  <IconSymbol size={20} name="lightbulb.fill" color="#FF9800" /> توصيات للتحسين
-                </ThemedText>
-              <ThemedView style={styles.recommendationsList}>
-                {performanceData
-                  .map(item => ({ ...item, scoreNum: Number(item?.score ?? 0) }))
-                  .filter(item => item.scoreNum < 85)
-                  .sort((a, b) => a.scoreNum - b.scoreNum)
-                  .slice(0, 3)
-                  .map((item) => (
-                    <ThemedView key={item.id} style={styles.recommendationItem}>
-                      <ThemedText style={styles.recommendationText}>
-                        {`• ركز على تحسين "${item.title}" (الدرجة الحالية: ${item.scoreNum}%)`}
-                      </ThemedText>
-                    </ThemedView>
-                  ))}
-                {performanceData.filter(item => Number(item?.score ?? 0) < 85).length === 0 && (
-                  <ThemedView key="no-improvements-needed" style={styles.recommendationItem}>
-                                        <ThemedText style={styles.recommendationText}>
-                      • ممتاز! جميع المحاور تحصل على درجات عالية. استمر في الأداء المتميز.
-                    </ThemedText>
-                  </ThemedView>
-                )}
-              </ThemedView>
+            <ThemedView style={styles.twoColumnRow}>
+              {renderAxisRankingCard()}
+              {renderRecommendationsCard()}
             </ThemedView>
 
             <ThemedView style={styles.actionButtons}>
@@ -1393,7 +1406,9 @@ const styles = StyleSheet.create<any>({
     textAlign: 'center',
   },
   statsGrid: {
-    flexDirection: 'row-reverse',
+    // 'row' وليس 'row-reverse': اتجاه الصفحة موروث rtl من <html dir="rtl">،
+    // فـ row-reverse معه يعكس ترتيب البطاقات إلى يسار←يمين خطأً
+    flexDirection: 'row',
     gap: 8,
     marginBottom: 20,
   },
@@ -1422,7 +1437,7 @@ const styles = StyleSheet.create<any>({
     writingDirection: 'rtl',
   },
   chartsRow: {
-    flexDirection: 'row-reverse',
+    flexDirection: 'row',
     gap: 12,
     marginBottom: 20,
   },
@@ -1475,7 +1490,7 @@ const styles = StyleSheet.create<any>({
     backgroundColor: 'transparent',
   },
   barListLabelRow: {
-    flexDirection: 'row-reverse',
+    flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
     marginBottom: 4,
@@ -1677,7 +1692,24 @@ const styles = StyleSheet.create<any>({
     shadowRadius: 3,
     elevation: 3,
   },
+  twoColumnRow: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 16,
+    marginBottom: 20,
+  },
+  axisRankingCard: {
+    flex: 1,
+    minWidth: 260,
+    padding: 20,
+    backgroundColor: 'rgba(255, 255, 255, 0.9)',
+    borderRadius: 16,
+    borderWidth: 1,
+    borderColor: 'rgba(229, 229, 234, 0.5)',
+  },
   recommendationsCard: {
+    flex: 1,
+    minWidth: 260,
     marginBottom: 20,
     padding: 20,
     backgroundColor: 'rgba(255, 255, 255, 0.9)',
