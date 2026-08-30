@@ -942,7 +942,9 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: '#e5e7eb',
   },
-  gridRow: { flexDirection: 'row-reverse' },
+  // 'row' (وليس 'row-reverse') لأن اتجاه الصفحة موروث rtl من <html dir="rtl">،
+  // و row-reverse معه يعكس الترتيب البصري إلى يسار-يمين بدل يمين-يسار
+  gridRow: { flexDirection: 'row' },
   cellDiagonal: {
     width: 72,
     minHeight: 52,
@@ -993,7 +995,7 @@ const styles = StyleSheet.create({
     textAlignVertical: 'top',
   },
   priorityTable: { borderWidth: 1, borderColor: '#e5e7eb' },
-  priorityRow: { flexDirection: 'row-reverse', borderBottomWidth: 1, borderColor: '#e5e7eb' },
+  priorityRow: { flexDirection: 'row', borderBottomWidth: 1, borderColor: '#e5e7eb' },
   priorityCell: {
     flex: 1,
     minWidth: 90,
