@@ -123,8 +123,11 @@ const styles = StyleSheet.create({
     backgroundColor: TAB_BAR_BG,
     direction: 'rtl',
   },
+  // الحاوية بداخل tabBar التي direction:'rtl' فيها rtl، لذا flexDirection:'row' هنا
+  // (وليس 'row-reverse') يضع أول عنصر في مصفوفة tabs (الرئيسية) في أقصى اليمين،
+  // ثم بقية العناصر تليه يسارًا بنفس ترتيب المصفوفة
   tabBarContent: {
-    flexDirection: 'row-reverse',
+    flexDirection: 'row',
     flex: 1,
   },
   tab: {
