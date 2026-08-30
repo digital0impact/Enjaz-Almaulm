@@ -1,4 +1,5 @@
 import "jsr:@supabase/functions-js/edge-runtime.d.ts";
+import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 
 const OPENAI_URL = "https://api.openai.com/v1/chat/completions";
 const MODEL = "gpt-4o-mini";
@@ -12,7 +13,12 @@ type SuggestionType =
   | "idp_priority_objective"
   | "idp_priority_activities"
   | "idp_priority_procedures"
-  | "idp_priority_success";
+  | "idp_priority_success"
+  | "student_tracking_need";
+
+// الأنواع الخاضعة لحد "مرة واحدة للخطة المجانية" (عبر check_and_consume_student_card_ai_usage
+// في قاعدة البيانات). كل الأنواع الأخرى تبقى بلا حدود كما كانت، دون أي تغيير في سلوكها.
+const FREE_LIMITED_TYPES: SuggestionType[] = ["student_tracking_need"];
 
 function getPrompt(type: SuggestionType, currentText: string): { system: string; user: string } {
   const base = "أنت مساعد لمعلم في المملكة العربية السعودية. اكتب نصاً قصيراً بالعربية الفصحى فقط، مناسب للحقل المطلوب. لا تضع عناوين أو شرحاً إضافياً، فقط النص المقترح في سطر أو بضع جمل.";
@@ -38,6 +44,8 @@ function getPrompt(type: SuggestionType, currentText: string): { system: string;
       "الحقل: الإجراءات التفصيلية لتحقيق الهدف في خطة التطوير الفردية. المطلوب: خطوات عملية مختصرة.",
     idp_priority_success:
       "الحقل: معايير النجاح لتحقيق الهدف التطويري. المطلوب: معايير قابلة للقياس في جمل أو جملتين.",
+    student_tracking_need:
+      "الحقل: احتياج تعليمي لمتعلم في بطاقة متابعة متعلم (خطط علاجية وإثرائية). المطلوب: وصف مختصر وواضح لاحتياج المتعلم (مثال: يحتاج إلى دعم إضافي في مهارة معيّنة) في جملة أو جملتين.",
   };
   return {
     system: base,
@@ -82,6 +90,7 @@ Deno.serve(async (req: Request) => {
     "idp_priority_activities",
     "idp_priority_procedures",
     "idp_priority_success",
+    "student_tracking_need",
   ];
 
   let type: SuggestionType;
@@ -144,6 +153,45 @@ Deno.serve(async (req: Request) => {
     currentText = typeof textRaw === "string" ? textRaw : "";
   } catch (e) {
     return jsonResponse({ error: "Invalid JSON body", details: String(e) }, 400);
+  }
+
+  // بعض الأنواع (مثل مساعد بطاقة متابعة متعلم) محدودة بمرة واحدة للخطة
+  // المجانية وغير محدودة للخطط المدفوعة؛ التحقق والعدّ يتمّان في قاعدة
+  // البيانات عبر RPC بجلسة المستخدم نفسه حتى لا يمكن تجاوزهما من العميل
+  if (FREE_LIMITED_TYPES.includes(type)) {
+    const authHeader = req.headers.get("Authorization");
+    if (!authHeader) {
+      return jsonResponse(
+        { error: "unauthorized", message: "يجب تسجيل الدخول لاستخدام مساعد الذكاء الاصطناعي." },
+        401
+      );
+    }
+    const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
+    const supabaseAnonKey = Deno.env.get("SUPABASE_ANON_KEY")!;
+    const userClient = createClient(supabaseUrl, supabaseAnonKey, {
+      global: { headers: { Authorization: authHeader } },
+    });
+    const { data: usageRows, error: usageError } = await userClient.rpc(
+      "check_and_consume_student_card_ai_usage",
+      { p_free_limit: 1 }
+    );
+    if (usageError) {
+      return jsonResponse(
+        { error: "usage_check_failed", message: usageError.message || "تعذر التحقق من صلاحية الاستخدام." },
+        500
+      );
+    }
+    const usage = Array.isArray(usageRows) ? usageRows[0] : usageRows;
+    if (!usage?.allowed) {
+      return jsonResponse(
+        {
+          error: "free_limit_reached",
+          message:
+            "لقد استخدمتِ مساعد الذكاء الاصطناعي مجانًا مرة واحدة. للاستمرار في استخدامه بلا حدود، يرجى ترقية اشتراكك.",
+        },
+        403
+      );
+    }
   }
 
   const { system, user } = getPrompt(type, currentText);
