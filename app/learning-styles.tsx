@@ -172,6 +172,49 @@ export default function LearningStylesScreen() {
     }
   };
 
+  const handleShareResults = async (test: VarkTestRow) => {
+    const lines: string[] = [
+      formatRTLText('نتائج اختبار نمط التعلم (VARK)'),
+      formatRTLText(`عنوان الاختبار: ${test.title || 'اختبار بدون عنوان'}`),
+      formatRTLText(
+        `التاريخ: ${new Date(test.created_at).toLocaleDateString('ar-SA', {
+          year: 'numeric',
+          month: 'short',
+          day: 'numeric',
+        })}`
+      ),
+      '',
+    ];
+    classSummaries.forEach((cls) => {
+      lines.push(formatRTLText(`الصف: ${cls.className}`));
+      (['V', 'A', 'R', 'K'] as VarkStyle[]).forEach((style) => {
+        lines.push(formatRTLText(`  ${VARK_STYLE_LABELS[style]}: ${cls.counts[style]}`));
+      });
+      lines.push(formatRTLText(`  مختلط: ${cls.counts.mixed}`));
+      lines.push(formatRTLText(`  الإجمالي: ${cls.total}`));
+      lines.push('');
+    });
+    lines.push(formatRTLText(`الإجمالي الكلي: ${responses.length}`));
+    const message = lines.join('\n');
+    const shareTitle = formatRTLText('نتائج اختبار نمط التعلم');
+
+    if (Platform.OS === 'web' && typeof navigator !== 'undefined' && typeof (navigator as any).share === 'function') {
+      try {
+        await (navigator as any).share({ title: shareTitle, text: message });
+        return;
+      } catch (e) {
+        if ((e as any)?.name === 'AbortError') return;
+      }
+    }
+    try {
+      await Share.share({ message, title: shareTitle });
+    } catch (e) {
+      if ((e as any)?.message !== 'User did not share') {
+        AlertService.alert('تنبيه', formatRTLText('تعذّرت مشاركة النتائج'));
+      }
+    }
+  };
+
   const handleCopyLink = async (link: string) => {
     if (Platform.OS === 'web' && typeof navigator !== 'undefined' && navigator.clipboard?.writeText) {
       await navigator.clipboard.writeText(link);
@@ -358,6 +401,16 @@ export default function LearningStylesScreen() {
                         {formatRTLText('لا توجد إجابات بعد على هذا الاختبار.')}
                       </ThemedText>
                     ) : (
+                      <>
+                      <TouchableOpacity
+                        style={styles.resultsShareButton}
+                        onPress={() => handleShareResults(test)}
+                      >
+                        <IconSymbol size={18} name="square.and.arrow.up" color="#1c1f33" />
+                        <ThemedText style={styles.resultsShareButtonText}>
+                          {formatRTLText('مشاركة النتائج')}
+                        </ThemedText>
+                      </TouchableOpacity>
                       <ScrollView horizontal showsHorizontalScrollIndicator={false}>
                         <ThemedView style={styles.resultsTable}>
                           <ThemedView style={styles.resultsHeaderRow}>
@@ -414,6 +467,7 @@ export default function LearningStylesScreen() {
                           </ThemedView>
                         </ThemedView>
                       </ScrollView>
+                      </>
                     )}
                     </ThemedView>
                   )}
@@ -526,6 +580,20 @@ const styles = StyleSheet.create({
     borderColor: '#E5E5EA',
   },
   linkActionText: { fontSize: 13, color: '#1c1f33', fontWeight: '600' },
+  resultsShareButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    alignSelf: 'flex-start',
+    gap: 6,
+    paddingVertical: 8,
+    paddingHorizontal: 14,
+    borderRadius: 8,
+    backgroundColor: '#fff',
+    borderWidth: 1,
+    borderColor: '#E5E5EA',
+    marginBottom: 12,
+  },
+  resultsShareButtonText: { fontSize: 13, color: '#1c1f33', fontWeight: '600' },
   sectionHeader: { marginBottom: 12 },
   sectionTitle: { fontSize: 18, fontWeight: '700', color: '#1c1f33' },
   loader: { marginTop: 20 },
