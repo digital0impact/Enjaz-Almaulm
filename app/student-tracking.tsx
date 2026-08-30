@@ -1188,16 +1188,7 @@ export default function StudentTrackingScreen() {
           {showNeedForm && (
             <ThemedView style={styles.sfFormCard}>
               <ThemedView style={styles.sfInputGroup}>
-                <ThemedView style={styles.sfLabelRow}>
-                  <AIAssistButton
-                    type="student_tracking_need"
-                    currentText={newNeed}
-                    onApply={setNewNeed}
-                    label={formatRTLText('اقتراح بالذكاء الاصطناعي')}
-                    compact={false}
-                  />
-                  <ThemedText style={[styles.sfLabel, getTextDirection()]}>{formatRTLText('الاحتياج')}</ThemedText>
-                </ThemedView>
+                <ThemedText style={[styles.sfLabel, getTextDirection()]}>{formatRTLText('الاحتياج')}</ThemedText>
                 <TextInput
                   style={[styles.sfTextInput, getTextDirection()]}
                   value={newNeed}
@@ -1521,7 +1512,16 @@ export default function StudentTrackingScreen() {
               })}
             </ThemedView>
             <ThemedView style={{ marginTop: 10 }}>
-              <ThemedText style={[styles.sfLabel, getTextDirection()]}>{formatRTLText('احتياج آخر (اختياري)')}</ThemedText>
+              <ThemedView style={styles.sfLabelRow}>
+                <AIAssistButton
+                  type="student_tracking_need"
+                  currentText={difficultyCard.needsOther}
+                  onApply={(text) => updateDifficultyField('needsOther', text)}
+                  label={formatRTLText('اقتراح بالذكاء الاصطناعي')}
+                  compact={false}
+                />
+                <ThemedText style={[styles.sfLabel, getTextDirection()]}>{formatRTLText('احتياج آخر (اختياري)')}</ThemedText>
+              </ThemedView>
               <TextInput
                 style={[styles.sfTextInput, getTextDirection()]}
                 value={difficultyCard.needsOther}
