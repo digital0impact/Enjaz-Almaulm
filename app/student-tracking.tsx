@@ -26,6 +26,7 @@ import * as FileSystem from 'expo-file-system';
 import * as Print from 'expo-print';
 import * as Sharing from 'expo-sharing';
 import { BottomNavigationBar } from '@/components/BottomNavigationBar';
+import { AIAssistButton } from '@/components/AIAssistButton';
 import AuthService from '@/services/AuthService';
 import { SubscriptionService } from '@/services/SubscriptionService';
 import { getTextDirection, formatRTLText } from '@/utils/rtl-utils';
@@ -1187,7 +1188,16 @@ export default function StudentTrackingScreen() {
           {showNeedForm && (
             <ThemedView style={styles.sfFormCard}>
               <ThemedView style={styles.sfInputGroup}>
-                <ThemedText style={[styles.sfLabel, getTextDirection()]}>{formatRTLText('الاحتياج')}</ThemedText>
+                <ThemedView style={styles.sfLabelRow}>
+                  <AIAssistButton
+                    type="student_tracking_need"
+                    currentText={newNeed}
+                    onApply={setNewNeed}
+                    label={formatRTLText('اقتراح بالذكاء الاصطناعي')}
+                    compact={false}
+                  />
+                  <ThemedText style={[styles.sfLabel, getTextDirection()]}>{formatRTLText('الاحتياج')}</ThemedText>
+                </ThemedView>
                 <TextInput
                   style={[styles.sfTextInput, getTextDirection()]}
                   value={newNeed}
@@ -2439,6 +2449,13 @@ const styles = StyleSheet.create({
   sfSectionHeaderRow: { flexDirection: 'row-reverse', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12 },
   sfInputGroup: { marginBottom: 16 },
   sfLabel: { fontSize: 14, fontWeight: '600', color: '#374151', marginBottom: 8 },
+  sfLabelRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 8,
+    backgroundColor: 'transparent',
+  },
   sfTextInput: {
     backgroundColor: '#f9fafb',
     borderRadius: 10,
