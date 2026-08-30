@@ -53,6 +53,8 @@ export function PerformanceReportView() {
   /** تعليقات الزوار على رابط التقرير العام (shared_achievement_comments)، تُعرض هنا لتصل للمعلم دون زيارة الرابط نفسه. */
   const [visitorComments, setVisitorComments] = useState<VisitorComment[]>([]);
   const [loadingComments, setLoadingComments] = useState(false);
+  /** بطاقة "ترتيب المحاور وتوصيات التحسين" منسدلة، مطوية افتراضيًا */
+  const [axisAndRecommendationsExpanded, setAxisAndRecommendationsExpanded] = useState(false);
   // إضافة مستمع للتركيز على الصفحة باستخدام useFocusEffect
   useFocusEffect(
     React.useCallback(() => {
@@ -1183,9 +1185,27 @@ export function PerformanceReportView() {
             <ThemedView style={styles.content}>
               {renderDashboard()}
 
-            <ThemedView style={styles.twoColumnRow}>
-              {renderAxisRankingCard()}
-              {renderRecommendationsCard()}
+            <ThemedView style={styles.axisAndRecommendationsCard}>
+              <TouchableOpacity
+                style={styles.axisAndRecommendationsHeader}
+                onPress={() => setAxisAndRecommendationsExpanded((prev) => !prev)}
+                activeOpacity={0.7}
+              >
+                <ThemedText style={styles.axisAndRecommendationsTitle}>
+                  {formatRTLText('ترتيب المحاور وتوصيات التحسين')}
+                </ThemedText>
+                <IconSymbol
+                  size={20}
+                  name={axisAndRecommendationsExpanded ? 'chevron.down' : 'chevron.left'}
+                  color="#1c1f33"
+                />
+              </TouchableOpacity>
+              {axisAndRecommendationsExpanded && (
+                <ThemedView style={styles.twoColumnRowNested}>
+                  {renderAxisRankingCard()}
+                  {renderRecommendationsCard()}
+                </ThemedView>
+              )}
             </ThemedView>
 
             <ThemedView style={styles.twoColumnRow}>
@@ -1706,6 +1726,39 @@ const styles = StyleSheet.create<any>({
     gap: 16,
     marginBottom: 20,
   },
+  /** بطاقة منسدلة موحّدة تجمع "ترتيب المحاور حسب الأداء" و"توصيات التحسين" */
+  axisAndRecommendationsCard: {
+    marginBottom: 20,
+    padding: 20,
+    backgroundColor: '#F8F9FA',
+    borderRadius: 15,
+    borderWidth: 1,
+    borderColor: '#E5E5EA',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 6 },
+    shadowOpacity: 0.25,
+    shadowRadius: 12,
+    elevation: 10,
+  },
+  axisAndRecommendationsHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    backgroundColor: 'transparent',
+  },
+  axisAndRecommendationsTitle: {
+    fontSize: 16,
+    fontWeight: 'bold',
+    color: '#1c1f33',
+    textAlign: 'right',
+    writingDirection: 'rtl',
+  },
+  twoColumnRowNested: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 16,
+    marginTop: 16,
+  },
   axisRankingCard: {
     flex: 1,
     minWidth: 260,
@@ -1723,7 +1776,6 @@ const styles = StyleSheet.create<any>({
   recommendationsCard: {
     flex: 1,
     minWidth: 260,
-    marginBottom: 20,
     padding: 20,
     backgroundColor: '#F8F9FA',
     borderRadius: 15,
