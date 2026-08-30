@@ -48,10 +48,13 @@ export const BottomNavigationBar: React.FC = () => {
   const insets = useSafeAreaInsets();
 
   const isActive = (route: string): boolean => {
-    if (route === '/(tabs)' && pathname === '/') {
-      return true;
+    // مجموعات المسارات مثل (tabs) لا تظهر في pathname الفعلي (usePathname)،
+    // لذا نطابق بعد إزالتها بدلًا من مطابقة النص الخام لمسار التبويب
+    const normalized = route.replace('/(tabs)', '') || '/';
+    if (normalized === '/') {
+      return pathname === '/';
     }
-    return pathname.includes(route);
+    return pathname === normalized || pathname.startsWith(`${normalized}/`);
   };
 
   const handleTabPress = (tab: TabRoute) => {
@@ -123,8 +126,11 @@ const styles = StyleSheet.create({
     backgroundColor: TAB_BAR_BG,
     direction: 'rtl',
   },
+  // الحاوية بداخل tabBar التي direction:'rtl' فيها rtl، لذا flexDirection:'row' هنا
+  // (وليس 'row-reverse') يضع أول عنصر في مصفوفة tabs (الرئيسية) في أقصى اليمين،
+  // ثم بقية العناصر تليه يسارًا بنفس ترتيب المصفوفة
   tabBarContent: {
-    flexDirection: 'row-reverse',
+    flexDirection: 'row',
     flex: 1,
   },
   tab: {

@@ -6,6 +6,7 @@ import { useFocusEffect } from '@react-navigation/native';
 import { ThemedText } from '@/components/ThemedText';
 import { ThemedView } from '@/components/ThemedView';
 import { IconSymbol } from '@/components/ui/IconSymbol';
+import { BottomNavigationBar } from '@/components/BottomNavigationBar';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useRouter } from 'expo-router';
 import * as ImagePicker from 'expo-image-picker';
@@ -791,8 +792,8 @@ export default function PerformanceScreen() {
       >
           <ScrollView
             style={styles.scrollView}
-            contentContainerStyle={{ 
-              paddingBottom: 40, 
+            contentContainerStyle={{
+              paddingBottom: 90,
               paddingTop: 8,
               alignItems: 'center',
               width: '100%'
@@ -1077,6 +1078,7 @@ export default function PerformanceScreen() {
           {/* Action Buttons */}
           </ScrollView>
       </ImageBackground>
+      <BottomNavigationBar />
     </KeyboardAvoidingView>
   );
 }

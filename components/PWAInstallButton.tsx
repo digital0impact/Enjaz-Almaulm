@@ -4,15 +4,20 @@
  */
 import React, { useState, useEffect } from 'react';
 import { Platform, TouchableOpacity, StyleSheet } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { ThemedText } from './ThemedText';
 import { IconSymbol } from './ui/IconSymbol';
 import { shouldShowInstallPrompt, promptInstall, isIOSWeb } from '@/utils/pwa-install';
 import { formatRTLText } from '@/utils/rtl-utils';
 import { AlertService } from '@/services/AlertService';
 
+// ارتفاع شريط التبويبات السفلي (BottomNavigationBar): 49 + safe area، حتى لا يتداخل الزر العائم معه
+const TAB_BAR_HEIGHT_UIKIT = 49;
+
 export function PWAInstallButton() {
   const [visible, setVisible] = useState(false);
   const [mounted, setMounted] = useState(false);
+  const insets = useSafeAreaInsets();
 
   useEffect(() => {
     if (Platform.OS !== 'web' || typeof window === 'undefined') return;
@@ -41,9 +46,11 @@ export function PWAInstallButton() {
 
   if (!mounted || !visible || Platform.OS !== 'web') return null;
 
+  const bottomOffset = TAB_BAR_HEIGHT_UIKIT + insets.bottom + 16;
+
   return (
     <TouchableOpacity
-      style={styles.button}
+      style={[styles.button, { bottom: bottomOffset }]}
       onPress={handlePress}
       activeOpacity={0.8}
     >
@@ -56,7 +63,6 @@ export function PWAInstallButton() {
 const styles = StyleSheet.create({
   button: {
     position: 'absolute',
-    bottom: 24,
     right: 24,
     flexDirection: 'row-reverse',
     alignItems: 'center',

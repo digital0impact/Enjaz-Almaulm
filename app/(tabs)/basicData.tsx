@@ -18,6 +18,7 @@ import { AlertService } from '@/services/AlertService';
 import { ThemedText } from '@/components/ThemedText';
 import { ThemedView } from '@/components/ThemedView';
 import { IconSymbol } from '@/components/ui/IconSymbol';
+import { BottomNavigationBar } from '@/components/BottomNavigationBar';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import * as ImagePicker from 'expo-image-picker';
 import * as DocumentPicker from 'expo-document-picker';
@@ -442,7 +443,7 @@ export default function BasicDataScreen() {
             behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
             style={{ flex: 1 }}
           >
-            <ScrollView contentContainerStyle={{ flexGrow: 1 }} style={styles.scrollContainer}>
+            <ScrollView contentContainerStyle={{ flexGrow: 1, paddingBottom: 90 }} style={styles.scrollContainer}>
             <ThemedView style={styles.header}>
               <ThemedView style={styles.profileImageContainer}>
                 {profileImage ? (
@@ -970,6 +971,7 @@ export default function BasicDataScreen() {
           </ScrollView>
           </KeyboardAvoidingView>
       </ImageBackground>
+      <BottomNavigationBar />
 
       {/* Modal للقائمة المنسدلة للمهنة */}
       <Modal
