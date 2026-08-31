@@ -41,6 +41,9 @@ type VisitorComment = {
   created_at: string;
 };
 
+/** عرض/ارتفاع رسم "توزيع المستويات" الدائري — انظر التعليق عند PieChart لسبب اختيار هذه القيمة تحديداً. */
+const PIE_CHART_SIZE = 130;
+
 export function PerformanceReportView() {
   const router = useRouter();
   const [performanceData, setPerformanceData] = useState<PerformanceItem[]>([]);
@@ -351,18 +354,20 @@ export function PerformanceReportView() {
             <ThemedText style={styles.chartBoxTitle}>{formatRTLText('توزيع المستويات')}</ThemedText>
             {levelPieData.length > 0 ? (
               <>
-                {/* عرض = ارتفاع (لا halfChartWidth) عمداً: مكتبة react-native-chart-kit
-                    ترسم الدائرة داخل مساحتها الخاصة بانحياز لليسار لإفساح مساحة
-                    لِلegend حتى عند تعطيله (hasLegend=false)، فكانت الدائرة تبدو
-                    غير متمركزة داخل البطاقة كلما زاد عرض الشاشة عن ارتفاع الرسم. */}
+                {/* PieChart.js من react-native-chart-kit يضع مركز الدائرة عند
+                    x = width/4 + paddingLeft (بصرف النظر عن hasLegend)، ونصف قطرها
+                    R = height/2.5. مع paddingLeft="8" السابقة كان المركز عند 40.5
+                    ونصف القطر 52، أي يمتد الجزء الأيسر من الدائرة إلى ما قبل الصفر
+                    فعلياً (اقتصاص حقيقي، لا مجرد عدم توسيط). لتوسيطها فعلياً يجب أن
+                    يساوي مركزها width/2، أي paddingLeft = width/4 بالضبط. */}
                 <PieChart
                   data={levelPieData}
-                  width={130}
-                  height={130}
+                  width={PIE_CHART_SIZE}
+                  height={PIE_CHART_SIZE}
                   chartConfig={{ color: (opacity = 1) => `rgba(28, 31, 51, ${opacity})` }}
                   accessor="count"
                   backgroundColor="transparent"
-                  paddingLeft="8"
+                  paddingLeft={String(PIE_CHART_SIZE / 4)}
                   hasLegend={false}
                 />
                 {/* شرح ألوان الرسم يدوياً بدل legend المكتبة: لازم دائماً حتى عندما
