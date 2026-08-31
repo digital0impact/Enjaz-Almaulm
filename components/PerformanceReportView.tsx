@@ -339,8 +339,14 @@ export function PerformanceReportView() {
                 radius={40}
                 hideLegend
                 chartConfig={{
+                  // ProgressChart.js يرسم دائماً مستطيلاً خلفياً بحجم الرسم الكامل
+                  // مملوءاً بتدرج backgroundGradientFrom/To (كان أبيض هنا)، فيظهر
+                  // كمربع أبيض بارز فوق خلفية البطاقة الرمادية الفاتحة. الأوبسيتي 0
+                  // يجعله شفافاً فتظهر خلفية البطاقة نفسها بدلاً منه.
                   backgroundGradientFrom: '#fff',
+                  backgroundGradientFromOpacity: 0,
                   backgroundGradientTo: '#fff',
+                  backgroundGradientToOpacity: 0,
                   color: () => getScoreColor(overallAverage),
                 }}
               />
