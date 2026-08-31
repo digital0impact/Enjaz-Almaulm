@@ -109,7 +109,13 @@ const styles = StyleSheet.create({
   },
   // مطابق لشريط التبويبات الرئيسية (ارتفاع 49 + safe area، padding العنصر 5، نص 10)
   tabBar: {
-    position: 'absolute',
+    // على الويب نستخدم 'fixed' بدلاً من 'absolute' حتى يبقى الشريط ثابتًا
+    // بالنسبة لنافذة العرض (viewport) دائمًا، بصرف النظر عن ارتفاع/تحريك
+    // (transform) أي عنصر أب — وهو ما كان يسبب تحرك الشريط أثناء التمرير
+    // في صفحات معينة (كالإعدادات وخطط الاشتراك) تحتوي حاوية المحتوى القابلة
+    // للتمرير فيها على transform للأنيميشن. 'fixed' غير مدعوم في React Native
+    // الأصلي (لذا cast) لكنه مدعوم في React Native Web.
+    position: (Platform.OS === 'web' ? 'fixed' : 'absolute') as 'absolute',
     bottom: 0,
     left: 0,
     right: 0,
