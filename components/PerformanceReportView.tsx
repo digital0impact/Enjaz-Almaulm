@@ -351,9 +351,13 @@ export function PerformanceReportView() {
             <ThemedText style={styles.chartBoxTitle}>{formatRTLText('توزيع المستويات')}</ThemedText>
             {levelPieData.length > 0 ? (
               <>
+                {/* عرض = ارتفاع (لا halfChartWidth) عمداً: مكتبة react-native-chart-kit
+                    ترسم الدائرة داخل مساحتها الخاصة بانحياز لليسار لإفساح مساحة
+                    لِلegend حتى عند تعطيله (hasLegend=false)، فكانت الدائرة تبدو
+                    غير متمركزة داخل البطاقة كلما زاد عرض الشاشة عن ارتفاع الرسم. */}
                 <PieChart
                   data={levelPieData}
-                  width={halfChartWidth}
+                  width={130}
                   height={130}
                   chartConfig={{ color: (opacity = 1) => `rgba(28, 31, 51, ${opacity})` }}
                   accessor="count"
