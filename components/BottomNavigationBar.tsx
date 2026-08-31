@@ -87,7 +87,7 @@ export const BottomNavigationBar: React.FC = () => {
                 activeOpacity={0.7}
               >
                 <IconSymbol
-                  size={28}
+                  size={22}
                   name={tab.icon as any}
                   color={TAB_BAR_TINT_COLOR}
                   style={styles.tabIcon}
@@ -135,7 +135,9 @@ const styles = StyleSheet.create({
   },
   tab: {
     flex: 1,
-    flexDirection: 'row-reverse',
+    // عمودي (أيقونة أعلى، عنوان أسفل) — لا يتأثر بمشاكل row-reverse مع
+    // اتجاه الصفحة RTL التي تصيب التخطيط الأفقي (انظر tabBarContent أعلاه)
+    flexDirection: 'column',
     alignItems: 'center',
     justifyContent: 'center',
     padding: 5,
@@ -143,7 +145,7 @@ const styles = StyleSheet.create({
     minHeight: 44,
   },
   tabIcon: {
-    marginBottom: 2,
+    marginBottom: 3,
   },
   tabText: {
     fontSize: 10,
