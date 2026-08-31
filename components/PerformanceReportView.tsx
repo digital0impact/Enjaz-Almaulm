@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { StyleSheet, TouchableOpacity, Platform, View, ActivityIndicator, Linking, Modal, Dimensions } from 'react-native';
+import { StyleSheet, TouchableOpacity, Platform, View, ActivityIndicator, Linking, Modal } from 'react-native';
 import { AlertService } from '@/services/AlertService';
 import { PieChart, ProgressChart } from 'react-native-chart-kit';
 import { useFocusEffect } from '@react-navigation/native';
@@ -41,8 +41,12 @@ type VisitorComment = {
   created_at: string;
 };
 
-/** عرض/ارتفاع رسم "توزيع المستويات" الدائري — انظر التعليق عند PieChart لسبب اختيار هذه القيمة تحديداً. */
-const PIE_CHART_SIZE = 130;
+/** عرض/ارتفاع رسمَي "نسبة الإكمال العامة" و"توزيع المستويات" الدائريين — قيمة
+ * ثابتة موحّدة لكليهما بدل عرض متجاوب لعرض الشاشة، حتى يتطابق حجمهما البصري
+ * داخل بطاقتيهما المتجاورتين. انظر التعليق عند PieChart أدناه لسبب اختيار هذه
+ * القيمة تحديداً بالنسبة لتوسيط PieChart تحديداً (لا تؤثر على توسيط ProgressChart،
+ * فهو يتمركز تلقائياً عند width/2 طالما hideLegend مفعّلة، بصرف النظر عن القيمة). */
+const DASHBOARD_CHART_SIZE = 130;
 
 export function PerformanceReportView() {
   const router = useRouter();
@@ -288,8 +292,6 @@ export function PerformanceReportView() {
     const goodCount = scores.filter(s => s >= 80 && s < 90).length;
     const fairCount = scores.filter(s => s >= 70 && s < 80).length;
     const needsImprovementCount = scores.filter(s => s < 70).length;
-    const chartWidth = Dimensions.get('window').width - 64;
-    const halfChartWidth = Math.max(120, chartWidth / 2 - 12);
 
     const levelPieData = [
       { name: formatRTLText('ممتاز'), count: excellentCount, color: '#4CAF50', legendFontColor: '#1c1f33', legendFontSize: 11 },
@@ -331,8 +333,8 @@ export function PerformanceReportView() {
             <ThemedView style={styles.progressRingWrap}>
               <ProgressChart
                 data={{ data: [Math.max(0, Math.min(1, overallAverage / 100))] }}
-                width={halfChartWidth}
-                height={130}
+                width={DASHBOARD_CHART_SIZE}
+                height={DASHBOARD_CHART_SIZE}
                 strokeWidth={10}
                 radius={40}
                 hideLegend
@@ -362,12 +364,12 @@ export function PerformanceReportView() {
                     يساوي مركزها width/2، أي paddingLeft = width/4 بالضبط. */}
                 <PieChart
                   data={levelPieData}
-                  width={PIE_CHART_SIZE}
-                  height={PIE_CHART_SIZE}
+                  width={DASHBOARD_CHART_SIZE}
+                  height={DASHBOARD_CHART_SIZE}
                   chartConfig={{ color: (opacity = 1) => `rgba(28, 31, 51, ${opacity})` }}
                   accessor="count"
                   backgroundColor="transparent"
-                  paddingLeft={String(PIE_CHART_SIZE / 4)}
+                  paddingLeft={String(DASHBOARD_CHART_SIZE / 4)}
                   hasLegend={false}
                 />
                 {/* شرح ألوان الرسم يدوياً بدل legend المكتبة: لازم دائماً حتى عندما
