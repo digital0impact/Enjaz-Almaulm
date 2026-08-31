@@ -738,14 +738,18 @@ export default function SettingsScreen() {
                 </TouchableOpacity>
               </Animated.View>
 
-              <Animated.View style={[styles.settingsSection, { opacity: fadeAnim, transform: [{ translateX: slideAnim }] }]}>
-                <ThemedText style={[styles.sectionTitle, getTextDirection()]}>تواصل معنا</ThemedText>
+              <Animated.View style={[styles.contactSection, { opacity: fadeAnim, transform: [{ translateY: slideAnim }] }]}>
+                <ThemedCard style={styles.contactCard}>
+                  <ThemedView style={styles.contactHeader}>
+                    <IconSymbol size={40} name="questionmark.circle" color="#add4ce" />
+                    <ThemedText style={[styles.contactTitle, getTextDirection()]}>تواصل معنا</ThemedText>
+                  </ThemedView>
 
-                <TouchableOpacity
-                  onPress={handleContactEmail}
-                  activeOpacity={0.8}
-                >
-                  <ThemedCard style={styles.settingItem}>
+                  <TouchableOpacity
+                    onPress={handleContactEmail}
+                    activeOpacity={0.7}
+                    style={styles.contactRow}
+                  >
                     <ThemedView style={styles.settingInfo}>
                       <IconSymbol size={24} name="envelope.fill" color="#2563eb" />
                       <ThemedView style={styles.settingText}>
@@ -754,14 +758,15 @@ export default function SettingsScreen() {
                       </ThemedView>
                     </ThemedView>
                     <IconSymbol size={20} name="chevron.left" color="#666" />
-                  </ThemedCard>
-                </TouchableOpacity>
+                  </TouchableOpacity>
 
-                <TouchableOpacity
-                  onPress={handleContactTelegram}
-                  activeOpacity={0.8}
-                >
-                  <ThemedCard style={styles.settingItem}>
+                  <ThemedView style={styles.contactDivider} />
+
+                  <TouchableOpacity
+                    onPress={handleContactTelegram}
+                    activeOpacity={0.7}
+                    style={styles.contactRow}
+                  >
                     <ThemedView style={styles.settingInfo}>
                       <IconSymbol size={24} name="paperplane.fill" color="#0d9488" />
                       <ThemedView style={styles.settingText}>
@@ -770,8 +775,8 @@ export default function SettingsScreen() {
                       </ThemedView>
                     </ThemedView>
                     <IconSymbol size={20} name="chevron.left" color="#666" />
-                  </ThemedCard>
-                </TouchableOpacity>
+                  </TouchableOpacity>
+                </ThemedCard>
               </Animated.View>
 
               {/* معلومات التطبيق */}
@@ -1001,6 +1006,48 @@ const styles = StyleSheet.create({
     fontWeight: '500',
     textAlign: 'right',
     backgroundColor: 'transparent',
+  },
+  // بطاقة "تواصل معنا": مطابقة لتنسيق بطاقة "معلومات التطبيق" (versionCard) —
+  // بطاقة واحدة تضم عنوانًا وأيقونة ثم صفوف التواصل مفصولة بخط رفيع، بدلاً
+  // من بطاقات صغيرة منفصلة لكل صف، حتى تظهر كوحدة بصرية مستقلة وواضحة
+  contactSection: {
+    marginBottom: 20,
+    backgroundColor: 'transparent',
+  },
+  contactCard: {
+    backgroundColor: '#FFFFFF',
+    borderRadius: 20,
+    padding: 20,
+    shadowOffset: { width: 0, height: 6 },
+    shadowOpacity: 0.15,
+    shadowRadius: 12,
+    elevation: 8,
+    borderWidth: 1,
+  },
+  contactHeader: {
+    flexDirection: 'row-reverse',
+    alignItems: 'center',
+    marginBottom: 15,
+    backgroundColor: 'transparent',
+  },
+  contactTitle: {
+    fontSize: 20,
+    fontWeight: 'bold',
+    color: '#1c1f33',
+    textAlign: 'right',
+    marginRight: 12,
+    writingDirection: 'rtl',
+    backgroundColor: 'transparent',
+  },
+  contactRow: {
+    flexDirection: 'row-reverse',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    paddingVertical: 12,
+  },
+  contactDivider: {
+    height: 1,
+    backgroundColor: '#F0F0F0',
   },
 
   backupCard: {
