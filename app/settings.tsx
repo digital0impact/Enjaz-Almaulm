@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { StyleSheet, ScrollView, TouchableOpacity, ImageBackground, Platform, StatusBar, KeyboardAvoidingView, Animated, Linking } from 'react-native';
+import { StyleSheet, ScrollView, TouchableOpacity, ImageBackground, Platform, StatusBar, KeyboardAvoidingView, Animated } from 'react-native';
 import { AlertService } from '@/services/AlertService';
 import { useFocusEffect } from '@react-navigation/native';
 
@@ -19,9 +19,6 @@ import AuthService from '@/services/AuthService';
 import { SubscriptionService } from '@/services/SubscriptionService';
 import { AcademicYearService } from '@/services/AcademicYearService';
 import { formatAcademicYearLabel } from '@/constants/academicYear';
-
-const CONTACT_EMAIL = 'info@enjaz-almaulm.com';
-const CONTACT_TELEGRAM_URL = 'https://t.me/Enjaz_Almualm';
 
 export default function SettingsScreen() {
   const router = useRouter();
@@ -512,22 +509,6 @@ export default function SettingsScreen() {
     );
   };
 
-  const handleContactEmail = async () => {
-    try {
-      await Linking.openURL(`mailto:${CONTACT_EMAIL}`);
-    } catch {
-      AlertService.alert(formatRTLText('البريد الإلكتروني'), CONTACT_EMAIL);
-    }
-  };
-
-  const handleContactTelegram = async () => {
-    try {
-      await Linking.openURL(CONTACT_TELEGRAM_URL);
-    } catch {
-      AlertService.alert(formatRTLText('تيليجرام'), CONTACT_TELEGRAM_URL);
-    }
-  };
-
   return (
     <ThemedView style={styles.container}>
       <StatusBar 
@@ -731,42 +712,6 @@ export default function SettingsScreen() {
                       <ThemedView style={styles.settingText}>
                         <ThemedText style={[styles.settingTitle, getTextDirection()]}>حذف الحساب</ThemedText>
                         <ThemedText style={[styles.settingDescription, getTextDirection()]}>حذف الحساب نهائياً (لا يمكن التراجع)</ThemedText>
-                      </ThemedView>
-                    </ThemedView>
-                    <IconSymbol size={20} name="chevron.left" color="#666" />
-                  </ThemedCard>
-                </TouchableOpacity>
-              </Animated.View>
-
-              <Animated.View style={[styles.settingsSection, { opacity: fadeAnim, transform: [{ translateX: slideAnim }] }]}>
-                <ThemedText style={[styles.sectionTitle, getTextDirection()]}>تواصل معنا</ThemedText>
-
-                <TouchableOpacity
-                  onPress={handleContactEmail}
-                  activeOpacity={0.8}
-                >
-                  <ThemedCard style={styles.settingItem}>
-                    <ThemedView style={styles.settingInfo}>
-                      <IconSymbol size={24} name="envelope.fill" color="#2563eb" />
-                      <ThemedView style={styles.settingText}>
-                        <ThemedText style={[styles.settingTitle, getTextDirection()]}>البريد الإلكتروني</ThemedText>
-                        <ThemedText style={[styles.settingDescription, getTextDirection()]}>{CONTACT_EMAIL}</ThemedText>
-                      </ThemedView>
-                    </ThemedView>
-                    <IconSymbol size={20} name="chevron.left" color="#666" />
-                  </ThemedCard>
-                </TouchableOpacity>
-
-                <TouchableOpacity
-                  onPress={handleContactTelegram}
-                  activeOpacity={0.8}
-                >
-                  <ThemedCard style={styles.settingItem}>
-                    <ThemedView style={styles.settingInfo}>
-                      <IconSymbol size={24} name="paperplane.fill" color="#0d9488" />
-                      <ThemedView style={styles.settingText}>
-                        <ThemedText style={[styles.settingTitle, getTextDirection()]}>تيليجرام</ThemedText>
-                        <ThemedText style={[styles.settingDescription, getTextDirection()]}>راسلينا مباشرة عبر تيليجرام</ThemedText>
                       </ThemedView>
                     </ThemedView>
                     <IconSymbol size={20} name="chevron.left" color="#666" />
@@ -1002,7 +947,6 @@ const styles = StyleSheet.create({
     textAlign: 'right',
     backgroundColor: 'transparent',
   },
-
   backupCard: {
     backgroundColor: '#FFFFFF',
     borderRadius: 16,
