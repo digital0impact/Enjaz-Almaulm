@@ -8,10 +8,15 @@ import { AppAlertProvider } from '../contexts/AppAlertContext';
 import { AppLayoutWrapper } from '@/components/AppLayoutWrapper';
 import { AcademicYearService } from '@/services/AcademicYearService';
 import { setupAppFocusRefresh } from '@/utils/useAppFocusRefresh';
+import { restoreDemoModeIfActive } from '@/services/DemoModeGuard';
 
 export default function Layout() {
   useEffect(() => {
     const setup = async () => {
+      // يجب أن يسبق أي قراءة/كتابة أخرى للتخزين المحلي، حتى تُستعاد حالة
+      // وضع العرض التجريبي (إن كانت مفعّلة) قبل أي عملية تخزين محلي أخرى
+      // — مهم خصوصاً عند تحديث صفحة الويب أثناء نفس جلسة العرض التجريبي
+      await restoreDemoModeIfActive();
       await initializeRTL();
       await AcademicYearService.migrateToAcademicYearIfNeeded();
     };
