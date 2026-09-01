@@ -341,15 +341,23 @@ export default function HomeScreen() {
                     <ThemedText style={[styles.headerButtonText, getTextDirection()]}>الإعدادات</ThemedText>
                   </TouchableOpacity>
 
-                  <TouchableOpacity 
+                  <TouchableOpacity
                     style={styles.headerButton}
                     onPress={() => router.push('/subscription')}
                   >
                     <IconSymbol size={20} name="creditcard.fill" color="#1c1f33" />
                     <ThemedText style={[styles.headerButtonText, getTextDirection()]}>خطط الاشتراك</ThemedText>
                   </TouchableOpacity>
-                  
-                  <TouchableOpacity 
+
+                  <TouchableOpacity
+                    style={styles.headerButton}
+                    onPress={() => router.push('/contact')}
+                  >
+                    <IconSymbol size={20} name="questionmark.circle" color="#1c1f33" />
+                    <ThemedText style={[styles.headerButtonText, getTextDirection()]}>تواصل معنا</ThemedText>
+                  </TouchableOpacity>
+
+                  <TouchableOpacity
                     style={styles.headerButton}
                     onPress={handleLogout}
                   >

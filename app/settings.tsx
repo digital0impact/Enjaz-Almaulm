@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { StyleSheet, ScrollView, TouchableOpacity, ImageBackground, Platform, StatusBar, KeyboardAvoidingView, Animated, Linking } from 'react-native';
+import { StyleSheet, ScrollView, TouchableOpacity, ImageBackground, Platform, StatusBar, KeyboardAvoidingView, Animated } from 'react-native';
 import { AlertService } from '@/services/AlertService';
 import { useFocusEffect } from '@react-navigation/native';
 
@@ -19,9 +19,6 @@ import AuthService from '@/services/AuthService';
 import { SubscriptionService } from '@/services/SubscriptionService';
 import { AcademicYearService } from '@/services/AcademicYearService';
 import { formatAcademicYearLabel } from '@/constants/academicYear';
-
-const CONTACT_EMAIL = 'info@enjaz-almaulm.com';
-const CONTACT_TELEGRAM_URL = 'https://t.me/Enjaz_Almualm';
 
 export default function SettingsScreen() {
   const router = useRouter();
@@ -512,22 +509,6 @@ export default function SettingsScreen() {
     );
   };
 
-  const handleContactEmail = async () => {
-    try {
-      await Linking.openURL(`mailto:${CONTACT_EMAIL}`);
-    } catch {
-      AlertService.alert(formatRTLText('البريد الإلكتروني'), CONTACT_EMAIL);
-    }
-  };
-
-  const handleContactTelegram = async () => {
-    try {
-      await Linking.openURL(CONTACT_TELEGRAM_URL);
-    } catch {
-      AlertService.alert(formatRTLText('تيليجرام'), CONTACT_TELEGRAM_URL);
-    }
-  };
-
   return (
     <ThemedView style={styles.container}>
       <StatusBar 
@@ -736,47 +717,6 @@ export default function SettingsScreen() {
                     <IconSymbol size={20} name="chevron.left" color="#666" />
                   </ThemedCard>
                 </TouchableOpacity>
-              </Animated.View>
-
-              <Animated.View style={[styles.contactSection, { opacity: fadeAnim, transform: [{ translateY: slideAnim }] }]}>
-                <ThemedCard style={styles.contactCard}>
-                  <ThemedView style={styles.contactHeader}>
-                    <IconSymbol size={40} name="questionmark.circle" color="#add4ce" />
-                    <ThemedText style={[styles.contactTitle, getTextDirection()]}>تواصل معنا</ThemedText>
-                  </ThemedView>
-
-                  <TouchableOpacity
-                    onPress={handleContactEmail}
-                    activeOpacity={0.7}
-                    style={styles.contactRow}
-                  >
-                    <ThemedView style={styles.settingInfo}>
-                      <IconSymbol size={24} name="envelope.fill" color="#2563eb" />
-                      <ThemedView style={styles.settingText}>
-                        <ThemedText style={[styles.settingTitle, getTextDirection()]}>البريد الإلكتروني</ThemedText>
-                        <ThemedText style={[styles.settingDescription, getTextDirection()]}>{CONTACT_EMAIL}</ThemedText>
-                      </ThemedView>
-                    </ThemedView>
-                    <IconSymbol size={20} name="chevron.left" color="#666" />
-                  </TouchableOpacity>
-
-                  <ThemedView style={styles.contactDivider} />
-
-                  <TouchableOpacity
-                    onPress={handleContactTelegram}
-                    activeOpacity={0.7}
-                    style={styles.contactRow}
-                  >
-                    <ThemedView style={styles.settingInfo}>
-                      <IconSymbol size={24} name="paperplane.fill" color="#0d9488" />
-                      <ThemedView style={styles.settingText}>
-                        <ThemedText style={[styles.settingTitle, getTextDirection()]}>تيليجرام</ThemedText>
-                        <ThemedText style={[styles.settingDescription, getTextDirection()]}>راسلينا مباشرة عبر تيليجرام</ThemedText>
-                      </ThemedView>
-                    </ThemedView>
-                    <IconSymbol size={20} name="chevron.left" color="#666" />
-                  </TouchableOpacity>
-                </ThemedCard>
               </Animated.View>
 
               {/* معلومات التطبيق */}
@@ -1007,49 +947,6 @@ const styles = StyleSheet.create({
     textAlign: 'right',
     backgroundColor: 'transparent',
   },
-  // بطاقة "تواصل معنا": مطابقة لتنسيق بطاقة "معلومات التطبيق" (versionCard) —
-  // بطاقة واحدة تضم عنوانًا وأيقونة ثم صفوف التواصل مفصولة بخط رفيع، بدلاً
-  // من بطاقات صغيرة منفصلة لكل صف، حتى تظهر كوحدة بصرية مستقلة وواضحة
-  contactSection: {
-    marginBottom: 20,
-    backgroundColor: 'transparent',
-  },
-  contactCard: {
-    backgroundColor: '#FFFFFF',
-    borderRadius: 20,
-    padding: 20,
-    shadowOffset: { width: 0, height: 6 },
-    shadowOpacity: 0.15,
-    shadowRadius: 12,
-    elevation: 8,
-    borderWidth: 1,
-  },
-  contactHeader: {
-    flexDirection: 'row-reverse',
-    alignItems: 'center',
-    marginBottom: 15,
-    backgroundColor: 'transparent',
-  },
-  contactTitle: {
-    fontSize: 20,
-    fontWeight: 'bold',
-    color: '#1c1f33',
-    textAlign: 'right',
-    marginRight: 12,
-    writingDirection: 'rtl',
-    backgroundColor: 'transparent',
-  },
-  contactRow: {
-    flexDirection: 'row-reverse',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    paddingVertical: 12,
-  },
-  contactDivider: {
-    height: 1,
-    backgroundColor: '#F0F0F0',
-  },
-
   backupCard: {
     backgroundColor: '#FFFFFF',
     borderRadius: 16,
