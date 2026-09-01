@@ -689,8 +689,11 @@ const styles = StyleSheet.create({
   horizontalScroll: {
     marginTop: 10,
   },
+  // عمود اليوم (120) + 9 أعمدة حصص/استراحة (85 لكل عمود) = 885. كانت القيمة
+  // السابقة (1100) أكبر من العرض الفعلي لمحتوى الجدول، ما يترك عمودًا فارغًا
+  // معلّقًا بجانب آخر عمود (الحصة الثامنة) تحت اتجاه RTL.
   weeklyTable: {
-    minWidth: 1100,
+    minWidth: 120 + 9 * 85,
   },
   tableHeader: {
     flexDirection: 'row',
