@@ -100,7 +100,7 @@ export default function ContactScreen() {
                     <IconSymbol size={24} name="paperplane.fill" color="#0d9488" />
                     <ThemedView style={styles.contactText}>
                       <ThemedText style={[styles.contactRowTitle, getTextDirection()]}>تيليجرام</ThemedText>
-                      <ThemedText style={[styles.contactRowDescription, getTextDirection()]}>راسلينا مباشرة عبر تيليجرام</ThemedText>
+                      <ThemedText style={[styles.contactRowDescription, getTextDirection()]}>راسلونا مباشرة عبر تيليجرام</ThemedText>
                     </ThemedView>
                   </ThemedView>
                   <IconSymbol size={20} name="chevron.left" color="#666" />
