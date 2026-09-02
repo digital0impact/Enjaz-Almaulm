@@ -851,6 +851,213 @@ export default function ReportBuilderScreen() {
 </html>`;
   };
 
+  const chunkArray = <T,>(arr: T[], size: number): T[][] => {
+    const out: T[][] = [];
+    for (let i = 0; i < arr.length; i += size) out.push(arr.slice(i, i + size));
+    return out;
+  };
+
+  /**
+   * قالب HTML مخصّص لتصدير Word — مختلف عمدًا عن generateReportHtml (المخصص لـ PDF/الطباعة).
+   * محرك Word لا يدعم Flexbox أو CSS grid أو gradients أو transform (المستخدَمة بكثرة في ذلك
+   * القالب)، فتظهر كل العناصر مكدّسة فوق بعضها بلا تنسيق عند فتح الملف في Word. لذلك يعتمد هذا
+   * القالب بالكامل على جداول <table> بدل flex/grid.
+   */
+  const generateReportWordHtml = async (data: ReportForm): Promise<string> => {
+    const type = getReportType(data.reportType);
+    const logoDataUri = await loadMoeLogoDataUri();
+    const todayStr = new Date().toLocaleDateString('ar-SA');
+
+    const filledSteps = data.steps.map((s) => s.trim()).filter(Boolean);
+    const evidenceItems = data.evidenceNotes
+      .split('\n')
+      .map((s) => s.trim())
+      .filter(Boolean);
+
+    let evidenceCounter = 0;
+    const evidenceImageCells = (
+      await Promise.all(
+        data.evidenceImages.map(async (img) => {
+          const dataUri = await imageUriToDataUri(img.uri);
+          if (!dataUri) return '';
+          evidenceCounter += 1;
+          return `<td width="33%" class="evidence-card evidence-card-image"><img src="${dataUri}" class="evidence-img" alt="شاهد ${evidenceCounter}" width="140"><div class="evidence-caption">شاهد رقم ${evidenceCounter}</div></td>`;
+        })
+      )
+    ).filter(Boolean);
+    const evidenceTextCells = evidenceItems.map((e) => {
+      evidenceCounter += 1;
+      return `<td width="33%" class="evidence-card"><div class="evidence-icon">🗂️</div><div class="evidence-caption">شاهد رقم ${evidenceCounter}</div><div class="evidence-text">${escapeHtml(e)}</div></td>`;
+    });
+    const evidenceCells = [...evidenceImageCells, ...evidenceTextCells];
+    const evidenceRowsHtml =
+      evidenceCells.length > 0
+        ? chunkArray(evidenceCells, 3)
+            .map((row) => `<tr>${row.join('')}${'<td>&nbsp;</td>'.repeat(3 - row.length)}</tr>`)
+            .join('')
+        : `<tr><td class="empty-hint" style="text-align:center; padding:10px;">لا توجد شواهد مرفقة بعد</td></tr>`;
+
+    const badgeCells = filledSteps.map(
+      (s, i) =>
+        `<td width="25%" class="badge-item"><div class="badge-num">${i + 1}</div><div class="badge-label">${escapeHtml(s)}</div></td>`
+    );
+    const badgeRowsHtml = chunkArray(badgeCells, 4)
+      .map((row) => `<tr>${row.join('')}${'<td>&nbsp;</td>'.repeat(4 - row.length)}</tr>`)
+      .join('');
+
+    const subjectLabel = data.program.trim() || data.domain.trim() || type.docTitle;
+    const summaryText =
+      `يوثّق هذا التقرير تنفيذ "${subjectLabel}"` +
+      (data.week.trim() ? ` خلال ${data.week.trim()}` : '') +
+      (data.teacherName.trim() ? ` بإشراف ${data.teacherName.trim()}` : '') +
+      (data.schoolName.trim() ? ` في ${data.schoolName.trim()}` : '') +
+      `، للفصل الدراسي ${data.semester}.`;
+    const conclusionText =
+      `يُظهر تنفيذ "${subjectLabel}" تحقيق أهدافه المرسومة بما ينعكس إيجاباً على المستفيدين، ` +
+      `مع إمكانية الاستفادة من التوصيات المذكورة أعلاه لتطوير التنفيذ مستقبلاً.`;
+
+    return `
+<!DOCTYPE html>
+<html dir="rtl" lang="ar">
+<head>
+  <meta charset="utf-8"/>
+  <title>${escapeHtml(type.docTitle)}</title>
+  <style>
+    @page { size: A4; margin: 1.5cm; }
+    body { font-family: 'Segoe UI', Tahoma, Arial, sans-serif; color: #1c1f33; }
+    table { border-collapse: collapse; }
+    .doc-tag { background: #f0fdfa; border: 1px solid ${TEAL_LIGHT}; padding: 6px 12px; text-align: center; }
+    .doc-tag-title { font-size: 11px; font-weight: 700; color: ${TEAL}; }
+    .doc-tag-sub { font-size: 10px; color: #6b7280; margin-top: 2px; }
+    .title-banner { background: ${TEAL_DARK}; color: #fff; text-align: center; padding: 10px 16px; font-size: 18px; font-weight: 800; }
+    .dot-divider { text-align: center; color: ${TEAL}; font-size: 10px; padding: 4px 0; }
+    .subtitle-line { text-align: center; color: #6b7280; font-size: 11px; margin-bottom: 10px; }
+    .info-item { font-size: 11px; color: #374151; padding: 2px 4px; }
+    .info-label { font-weight: 700; color: ${TEAL_DARK}; }
+    .card { background: #fff; border: 1px solid #e5e7eb; padding: 8px 12px; margin-bottom: 8px; }
+    .card-heading { font-size: 12.5px; font-weight: 700; color: ${TEAL_DARK}; margin-bottom: 6px; padding-bottom: 4px; border-bottom: 1px solid #e5e7eb; }
+    .card-text { font-size: 11px; line-height: 1.6; color: #374151; }
+    .bullet-list { margin: 0; padding-right: 16px; font-size: 11px; line-height: 1.6; color: #374151; }
+    .bullet-list li { margin-bottom: 2px; }
+    .empty-hint { font-size: 10.5px; color: #9ca3af; }
+    .badge-item { text-align: center; padding: 4px; vertical-align: top; }
+    .badge-num { display: inline-block; width: 22px; padding: 3px 0; background: ${TEAL_DARK}; color: #fff; font-weight: 800; font-size: 11px; }
+    .badge-label { font-size: 10px; color: #374151; margin-top: 3px; }
+    .evidence-card { border: 1px dashed #d1d5db; padding: 6px; text-align: center; background: #f9fafb; vertical-align: top; }
+    .evidence-icon { font-size: 15px; margin-bottom: 2px; }
+    .evidence-caption { font-size: 10px; font-weight: 700; color: ${TEAL}; margin-bottom: 2px; }
+    .evidence-text { font-size: 10px; color: #6b7280; }
+    .evidence-card-image { padding: 4px; }
+    .evidence-img { object-fit: cover; margin-bottom: 3px; }
+    .approval-box { border: 1px solid #e5e7eb; padding: 8px; text-align: center; background: #f9fafb; }
+    .approval-label { font-size: 11px; font-weight: 700; color: ${TEAL}; margin-bottom: 4px; }
+    .approval-name { font-size: 11px; color: #1c1f33; margin-bottom: 6px; }
+    .approval-sign { font-size: 10px; color: #6b7280; border-top: 1px dashed #d1d5db; padding-top: 5px; }
+    .approval-date { text-align: center; font-size: 10.5px; color: #374151; }
+    .doc-footer { text-align: center; color: #9ca3af; font-size: 10px; margin-top: 4px; }
+  </style>
+</head>
+<body>
+  <table width="100%" cellpadding="0" cellspacing="0">
+    <tr>
+      <td width="70%" style="vertical-align:top;"><table cellpadding="0" cellspacing="0"><tr><td class="doc-tag">
+        <div class="doc-tag-title">${escapeHtml(type.chipLabel)}</div>
+        <div class="doc-tag-sub">التاريخ: ${escapeHtml(todayStr)}</div>
+      </td></tr></table></td>
+      <td width="30%" style="vertical-align:top; text-align:left;">${logoDataUri ? `<img src="${logoDataUri}" alt="شعار وزارة التعليم" width="70">` : ''}</td>
+    </tr>
+  </table>
+
+  <table width="100%" cellpadding="0" cellspacing="0" style="margin-top:8px;">
+    <tr><td class="title-banner">${escapeHtml(type.docTitle)}</td></tr>
+  </table>
+  <div class="dot-divider">• • • • • • • • • • • • • • • • • • • • • • • • • • • •</div>
+  <div class="subtitle-line">${escapeHtml(data.educationAdministration)} - ${escapeHtml(data.schoolName)}</div>
+
+  <table width="100%" cellpadding="0" cellspacing="0" class="card">
+    <tr><td colspan="2" class="card-heading">بيانات التقرير</td></tr>
+    <tr><td width="50%" class="info-item"><span class="info-label">اسم المعلم/ة:</span> ${escapeHtml(data.teacherName) || '-'}</td><td width="50%" class="info-item"><span class="info-label">الفصل الدراسي:</span> ${escapeHtml(data.semester)}</td></tr>
+    <tr><td class="info-item"><span class="info-label">الصف والتفصيل:</span> ${escapeHtml(data.gradeDetails) || '-'}</td><td class="info-item"><span class="info-label">الأسبوع:</span> ${escapeHtml(data.week) || '-'}</td></tr>
+    <tr><td class="info-item"><span class="info-label">اسم المجال:</span> ${escapeHtml(data.domain) || '-'}</td><td class="info-item"><span class="info-label">${escapeHtml(type.programLabel)}:</span> ${escapeHtml(data.program) || '-'}</td></tr>
+  </table>
+
+  <table width="100%" cellpadding="0" cellspacing="0" class="card">
+    <tr><td class="card-heading">نبذة مختصرة</td></tr>
+    <tr><td class="card-text">${escapeHtml(summaryText)}</td></tr>
+  </table>
+
+  <table width="100%" cellpadding="0" cellspacing="0" class="card">
+    <tr><td class="card-heading">${escapeHtml(type.goalsTitle)}</td></tr>
+    <tr><td>${bulletListHtml(type.goals, data.goals, data.goalsOther)}</td></tr>
+  </table>
+
+  <table width="100%" cellpadding="0" cellspacing="0" class="card">
+    <tr><td class="card-heading">${escapeHtml(type.meansTitle)}</td></tr>
+    <tr><td>${bulletListHtml(type.means, data.means, data.meansOther)}</td></tr>
+  </table>
+
+  ${filledSteps.length > 0 ? `
+  <table width="100%" cellpadding="0" cellspacing="0" class="card">
+    <tr><td colspan="4" class="card-heading">أبرز الأعمال والإجراءات المنفذة</td></tr>
+    ${badgeRowsHtml}
+  </table>` : ''}
+
+  <table width="100%" cellpadding="0" cellspacing="0" class="card">
+    <tr><td colspan="3" class="card-heading">شواهد التنفيذ</td></tr>
+    ${evidenceRowsHtml}
+  </table>
+
+  <table width="100%" cellpadding="0" cellspacing="0">
+    <tr>
+      <td width="48%" style="vertical-align:top;" class="card">
+        <div class="card-heading">التحديات والمعوقات (إن وجدت)</div>
+        ${bulletListHtml(type.challenges, data.challenges, data.challengesOther)}
+      </td>
+      <td width="4%">&nbsp;</td>
+      <td width="48%" style="vertical-align:top;" class="card">
+        <div class="card-heading">المقترحات والتوصيات</div>
+        ${bulletListHtml(type.suggestions, data.suggestions, data.suggestionsOther)}
+      </td>
+    </tr>
+  </table>
+
+  <table width="100%" cellpadding="0" cellspacing="0">
+    <tr>
+      <td width="48%" style="vertical-align:top;" class="card">
+        <div class="card-heading">${escapeHtml(type.resultsTitle)}</div>
+        ${bulletListHtml(type.results, data.results, data.resultsOther)}
+      </td>
+      <td width="4%">&nbsp;</td>
+      <td width="48%" style="vertical-align:top;" class="card">
+        <div class="card-heading">خاتمة التقرير</div>
+        <div class="card-text">${escapeHtml(conclusionText)}</div>
+      </td>
+    </tr>
+  </table>
+
+  <table width="100%" cellpadding="0" cellspacing="0" class="card">
+    <tr><td colspan="2" class="card-heading">بيانات اعتماد التقرير</td></tr>
+    <tr>
+      <td width="50%" style="padding:4px;"><table width="100%" cellpadding="0" cellspacing="0"><tr><td class="approval-box">
+        <div class="approval-label">مديرة المدرسة</div>
+        <div class="approval-name">${escapeHtml(data.principalName) || '&nbsp;'}</div>
+        <div class="approval-sign">التوقيع: ..........................</div>
+      </td></tr></table></td>
+      <td width="50%" style="padding:4px;"><table width="100%" cellpadding="0" cellspacing="0"><tr><td class="approval-box">
+        <div class="approval-label">${escapeHtml(type.leaderLabel)}</div>
+        <div class="approval-name">${escapeHtml(data.activityLeaderName) || '&nbsp;'}</div>
+        <div class="approval-sign">التوقيع: ..........................</div>
+      </td></tr></table></td>
+    </tr>
+    <tr><td colspan="2" class="approval-date">تاريخ التنفيذ: ${escapeHtml(data.implementationDate) || '-'}</td></tr>
+  </table>
+
+  <div class="dot-divider">• • • • • • • • • • • • • • • • • • • • • • • • • • • •</div>
+  <div class="doc-footer">تقرير أُنشئ عبر تطبيق إنجاز المعلم</div>
+</body>
+</html>`;
+  };
+
   const exportPDF = async (data: ReportForm, idForState: string | null) => {
     const canExport = await checkCanExport();
     if (!canExport) return;
@@ -921,7 +1128,7 @@ export default function ReportBuilderScreen() {
     try {
       const type = getReportType(data.reportType);
       const fileBase = type.docTitle.replace(/\s+/g, '_');
-      const htmlContent = await generateReportHtml(data);
+      const htmlContent = await generateReportWordHtml(data);
       const fileName = `${fileBase}_${new Date().toISOString().split('T')[0]}.doc`;
       if (Platform.OS === 'web') {
         if (typeof window === 'undefined' || typeof document === 'undefined') {

@@ -945,6 +945,261 @@ export function PerformanceReportView() {
     `;
   };
 
+  const chunkArray = <T,>(arr: T[], size: number): T[][] => {
+    const out: T[][] = [];
+    for (let i = 0; i < arr.length; i += size) out.push(arr.slice(i, i + size));
+    return out;
+  };
+
+  /**
+   * قالب HTML مخصّص لتصدير Word — مختلف عمدًا عن generateReportHTML (المخصص لـ PDF/التحميل
+   * كـ HTML للطباعة). محرك Word لا يدعم Flexbox أو CSS grid (المستخدَمين بكثرة في ذلك القالب:
+   * top-banner، summary-row، badge-grid، evidence-grid، signature-section)، فتظهر كل العناصر
+   * مكدّسة فوق بعضها بلا تنسيق عند فتح الملف في Word. لذلك يعتمد هذا القالب بالكامل على جداول
+   * <table> بدل flex/grid. بيانات التقرير (شعار الوزارة، البيانات الشخصية، الإحصائيات، شواهد
+   * كل محور) مُعاد حسابها هنا بنفس منطق generateReportHTML لتفادي أي أثر جانبي على قالب PDF.
+   */
+  const generateReportWordHTML = async () => {
+    let logoDataUri = '';
+    try {
+      const Asset = require('expo-asset').Asset;
+      const asset = Asset.fromModule(require('@/assets/images/moe_logo.png'));
+      await asset.downloadAsync();
+
+      if (Platform.OS === 'web') {
+        const uri = asset.uri ?? (asset as any).localUri;
+        if (uri) {
+          const url = typeof uri === 'string' && uri.startsWith('/') ? `${typeof window !== 'undefined' ? window.location.origin : ''}${uri}` : uri;
+          const res = await fetch(url);
+          const blob = await res.blob();
+          logoDataUri = await new Promise<string>((resolve, reject) => {
+            const reader = new FileReader();
+            reader.onload = () => resolve(reader.result as string);
+            reader.onerror = reject;
+            reader.readAsDataURL(blob);
+          });
+        }
+      } else {
+        if (asset.localUri) {
+          const base64 = await FileSystem.readAsStringAsync(asset.localUri, { encoding: FileSystem.EncodingType.Base64 });
+          if (base64) logoDataUri = `data:image/png;base64,${base64}`;
+        }
+      }
+    } catch (e) {
+      if (__DEV__ && typeof console !== 'undefined') console.warn('تحميل شعار الوزارة للتقرير:', e);
+    }
+
+    let userData = {
+      fullName: 'غير محدد',
+      profession: 'غير محدد',
+      specialty: 'غير محدد',
+      experience: 'غير محدد',
+      education: 'غير محدد',
+      school: 'غير محدد',
+      educationDepartment: 'غير محدد',
+      gradeLevel: 'غير محدد',
+      vision: 'غير محدد',
+      mission: 'غير محدد',
+      email: 'غير محدد',
+      phone: 'غير محدد'
+    };
+
+    let uploadedFiles: UploadedFiles = {};
+    let performanceDataWithEvidence: ReportItem[] = [];
+
+    try {
+      const storedData = await AsyncStorage.getItem('basicData');
+      if (storedData) {
+        userData = { ...userData, ...JSON.parse(storedData) };
+      }
+      const storedPerformanceData = await AsyncStorage.getItem('performanceData');
+      if (storedPerformanceData) {
+        performanceDataWithEvidence = JSON.parse(storedPerformanceData);
+      }
+      const storedFiles = await AsyncStorage.getItem('uploadedFiles');
+      if (storedFiles) {
+        uploadedFiles = JSON.parse(storedFiles);
+      }
+    } catch (error) {
+      console.log('Error loading data for report:', error);
+    }
+
+    const reportData = (Array.isArray(performanceDataWithEvidence) && performanceDataWithEvidence.length > 0
+      ? performanceDataWithEvidence
+      : performanceData) as ReportItem[];
+    const reportScores = reportData.map((item: { score?: number }) => Number(item?.score ?? 0));
+    const reportItems = reportData.map((item: ReportItem) => ({
+      ...item,
+      score: Number(item?.score ?? 0),
+    }));
+    const hasAnyScore = reportItems.some(item => item.score > 0);
+    const reportAverageScore = hasAnyScore
+      ? calculateOverallAverageFivePoint(reportItems.map(item => ({ score: item.score, weight: item?.weight ?? 0 })))
+      : 0;
+    const maxScore = Math.max(...reportScores, 0);
+    const minScore = reportScores.length ? Math.min(...reportScores) : 0;
+    const excellentCount = reportScores.filter(s => s >= 90).length;
+    const goodCount = reportScores.filter(s => s >= 80 && s < 90).length;
+    const needsImprovementCount = reportScores.filter(s => s < 70).length;
+    const needsImprovementItems = reportItems
+      .filter(item => item.score < 85)
+      .sort((a, b) => a.score - b.score)
+      .slice(0, 3);
+
+    const summaryBadgeCells = [
+      `<td class="badge-card"><div class="badge-value">${maxScore}%</div><div class="badge-label">أعلى درجة</div></td>`,
+      `<td class="badge-card"><div class="badge-value">${minScore}%</div><div class="badge-label">أقل درجة</div></td>`,
+      `<td class="badge-card"><div class="badge-value">${excellentCount}</div><div class="badge-label">محاور ممتازة</div></td>`,
+      `<td class="badge-card"><div class="badge-value">${goodCount}</div><div class="badge-label">محاور جيدة</div></td>`,
+      `<td class="badge-card"><div class="badge-value">${needsImprovementCount}</div><div class="badge-label">تحتاج تحسين</div></td>`,
+    ];
+
+    const axisSectionsHtml = reportItems.map((item, index) => {
+      const axisBadgeCells = [
+        `<td class="badge-card"><div class="badge-value">${item.weight}%</div><div class="badge-label">الوزن</div></td>`,
+        `<td class="badge-card"><div class="badge-value" style="color:${getScoreColor(item.score)}">${item.score}%</div><div class="badge-label">الدرجة</div></td>`,
+        `<td class="badge-card"><div class="badge-value" style="color:${getScoreColor(item.score)}">${getScoreLevel(item.score)}</div><div class="badge-label">المستوى</div></td>`,
+      ];
+      const evidenceCells = (item.evidence || []).map((evidence: Evidence, evidenceIndex: number) => {
+        const fileKey = `${item.id}-${evidenceIndex}`;
+        const file = uploadedFiles[fileKey];
+        return `<td width="50%" class="evidence-card">
+          <div class="evidence-name">${evidence.name}</div>
+          <span class="evidence-status ${evidence.available ? 'evidence-available' : 'evidence-unavailable'}">${evidence.available ? 'متوفر' : 'غير متوفر'}</span>
+          ${file ? `<div class="evidence-file">📎 ${file.name}</div>` : ''}
+        </td>`;
+      });
+      const evidenceRowsHtml = evidenceCells.length > 0
+        ? chunkArray(evidenceCells, 2).map((row) => `<tr>${row.join('')}${row.length < 2 ? '<td>&nbsp;</td>' : ''}</tr>`).join('')
+        : `<tr><td class="no-evidence">لا توجد شواهد محددة لهذا المحور.</td></tr>`;
+
+      return `
+      <table width="100%" cellpadding="0" cellspacing="0" class="axis-section">
+        <tr><td class="axis-banner">${index + 1}. ${item.title}</td></tr>
+        <tr><td class="axis-body">
+          ${item.description ? `<p class="axis-subtitle">${item.description}</p>` : ''}
+          <table width="100%" cellpadding="0" cellspacing="0"><tr>${axisBadgeCells.join('')}</tr></table>
+          ${item.evidence && item.evidence.length > 0 ? `
+            <div class="evidence-banner">شواهد المحور</div>
+            <table width="100%" cellpadding="0" cellspacing="0">${evidenceRowsHtml}</table>
+          ` : '<div class="no-evidence">لا توجد شواهد محددة لهذا المحور.</div>'}
+        </td></tr>
+      </table>`;
+    }).join('');
+
+    const recommendationsHtml = needsImprovementItems.length > 0
+      ? needsImprovementItems.map(item => `<div class="recommendation-item">• ركز على تحسين "${item.title}" (الدرجة الحالية: ${item.score}%)</div>`).join('')
+      : '<div class="recommendation-item">• ممتاز! جميع المحاور تحصل على درجات عالية. استمر في الأداء المتميز.</div>';
+
+    return `
+<!DOCTYPE html>
+<html dir="rtl" lang="ar">
+<head>
+  <meta charset="UTF-8">
+  <title>ملف إنجاز الأداء الوظيفي</title>
+  <style>
+    body { font-family: 'Arial', sans-serif; color: #333; }
+    table { border-collapse: collapse; }
+    .top-banner { background: #14b8a6; padding: 16px 20px; color: white; }
+    .top-banner .logo { width: 56px; }
+    .top-banner h2 { margin: 0; font-size: 18px; }
+    .top-banner p { margin: 4px 0 0 0; font-size: 13px; }
+    .title-pill-wrap { padding: 16px 0 0 0; text-align: center; }
+    .title-pill { background: #14532d; color: white; font-size: 20px; font-weight: bold; padding: 12px 30px; }
+    .section-card { border: 1px solid #E5E5EA; padding: 16px; margin-top: 16px; }
+    .section-title { color: #1c1f33; font-size: 18px; font-weight: bold; margin: 0 0 12px 0; text-align: center; border-bottom: 2px solid #1c1f33; padding-bottom: 8px; }
+    .info-table { width: 100%; border-collapse: collapse; }
+    .info-table tr:nth-child(even) { background: #f8f9fa; }
+    .info-table td { padding: 8px 10px; font-size: 13px; border-bottom: 1px solid #eee; }
+    .info-table td.label { font-weight: bold; color: #555; width: 40%; }
+    .info-table td.value { color: #1c1f33; }
+    .summary-value { font-size: 26px; font-weight: bold; text-align: center; }
+    .summary-label { font-size: 12px; color: #666; text-align: center; margin-top: 2px; }
+    .badge-card { border: 1px solid #e8b64c; padding: 8px; text-align: center; background: #fffdf5; vertical-align: top; }
+    .badge-value { font-size: 16px; font-weight: bold; }
+    .badge-label { font-size: 11px; color: #666; margin-top: 3px; }
+    .axis-section { margin-top: 16px; }
+    .axis-banner { background: #14532d; color: white; font-size: 15px; font-weight: bold; text-align: center; padding: 8px 14px; }
+    .axis-body { border: 1px solid #E5E5EA; padding: 12px; }
+    .axis-subtitle { font-size: 12px; color: #666; text-align: center; margin: 0 0 10px 0; }
+    .evidence-banner { background: #0f6e5c; color: white; font-size: 13px; font-weight: bold; text-align: center; padding: 6px 10px; margin: 12px 0 8px 0; }
+    .evidence-card { border: 1px solid #e1f5f4; padding: 8px 10px; background: #f8fffe; vertical-align: top; }
+    .evidence-name { font-weight: bold; color: #1c1f33; font-size: 12px; margin-bottom: 4px; }
+    .evidence-status { color: white; font-size: 10px; font-weight: bold; padding: 2px 8px; }
+    .evidence-available { background: #4CAF50; }
+    .evidence-unavailable { background: #9E9E9E; }
+    .evidence-file { margin-top: 4px; font-size: 10px; color: #1976d2; }
+    .no-evidence { text-align: center; color: #999; font-size: 12px; padding: 8px 0; }
+    .recommendations { background: #fff8e1; }
+    .recommendation-item { margin-bottom: 6px; padding: 8px; background: #ffe9c2; font-size: 13px; }
+    .signature-box { border: 1px solid #E5E5EA; padding: 14px 30px; text-align: center; }
+    .signature-label { font-weight: bold; color: #1c1f33; border-bottom: 1px solid #ccc; padding-bottom: 8px; margin-bottom: 8px; }
+    .signature-value { color: #14532d; font-weight: bold; }
+    .footer { text-align: center; padding-top: 14px; border-top: 2px solid #eee; color: #999; font-size: 11px; margin-top: 16px; }
+  </style>
+</head>
+<body>
+  <table width="100%" cellpadding="0" cellspacing="0" class="top-banner">
+    <tr>
+      <td width="70%" style="vertical-align:middle;"><h2>وزارة التعليم</h2><p>${userData.school}</p></td>
+      <td width="30%" style="vertical-align:middle; text-align:left;">${logoDataUri ? `<img src="${logoDataUri}" alt="شعار وزارة التعليم" class="logo">` : ''}</td>
+    </tr>
+  </table>
+
+  <div class="title-pill-wrap"><span class="title-pill">ملف إنجاز الأداء الوظيفي</span></div>
+
+  <div class="section-card">
+    <h3 class="section-title">البيانات الشخصية والمهنية</h3>
+    <table class="info-table">
+      <tr><td class="label">الاسم الكامل</td><td class="value">${userData.fullName}</td></tr>
+      <tr><td class="label">المهنة</td><td class="value">${userData.profession}</td></tr>
+      <tr><td class="label">التخصص</td><td class="value">${userData.specialty}</td></tr>
+      <tr><td class="label">سنوات الخبرة</td><td class="value">${userData.experience}</td></tr>
+      <tr><td class="label">المؤهل العلمي</td><td class="value">${userData.education}</td></tr>
+      <tr><td class="label">المدرسة</td><td class="value">${userData.school}</td></tr>
+      <tr><td class="label">الإدارة التعليمية</td><td class="value">${userData.educationDepartment}</td></tr>
+      <tr><td class="label">المرحلة الدراسية</td><td class="value">${userData.gradeLevel}</td></tr>
+      <tr><td class="label">البريد الإلكتروني</td><td class="value">${userData.email}</td></tr>
+      <tr><td class="label">رقم الهاتف</td><td class="value">${userData.phone}</td></tr>
+      <tr><td class="label">تاريخ التقرير</td><td class="value">${new Date().toLocaleDateString('ar-SA')}</td></tr>
+    </table>
+  </div>
+
+  <div class="section-card">
+    <h3 class="section-title">ملخص الأداء العام</h3>
+    <table width="100%" cellpadding="0" cellspacing="0">
+      <tr>
+        <td width="50%"><div class="summary-value" style="color:${getScoreColor(reportAverageScore)}">${reportAverageScore}%</div><div class="summary-label">المتوسط العام</div></td>
+        <td width="50%"><div class="summary-value" style="color:${getScoreColor(reportAverageScore)}">${getScoreLevel(reportAverageScore)}</div><div class="summary-label">مستوى الأداء</div></td>
+      </tr>
+    </table>
+    <table width="100%" cellpadding="0" cellspacing="0" style="margin-top:10px;"><tr>${summaryBadgeCells.join('')}</tr></table>
+  </div>
+
+  ${axisSectionsHtml}
+
+  <div class="section-card recommendations">
+    <h3 class="section-title">🔍 توصيات للتحسين</h3>
+    ${recommendationsHtml}
+  </div>
+
+  <table width="100%" cellpadding="0" cellspacing="0" style="margin-top:14px;">
+    <tr><td align="center">
+      <table cellpadding="0" cellspacing="0"><tr><td class="signature-box">
+        <div class="signature-label">المعلم</div>
+        <div class="signature-value">${userData.fullName}</div>
+      </td></tr></table>
+    </td></tr>
+  </table>
+
+  <div class="footer">
+    <p>تم إنشاء هذا التقرير تلقائياً بواسطة نظام تقييم الأداء المهني</p>
+    <p>© ${new Date().getFullYear()} - جميع الحقوق محفوظة</p>
+  </div>
+</body>
+</html>`;
+  };
+
   /** على الويب: تحميل التقرير كملف HTML دون الاعتماد على النوافذ المنبثقة */
   const webDownloadReport = (htmlContent: string) => {
     if (typeof document === 'undefined') return;
@@ -1071,7 +1326,7 @@ export function PerformanceReportView() {
   const exportToWord = async () => {
     let htmlContent: string;
     try {
-      htmlContent = await generateReportHTML();
+      htmlContent = await generateReportWordHTML();
     } catch (genError) {
       console.error('Error generating report HTML for Word:', genError);
       showAlert(

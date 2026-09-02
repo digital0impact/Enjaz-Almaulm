@@ -954,6 +954,202 @@ export default function StudentTrackingScreen() {
 </html>`;
   };
 
+  /**
+   * قالب HTML مخصّص لتصدير Word — مختلف عمدًا عن generateDifficultyHtml (المخصص لـ PDF/الطباعة).
+   * محرك Word لا يدعم Flexbox أو CSS gradients أو transform (المستخدَمة في رأس البطاقة وصفوف
+   * البيانات والإحصائيات والاعتماد في ذلك القالب)، فتظهر العناصر مكدّسة بلا تنسيق عند فتح الملف
+   * في Word. جداول <table> (المتابعة/الخطة العلاجية/قياس الأثر) أصلًا سليمة فتبقى كما هي.
+   */
+  const generateDifficultyWordHtml = async (card: DifficultyCard): Promise<string> => {
+    const logoDataUri = await loadMoeLogoDataUri();
+    const todayStr = new Date().toLocaleDateString('ar-SA');
+    const summary = computeDifficultySummary(card);
+
+    const needsHtml = card.needs.length > 0 || card.needsOther.trim()
+      ? [...card.needs, ...(card.needsOther.trim() ? [card.needsOther.trim()] : [])]
+          .map((n) => `<span class="need-badge">${escapeHtml(n)}</span>`)
+          .join('')
+      : '<span class="empty-hint">لا توجد بنود مضافة</span>';
+
+    const followUpRowsHtml = summary.validEntries
+      .map((e, i) => {
+        const percent = parseFloat(e.masteryPercent) || 0;
+        const level = getPerformanceLevel(percent, summary.criteria);
+        return `<tr>
+          <td>${i + 1}</td>
+          <td>${escapeHtml(e.studentName)}</td>
+          <td>${escapeHtml(e.skill)}</td>
+          <td>%${percent}</td>
+          <td><span class="level-badge" style="background:${level.color}">${escapeHtml(level.label)}</span></td>
+          <td>${escapeHtml(e.plan)}</td>
+          <td>${escapeHtml(e.followUpDate)}</td>
+          <td>${escapeHtml(e.responsible)}</td>
+        </tr>`;
+      })
+      .join('');
+
+    const skillPlanRowsHtml = summary.uniqueSkills
+      .map((skill) => {
+        const plan = card.skillPlans[skill] || { objective: '', strategy: '', resources: '', duration: '', measurementTool: '' };
+        return `<tr>
+          <td>${escapeHtml(skill)}</td>
+          <td>${escapeHtml(plan.objective)}</td>
+          <td>${escapeHtml(plan.strategy)}</td>
+          <td>${escapeHtml(plan.resources)}</td>
+          <td>${escapeHtml(plan.duration)}</td>
+          <td>${escapeHtml(plan.measurementTool)}</td>
+          <td>%${escapeHtml(card.masteryCriteria)}</td>
+        </tr>`;
+      })
+      .join('');
+
+    const impactRowsHtml = summary.validEntries
+      .map((e) => {
+        const before = parseFloat(e.masteryPercent) || 0;
+        const after = e.afterPercent.trim() !== '' ? parseFloat(e.afterPercent) : before;
+        const improvement = getImprovementLabel(before, after);
+        const note = after >= summary.criteria ? 'تحقق الإتقان' : 'يحتاج إلى استمرار';
+        const noteColor = after >= summary.criteria ? '#059669' : '#f59e0b';
+        return `<tr>
+          <td>${escapeHtml(e.studentName)}</td>
+          <td>%${before}</td>
+          <td>%${after}</td>
+          <td>${escapeHtml(improvement)}</td>
+          <td style="color:${noteColor}; font-weight:700;">${escapeHtml(note)}</td>
+        </tr>`;
+      })
+      .join('');
+
+    return `
+<!DOCTYPE html>
+<html dir="rtl" lang="ar">
+<head>
+  <meta charset="utf-8"/>
+  <title>بطاقة متابعة متعلم ( الخطط العلاجية والاثرائية )</title>
+  <style>
+    @page { size: A4; margin: 1.5cm; }
+    body { font-family: 'Segoe UI', Tahoma, Arial, sans-serif; color: #1c1f33; }
+    table { border-collapse: collapse; }
+    .doc-tag { background: #f0fdfa; border: 1px solid ${TEAL_LIGHT}; padding: 5px 10px; text-align: center; }
+    .doc-tag-title { font-size: 10px; font-weight: 700; color: ${TEAL}; }
+    .doc-tag-sub { font-size: 9px; color: #6b7280; margin-top: 2px; }
+    .title-banner { background: ${TEAL_DARK}; color: #fff; text-align: center; padding: 9px 14px; font-size: 15px; font-weight: 800; }
+    .dot-divider { text-align: center; color: ${TEAL}; font-size: 9px; padding: 3px 0; }
+    .card { background: #fff; border: 1px solid #e5e7eb; padding: 7px 10px; margin-bottom: 7px; }
+    .card-heading { font-size: 11px; font-weight: 700; color: ${TEAL_DARK}; margin-bottom: 5px; padding-bottom: 3px; border-bottom: 1px solid #e5e7eb; }
+    .info-item { font-size: 9.5px; color: #374151; padding: 2px 4px; }
+    .info-label { font-weight: 700; color: ${TEAL_DARK}; }
+    .stat-box { text-align: center; background: #f9fafb; border: 1px solid #e5e7eb; padding: 5px 3px; vertical-align: top; }
+    .stat-value { font-size: 14px; font-weight: 800; color: #1c1f33; }
+    .stat-label { font-size: 8.5px; color: #6b7280; margin-top: 2px; }
+    .need-badge { display: inline-block; background: #fef3c7; color: #92400e; padding: 3px 10px; font-size: 9.5px; font-weight: 600; margin: 2px; }
+    .empty-hint { font-size: 9.5px; color: #9ca3af; }
+    .difficulty-table { width: 100%; border-collapse: collapse; font-size: 8.5px; }
+    .difficulty-table th, .difficulty-table td { border: 1px solid #e5e7eb; padding: 3px 4px; text-align: center; }
+    .difficulty-table th { background: ${TEAL_LIGHT}; color: #fff; font-weight: 700; font-size: 8.5px; }
+    .level-badge { color: #fff; padding: 1px 6px; font-weight: 700; font-size: 8px; }
+    .approval-item { background: #f9fafb; border: 1px solid #e5e7eb; padding: 5px 8px; vertical-align: top; }
+    .approval-item-label { font-size: 8.5px; font-weight: 700; color: ${TEAL}; margin-bottom: 2px; }
+    .approval-item-value { font-size: 9.5px; color: #1c1f33; }
+    .sign-box { border: 1px solid #e5e7eb; padding: 8px; text-align: center; background: #f9fafb; }
+    .sign-label { font-size: 9.5px; font-weight: 700; color: ${TEAL}; margin-bottom: 8px; }
+    .sign-name { font-size: 9.5px; color: #1c1f33; border-top: 1px dashed #d1d5db; padding-top: 6px; }
+    .doc-footer { text-align: center; color: #9ca3af; font-size: 8.5px; margin-top: 3px; }
+  </style>
+</head>
+<body>
+  <table width="100%" cellpadding="0" cellspacing="0">
+    <tr>
+      <td width="70%" style="vertical-align:top;"><table cellpadding="0" cellspacing="0"><tr><td class="doc-tag">
+        <div class="doc-tag-title">متابعة تعثر</div>
+        <div class="doc-tag-sub">التاريخ: ${escapeHtml(todayStr)}</div>
+      </td></tr></table></td>
+      <td width="30%" style="vertical-align:top; text-align:left;">${logoDataUri ? `<img src="${logoDataUri}" alt="شعار وزارة التعليم" width="62">` : ''}</td>
+    </tr>
+  </table>
+
+  <table width="100%" cellpadding="0" cellspacing="0" style="margin-top:6px;">
+    <tr><td class="title-banner">بطاقة متابعة متعلم ( الخطط العلاجية والاثرائية )</td></tr>
+  </table>
+  <div class="dot-divider">• • • • • • • • • • • • • • • • • • • • • • • • • • • •</div>
+
+  <table width="100%" cellpadding="0" cellspacing="0" class="card">
+    <tr><td colspan="2" class="card-heading">البيانات الأساسية</td></tr>
+    <tr><td width="50%" class="info-item"><span class="info-label">المادة والصف:</span> ${escapeHtml(card.subjectGrade) || '-'}</td><td width="50%" class="info-item"><span class="info-label">نوع المدرسة:</span> ${escapeHtml(card.schoolType) || '-'}</td></tr>
+    <tr><td class="info-item"><span class="info-label">اسم المدرسة:</span> ${escapeHtml(card.schoolName) || '-'}</td><td class="info-item"><span class="info-label">معيار الإتقان:</span> %${escapeHtml(card.masteryCriteria) || '-'}</td></tr>
+    <tr><td class="info-item"><span class="info-label">نوع القياس:</span> ${escapeHtml(card.measurementType) || '-'}</td><td class="info-item"><span class="info-label">فترة المتابعة:</span> ${escapeHtml(card.followUpPeriod) || '-'}</td></tr>
+    <tr><td class="info-item"><span class="info-label">اسم وكيل المدرسة:</span> ${escapeHtml(card.deputyName) || '-'}</td><td class="info-item"><span class="info-label">اسم المعلم:</span> ${escapeHtml(card.teacherName) || '-'}</td></tr>
+  </table>
+
+  <table width="100%" cellpadding="0" cellspacing="0" class="card">
+    <tr><td colspan="6" class="card-heading">ملخص النتائج</td></tr>
+    <tr>
+      <td width="16%" class="stat-box"><div class="stat-value">${summary.count}</div><div class="stat-label">عدد الطلاب</div></td>
+      <td width="16%" class="stat-box"><div class="stat-value">${summary.mastered}</div><div class="stat-label">عدد المتقنين</div></td>
+      <td width="16%" class="stat-box"><div class="stat-value">${summary.close}</div><div class="stat-label">قريبون من الإتقان</div></td>
+      <td width="16%" class="stat-box"><div class="stat-value">${summary.needsSupport}</div><div class="stat-label">محتاجون إلى دعم</div></td>
+      <td width="18%" class="stat-box"><div class="stat-value" style="font-size:10px;">${escapeHtml(summary.bestSkill) || '-'}</div><div class="stat-label">الأعلى أداءً</div></td>
+      <td width="18%" class="stat-box"><div class="stat-value" style="font-size:10px;">${escapeHtml(summary.mostNeededSkill) || '-'}</div><div class="stat-label">الأكثر احتياجاً</div></td>
+    </tr>
+  </table>
+
+  <table width="100%" cellpadding="0" cellspacing="0" class="card">
+    <tr><td class="card-heading">تحديد الاحتياج</td></tr>
+    <tr><td>${needsHtml}</td></tr>
+  </table>
+
+  <div class="card">
+    <div class="card-heading">جدول المتابعة</div>
+    <table class="difficulty-table">
+      <tr><th>م</th><th>اسم الطالب</th><th>المهارة المستهدفة</th><th>نسبة الإتقان</th><th>مستوى الأداء</th><th>الخطة العلاجية المقترحة</th><th>تاريخ المتابعة</th><th>المسؤول</th></tr>
+      ${followUpRowsHtml || '<tr><td colspan="8" class="empty-hint">لا توجد بيانات مضافة</td></tr>'}
+    </table>
+  </div>
+
+  <div class="card">
+    <div class="card-heading">الخطة العلاجية</div>
+    <table class="difficulty-table">
+      <tr><th>المهارة المستهدفة</th><th>الهدف</th><th>الاستراتيجية العلاجية</th><th>الموارد</th><th>المدة الزمنية</th><th>أداة القياس</th><th>معيار الإتقان</th></tr>
+      ${skillPlanRowsHtml || '<tr><td colspan="7" class="empty-hint">لا توجد بيانات مضافة</td></tr>'}
+    </table>
+  </div>
+
+  <div class="card">
+    <div class="card-heading">قياس الأثر</div>
+    <table class="difficulty-table">
+      <tr><th>اسم الطالب</th><th>الإتقان قبل التدخل</th><th>الإتقان بعد التدخل</th><th>مدى التحسن</th><th>ملاحظة الأثر</th></tr>
+      ${impactRowsHtml || '<tr><td colspan="5" class="empty-hint">لا توجد بيانات مضافة</td></tr>'}
+    </table>
+  </div>
+
+  <table width="100%" cellpadding="0" cellspacing="0" class="card">
+    <tr><td colspan="2" class="card-heading">المتابعة والاعتماد</td></tr>
+    <tr>
+      <td width="50%" class="approval-item"><div class="approval-item-label">أبرز ما تحقق</div><div class="approval-item-value">${escapeHtml(card.highlightAchieved) || '-'}</div></td>
+      <td width="50%" class="approval-item"><div class="approval-item-label">المهارة التي لا تزال تحتاج دعماً</div><div class="approval-item-value">${escapeHtml(card.stillNeedsSupport) || '-'}</div></td>
+    </tr>
+    <tr>
+      <td class="approval-item"><div class="approval-item-label">الإجراء القادم</div><div class="approval-item-value">${escapeHtml(card.nextAction) || '-'}</div></td>
+      <td class="approval-item"><div class="approval-item-label">موعد المراجعة</div><div class="approval-item-value">${escapeHtml(card.reviewDate) || '-'}</div></td>
+    </tr>
+    <tr>
+      <td style="padding-top:6px;"><table width="100%" cellpadding="0" cellspacing="0"><tr><td class="sign-box">
+        <div class="sign-label">توقيع المعلم</div>
+        <div class="sign-name">${escapeHtml(card.teacherName) || '&nbsp;'}</div>
+      </td></tr></table></td>
+      <td style="padding-top:6px;"><table width="100%" cellpadding="0" cellspacing="0"><tr><td class="sign-box">
+        <div class="sign-label">توقيع وكيل المدرسة للشؤون التعليمية</div>
+        <div class="sign-name">${escapeHtml(card.deputyName) || '&nbsp;'}</div>
+      </td></tr></table></td>
+    </tr>
+  </table>
+
+  <div class="dot-divider">• • • • • • • • • • • • • • • • • • • • • • • • • • • •</div>
+  <div class="doc-footer">بطاقة أُنشئت عبر تطبيق إنجاز المعلم</div>
+</body>
+</html>`;
+  };
+
   const exportDifficultyPDF = async () => {
     const canExport = await checkCanExportDifficulty();
     if (!canExport) return;
@@ -1015,7 +1211,7 @@ export default function StudentTrackingScreen() {
     if (!canExport) return;
     setIsExportingDifficulty(true);
     try {
-      const htmlContent = await generateDifficultyHtml(difficultyCard);
+      const htmlContent = await generateDifficultyWordHtml(difficultyCard);
       const fileName = `متابعة_متعلم_الخطط_العلاجية_والاثرائية_${new Date().toISOString().split('T')[0]}.doc`;
       if (Platform.OS === 'web') {
         if (typeof window === 'undefined' || typeof document === 'undefined') {
