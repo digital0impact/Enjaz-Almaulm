@@ -18,13 +18,13 @@ LANGUAGE sql
 STABLE
 SECURITY DEFINER
 SET search_path = public
-AS $$
+AS $func$
   SELECT auth.uid() IN (
     SELECT id FROM auth.users WHERE email = 'demo@enjaz-almaulm.com'
   );
-$$;
+$func$;
 
-DO $$
+DO $block$
 DECLARE
   t text;
 BEGIN
@@ -65,4 +65,4 @@ BEGIN
       );
     END IF;
   END LOOP;
-END $$;
+END $block$;
