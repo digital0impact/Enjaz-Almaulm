@@ -1,9 +1,9 @@
 /**
  * بيانات واقعية جاهزة لوضع العرض التجريبي (Demo) — معلم افتراضي وطلابه
- * وجدوله الدراسي ومحاور أدائه المهني، بنفس مفاتيح ونماذج AsyncStorage
- * التي تقرأها الشاشات الحقيقية بالضبط (basicData / students /
- * teacherSchedule / performanceData)، حتى تظهر البيانات فورًا دون أي
- * تعديل في تلك الشاشات.
+ * وجدوله الدراسي ومحاور أدائه المهني ونتائج اختبار تجريبي، بنفس مفاتيح
+ * ونماذج AsyncStorage التي تقرأها الشاشات الحقيقية بالضبط (basicData /
+ * students / teacherSchedule / performanceData / resultsAnalysisDraft)،
+ * حتى تظهر البيانات فورًا دون أي تعديل في تلك الشاشات.
  *
  * ملاحظة نطاق: لا تُحقَن بيانات لشاشات الخطط العلاجية التفصيلية أو
  * اختبارات VARK أو "الشواهد المهنية" (professionalGrowthItems) — هذا
@@ -139,6 +139,45 @@ export const DEMO_SCHEDULE = [
 ];
 
 /**
+ * درجات اختبار تجريبي لصف كامل (20 طالبًا) — بنفس نموذج ResultsForm في
+ * app/results-analysis.tsx بالضبط (درجة قياس من 40)، لتظهر إحصائيات
+ * وتوزيع مستويات فعلي فور دخول شاشة "تحليل النتائج" دون أي إدخال يدوي.
+ */
+export const DEMO_RESULTS_ANALYSIS = {
+  educationAdministration: 'إدارة تعليم الرياض',
+  schoolName: 'مدرسة الفاروق المتوسطة',
+  subject: 'الرياضيات',
+  gradeLevel: 'الأول متوسط',
+  semester: 'الفصل الدراسي الأول',
+  maxScore: '40',
+  testLabel: 'الاختبار النهائي',
+  teacherName: 'أ. خالد العتيبي',
+  principalName: 'أ. سعود الحربي',
+  students: [
+    { id: 'r1', name: 'عبدالله محمد السالم', score: '40' },
+    { id: 'r2', name: 'نورة سعد المطيري', score: '38' },
+    { id: 'r3', name: 'فهد ناصر العنزي', score: '37' },
+    { id: 'r4', name: 'ريم عبدالرحمن الشمري', score: '36' },
+    { id: 'r5', name: 'سلطان علي الغامدي', score: '35' },
+    { id: 'r6', name: 'لمى خالد الزهراني', score: '34' },
+    { id: 'r7', name: 'يزيد فهد القحطاني', score: '33' },
+    { id: 'r8', name: 'جود سعود العتيبي', score: '32' },
+    { id: 'r9', name: 'تركي بندر الحربي', score: '32' },
+    { id: 'r10', name: 'سارة أحمد القحطاني', score: '31' },
+    { id: 'r11', name: 'عمر ياسر الدوسري', score: '30' },
+    { id: 'r12', name: 'غلا محمد آل سعيد', score: '29' },
+    { id: 'r13', name: 'خالد سالم المالكي', score: '28' },
+    { id: 'r14', name: 'دانة عبدالله الحارثي', score: '28' },
+    { id: 'r15', name: 'فيصل خالد الدوسري', score: '25' },
+    { id: 'r16', name: 'شهد وليد العصيمي', score: '23' },
+    { id: 'r17', name: 'ماجد عبدالعزيز الحربي', score: '22' },
+    { id: 'r18', name: 'رهف تركي البقمي', score: '20' },
+    { id: 'r19', name: 'ناصر سعيد الشهري', score: '18' },
+    { id: 'r20', name: 'وجدان محمد العمري', score: '15' },
+  ],
+};
+
+/**
  * عدد الشواهد التي تُعتبر "متوفرة" في كل محور (حسب ترتيب المحور 1-11 في
  * القالب الرسمي لمهنة 'معلم/ة')، لإنتاج توزيع نسب واقعي ومتنوع بدل صفر
  * أو 100% موحّدة. الصيغة مطابقة تمامًا لـcalculateScoreBasedOnEvidence في
@@ -193,5 +232,6 @@ export function buildDemoStorageEntries(): Record<string, string> {
     students: JSON.stringify(DEMO_STUDENTS),
     teacherSchedule: JSON.stringify(DEMO_SCHEDULE),
     performanceData: JSON.stringify(buildDemoPerformanceData()),
+    resultsAnalysisDraft: JSON.stringify(DEMO_RESULTS_ANALYSIS),
   };
 }
