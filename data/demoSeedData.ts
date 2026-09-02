@@ -1,15 +1,19 @@
 /**
  * بيانات واقعية جاهزة لوضع العرض التجريبي (Demo) — معلم افتراضي وطلابه
- * وجدوله الدراسي، بنفس مفاتيح ونماذج AsyncStorage التي تقرأها الشاشات
- * الحقيقية بالضبط (basicData / students / teacherSchedule)، حتى تظهر
- * البيانات فورًا دون أي تعديل في تلك الشاشات.
+ * وجدوله الدراسي ومحاور أدائه المهني، بنفس مفاتيح ونماذج AsyncStorage
+ * التي تقرأها الشاشات الحقيقية بالضبط (basicData / students /
+ * teacherSchedule / performanceData)، حتى تظهر البيانات فورًا دون أي
+ * تعديل في تلك الشاشات.
  *
- * ملاحظة نطاق: البيانات هنا تغطي الشاشات الأكثر مشاهدة (الرئيسية،
- * البيانات الأساسية، متابعة المتعلمين، الجدول الدراسي). شاشات أخرى ذات
- * نماذج بيانات أكثر تعقيدًا (الأداء المهني بمحاوره، الخطط العلاجية
- * التفصيلية، اختبارات VARK) تُترك بحالتها الفارغة الافتراضية بدل حقن
- * بيانات قد لا تطابق الشكل المتوقع تمامًا.
+ * ملاحظة نطاق: لا تُحقَن بيانات لشاشات الخطط العلاجية التفصيلية أو
+ * اختبارات VARK أو "الشواهد المهنية" (professionalGrowthItems) — هذا
+ * الأخير تحديدًا لأن شاشة البيانات الأساسية تحاول مزامنته فعليًا مع جدول
+ * professional_growth الحقيقي في Supabase عند التحميل، ما قد يُظهر خطأ
+ * مزامنة غير ضروري لزائر العرض التجريبي (محمي بسياسات RLS، لكن تجربة
+ * المستخدم فيه أقل أناقة من مجرد تركه فارغًا).
  */
+import { getPerformanceAxesByProfession, PerformanceAxis } from '@/constants/performance-axes';
+import { DEFAULT_PROFESSION } from '@/constants/professions';
 
 export const DEMO_BASIC_DATA = {
   fullName: 'أ. خالد العتيبي',
@@ -134,11 +138,60 @@ export const DEMO_SCHEDULE = [
   { id: 'demo-s15', day: 'الخميس', time: 'الحصة الخامسة', subject: 'رياضيات', class: 'الثاني متوسط - أ', type: 'حصة', color: '#4CAF50' },
 ];
 
+/**
+ * عدد الشواهد التي تُعتبر "متوفرة" في كل محور (حسب ترتيب المحور 1-11 في
+ * القالب الرسمي لمهنة 'معلم/ة')، لإنتاج توزيع نسب واقعي ومتنوع بدل صفر
+ * أو 100% موحّدة. الصيغة مطابقة تمامًا لـcalculateScoreBasedOnEvidence في
+ * app/(tabs)/performance.tsx: available>=5 → 100%، وإلا round(available/total*100).
+ */
+const DEMO_AVAILABLE_EVIDENCE_COUNT: Record<number, number> = {
+  1: 5, // 6 شواهد → 5 متوفرة → 100%
+  2: 3, // 4 شواهد → 75%
+  3: 2, // 3 شواهد → 67%
+  4: 3, // 4 شواهد → 75%
+  5: 4, // 5 شواهد → 80%
+  6: 2, // 3 شواهد → 67%
+  7: 3, // 5 شواهد → 60%
+  8: 1, // شاهد واحد → 100%
+  9: 2, // 3 شواهد → 67%
+  10: 2, // 4 شواهد → 50%
+  11: 3, // 5 شواهد → 60%
+};
+
+function calculateScoreBasedOnEvidence(evidence: { available: boolean }[]): number {
+  if (!evidence || evidence.length === 0) return 0;
+  const availableCount = evidence.filter((e) => e.available).length;
+  if (availableCount >= 5) return 100;
+  return Math.round((availableCount / evidence.length) * 100);
+}
+
+/**
+ * محاور الأداء المهني لمعلم/ة (المهنة الافتراضية) مبنية من نفس القالب
+ * الرسمي المستخدم في شاشة الأداء المهني الفعلية (constants/performance-axes.ts)
+ * حتى تُقبَل كبيانات "مطابقة للقالب الحالي" دون أن تستبدلها الشاشة عند
+ * التحميل (تتحقق من تطابق عناوين المحاور بالضبط قبل قبول البيانات المحفوظة).
+ */
+function buildDemoPerformanceData(): PerformanceAxis[] {
+  return getPerformanceAxesByProfession(DEFAULT_PROFESSION).map((axis) => {
+    const availableCount = DEMO_AVAILABLE_EVIDENCE_COUNT[axis.id] ?? 0;
+    const evidence = axis.evidence.map((ev, index) => ({
+      ...ev,
+      available: index < availableCount,
+    }));
+    return {
+      ...axis,
+      evidence,
+      score: calculateScoreBasedOnEvidence(evidence),
+    };
+  });
+}
+
 /** كل مفاتيح AsyncStorage التي يُحقَن بها وضع العرض التجريبي، جاهزة للاستخدام مباشرة مع seedDemoStorage */
 export function buildDemoStorageEntries(): Record<string, string> {
   return {
     basicData: JSON.stringify(DEMO_BASIC_DATA),
     students: JSON.stringify(DEMO_STUDENTS),
     teacherSchedule: JSON.stringify(DEMO_SCHEDULE),
+    performanceData: JSON.stringify(buildDemoPerformanceData()),
   };
 }
