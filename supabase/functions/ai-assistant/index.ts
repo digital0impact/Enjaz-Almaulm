@@ -14,12 +14,11 @@ type SuggestionType =
   | "idp_priority_activities"
   | "idp_priority_procedures"
   | "idp_priority_success"
-  | "student_tracking_need"
   | "student_tracking_plan";
 
 // الأنواع الخاضعة لحد "مرة واحدة للخطة المجانية" (عبر check_and_consume_student_card_ai_usage
 // في قاعدة البيانات). كل الأنواع الأخرى تبقى بلا حدود كما كانت، دون أي تغيير في سلوكها.
-const FREE_LIMITED_TYPES: SuggestionType[] = ["student_tracking_need", "student_tracking_plan"];
+const FREE_LIMITED_TYPES: SuggestionType[] = ["student_tracking_plan"];
 
 function getPrompt(type: SuggestionType, currentText: string): { system: string; user: string } {
   const base = "أنت مساعد لمعلم في المملكة العربية السعودية. اكتب نصاً قصيراً بالعربية الفصحى فقط، مناسب للحقل المطلوب. لا تضع عناوين أو شرحاً إضافياً، فقط النص المقترح في سطر أو بضع جمل.";
@@ -45,10 +44,8 @@ function getPrompt(type: SuggestionType, currentText: string): { system: string;
       "الحقل: الإجراءات التفصيلية لتحقيق الهدف في خطة التطوير الفردية. المطلوب: خطوات عملية مختصرة.",
     idp_priority_success:
       "الحقل: معايير النجاح لتحقيق الهدف التطويري. المطلوب: معايير قابلة للقياس في جمل أو جملتين.",
-    student_tracking_need:
-      "الحقل: احتياج تعليمي لمتعلم في بطاقة متابعة متعلم (خطط علاجية وإثرائية). المطلوب: وصف مختصر وواضح لاحتياج المتعلم (مثال: يحتاج إلى دعم إضافي في مهارة معيّنة) في جملة أو جملتين.",
     student_tracking_plan:
-      "الحقل: الإجراء العلاجي المختصر لمهارة معيّنة يحتاج المتعلم لإتقانها، ضمن جدول المتابعة في بطاقة متابعة متعلم (خطط علاجية وإثرائية). المطلوب: وصف مختصر وعملي لإجراء أو استراتيجية علاجية مناسبة (مثال: جلسات تقوية فردية قصيرة مع تدريب مكثف على المهارة المستهدفة) في جملة أو جملتين.",
+      "الحقل: الإجراء (علاجي أو إثرائي) لمهارة معيّنة ضمن جدول المتابعة في بطاقة متابعة متعلم (خطط علاجية وإثرائية) — قد يكون المتعلم بحاجة لدعم علاجي في المهارة أو مؤهلاً لإثراء وتوسيع فيها. المطلوب: وصف مختصر وعملي لإجراء مناسب لحالته (مثال علاجي: جلسات تقوية فردية قصيرة مع تدريب مكثف على المهارة المستهدفة؛ مثال إثرائي: تكليفه بمسائل تحدٍ إضافية أو مشاركته في نشاط إثرائي متقدم) في جملة أو جملتين.",
   };
   return {
     system: base,
@@ -93,7 +90,6 @@ Deno.serve(async (req: Request) => {
     "idp_priority_activities",
     "idp_priority_procedures",
     "idp_priority_success",
-    "student_tracking_need",
     "student_tracking_plan",
   ];
 
