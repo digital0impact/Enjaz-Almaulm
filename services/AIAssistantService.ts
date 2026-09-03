@@ -10,7 +10,6 @@ export type AISuggestType =
   | 'idp_priority_activities'
   | 'idp_priority_procedures'
   | 'idp_priority_success'
-  | 'student_tracking_need'
   | 'student_tracking_plan';
 
 export interface AISuggestResult {

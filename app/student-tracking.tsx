@@ -3,6 +3,7 @@ import {
   ScrollView,
   TouchableOpacity,
   ImageBackground,
+  Image,
   Platform,
   RefreshControl,
   KeyboardAvoidingView,
@@ -19,6 +20,8 @@ import { ThemedButton } from '@/components/ThemedButton';
 import { IconSymbol } from '@/components/ui/IconSymbol';
 import { useRouter } from 'expo-router';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import * as DocumentPicker from 'expo-document-picker';
+import * as ImagePicker from 'expo-image-picker';
 import * as FileSystem from 'expo-file-system';
 import * as Print from 'expo-print';
 import * as Sharing from 'expo-sharing';
@@ -35,22 +38,19 @@ const TEAL_DARK = '#0b4f47';
 
 /** ===== بطاقة متابعة متعلم ( الخطط العلاجية والاثرائية ) ===== */
 
-const DIFFICULTY_NEEDS_OPTIONS = [
-  'ضعف فهم المفهوم',
-  'صعوبة تطبيق الخطوات',
-  'أخطاء في المهارات الأساسية',
-  'حاجة إلى تدريب إضافي',
-];
-
 type DifficultyEntry = {
   id: string;
   studentName: string;
-  skill: string;
+  grade: string;
   masteryPercent: string;
   afterPercent: string;
-  plan: string;
   followUpDate: string;
-  responsible: string;
+  needType: string;
+  skill: string;
+  plan: string;
+  evidenceUri?: string;
+  evidenceName?: string;
+  evidenceType?: 'image' | 'file';
 };
 
 type SkillPlan = {
@@ -66,12 +66,8 @@ type DifficultyCard = {
   schoolType: string;
   schoolName: string;
   masteryCriteria: string;
-  measurementType: string;
-  followUpPeriod: string;
   deputyName: string;
   teacherName: string;
-  needs: string[];
-  needsOther: string;
   entries: DifficultyEntry[];
   skillPlans: Record<string, SkillPlan>;
   highlightAchieved: string;
@@ -83,12 +79,13 @@ type DifficultyCard = {
 const EMPTY_DIFFICULTY_ENTRY = (): DifficultyEntry => ({
   id: `${Date.now()}-${Math.random().toString(36).slice(2, 7)}`,
   studentName: '',
-  skill: '',
+  grade: '',
   masteryPercent: '',
   afterPercent: '',
-  plan: '',
   followUpDate: '',
-  responsible: 'المعلم',
+  needType: '',
+  skill: '',
+  plan: '',
 });
 
 const EMPTY_DIFFICULTY_CARD: DifficultyCard = {
@@ -96,12 +93,8 @@ const EMPTY_DIFFICULTY_CARD: DifficultyCard = {
   schoolType: '',
   schoolName: '',
   masteryCriteria: '80',
-  measurementType: '',
-  followUpPeriod: '',
   deputyName: '',
   teacherName: '',
-  needs: [],
-  needsOther: '',
   entries: [],
   skillPlans: {},
   highlightAchieved: '',
@@ -200,13 +193,6 @@ export default function StudentTrackingScreen() {
     setDifficultyCard((prev) => ({ ...prev, [key]: value }));
   };
 
-  const toggleDifficultyNeed = (value: string) => {
-    setDifficultyCard((prev) => ({
-      ...prev,
-      needs: prev.needs.includes(value) ? prev.needs.filter((n) => n !== value) : [...prev.needs, value],
-    }));
-  };
-
   const addDifficultyEntry = () => {
     setDifficultyCard((prev) => ({ ...prev, entries: [...prev.entries, EMPTY_DIFFICULTY_ENTRY()] }));
   };
@@ -220,6 +206,58 @@ export default function StudentTrackingScreen() {
       ...prev,
       entries: prev.entries.map((e) => (e.id === id ? { ...e, [field]: value } : e)),
     }));
+  };
+
+  /** شاهد المتعلم في جدول المتابعة: صورة أو ملف واحد لكل صف */
+  const setEntryEvidence = (id: string, uri: string, name: string, type: 'image' | 'file') => {
+    setDifficultyCard((prev) => ({
+      ...prev,
+      entries: prev.entries.map((e) => (e.id === id ? { ...e, evidenceUri: uri, evidenceName: name, evidenceType: type } : e)),
+    }));
+  };
+
+  const removeEntryEvidence = (id: string) => {
+    setDifficultyCard((prev) => ({
+      ...prev,
+      entries: prev.entries.map((e) =>
+        e.id === id ? { ...e, evidenceUri: undefined, evidenceName: undefined, evidenceType: undefined } : e
+      ),
+    }));
+  };
+
+  const pickEntryEvidenceImage = async (id: string) => {
+    try {
+      const permissionResult = await ImagePicker.requestMediaLibraryPermissionsAsync();
+      if (permissionResult.granted === false) {
+        AlertService.alert('إذن مطلوب', 'يجب السماح بالوصول إلى معرض الصور لتحميل الشاهد.');
+        return;
+      }
+      const result = await ImagePicker.launchImageLibraryAsync({
+        mediaTypes: ImagePicker.MediaTypeOptions.Images,
+        allowsEditing: true,
+        quality: 0.8,
+      });
+      if (!result.canceled && result.assets && result.assets[0]) {
+        const asset = result.assets[0];
+        setEntryEvidence(id, asset.uri, asset.fileName || `صورة_${Date.now()}.jpg`, 'image');
+      }
+    } catch (error) {
+      console.error('خطأ في تحميل الصورة:', error);
+      AlertService.alert('خطأ في التحميل', 'حدث خطأ أثناء تحميل الصورة. يرجى المحاولة مرة أخرى.');
+    }
+  };
+
+  const pickEntryEvidenceFile = async (id: string) => {
+    try {
+      const result = await DocumentPicker.getDocumentAsync({ type: '*/*', copyToCacheDirectory: true, multiple: false });
+      if (!result.canceled && result.assets && result.assets[0]) {
+        const file = result.assets[0];
+        setEntryEvidence(id, file.uri, file.name || `ملف_${Date.now()}`, 'file');
+      }
+    } catch (error) {
+      console.error('خطأ في تحميل الملف:', error);
+      AlertService.alert('خطأ في التحميل', 'حدث خطأ أثناء تحميل الملف. يرجى المحاولة مرة أخرى.');
+    }
   };
 
   const updateSkillPlanField = (skill: string, field: keyof SkillPlan, value: string) => {
@@ -323,25 +361,21 @@ export default function StudentTrackingScreen() {
     const todayStr = new Date().toLocaleDateString('ar-SA');
     const summary = computeDifficultySummary(card);
 
-    const needsHtml = card.needs.length > 0 || card.needsOther.trim()
-      ? [...card.needs, ...(card.needsOther.trim() ? [card.needsOther.trim()] : [])]
-          .map((n) => `<span class="need-badge">${escapeHtml(n)}</span>`)
-          .join('')
-      : '<span class="empty-hint">لا توجد بنود مضافة</span>';
-
     const followUpRowsHtml = summary.validEntries
       .map((e, i) => {
         const percent = parseFloat(e.masteryPercent) || 0;
-        const level = getPerformanceLevel(percent, summary.criteria);
+        const evidenceCell = e.evidenceName ? `📎 ${escapeHtml(e.evidenceName)}` : '-';
         return `<tr>
           <td>${i + 1}</td>
           <td>${escapeHtml(e.studentName)}</td>
-          <td>${escapeHtml(e.skill)}</td>
+          <td>${escapeHtml(e.grade) || '-'}</td>
           <td>%${percent}</td>
-          <td><span class="level-badge" style="background:${level.color}">${escapeHtml(level.label)}</span></td>
-          <td>${escapeHtml(e.plan)}</td>
-          <td>${escapeHtml(e.followUpDate)}</td>
-          <td>${escapeHtml(e.responsible)}</td>
+          <td>${e.afterPercent.trim() ? `%${escapeHtml(e.afterPercent)}` : '-'}</td>
+          <td>${escapeHtml(e.followUpDate) || '-'}</td>
+          <td>${escapeHtml(e.needType) || '-'}</td>
+          <td>${escapeHtml(e.skill)}</td>
+          <td>${escapeHtml(e.plan) || '-'}</td>
+          <td>${evidenceCell}</td>
         </tr>`;
       })
       .join('');
@@ -407,13 +441,10 @@ export default function StudentTrackingScreen() {
     .stat-box { flex: 1; min-width: 70px; text-align: center; background: #f9fafb; border: 1px solid #e5e7eb; border-radius: 7px; padding: 5px 3px; }
     .stat-value { font-size: 14px; font-weight: 800; color: #1c1f33; }
     .stat-label { font-size: 8.5px; color: #6b7280; margin-top: 2px; }
-    .needs-row { display: flex; flex-wrap: wrap; gap: 5px; }
-    .need-badge { background: #fef3c7; color: #92400e; border-radius: 12px; padding: 3px 10px; font-size: 9.5px; font-weight: 600; }
     .empty-hint { font-size: 9.5px; color: #9ca3af; }
-    table { width: 100%; border-collapse: collapse; font-size: 8.5px; }
-    th, td { border: 1px solid #e5e7eb; padding: 3px 4px; text-align: center; }
-    th { background: ${TEAL_LIGHT}; color: #fff; font-weight: 700; font-size: 8.5px; }
-    .level-badge { display: inline-block; color: #fff; border-radius: 5px; padding: 1px 6px; font-weight: 700; font-size: 8px; }
+    table { width: 100%; border-collapse: collapse; font-size: 7.8px; }
+    th, td { border: 1px solid #e5e7eb; padding: 3px 3px; text-align: center; }
+    th { background: ${TEAL_LIGHT}; color: #fff; font-weight: 700; font-size: 7.8px; }
     .approval-grid { display: flex; flex-wrap: wrap; gap: 6px; }
     .approval-item { flex: 1; min-width: 45%; background: #f9fafb; border: 1px solid #e5e7eb; border-radius: 7px; padding: 5px 8px; }
     .approval-item-label { font-size: 8.5px; font-weight: 700; color: ${TEAL}; margin-bottom: 2px; }
@@ -445,8 +476,6 @@ export default function StudentTrackingScreen() {
       <div class="info-item"><span class="info-label">نوع المدرسة:</span> ${escapeHtml(card.schoolType) || '-'}</div>
       <div class="info-item"><span class="info-label">اسم المدرسة:</span> ${escapeHtml(card.schoolName) || '-'}</div>
       <div class="info-item"><span class="info-label">معيار الإتقان:</span> %${escapeHtml(card.masteryCriteria) || '-'}</div>
-      <div class="info-item"><span class="info-label">نوع القياس:</span> ${escapeHtml(card.measurementType) || '-'}</div>
-      <div class="info-item"><span class="info-label">فترة المتابعة:</span> ${escapeHtml(card.followUpPeriod) || '-'}</div>
       <div class="info-item"><span class="info-label">اسم وكيل المدرسة:</span> ${escapeHtml(card.deputyName) || '-'}</div>
       <div class="info-item"><span class="info-label">اسم المعلم:</span> ${escapeHtml(card.teacherName) || '-'}</div>
     </div>
@@ -465,15 +494,10 @@ export default function StudentTrackingScreen() {
   </div>
 
   <div class="card">
-    <div class="card-heading">تحديد الاحتياج</div>
-    <div class="needs-row">${needsHtml}</div>
-  </div>
-
-  <div class="card">
     <div class="card-heading">جدول المتابعة</div>
     <table>
-      <tr><th>م</th><th>اسم الطالب</th><th>المهارة المستهدفة</th><th>نسبة الإتقان</th><th>مستوى الأداء</th><th>الخطة العلاجية المقترحة</th><th>تاريخ المتابعة</th><th>المسؤول</th></tr>
-      ${followUpRowsHtml || '<tr><td colspan="8" class="empty-hint">لا توجد بيانات مضافة</td></tr>'}
+      <tr><th>م</th><th>اسم المتعلم</th><th>الصف</th><th>الإتقان قبل</th><th>الإتقان بعد</th><th>تاريخ المتابعة</th><th>تحديد الاحتياج</th><th>المهارة المستهدفة</th><th>الإجراء</th><th>الشواهد</th></tr>
+      ${followUpRowsHtml || '<tr><td colspan="10" class="empty-hint">لا توجد بيانات مضافة</td></tr>'}
     </table>
   </div>
 
@@ -549,25 +573,21 @@ export default function StudentTrackingScreen() {
     const todayStr = new Date().toLocaleDateString('ar-SA');
     const summary = computeDifficultySummary(card);
 
-    const needsHtml = card.needs.length > 0 || card.needsOther.trim()
-      ? [...card.needs, ...(card.needsOther.trim() ? [card.needsOther.trim()] : [])]
-          .map((n) => `<span class="need-badge">${escapeHtml(n)}</span>`)
-          .join('')
-      : '<span class="empty-hint">لا توجد بنود مضافة</span>';
-
     const followUpRowsHtml = summary.validEntries
       .map((e, i) => {
         const percent = parseFloat(e.masteryPercent) || 0;
-        const level = getPerformanceLevel(percent, summary.criteria);
+        const evidenceCell = e.evidenceName ? `📎 ${escapeHtml(e.evidenceName)}` : '-';
         return `<tr>
           <td>${i + 1}</td>
           <td>${escapeHtml(e.studentName)}</td>
-          <td>${escapeHtml(e.skill)}</td>
+          <td>${escapeHtml(e.grade) || '-'}</td>
           <td>%${percent}</td>
-          <td><span class="level-badge" style="background:${level.color}">${escapeHtml(level.label)}</span></td>
-          <td>${escapeHtml(e.plan)}</td>
-          <td>${escapeHtml(e.followUpDate)}</td>
-          <td>${escapeHtml(e.responsible)}</td>
+          <td>${e.afterPercent.trim() ? `%${escapeHtml(e.afterPercent)}` : '-'}</td>
+          <td>${escapeHtml(e.followUpDate) || '-'}</td>
+          <td>${escapeHtml(e.needType) || '-'}</td>
+          <td>${escapeHtml(e.skill)}</td>
+          <td>${escapeHtml(e.plan) || '-'}</td>
+          <td>${evidenceCell}</td>
         </tr>`;
       })
       .join('');
@@ -626,12 +646,10 @@ export default function StudentTrackingScreen() {
     .stat-box { text-align: center; background: #f9fafb; border: 1px solid #e5e7eb; padding: 5px 3px; vertical-align: top; }
     .stat-value { font-size: 14px; font-weight: 800; color: #1c1f33; }
     .stat-label { font-size: 8.5px; color: #6b7280; margin-top: 2px; }
-    .need-badge { display: inline-block; background: #fef3c7; color: #92400e; padding: 3px 10px; font-size: 9.5px; font-weight: 600; margin: 2px; }
     .empty-hint { font-size: 9.5px; color: #9ca3af; }
-    .difficulty-table { width: 100%; border-collapse: collapse; font-size: 8.5px; }
-    .difficulty-table th, .difficulty-table td { border: 1px solid #e5e7eb; padding: 3px 4px; text-align: center; }
-    .difficulty-table th { background: ${TEAL_LIGHT}; color: #fff; font-weight: 700; font-size: 8.5px; }
-    .level-badge { color: #fff; padding: 1px 6px; font-weight: 700; font-size: 8px; }
+    .difficulty-table { width: 100%; border-collapse: collapse; font-size: 7.8px; }
+    .difficulty-table th, .difficulty-table td { border: 1px solid #e5e7eb; padding: 3px 3px; text-align: center; }
+    .difficulty-table th { background: ${TEAL_LIGHT}; color: #fff; font-weight: 700; font-size: 7.8px; }
     .approval-item { background: #f9fafb; border: 1px solid #e5e7eb; padding: 5px 8px; vertical-align: top; }
     .approval-item-label { font-size: 8.5px; font-weight: 700; color: ${TEAL}; margin-bottom: 2px; }
     .approval-item-value { font-size: 9.5px; color: #1c1f33; }
@@ -661,7 +679,6 @@ export default function StudentTrackingScreen() {
     <tr><td colspan="2" class="card-heading">البيانات الأساسية</td></tr>
     <tr><td width="50%" class="info-item"><span class="info-label">المادة والصف:</span> ${escapeHtml(card.subjectGrade) || '-'}</td><td width="50%" class="info-item"><span class="info-label">نوع المدرسة:</span> ${escapeHtml(card.schoolType) || '-'}</td></tr>
     <tr><td class="info-item"><span class="info-label">اسم المدرسة:</span> ${escapeHtml(card.schoolName) || '-'}</td><td class="info-item"><span class="info-label">معيار الإتقان:</span> %${escapeHtml(card.masteryCriteria) || '-'}</td></tr>
-    <tr><td class="info-item"><span class="info-label">نوع القياس:</span> ${escapeHtml(card.measurementType) || '-'}</td><td class="info-item"><span class="info-label">فترة المتابعة:</span> ${escapeHtml(card.followUpPeriod) || '-'}</td></tr>
     <tr><td class="info-item"><span class="info-label">اسم وكيل المدرسة:</span> ${escapeHtml(card.deputyName) || '-'}</td><td class="info-item"><span class="info-label">اسم المعلم:</span> ${escapeHtml(card.teacherName) || '-'}</td></tr>
   </table>
 
@@ -677,16 +694,11 @@ export default function StudentTrackingScreen() {
     </tr>
   </table>
 
-  <table width="100%" cellpadding="0" cellspacing="0" class="card">
-    <tr><td class="card-heading">تحديد الاحتياج</td></tr>
-    <tr><td>${needsHtml}</td></tr>
-  </table>
-
   <div class="card">
     <div class="card-heading">جدول المتابعة</div>
     <table class="difficulty-table">
-      <tr><th>م</th><th>اسم الطالب</th><th>المهارة المستهدفة</th><th>نسبة الإتقان</th><th>مستوى الأداء</th><th>الخطة العلاجية المقترحة</th><th>تاريخ المتابعة</th><th>المسؤول</th></tr>
-      ${followUpRowsHtml || '<tr><td colspan="8" class="empty-hint">لا توجد بيانات مضافة</td></tr>'}
+      <tr><th>م</th><th>اسم المتعلم</th><th>الصف</th><th>الإتقان قبل</th><th>الإتقان بعد</th><th>تاريخ المتابعة</th><th>تحديد الاحتياج</th><th>المهارة المستهدفة</th><th>الإجراء</th><th>الشواهد</th></tr>
+      ${followUpRowsHtml || '<tr><td colspan="10" class="empty-hint">لا توجد بيانات مضافة</td></tr>'}
     </table>
   </div>
 
@@ -889,26 +901,6 @@ export default function StudentTrackingScreen() {
                 />
               </ThemedView>
               <ThemedView style={styles.dcFieldBlock}>
-                <ThemedText style={[styles.sfLabel, getTextDirection()]}>{formatRTLText('أداة القياس')}</ThemedText>
-                <TextInput
-                  style={[styles.sfTextInput, getTextDirection()]}
-                  value={difficultyCard.measurementType}
-                  onChangeText={(v) => updateDifficultyField('measurementType', v)}
-                  placeholder={formatRTLText('اختبار قصير / ملاحظة / بطاقة أداء')}
-                  placeholderTextColor="#999"
-                />
-              </ThemedView>
-              <ThemedView style={styles.dcFieldBlock}>
-                <ThemedText style={[styles.sfLabel, getTextDirection()]}>{formatRTLText('فترة المتابعة')}</ThemedText>
-                <TextInput
-                  style={[styles.sfTextInput, getTextDirection()]}
-                  value={difficultyCard.followUpPeriod}
-                  onChangeText={(v) => updateDifficultyField('followUpPeriod', v)}
-                  placeholder={formatRTLText('مثال: أسبوعين')}
-                  placeholderTextColor="#999"
-                />
-              </ThemedView>
-              <ThemedView style={styles.dcFieldBlock}>
                 <ThemedText style={[styles.sfLabel, getTextDirection()]}>{formatRTLText('معلم/ة المادة')}</ThemedText>
                 <TextInput
                   style={[styles.sfTextInput, getTextDirection()]}
@@ -928,46 +920,6 @@ export default function StudentTrackingScreen() {
                   placeholderTextColor="#999"
                 />
               </ThemedView>
-            </ThemedView>
-          </ThemedView>
-
-          <ThemedView style={styles.sfSectionContainer}>
-            <ThemedText style={[styles.sfSectionTitle, getTextDirection()]}>{formatRTLText('تحديد الاحتياج')}</ThemedText>
-            <ThemedView style={styles.dcNeedsRow}>
-              {DIFFICULTY_NEEDS_OPTIONS.map((need) => {
-                const active = difficultyCard.needs.includes(need);
-                return (
-                  <TouchableOpacity
-                    key={need}
-                    style={[styles.dcNeedBadge, active && styles.dcNeedBadgeActive]}
-                    onPress={() => toggleDifficultyNeed(need)}
-                  >
-                    <IconSymbol size={14} name={active ? 'checkmark.square.fill' : 'square'} color={active ? '#fff' : '#6b7280'} />
-                    <ThemedText style={[styles.dcNeedBadgeText, active && styles.dcNeedBadgeTextActive, getTextDirection()]}>
-                      {formatRTLText(need)}
-                    </ThemedText>
-                  </TouchableOpacity>
-                );
-              })}
-            </ThemedView>
-            <ThemedView style={{ marginTop: 10 }}>
-              <ThemedView style={styles.sfLabelRow}>
-                <AIAssistButton
-                  type="student_tracking_need"
-                  currentText={difficultyCard.needsOther}
-                  onApply={(text) => updateDifficultyField('needsOther', text)}
-                  label={formatRTLText('اقتراح بالذكاء الاصطناعي')}
-                  compact={false}
-                />
-                <ThemedText style={[styles.sfLabel, getTextDirection()]}>{formatRTLText('احتياج آخر (اختياري)')}</ThemedText>
-              </ThemedView>
-              <TextInput
-                style={[styles.sfTextInput, getTextDirection()]}
-                value={difficultyCard.needsOther}
-                onChangeText={(v) => updateDifficultyField('needsOther', v)}
-                placeholder={formatRTLText('اكتب احتياجاً إضافياً إن وجد')}
-                placeholderTextColor="#999"
-              />
             </ThemedView>
           </ThemedView>
 
@@ -1004,12 +956,12 @@ export default function StudentTrackingScreen() {
                       />
                     </ThemedView>
                     <ThemedView style={styles.dcFieldBlock}>
-                      <ThemedText style={[styles.sfLabel, getTextDirection()]}>{formatRTLText('المهارة المستهدفة')}</ThemedText>
+                      <ThemedText style={[styles.sfLabel, getTextDirection()]}>{formatRTLText('الصف')}</ThemedText>
                       <TextInput
                         style={[styles.sfTextInput, getTextDirection()]}
-                        value={entry.skill}
-                        onChangeText={(v) => updateDifficultyEntry(entry.id, 'skill', v)}
-                        placeholder={formatRTLText('مثال: جدول الضرب')}
+                        value={entry.grade}
+                        onChangeText={(v) => updateDifficultyEntry(entry.id, 'grade', v)}
+                        placeholder={formatRTLText('مثال: الأول متوسط - أ')}
                         placeholderTextColor="#999"
                       />
                     </ThemedView>
@@ -1045,13 +997,23 @@ export default function StudentTrackingScreen() {
                         placeholderTextColor="#999"
                       />
                     </ThemedView>
-                    <ThemedView style={styles.dcFieldBlockSmall}>
-                      <ThemedText style={[styles.sfLabel, getTextDirection()]}>{formatRTLText('المسؤول')}</ThemedText>
+                    <ThemedView style={styles.dcFieldBlock}>
+                      <ThemedText style={[styles.sfLabel, getTextDirection()]}>{formatRTLText('تحديد الاحتياج')}</ThemedText>
                       <TextInput
                         style={[styles.sfTextInput, getTextDirection()]}
-                        value={entry.responsible}
-                        onChangeText={(v) => updateDifficultyEntry(entry.id, 'responsible', v)}
-                        placeholder={formatRTLText('المعلم')}
+                        value={entry.needType}
+                        onChangeText={(v) => updateDifficultyEntry(entry.id, 'needType', v)}
+                        placeholder={formatRTLText('مثال: ضعف فهم المفهوم')}
+                        placeholderTextColor="#999"
+                      />
+                    </ThemedView>
+                    <ThemedView style={styles.dcFieldBlock}>
+                      <ThemedText style={[styles.sfLabel, getTextDirection()]}>{formatRTLText('المهارة المستهدفة')}</ThemedText>
+                      <TextInput
+                        style={[styles.sfTextInput, getTextDirection()]}
+                        value={entry.skill}
+                        onChangeText={(v) => updateDifficultyEntry(entry.id, 'skill', v)}
+                        placeholder={formatRTLText('مثال: جدول الضرب')}
                         placeholderTextColor="#999"
                       />
                     </ThemedView>
@@ -1067,16 +1029,47 @@ export default function StudentTrackingScreen() {
                           compact={false}
                         />
                       )}
-                      <ThemedText style={[styles.sfLabel, getTextDirection()]}>{formatRTLText('الإجراء العلاجي المختصر')}</ThemedText>
+                      <ThemedText style={[styles.sfLabel, getTextDirection()]}>{formatRTLText('الإجراء (علاجي أو إثرائي)')}</ThemedText>
                     </ThemedView>
                     <TextInput
                       style={[styles.sfTextInput, styles.sfTextArea, getTextDirection()]}
                       value={entry.plan}
                       onChangeText={(v) => updateDifficultyEntry(entry.id, 'plan', v)}
-                      placeholder={formatRTLText('صف الإجراء العلاجي بإيجاز')}
+                      placeholder={formatRTLText('صف الإجراء العلاجي أو الإثرائي بإيجاز')}
                       placeholderTextColor="#999"
                       multiline
                     />
+                  </ThemedView>
+                  <ThemedView style={{ marginTop: 8 }}>
+                    <ThemedText style={[styles.sfLabel, getTextDirection()]}>{formatRTLText('الشواهد')}</ThemedText>
+                    {entry.evidenceUri ? (
+                      <ThemedView style={styles.dcEvidencePreview}>
+                        {entry.evidenceType === 'image' ? (
+                          <Image source={{ uri: entry.evidenceUri }} style={styles.dcEvidenceThumb} />
+                        ) : (
+                          <ThemedView style={styles.dcEvidenceFileIcon}>
+                            <IconSymbol size={20} name="doc.text" color="#6b7280" />
+                          </ThemedView>
+                        )}
+                        <ThemedText style={[styles.dcEvidenceName, getTextDirection()]} numberOfLines={1}>
+                          {formatRTLText(entry.evidenceName || '')}
+                        </ThemedText>
+                        <TouchableOpacity onPress={() => removeEntryEvidence(entry.id)}>
+                          <IconSymbol size={18} name="xmark.circle.fill" color="#dc2626" />
+                        </TouchableOpacity>
+                      </ThemedView>
+                    ) : (
+                      <ThemedView style={styles.dcEvidenceButtonsRow}>
+                        <TouchableOpacity style={styles.dcEvidenceButton} onPress={() => pickEntryEvidenceImage(entry.id)}>
+                          <IconSymbol size={16} name="photo" color="#1c1f33" />
+                          <ThemedText style={[styles.dcEvidenceButtonText, getTextDirection()]}>{formatRTLText('إرفاق صورة')}</ThemedText>
+                        </TouchableOpacity>
+                        <TouchableOpacity style={styles.dcEvidenceButton} onPress={() => pickEntryEvidenceFile(entry.id)}>
+                          <IconSymbol size={16} name="doc.badge.plus" color="#1c1f33" />
+                          <ThemedText style={[styles.dcEvidenceButtonText, getTextDirection()]}>{formatRTLText('إرفاق ملف')}</ThemedText>
+                        </TouchableOpacity>
+                      </ThemedView>
+                    )}
                   </ThemedView>
                 </ThemedView>
               ))
@@ -1387,10 +1380,7 @@ export default function StudentTrackingScreen() {
                         <ThemedText style={[styles.trackedHeaderCell, styles.trackedColGoal, getTextDirection()]}>{formatRTLText('الهدف')}</ThemedText>
                         <ThemedText style={[styles.trackedHeaderCell, styles.trackedColDate, getTextDirection()]}>{formatRTLText('تاريخ المتابعة')}</ThemedText>
                       </ThemedView>
-                      {trackedEntries.map((entry) => {
-                        const percent = parseFloat(entry.masteryPercent) || 0;
-                        const level = getPerformanceLevel(percent, parseFloat(difficultyCard.masteryCriteria) || 0);
-                        return (
+                      {trackedEntries.map((entry) => (
                           <ThemedView key={entry.id} style={styles.trackedDataRow}>
                             <ThemedText style={[styles.trackedCell, styles.trackedColName, getTextDirection()]} numberOfLines={2}>
                               {formatRTLText(entry.studentName)}
@@ -1398,11 +1388,9 @@ export default function StudentTrackingScreen() {
                             <ThemedText style={[styles.trackedCell, styles.trackedColDesc, getTextDirection()]} numberOfLines={2}>
                               {formatRTLText(entry.skill) || '-'}
                             </ThemedText>
-                            <ThemedView style={styles.trackedColNeed}>
-                              <ThemedView style={[styles.trackedNeedBadge, { backgroundColor: level.color }]}>
-                                <ThemedText style={styles.trackedNeedBadgeText}>{formatRTLText(level.label)}</ThemedText>
-                              </ThemedView>
-                            </ThemedView>
+                            <ThemedText style={[styles.trackedCell, styles.trackedColNeed, getTextDirection()]} numberOfLines={2}>
+                              {formatRTLText(entry.needType) || '-'}
+                            </ThemedText>
                             <ThemedText style={[styles.trackedCell, styles.trackedColGoal, getTextDirection()]} numberOfLines={3}>
                               {formatRTLText(entry.plan) || '-'}
                             </ThemedText>
@@ -1410,8 +1398,7 @@ export default function StudentTrackingScreen() {
                               {formatRTLText(entry.followUpDate) || '-'}
                             </ThemedText>
                           </ThemedView>
-                        );
-                      })}
+                      ))}
                     </ThemedView>
                   </ScrollView>
                 )}
@@ -1531,22 +1518,40 @@ const styles = StyleSheet.create({
   dcFieldRow: { flexDirection: 'row-reverse', flexWrap: 'wrap', gap: 12 },
   dcFieldBlock: { flex: 1, minWidth: 150 },
   dcFieldBlockSmall: { flex: 1, minWidth: 100 },
-  dcNeedsRow: { flexDirection: 'row', flexWrap: 'wrap', gap: 8 },
-  dcNeedBadge: {
+  dcEmptyHint: { fontSize: 13, color: '#9ca3af', textAlign: 'center', paddingVertical: 12 },
+  dcEvidenceButtonsRow: { flexDirection: 'row-reverse', gap: 10 },
+  dcEvidenceButton: {
     flexDirection: 'row-reverse',
     alignItems: 'center',
     gap: 6,
     paddingVertical: 8,
     paddingHorizontal: 12,
-    borderRadius: 20,
+    borderRadius: 8,
     backgroundColor: '#f3f4f6',
     borderWidth: 1,
     borderColor: '#d1d5db',
   },
-  dcNeedBadgeActive: { backgroundColor: TEAL, borderColor: TEAL },
-  dcNeedBadgeText: { fontSize: 12, fontWeight: '600', color: '#374151' },
-  dcNeedBadgeTextActive: { color: '#fff' },
-  dcEmptyHint: { fontSize: 13, color: '#9ca3af', textAlign: 'center', paddingVertical: 12 },
+  dcEvidenceButtonText: { fontSize: 12, fontWeight: '600', color: '#1c1f33' },
+  dcEvidencePreview: {
+    flexDirection: 'row-reverse',
+    alignItems: 'center',
+    gap: 8,
+    padding: 8,
+    borderRadius: 8,
+    backgroundColor: '#f9fafb',
+    borderWidth: 1,
+    borderColor: '#e5e7eb',
+  },
+  dcEvidenceThumb: { width: 40, height: 40, borderRadius: 6 },
+  dcEvidenceFileIcon: {
+    width: 40,
+    height: 40,
+    borderRadius: 6,
+    backgroundColor: '#f3f4f6',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  dcEvidenceName: { flex: 1, fontSize: 12, color: '#374151' },
   dcSummaryRow: { flexDirection: 'row-reverse', flexWrap: 'wrap', gap: 10 },
   dcSummaryBox: {
     flex: 1,
@@ -1640,19 +1645,9 @@ const styles = StyleSheet.create({
   },
   trackedColName: { width: 130, fontWeight: '600' },
   trackedColDesc: { width: 150 },
-  trackedColNeed: { width: 110, alignItems: 'center', paddingVertical: 6 },
+  trackedColNeed: { width: 110 },
   trackedColGoal: { width: 170 },
   trackedColDate: { width: 90 },
-  trackedNeedBadge: {
-    borderRadius: 12,
-    paddingVertical: 4,
-    paddingHorizontal: 10,
-  },
-  trackedNeedBadgeText: {
-    fontSize: 11,
-    fontWeight: '700',
-    color: '#fff',
-  },
   scrollContainer: {
     flex: 1,
   },
