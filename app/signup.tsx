@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { StyleSheet, TouchableOpacity, ImageBackground, KeyboardAvoidingView, ScrollView, Platform, StatusBar, TextInput, Linking } from 'react-native';
 
 import { ThemedText } from '@/components/ThemedText';
@@ -11,6 +11,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import { getTextDirection, formatRTLText } from '@/utils/rtl-utils';
 import { useAppAlert } from '@/contexts/AppAlertContext';
 import { shouldShowInstallPrompt, promptInstall, isIOSWeb } from '@/utils/pwa-install';
+import { isDemoModeActive, exitDemoMode } from '@/services/DemoModeGuard';
 
 export default function SignupScreen() {
   const router = useRouter();
@@ -25,6 +26,15 @@ export default function SignupScreen() {
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [acceptTerms, setAcceptTerms] = useState(false);
   const [termsError, setTermsError] = useState('');
+
+  useEffect(() => {
+    // نفس منطق app/login.tsx: أي وصول لصفحة إنشاء حساب حقيقي يُنهي وضع
+    // العرض التجريبي فورًا، حتى لو وصل المستخدم هنا بطريقة أخرى غير زر
+    // "الخروج" الصريح في شريط الوضع التجريبي.
+    if (isDemoModeActive()) {
+      exitDemoMode();
+    }
+  }, []);
 
   const validateForm = () => {
     if (!fullName.trim()) {
