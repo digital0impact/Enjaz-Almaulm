@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import {
   ScrollView,
   TouchableOpacity,
@@ -133,6 +133,15 @@ const escapeHtml = (s: string) =>
 export default function StudentTrackingScreen() {
   const router = useRouter();
   const [refreshing, setRefreshing] = useState(false);
+  /**
+   * جدول "قائمة المتعلمين" أعرض من الشاشة فيُعرض داخل ScrollView أفقي.
+   * إحداثيات التمرير في React Native تبقى من اليسار لليمين دائمًا (x=0
+   * يسار) بصرف النظر عن flexDirection: 'row-reverse' المستخدم لترتيب
+   * الأعمدة بصريًا، لذا يبدأ العرض افتراضيًا من الحافة اليسرى (آخر عمود:
+   * الشواهد) لا اليمنى (اسم المتعلم) — خصوصًا ملحوظ على أندرويد. نمرّر
+   * الجدول تلقائيًا إلى أقصى اليمين عند كل تغيّر في حجم محتواه.
+   */
+  const trackedTableScrollRef = useRef<ScrollView>(null);
 
   // بطاقة متابعة متعلم ( الخطط العلاجية والاثرائية )
   const [difficultyCardVisible, setDifficultyCardVisible] = useState(false);
@@ -1277,7 +1286,12 @@ export default function StudentTrackingScreen() {
                     </ThemedText>
                   </ThemedView>
                 ) : (
-                  <ScrollView horizontal showsHorizontalScrollIndicator={false}>
+                  <ScrollView
+                    ref={trackedTableScrollRef}
+                    horizontal
+                    showsHorizontalScrollIndicator={false}
+                    onContentSizeChange={() => trackedTableScrollRef.current?.scrollToEnd({ animated: false })}
+                  >
                     <ThemedView style={styles.trackedTable}>
                       <ThemedView style={styles.trackedHeaderRow}>
                         <ThemedText style={[styles.trackedHeaderCell, styles.trackedColName, getTextDirection()]}>{formatRTLText('اسم المتعلم')}</ThemedText>
