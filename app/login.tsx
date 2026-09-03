@@ -10,6 +10,7 @@ import AuthService from '@/services/AuthService';
 import DatabaseService from '@/services/DatabaseService';
 import { supabase, isSupabaseConfigured } from '@/config/supabase';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { isDemoModeActive, exitDemoMode } from '@/services/DemoModeGuard';
 import { rtlStyles } from '@/styles/rtl-styles';
 import { 
   getRTLTextStyle, 
@@ -29,7 +30,17 @@ export default function LoginScreen() {
   const [passwordError, setPasswordError] = useState('');
 
   useEffect(() => {
-    loadSavedCredentials();
+    (async () => {
+      // أي وصول لصفحة تسجيل الدخول الحقيقي يُنهي وضع العرض التجريبي فورًا،
+      // حتى لو وصل المستخدم هنا بطريقة أخرى غير زر "الخروج" الصريح في شريط
+      // الوضع التجريبي (كالرجوع للخلف) — وإلا تبقى كل قراءات/كتابات
+      // AsyncStorage اللاحقة (بما فيها بيانات الدخول المحفوظة أدناه) تمر عبر
+      // ذاكرة العرض التجريبي المؤقتة بدل التخزين الحقيقي على الجهاز.
+      if (isDemoModeActive()) {
+        await exitDemoMode();
+      }
+      await loadSavedCredentials();
+    })();
   }, []);
 
   const loadSavedCredentials = async () => {
