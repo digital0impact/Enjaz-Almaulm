@@ -1280,28 +1280,32 @@ export default function StudentTrackingScreen() {
                   <ScrollView horizontal showsHorizontalScrollIndicator={false}>
                     <ThemedView style={styles.trackedTable}>
                       <ThemedView style={styles.trackedHeaderRow}>
-                        <ThemedText style={[styles.trackedHeaderCell, styles.trackedColName, getTextDirection()]}>{formatRTLText('اسم الطالب')}</ThemedText>
-                        <ThemedText style={[styles.trackedHeaderCell, styles.trackedColDesc, getTextDirection()]}>{formatRTLText('الوصف')}</ThemedText>
-                        <ThemedText style={[styles.trackedHeaderCell, styles.trackedColNeed, getTextDirection()]}>{formatRTLText('نوع الاحتياج')}</ThemedText>
+                        <ThemedText style={[styles.trackedHeaderCell, styles.trackedColName, getTextDirection()]}>{formatRTLText('اسم المتعلم')}</ThemedText>
+                        <ThemedText style={[styles.trackedHeaderCell, styles.trackedColGrade, getTextDirection()]}>{formatRTLText('الصف')}</ThemedText>
+                        <ThemedText style={[styles.trackedHeaderCell, styles.trackedColDesc, getTextDirection()]}>{formatRTLText('المهارة')}</ThemedText>
                         <ThemedText style={[styles.trackedHeaderCell, styles.trackedColGoal, getTextDirection()]}>{formatRTLText('الهدف')}</ThemedText>
-                        <ThemedText style={[styles.trackedHeaderCell, styles.trackedColDate, getTextDirection()]}>{formatRTLText('تاريخ المتابعة')}</ThemedText>
+                        <ThemedText style={[styles.trackedHeaderCell, styles.trackedColNeed, getTextDirection()]}>{formatRTLText('الإجراء')}</ThemedText>
+                        <ThemedText style={[styles.trackedHeaderCell, styles.trackedColEvidence, getTextDirection()]}>{formatRTLText('الشواهد')}</ThemedText>
                       </ThemedView>
                       {trackedEntries.map((entry) => (
                           <ThemedView key={entry.id} style={styles.trackedDataRow}>
                             <ThemedText style={[styles.trackedCell, styles.trackedColName, getTextDirection()]} numberOfLines={2}>
                               {formatRTLText(entry.studentName)}
                             </ThemedText>
+                            <ThemedText style={[styles.trackedCell, styles.trackedColGrade, getTextDirection()]} numberOfLines={2}>
+                              {formatRTLText(entry.grade) || '-'}
+                            </ThemedText>
                             <ThemedText style={[styles.trackedCell, styles.trackedColDesc, getTextDirection()]} numberOfLines={2}>
                               {formatRTLText(entry.skill) || '-'}
-                            </ThemedText>
-                            <ThemedText style={[styles.trackedCell, styles.trackedColNeed, getTextDirection()]} numberOfLines={2}>
-                              {formatRTLText(entry.needType) || '-'}
                             </ThemedText>
                             <ThemedText style={[styles.trackedCell, styles.trackedColGoal, getTextDirection()]} numberOfLines={3}>
                               {formatRTLText(entry.plan) || '-'}
                             </ThemedText>
-                            <ThemedText style={[styles.trackedCell, styles.trackedColDate, getTextDirection()]}>
-                              {formatRTLText(entry.followUpDate) || '-'}
+                            <ThemedText style={[styles.trackedCell, styles.trackedColNeed, getTextDirection()]} numberOfLines={2}>
+                              {formatRTLText(entry.needType) || '-'}
+                            </ThemedText>
+                            <ThemedText style={[styles.trackedCell, styles.trackedColEvidence, getTextDirection()]} numberOfLines={2}>
+                              {entry.evidenceName ? formatRTLText(`📎 ${entry.evidenceName}`) : '-'}
                             </ThemedText>
                           </ThemedView>
                       ))}
@@ -1534,7 +1538,7 @@ const styles = StyleSheet.create({
   pageSectionHeaderRow: { flexDirection: 'row-reverse', justifyContent: 'space-between', alignItems: 'center' },
   pageSectionTitle: { fontSize: 16, fontWeight: '700', color: '#fff' },
   studentsListInner: { padding: 12, gap: 12 },
-  trackedTable: { minWidth: 620 },
+  trackedTable: { minWidth: 780 },
   trackedHeaderRow: {
     flexDirection: 'row-reverse',
     backgroundColor: '#f0f2f5',
@@ -1562,10 +1566,11 @@ const styles = StyleSheet.create({
     paddingHorizontal: 8,
   },
   trackedColName: { width: 130, fontWeight: '600' },
+  trackedColGrade: { width: 90 },
   trackedColDesc: { width: 150 },
-  trackedColNeed: { width: 110 },
   trackedColGoal: { width: 170 },
-  trackedColDate: { width: 90 },
+  trackedColNeed: { width: 90 },
+  trackedColEvidence: { width: 140 },
   scrollContainer: {
     flex: 1,
   },
