@@ -29,6 +29,7 @@ import { BottomNavigationBar } from '@/components/BottomNavigationBar';
 import { AIAssistButton } from '@/components/AIAssistButton';
 import AuthService from '@/services/AuthService';
 import { SubscriptionService } from '@/services/SubscriptionService';
+import { isDemoModeActive } from '@/services/DemoModeGuard';
 import { getTextDirection, formatRTLText } from '@/utils/rtl-utils';
 
 const TEAL = '#0d9488';
@@ -1824,7 +1825,18 @@ export default function StudentTrackingScreen() {
                     </ThemedView>
                   </ThemedView>
                   <ThemedView style={{ marginTop: 8 }}>
-                    <ThemedText style={[styles.sfLabel, getTextDirection()]}>{formatRTLText('الإجراء العلاجي المختصر')}</ThemedText>
+                    <ThemedView style={styles.sfLabelRow}>
+                      {!isDemoModeActive() && (
+                        <AIAssistButton
+                          type="student_tracking_plan"
+                          currentText={entry.plan}
+                          onApply={(text) => updateDifficultyEntry(entry.id, 'plan', text)}
+                          label={formatRTLText('اقتراح بالذكاء الاصطناعي')}
+                          compact={false}
+                        />
+                      )}
+                      <ThemedText style={[styles.sfLabel, getTextDirection()]}>{formatRTLText('الإجراء العلاجي المختصر')}</ThemedText>
+                    </ThemedView>
                     <TextInput
                       style={[styles.sfTextInput, styles.sfTextArea, getTextDirection()]}
                       value={entry.plan}
