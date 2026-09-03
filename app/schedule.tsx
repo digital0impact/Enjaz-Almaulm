@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { StyleSheet, ScrollView, TouchableOpacity, I18nManager, ImageBackground, Dimensions, TextInput, Platform, Modal } from 'react-native';
 import { AlertService } from '@/services/AlertService';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -29,6 +29,10 @@ export default function ScheduleScreen() {
   const router = useRouter();
   const insets = useSafeAreaInsets();
   const [schedule, setSchedule] = useState<ScheduleEntry[]>([]);
+  /** يبدأ ScrollView الأفقي دائمًا من الحافة اليسرى (إحداثيات x=0) بصرف
+   * النظر عن ترتيب الأعمدة RTL بصريًا، فيلزم تمريره لأقصى اليمين يدويًا
+   * ليبدأ العرض من عمود "اليوم" كما هو متوقع — ملحوظ خصوصًا على أندرويد. */
+  const weeklyTableScrollRef = useRef<ScrollView>(null);
   const [currentWeek, setCurrentWeek] = useState('');
   const [selectedDay, setSelectedDay] = useState('الأحد');
   const [showAddForm, setShowAddForm] = useState(false);
@@ -337,7 +341,13 @@ export default function ScheduleScreen() {
               <ThemedText style={styles.scheduleTitle}>الجدول الأسبوعي الشامل</ThemedText>
             </ThemedView>
 
-            <ScrollView horizontal showsHorizontalScrollIndicator={true} style={styles.horizontalScroll}>
+            <ScrollView
+              ref={weeklyTableScrollRef}
+              horizontal
+              showsHorizontalScrollIndicator={true}
+              style={styles.horizontalScroll}
+              onContentSizeChange={() => weeklyTableScrollRef.current?.scrollToEnd({ animated: false })}
+            >
               <ThemedView style={[styles.weeklyTable, { direction: 'rtl' }]}>
                 {/* رأس الجدول - الحصص */}
                 <ThemedView style={styles.tableHeader}>

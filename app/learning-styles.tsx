@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useState } from 'react';
+import React, { useCallback, useEffect, useRef, useState } from 'react';
 import {
   StyleSheet,
   ScrollView,
@@ -54,6 +54,11 @@ export default function LearningStylesScreen() {
   const [loadingTests, setLoadingTests] = useState(true);
 
   const [selectedToken, setSelectedToken] = useState<string | null>(null);
+  /** يبدأ ScrollView الأفقي دائمًا من الحافة اليسرى (إحداثيات x=0) بصرف
+   * النظر عن ترتيب الأعمدة RTL بصريًا، فيلزم تمريره لأقصى اليمين يدويًا
+   * ليبدأ العرض من عمود "الصف" كما هو متوقع — ملحوظ خصوصًا على أندرويد.
+   * جدول واحد فقط يظهر في كل لحظة (نتائج الاختبار المحدد)، فمرجع واحد يكفي. */
+  const resultsTableScrollRef = useRef<ScrollView>(null);
   const [responses, setResponses] = useState<VarkResponseRow[]>([]);
   const [loadingResponses, setLoadingResponses] = useState(false);
 
@@ -418,7 +423,12 @@ export default function LearningStylesScreen() {
                           {formatRTLText('مشاركة النتائج')}
                         </ThemedText>
                       </TouchableOpacity>
-                      <ScrollView horizontal showsHorizontalScrollIndicator={false}>
+                      <ScrollView
+                        ref={resultsTableScrollRef}
+                        horizontal
+                        showsHorizontalScrollIndicator={false}
+                        onContentSizeChange={() => resultsTableScrollRef.current?.scrollToEnd({ animated: false })}
+                      >
                         <ThemedView style={styles.resultsTable}>
                           <ThemedView style={styles.resultsHeaderRow}>
                             <ThemedText style={[styles.resultsHeaderCell, styles.resultsColClass]}>

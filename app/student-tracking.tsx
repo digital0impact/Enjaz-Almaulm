@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import {
   ScrollView,
   TouchableOpacity,
@@ -26,10 +26,8 @@ import * as FileSystem from 'expo-file-system';
 import * as Print from 'expo-print';
 import * as Sharing from 'expo-sharing';
 import { BottomNavigationBar } from '@/components/BottomNavigationBar';
-import { AIAssistButton } from '@/components/AIAssistButton';
 import AuthService from '@/services/AuthService';
 import { SubscriptionService } from '@/services/SubscriptionService';
-import { isDemoModeActive } from '@/services/DemoModeGuard';
 import { getTextDirection, formatRTLText } from '@/utils/rtl-utils';
 
 const TEAL = '#0d9488';
@@ -37,6 +35,12 @@ const TEAL_LIGHT = '#14b8a6';
 const TEAL_DARK = '#0b4f47';
 
 /** ===== بطاقة متابعة متعلم ( الخطط العلاجية والاثرائية ) ===== */
+
+/** خيارات "تحديد الاحتياج" — علاجي أو إثرائي فقط */
+const NEED_TYPE_OPTIONS = ['علاجي', 'إثرائي'] as const;
+
+/** خيارات "أداة القياس" — اختبار أو ملاحظة أو أخرى (نص حر يكتبه المعلم) */
+const MEASUREMENT_TOOL_OPTIONS = ['اختبار', 'ملاحظة', 'أخرى'] as const;
 
 type DifficultyEntry = {
   id: string;
@@ -48,17 +52,11 @@ type DifficultyEntry = {
   needType: string;
   skill: string;
   plan: string;
+  measurementTool: string;
+  measurementToolOther: string;
   evidenceUri?: string;
   evidenceName?: string;
   evidenceType?: 'image' | 'file';
-};
-
-type SkillPlan = {
-  objective: string;
-  strategy: string;
-  resources: string;
-  duration: string;
-  measurementTool: string;
 };
 
 type DifficultyCard = {
@@ -69,7 +67,6 @@ type DifficultyCard = {
   deputyName: string;
   teacherName: string;
   entries: DifficultyEntry[];
-  skillPlans: Record<string, SkillPlan>;
   highlightAchieved: string;
   stillNeedsSupport: string;
   nextAction: string;
@@ -86,6 +83,8 @@ const EMPTY_DIFFICULTY_ENTRY = (): DifficultyEntry => ({
   needType: '',
   skill: '',
   plan: '',
+  measurementTool: '',
+  measurementToolOther: '',
 });
 
 const EMPTY_DIFFICULTY_CARD: DifficultyCard = {
@@ -96,12 +95,15 @@ const EMPTY_DIFFICULTY_CARD: DifficultyCard = {
   deputyName: '',
   teacherName: '',
   entries: [],
-  skillPlans: {},
   highlightAchieved: '',
   stillNeedsSupport: '',
   nextAction: '',
   reviewDate: '',
 };
+
+/** القيمة المعروضة/المصدَّرة لأداة القياس (النص الحر عند اختيار "أخرى") */
+const getMeasurementToolDisplay = (entry: DifficultyEntry): string =>
+  entry.measurementTool === 'أخرى' ? entry.measurementToolOther.trim() : entry.measurementTool;
 
 /** يحدد مستوى الأداء بمقارنة نسبة الإتقان بمعيار الإتقان المعتمد */
 const getPerformanceLevel = (percent: number, criteria: number): { label: string; color: string } => {
@@ -131,6 +133,15 @@ const escapeHtml = (s: string) =>
 export default function StudentTrackingScreen() {
   const router = useRouter();
   const [refreshing, setRefreshing] = useState(false);
+  /**
+   * جدول "قائمة المتعلمين" أعرض من الشاشة فيُعرض داخل ScrollView أفقي.
+   * إحداثيات التمرير في React Native تبقى من اليسار لليمين دائمًا (x=0
+   * يسار) بصرف النظر عن flexDirection: 'row-reverse' المستخدم لترتيب
+   * الأعمدة بصريًا، لذا يبدأ العرض افتراضيًا من الحافة اليسرى (آخر عمود:
+   * الشواهد) لا اليمنى (اسم المتعلم) — خصوصًا ملحوظ على أندرويد. نمرّر
+   * الجدول تلقائيًا إلى أقصى اليمين عند كل تغيّر في حجم محتواه.
+   */
+  const trackedTableScrollRef = useRef<ScrollView>(null);
 
   // بطاقة متابعة متعلم ( الخطط العلاجية والاثرائية )
   const [difficultyCardVisible, setDifficultyCardVisible] = useState(false);
@@ -260,16 +271,6 @@ export default function StudentTrackingScreen() {
     }
   };
 
-  const updateSkillPlanField = (skill: string, field: keyof SkillPlan, value: string) => {
-    setDifficultyCard((prev) => ({
-      ...prev,
-      skillPlans: {
-        ...prev.skillPlans,
-        [skill]: { ...(prev.skillPlans[skill] || { objective: '', strategy: '', resources: '', duration: '', measurementTool: '' }), [field]: value },
-      },
-    }));
-  };
-
   /** يحسب ملخص النتائج (عدد الطلاب، توزيعهم على مستويات الأداء، وأفضل/أكثر المهارات احتياجاً) من صفوف جدول المتابعة */
   const computeDifficultySummary = (card: DifficultyCard) => {
     const criteria = parseFloat(card.masteryCriteria) || 0;
@@ -296,9 +297,7 @@ export default function StudentTrackingScreen() {
     const bestSkill = skillEntries.length > 0 ? skillEntries.reduce((a, b) => (b.avg > a.avg ? b : a)).skill : '';
     const mostNeededSkill = skillEntries.length > 0 ? skillEntries.reduce((a, b) => (b.avg < a.avg ? b : a)).skill : '';
 
-    const uniqueSkills = Object.keys(skillAverages);
-
-    return { count, mastered, close, needsSupport, bestSkill, mostNeededSkill, criteria, validEntries, uniqueSkills };
+    return { count, mastered, close, needsSupport, bestSkill, mostNeededSkill, criteria, validEntries };
   };
 
   const checkCanExportDifficulty = async (): Promise<boolean> => {
@@ -375,22 +374,8 @@ export default function StudentTrackingScreen() {
           <td>${escapeHtml(e.needType) || '-'}</td>
           <td>${escapeHtml(e.skill)}</td>
           <td>${escapeHtml(e.plan) || '-'}</td>
+          <td>${escapeHtml(getMeasurementToolDisplay(e)) || '-'}</td>
           <td>${evidenceCell}</td>
-        </tr>`;
-      })
-      .join('');
-
-    const skillPlanRowsHtml = summary.uniqueSkills
-      .map((skill) => {
-        const plan = card.skillPlans[skill] || { objective: '', strategy: '', resources: '', duration: '', measurementTool: '' };
-        return `<tr>
-          <td>${escapeHtml(skill)}</td>
-          <td>${escapeHtml(plan.objective)}</td>
-          <td>${escapeHtml(plan.strategy)}</td>
-          <td>${escapeHtml(plan.resources)}</td>
-          <td>${escapeHtml(plan.duration)}</td>
-          <td>${escapeHtml(plan.measurementTool)}</td>
-          <td>%${escapeHtml(card.masteryCriteria)}</td>
         </tr>`;
       })
       .join('');
@@ -496,16 +481,8 @@ export default function StudentTrackingScreen() {
   <div class="card">
     <div class="card-heading">جدول المتابعة</div>
     <table>
-      <tr><th>م</th><th>اسم المتعلم</th><th>الصف</th><th>الإتقان قبل</th><th>الإتقان بعد</th><th>تاريخ المتابعة</th><th>تحديد الاحتياج</th><th>المهارة المستهدفة</th><th>الإجراء</th><th>الشواهد</th></tr>
-      ${followUpRowsHtml || '<tr><td colspan="10" class="empty-hint">لا توجد بيانات مضافة</td></tr>'}
-    </table>
-  </div>
-
-  <div class="card">
-    <div class="card-heading">الخطة العلاجية</div>
-    <table>
-      <tr><th>المهارة المستهدفة</th><th>الهدف</th><th>الاستراتيجية العلاجية</th><th>الموارد</th><th>المدة الزمنية</th><th>أداة القياس</th><th>معيار الإتقان</th></tr>
-      ${skillPlanRowsHtml || '<tr><td colspan="7" class="empty-hint">لا توجد بيانات مضافة</td></tr>'}
+      <tr><th>م</th><th>اسم المتعلم</th><th>الصف</th><th>الإتقان قبل</th><th>الإتقان بعد</th><th>تاريخ المتابعة</th><th>تحديد الاحتياج</th><th>المهارة المستهدفة</th><th>الإجراء</th><th>أداة القياس</th><th>الشواهد</th></tr>
+      ${followUpRowsHtml || '<tr><td colspan="11" class="empty-hint">لا توجد بيانات مضافة</td></tr>'}
     </table>
   </div>
 
@@ -587,22 +564,8 @@ export default function StudentTrackingScreen() {
           <td>${escapeHtml(e.needType) || '-'}</td>
           <td>${escapeHtml(e.skill)}</td>
           <td>${escapeHtml(e.plan) || '-'}</td>
+          <td>${escapeHtml(getMeasurementToolDisplay(e)) || '-'}</td>
           <td>${evidenceCell}</td>
-        </tr>`;
-      })
-      .join('');
-
-    const skillPlanRowsHtml = summary.uniqueSkills
-      .map((skill) => {
-        const plan = card.skillPlans[skill] || { objective: '', strategy: '', resources: '', duration: '', measurementTool: '' };
-        return `<tr>
-          <td>${escapeHtml(skill)}</td>
-          <td>${escapeHtml(plan.objective)}</td>
-          <td>${escapeHtml(plan.strategy)}</td>
-          <td>${escapeHtml(plan.resources)}</td>
-          <td>${escapeHtml(plan.duration)}</td>
-          <td>${escapeHtml(plan.measurementTool)}</td>
-          <td>%${escapeHtml(card.masteryCriteria)}</td>
         </tr>`;
       })
       .join('');
@@ -697,16 +660,8 @@ export default function StudentTrackingScreen() {
   <div class="card">
     <div class="card-heading">جدول المتابعة</div>
     <table class="difficulty-table">
-      <tr><th>م</th><th>اسم المتعلم</th><th>الصف</th><th>الإتقان قبل</th><th>الإتقان بعد</th><th>تاريخ المتابعة</th><th>تحديد الاحتياج</th><th>المهارة المستهدفة</th><th>الإجراء</th><th>الشواهد</th></tr>
-      ${followUpRowsHtml || '<tr><td colspan="10" class="empty-hint">لا توجد بيانات مضافة</td></tr>'}
-    </table>
-  </div>
-
-  <div class="card">
-    <div class="card-heading">الخطة العلاجية</div>
-    <table class="difficulty-table">
-      <tr><th>المهارة المستهدفة</th><th>الهدف</th><th>الاستراتيجية العلاجية</th><th>الموارد</th><th>المدة الزمنية</th><th>أداة القياس</th><th>معيار الإتقان</th></tr>
-      ${skillPlanRowsHtml || '<tr><td colspan="7" class="empty-hint">لا توجد بيانات مضافة</td></tr>'}
+      <tr><th>م</th><th>اسم المتعلم</th><th>الصف</th><th>الإتقان قبل</th><th>الإتقان بعد</th><th>تاريخ المتابعة</th><th>تحديد الاحتياج</th><th>المهارة المستهدفة</th><th>الإجراء</th><th>أداة القياس</th><th>الشواهد</th></tr>
+      ${followUpRowsHtml || '<tr><td colspan="11" class="empty-hint">لا توجد بيانات مضافة</td></tr>'}
     </table>
   </div>
 
@@ -999,13 +954,22 @@ export default function StudentTrackingScreen() {
                     </ThemedView>
                     <ThemedView style={styles.dcFieldBlock}>
                       <ThemedText style={[styles.sfLabel, getTextDirection()]}>{formatRTLText('تحديد الاحتياج')}</ThemedText>
-                      <TextInput
-                        style={[styles.sfTextInput, getTextDirection()]}
-                        value={entry.needType}
-                        onChangeText={(v) => updateDifficultyEntry(entry.id, 'needType', v)}
-                        placeholder={formatRTLText('مثال: ضعف فهم المفهوم')}
-                        placeholderTextColor="#999"
-                      />
+                      <ThemedView style={styles.dcChipRow}>
+                        {NEED_TYPE_OPTIONS.map((option) => {
+                          const active = entry.needType === option;
+                          return (
+                            <TouchableOpacity
+                              key={option}
+                              style={[styles.dcChip, active && styles.dcChipActive]}
+                              onPress={() => updateDifficultyEntry(entry.id, 'needType', option)}
+                            >
+                              <ThemedText style={[styles.dcChipText, active && styles.dcChipTextActive, getTextDirection()]}>
+                                {formatRTLText(option)}
+                              </ThemedText>
+                            </TouchableOpacity>
+                          );
+                        })}
+                      </ThemedView>
                     </ThemedView>
                     <ThemedView style={styles.dcFieldBlock}>
                       <ThemedText style={[styles.sfLabel, getTextDirection()]}>{formatRTLText('المهارة المستهدفة')}</ThemedText>
@@ -1019,18 +983,7 @@ export default function StudentTrackingScreen() {
                     </ThemedView>
                   </ThemedView>
                   <ThemedView style={{ marginTop: 8 }}>
-                    <ThemedView style={styles.sfLabelRow}>
-                      {!isDemoModeActive() && (
-                        <AIAssistButton
-                          type="student_tracking_plan"
-                          currentText={entry.plan}
-                          onApply={(text) => updateDifficultyEntry(entry.id, 'plan', text)}
-                          label={formatRTLText('اقتراح بالذكاء الاصطناعي')}
-                          compact={false}
-                        />
-                      )}
-                      <ThemedText style={[styles.sfLabel, getTextDirection()]}>{formatRTLText('الإجراء (علاجي أو إثرائي)')}</ThemedText>
-                    </ThemedView>
+                    <ThemedText style={[styles.sfLabel, getTextDirection()]}>{formatRTLText('الإجراء')}</ThemedText>
                     <TextInput
                       style={[styles.sfTextInput, styles.sfTextArea, getTextDirection()]}
                       value={entry.plan}
@@ -1039,6 +992,34 @@ export default function StudentTrackingScreen() {
                       placeholderTextColor="#999"
                       multiline
                     />
+                  </ThemedView>
+                  <ThemedView style={{ marginTop: 8 }}>
+                    <ThemedText style={[styles.sfLabel, getTextDirection()]}>{formatRTLText('أداة القياس')}</ThemedText>
+                    <ThemedView style={styles.dcChipRow}>
+                      {MEASUREMENT_TOOL_OPTIONS.map((option) => {
+                        const active = entry.measurementTool === option;
+                        return (
+                          <TouchableOpacity
+                            key={option}
+                            style={[styles.dcChip, active && styles.dcChipActive]}
+                            onPress={() => updateDifficultyEntry(entry.id, 'measurementTool', option)}
+                          >
+                            <ThemedText style={[styles.dcChipText, active && styles.dcChipTextActive, getTextDirection()]}>
+                              {formatRTLText(option)}
+                            </ThemedText>
+                          </TouchableOpacity>
+                        );
+                      })}
+                    </ThemedView>
+                    {entry.measurementTool === 'أخرى' && (
+                      <TextInput
+                        style={[styles.sfTextInput, { marginTop: 8 }, getTextDirection()]}
+                        value={entry.measurementToolOther}
+                        onChangeText={(v) => updateDifficultyEntry(entry.id, 'measurementToolOther', v)}
+                        placeholder={formatRTLText('اكتب أداة القياس')}
+                        placeholderTextColor="#999"
+                      />
+                    )}
                   </ThemedView>
                   <ThemedView style={{ marginTop: 8 }}>
                     <ThemedText style={[styles.sfLabel, getTextDirection()]}>{formatRTLText('الشواهد')}</ThemedText>
@@ -1111,72 +1092,6 @@ export default function StudentTrackingScreen() {
                   ) : null}
                 </ThemedView>
               ) : null}
-            </ThemedView>
-          )}
-
-          {summary.uniqueSkills.length > 0 && (
-            <ThemedView style={styles.sfSectionContainer}>
-              <ThemedText style={[styles.sfSectionTitle, getTextDirection()]}>{formatRTLText('الخطة العلاجية لكل مهارة')}</ThemedText>
-              {summary.uniqueSkills.map((skill) => {
-                const plan = difficultyCard.skillPlans[skill] || { objective: '', strategy: '', resources: '', duration: '', measurementTool: '' };
-                return (
-                  <ThemedView key={skill} style={styles.sfFormCard}>
-                    <ThemedText style={[styles.sfItemTitle, getTextDirection()]}>{formatRTLText(skill)}</ThemedText>
-                    <ThemedView style={{ marginTop: 8 }}>
-                      <ThemedText style={[styles.sfLabel, getTextDirection()]}>{formatRTLText('الهدف الإجرائي')}</ThemedText>
-                      <TextInput
-                        style={[styles.sfTextInput, getTextDirection()]}
-                        value={plan.objective}
-                        onChangeText={(v) => updateSkillPlanField(skill, 'objective', v)}
-                        placeholder={formatRTLText('مثال: أن يتقن المتعلم...')}
-                        placeholderTextColor="#999"
-                      />
-                    </ThemedView>
-                    <ThemedView style={{ marginTop: 8 }}>
-                      <ThemedText style={[styles.sfLabel, getTextDirection()]}>{formatRTLText('الاستراتيجية العلاجية')}</ThemedText>
-                      <TextInput
-                        style={[styles.sfTextInput, getTextDirection()]}
-                        value={plan.strategy}
-                        onChangeText={(v) => updateSkillPlanField(skill, 'strategy', v)}
-                        placeholder={formatRTLText('مثال: التعلم باللعب')}
-                        placeholderTextColor="#999"
-                      />
-                    </ThemedView>
-                    <ThemedView style={styles.dcFieldRow}>
-                      <ThemedView style={styles.dcFieldBlock}>
-                        <ThemedText style={[styles.sfLabel, getTextDirection()]}>{formatRTLText('الوسائل والموارد')}</ThemedText>
-                        <TextInput
-                          style={[styles.sfTextInput, getTextDirection()]}
-                          value={plan.resources}
-                          onChangeText={(v) => updateSkillPlanField(skill, 'resources', v)}
-                          placeholder={formatRTLText('بطاقات، سبورة...')}
-                          placeholderTextColor="#999"
-                        />
-                      </ThemedView>
-                      <ThemedView style={styles.dcFieldBlockSmall}>
-                        <ThemedText style={[styles.sfLabel, getTextDirection()]}>{formatRTLText('المدة')}</ThemedText>
-                        <TextInput
-                          style={[styles.sfTextInput, getTextDirection()]}
-                          value={plan.duration}
-                          onChangeText={(v) => updateSkillPlanField(skill, 'duration', v)}
-                          placeholder={formatRTLText('أسبوعان')}
-                          placeholderTextColor="#999"
-                        />
-                      </ThemedView>
-                      <ThemedView style={styles.dcFieldBlock}>
-                        <ThemedText style={[styles.sfLabel, getTextDirection()]}>{formatRTLText('أداة القياس')}</ThemedText>
-                        <TextInput
-                          style={[styles.sfTextInput, getTextDirection()]}
-                          value={plan.measurementTool}
-                          onChangeText={(v) => updateSkillPlanField(skill, 'measurementTool', v)}
-                          placeholder={formatRTLText('اختبار قصير')}
-                          placeholderTextColor="#999"
-                        />
-                      </ThemedView>
-                    </ThemedView>
-                  </ThemedView>
-                );
-              })}
             </ThemedView>
           )}
 
@@ -1371,31 +1286,40 @@ export default function StudentTrackingScreen() {
                     </ThemedText>
                   </ThemedView>
                 ) : (
-                  <ScrollView horizontal showsHorizontalScrollIndicator={false}>
+                  <ScrollView
+                    ref={trackedTableScrollRef}
+                    horizontal
+                    showsHorizontalScrollIndicator={false}
+                    onContentSizeChange={() => trackedTableScrollRef.current?.scrollToEnd({ animated: false })}
+                  >
                     <ThemedView style={styles.trackedTable}>
                       <ThemedView style={styles.trackedHeaderRow}>
-                        <ThemedText style={[styles.trackedHeaderCell, styles.trackedColName, getTextDirection()]}>{formatRTLText('اسم الطالب')}</ThemedText>
-                        <ThemedText style={[styles.trackedHeaderCell, styles.trackedColDesc, getTextDirection()]}>{formatRTLText('الوصف')}</ThemedText>
-                        <ThemedText style={[styles.trackedHeaderCell, styles.trackedColNeed, getTextDirection()]}>{formatRTLText('نوع الاحتياج')}</ThemedText>
+                        <ThemedText style={[styles.trackedHeaderCell, styles.trackedColName, getTextDirection()]}>{formatRTLText('اسم المتعلم')}</ThemedText>
+                        <ThemedText style={[styles.trackedHeaderCell, styles.trackedColGrade, getTextDirection()]}>{formatRTLText('الصف')}</ThemedText>
+                        <ThemedText style={[styles.trackedHeaderCell, styles.trackedColDesc, getTextDirection()]}>{formatRTLText('المهارة')}</ThemedText>
                         <ThemedText style={[styles.trackedHeaderCell, styles.trackedColGoal, getTextDirection()]}>{formatRTLText('الهدف')}</ThemedText>
-                        <ThemedText style={[styles.trackedHeaderCell, styles.trackedColDate, getTextDirection()]}>{formatRTLText('تاريخ المتابعة')}</ThemedText>
+                        <ThemedText style={[styles.trackedHeaderCell, styles.trackedColNeed, getTextDirection()]}>{formatRTLText('الإجراء')}</ThemedText>
+                        <ThemedText style={[styles.trackedHeaderCell, styles.trackedColEvidence, getTextDirection()]}>{formatRTLText('الشواهد')}</ThemedText>
                       </ThemedView>
                       {trackedEntries.map((entry) => (
                           <ThemedView key={entry.id} style={styles.trackedDataRow}>
                             <ThemedText style={[styles.trackedCell, styles.trackedColName, getTextDirection()]} numberOfLines={2}>
                               {formatRTLText(entry.studentName)}
                             </ThemedText>
+                            <ThemedText style={[styles.trackedCell, styles.trackedColGrade, getTextDirection()]} numberOfLines={2}>
+                              {formatRTLText(entry.grade) || '-'}
+                            </ThemedText>
                             <ThemedText style={[styles.trackedCell, styles.trackedColDesc, getTextDirection()]} numberOfLines={2}>
                               {formatRTLText(entry.skill) || '-'}
-                            </ThemedText>
-                            <ThemedText style={[styles.trackedCell, styles.trackedColNeed, getTextDirection()]} numberOfLines={2}>
-                              {formatRTLText(entry.needType) || '-'}
                             </ThemedText>
                             <ThemedText style={[styles.trackedCell, styles.trackedColGoal, getTextDirection()]} numberOfLines={3}>
                               {formatRTLText(entry.plan) || '-'}
                             </ThemedText>
-                            <ThemedText style={[styles.trackedCell, styles.trackedColDate, getTextDirection()]}>
-                              {formatRTLText(entry.followUpDate) || '-'}
+                            <ThemedText style={[styles.trackedCell, styles.trackedColNeed, getTextDirection()]} numberOfLines={2}>
+                              {formatRTLText(entry.needType) || '-'}
+                            </ThemedText>
+                            <ThemedText style={[styles.trackedCell, styles.trackedColEvidence, getTextDirection()]} numberOfLines={2}>
+                              {entry.evidenceName ? formatRTLText(`📎 ${entry.evidenceName}`) : '-'}
                             </ThemedText>
                           </ThemedView>
                       ))}
@@ -1518,6 +1442,18 @@ const styles = StyleSheet.create({
   dcFieldRow: { flexDirection: 'row-reverse', flexWrap: 'wrap', gap: 12 },
   dcFieldBlock: { flex: 1, minWidth: 150 },
   dcFieldBlockSmall: { flex: 1, minWidth: 100 },
+  dcChipRow: { flexDirection: 'row-reverse', flexWrap: 'wrap', gap: 8 },
+  dcChip: {
+    borderWidth: 1,
+    borderColor: TEAL,
+    borderRadius: 20,
+    paddingVertical: 8,
+    paddingHorizontal: 14,
+    backgroundColor: '#fff',
+  },
+  dcChipActive: { backgroundColor: TEAL },
+  dcChipText: { fontSize: 13, fontWeight: '600', color: TEAL },
+  dcChipTextActive: { color: '#fff' },
   dcEmptyHint: { fontSize: 13, color: '#9ca3af', textAlign: 'center', paddingVertical: 12 },
   dcEvidenceButtonsRow: { flexDirection: 'row-reverse', gap: 10 },
   dcEvidenceButton: {
@@ -1616,7 +1552,7 @@ const styles = StyleSheet.create({
   pageSectionHeaderRow: { flexDirection: 'row-reverse', justifyContent: 'space-between', alignItems: 'center' },
   pageSectionTitle: { fontSize: 16, fontWeight: '700', color: '#fff' },
   studentsListInner: { padding: 12, gap: 12 },
-  trackedTable: { minWidth: 620 },
+  trackedTable: { minWidth: 780 },
   trackedHeaderRow: {
     flexDirection: 'row-reverse',
     backgroundColor: '#f0f2f5',
@@ -1644,10 +1580,11 @@ const styles = StyleSheet.create({
     paddingHorizontal: 8,
   },
   trackedColName: { width: 130, fontWeight: '600' },
+  trackedColGrade: { width: 90 },
   trackedColDesc: { width: 150 },
-  trackedColNeed: { width: 110 },
   trackedColGoal: { width: 170 },
-  trackedColDate: { width: 90 },
+  trackedColNeed: { width: 90 },
+  trackedColEvidence: { width: 140 },
   scrollContainer: {
     flex: 1,
   },
@@ -1679,13 +1616,6 @@ const styles = StyleSheet.create({
   sfSectionTitle: { fontSize: 16, fontWeight: 'bold', color: '#1c1f33', marginBottom: 12 },
   sfSectionHeaderRow: { flexDirection: 'row-reverse', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12 },
   sfLabel: { fontSize: 14, fontWeight: '600', color: '#374151', marginBottom: 8 },
-  sfLabelRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    marginBottom: 8,
-    backgroundColor: 'transparent',
-  },
   sfTextInput: {
     backgroundColor: '#f9fafb',
     borderRadius: 10,
@@ -1707,14 +1637,6 @@ const styles = StyleSheet.create({
     gap: 6,
   },
   sfActionButtonText: { color: '#fff', fontSize: 13, fontWeight: '600' },
-  sfFormCard: {
-    backgroundColor: '#f9fafb',
-    borderRadius: 10,
-    padding: 14,
-    marginBottom: 12,
-    borderWidth: 1,
-    borderColor: '#e5e7eb',
-  },
   sfItemCard: {
     backgroundColor: '#fff',
     borderRadius: 10,
