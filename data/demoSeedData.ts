@@ -1,17 +1,23 @@
 /**
  * بيانات واقعية جاهزة لوضع العرض التجريبي (Demo) — معلم افتراضي وطلابه
  * وجدوله الدراسي ومحاور أدائه المهني ونتائج اختبار تجريبي وتقارير محفوظة
- * وخطة تطوير فردية، بنفس مفاتيح ونماذج AsyncStorage التي تقرأها الشاشات
- * الحقيقية بالضبط (basicData / students / teacherSchedule /
- * performanceData / resultsAnalysisDraft / reportBuilderReports /
- * idpForm)، حتى تظهر البيانات فورًا دون أي تعديل في تلك الشاشات.
+ * وخطة تطوير فردية وبطاقة متابعة متعلم، بنفس مفاتيح ونماذج AsyncStorage
+ * التي تقرأها الشاشات الحقيقية بالضبط (basicData / students /
+ * teacherSchedule / performanceData / resultsAnalysisDraft /
+ * reportBuilderReports / idpForm / difficultyCardDraft)، حتى تظهر
+ * البيانات فورًا دون أي تعديل في تلك الشاشات.
  *
- * ملاحظة نطاق: لا تُحقَن بيانات لشاشات الخطط العلاجية التفصيلية أو
- * "الشواهد المهنية" (professionalGrowthItems) — هذا الأخير تحديدًا لأن
- * شاشة البيانات الأساسية تحاول مزامنته فعليًا مع جدول professional_growth
- * الحقيقي في Supabase عند التحميل، ما قد يُظهر خطأ مزامنة غير ضروري لزائر
- * العرض التجريبي (محمي بسياسات RLS، لكن تجربة المستخدم فيه أقل أناقة من
- * مجرد تركه فارغًا).
+ * ملاحظة اتساق: أسماء طلاب "بطاقة متابعة متعلم" (DEMO_DIFFICULTY_CARD)
+ * هي نفسها أسماء DEMO_STUDENTS بالضبط — عمدًا، حتى تعرض "قائمة المتعلمين"
+ * و"بطاقة متابعة متعلم" في نفس الشاشة (app/student-tracking.tsx) بيانات
+ * متسقة لنفس مجموعة الطلاب، لا كأنهما لطلاب مختلفين (رغم أن الكود الفعلي
+ * لا يربط بين القائمتين، فكل منهما مصدر بيانات مستقل).
+ *
+ * ملاحظة نطاق: لا تُحقَن بيانات لـ"الشواهد المهنية" (professionalGrowthItems)
+ * لأن شاشة البيانات الأساسية تحاول مزامنتها فعليًا مع جدول
+ * professional_growth الحقيقي في Supabase عند التحميل، ما قد يُظهر خطأ
+ * مزامنة غير ضروري لزائر العرض التجريبي (محمي بسياسات RLS، لكن تجربة
+ * المستخدم فيه أقل أناقة من مجرد تركه فارغًا).
  *
  * ملاحظة VARK: شاشة "تحليل أنماط تعلم الطلاب" تقرأ من جدولي Supabase
  * الحقيقيين vark_tests/vark_responses مباشرة (لا AsyncStorage)، فبياناتها
@@ -144,6 +150,119 @@ export const DEMO_SCHEDULE = [
   { id: 'demo-s14', day: 'الخميس', time: 'الحصة الثانية', subject: 'رياضيات', class: 'الأول متوسط - ب', type: 'حصة', color: '#4CAF50' },
   { id: 'demo-s15', day: 'الخميس', time: 'الحصة الخامسة', subject: 'رياضيات', class: 'الثاني متوسط - أ', type: 'حصة', color: '#4CAF50' },
 ];
+
+/**
+ * "بطاقة متابعة متعلم (الخطط العلاجية والإثرائية)" — app/student-tracking.tsx،
+ * مفتاح difficultyCardDraft. متعمَّد أن أسماء الطلاب في جدول المتابعة هنا هي
+ * نفسها أسماء DEMO_STUDENTS بالضبط (لا أسماء مختلفة) حتى تظهر بطاقتا هذه
+ * الشاشة ("قائمة المتعلمين" و"بطاقة متابعة متعلم") ببيانات متسقة لنفس
+ * المجموعة من الطلاب، لا كأنهما قائمتان منفصلتان عن طلاب مختلفين.
+ */
+export const DEMO_DIFFICULTY_CARD = {
+  subjectGrade: 'الرياضيات - الأول متوسط',
+  schoolType: 'متوسطة',
+  schoolName: 'مدرسة الفاروق المتوسطة',
+  masteryCriteria: '80',
+  measurementType: 'اختبار قصير',
+  followUpPeriod: 'أسبوعين',
+  deputyName: 'أ. منيرة الحربي',
+  teacherName: 'أ. خالد العتيبي',
+  needs: ['ضعف فهم المفهوم', 'صعوبة تطبيق الخطوات', 'حاجة إلى تدريب إضافي'],
+  needsOther: '',
+  entries: [
+    {
+      id: 'demo-de-1',
+      studentName: 'عبدالله محمد السالم',
+      skill: 'حل المسائل الهندسية المتقدمة',
+      masteryPercent: '88',
+      afterPercent: '97',
+      plan: 'تكليفه بمسائل إثرائية إضافية ومشاركته في نادي الرياضيات المدرسي',
+      followUpDate: '2026/09/10',
+      responsible: 'المعلم',
+    },
+    {
+      id: 'demo-de-2',
+      studentName: 'سارة أحمد القحطاني',
+      skill: 'الضرب والقسمة',
+      masteryPercent: '55',
+      afterPercent: '78',
+      plan: 'جلسات تقوية فردية أسبوعية مع تدريب مكثف على جدول الضرب',
+      followUpDate: '2026/09/15',
+      responsible: 'المعلم',
+    },
+    {
+      id: 'demo-de-3',
+      studentName: 'فيصل خالد الدوسري',
+      skill: 'حل المسائل اللفظية',
+      masteryPercent: '35',
+      afterPercent: '58',
+      plan: 'خطة علاجية فردية مكثفة بالتنسيق مع أخصائي صعوبات التعلم',
+      followUpDate: '2026/09/20',
+      responsible: 'المعلم',
+    },
+    {
+      id: 'demo-de-4',
+      studentName: 'نورة سعد المطيري',
+      skill: 'حل المسائل المنطقية المتقدمة',
+      masteryPercent: '92',
+      afterPercent: '98',
+      plan: 'إشراكها في مسابقة الرياضيات الترفيهية وتكليفها بمسائل تحدٍ إضافية',
+      followUpDate: '2026/09/10',
+      responsible: 'المعلم',
+    },
+    {
+      id: 'demo-de-5',
+      studentName: 'ماجد عبدالعزيز الحربي',
+      skill: 'العمليات الأساسية على الكسور',
+      masteryPercent: '74',
+      afterPercent: '88',
+      plan: 'تدريب إضافي على الكسور باستخدام وسائل تعليمية محسوسة',
+      followUpDate: '2026/09/18',
+      responsible: 'المعلم',
+    },
+  ],
+  skillPlans: {
+    'حل المسائل الهندسية المتقدمة': {
+      objective: 'تعميق مهارة حل المسائل الهندسية المتقدمة',
+      strategy: 'مسائل إثرائية تطبيقية ومشاركة في نادي الرياضيات',
+      resources: 'أوراق عمل إثرائية، مسائل تحدٍ',
+      duration: 'أسبوعان',
+      measurementTool: 'اختبار قصير',
+    },
+    'الضرب والقسمة': {
+      objective: 'إتقان جدول الضرب والقسمة حتى 12',
+      strategy: 'جلسات تقوية فردية وتدريب مكثف يومي',
+      resources: 'بطاقات تدريب، تطبيق تفاعلي',
+      duration: 'أسبوعان',
+      measurementTool: 'اختبار قصير',
+    },
+    'حل المسائل اللفظية': {
+      objective: 'تحسين فهم وتحليل المسائل اللفظية',
+      strategy: 'خطة علاجية فردية بالتنسيق مع أخصائي صعوبات التعلم',
+      resources: 'مسائل مبسّطة تدريجية، وسائل بصرية',
+      duration: '3 أسابيع',
+      measurementTool: 'ملاحظة مباشرة + اختبار قصير',
+    },
+    'حل المسائل المنطقية المتقدمة': {
+      objective: 'تنمية مهارات التفكير المنطقي المتقدم',
+      strategy: 'مسابقات ومسائل تحدٍ إثرائية',
+      resources: 'مسائل تحدٍ، مسابقة رياضيات',
+      duration: 'أسبوعان',
+      measurementTool: 'اختبار قصير',
+    },
+    'العمليات الأساسية على الكسور': {
+      objective: 'إتقان العمليات الأساسية على الكسور',
+      strategy: 'تدريب باستخدام وسائل تعليمية محسوسة',
+      resources: 'وسائل محسوسة، أوراق عمل',
+      duration: '3 أسابيع',
+      measurementTool: 'اختبار قصير',
+    },
+  },
+  highlightAchieved: 'تحسّن ملحوظ في نسب الإتقان لدى 3 من أصل 5 متعلمين خلال فترة المتابعة',
+  stillNeedsSupport: 'مهارة حل المسائل اللفظية لدى الطلاب ذوي صعوبات التعلم',
+  nextAction: 'تكثيف الجلسات الفردية للطلاب الذين لم يصلوا لمعيار الإتقان بعد',
+  reviewDate: '2026/10/01',
+};
 
 /**
  * درجات اختبار تجريبي لصف كامل (20 طالبًا) — بنفس نموذج ResultsForm في
@@ -372,5 +491,6 @@ export function buildDemoStorageEntries(): Record<string, string> {
     resultsAnalysisDraft: JSON.stringify(DEMO_RESULTS_ANALYSIS),
     reportBuilderReports: JSON.stringify(DEMO_REPORTS),
     idpForm: JSON.stringify(DEMO_IDP),
+    difficultyCardDraft: JSON.stringify(DEMO_DIFFICULTY_CARD),
   };
 }
