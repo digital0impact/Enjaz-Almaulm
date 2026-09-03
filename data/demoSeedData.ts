@@ -24,6 +24,12 @@
  * التجريبية لا يمكن حقنها من هذا الملف — أُدرجت يدويًا مرة واحدة عبر SQL
  * مباشرة لحساب demo@enjaz-almaulm.com (محمية بنفس سياسات القراءة فقط
  * RLS كبقية جداول العرض التجريبي).
+ *
+ * ملاحظة الجنس (ذكور/إناث): المدارس في المملكة مقسَّمة بحسب الجنس،
+ * والمعلم الافتراضي هنا (أ. خالد العتيبي) ذكر — لذا كل مجموعات الطلاب
+ * (DEMO_STUDENTS وDEMO_DIFFICULTY_CARD.entries وDEMO_RESULTS_ANALYSIS.students،
+ * وكذلك بيانات VARK التجريبية في Supabase) تستخدم أسماء ذكور فقط دون
+ * خلط، وكذلك الطاقم الإداري المذكور بالاسم (وكيل/مدير) ذكور بالمثل.
  */
 import { getPerformanceAxesByProfession, PerformanceAxis } from '@/constants/performance-axes';
 import { DEFAULT_PROFESSION } from '@/constants/professions';
@@ -70,11 +76,11 @@ export const DEMO_STUDENTS = [
   },
   {
     id: 'demo-2',
-    name: 'سارة أحمد القحطاني',
+    name: 'سعود أحمد القحطاني',
     grade: 'الأول متوسط',
     status: 'يحتاج إلى تطوير',
     lastUpdate: '2026-08-18',
-    notes: 'تحتاج متابعة إضافية في مهارات الضرب والقسمة.',
+    notes: 'يحتاج متابعة إضافية في مهارات الضرب والقسمة.',
     goals: [
       {
         id: 'demo-2-g1',
@@ -101,11 +107,11 @@ export const DEMO_STUDENTS = [
   },
   {
     id: 'demo-4',
-    name: 'نورة سعد المطيري',
+    name: 'نايف سعد المطيري',
     grade: 'الثاني متوسط',
     status: 'تفوق',
     lastUpdate: '2026-08-22',
-    notes: 'مستوى متقدم، تُرشَّح لبرنامج الموهوبين.',
+    notes: 'مستوى متقدم، يُرشَّح لبرنامج الموهوبين.',
     goals: [
       {
         id: 'demo-4-g1',
@@ -163,7 +169,7 @@ export const DEMO_DIFFICULTY_CARD = {
   schoolType: 'متوسطة',
   schoolName: 'مدرسة الفاروق المتوسطة',
   masteryCriteria: '80',
-  deputyName: 'أ. منيرة الحربي',
+  deputyName: 'أ. منير الحربي',
   teacherName: 'أ. خالد العتيبي',
   entries: [
     {
@@ -179,7 +185,7 @@ export const DEMO_DIFFICULTY_CARD = {
     },
     {
       id: 'demo-de-2',
-      studentName: 'سارة أحمد القحطاني',
+      studentName: 'سعود أحمد القحطاني',
       grade: 'الأول متوسط',
       masteryPercent: '55',
       afterPercent: '78',
@@ -201,14 +207,14 @@ export const DEMO_DIFFICULTY_CARD = {
     },
     {
       id: 'demo-de-4',
-      studentName: 'نورة سعد المطيري',
+      studentName: 'نايف سعد المطيري',
       grade: 'الثاني متوسط',
       masteryPercent: '92',
       afterPercent: '98',
       followUpDate: '2026/09/10',
       needType: 'إثراء وتوسيع للمتفوقين',
       skill: 'حل المسائل المنطقية المتقدمة',
-      plan: 'إشراكها في مسابقة الرياضيات الترفيهية وتكليفها بمسائل تحدٍ إضافية',
+      plan: 'إشراكه في مسابقة الرياضيات الترفيهية وتكليفه بمسائل تحدٍ إضافية',
     },
     {
       id: 'demo-de-5',
@@ -282,25 +288,25 @@ export const DEMO_RESULTS_ANALYSIS = {
   principalName: 'أ. سعود الحربي',
   students: [
     { id: 'r1', name: 'عبدالله محمد السالم', score: '40' },
-    { id: 'r2', name: 'نورة سعد المطيري', score: '38' },
+    { id: 'r2', name: 'نايف سعد المطيري', score: '38' },
     { id: 'r3', name: 'فهد ناصر العنزي', score: '37' },
-    { id: 'r4', name: 'ريم عبدالرحمن الشمري', score: '36' },
+    { id: 'r4', name: 'رامي عبدالرحمن الشمري', score: '36' },
     { id: 'r5', name: 'سلطان علي الغامدي', score: '35' },
-    { id: 'r6', name: 'لمى خالد الزهراني', score: '34' },
+    { id: 'r6', name: 'لؤي خالد الزهراني', score: '34' },
     { id: 'r7', name: 'يزيد فهد القحطاني', score: '33' },
-    { id: 'r8', name: 'جود سعود العتيبي', score: '32' },
+    { id: 'r8', name: 'بدر سعود العتيبي', score: '32' },
     { id: 'r9', name: 'تركي بندر الحربي', score: '32' },
-    { id: 'r10', name: 'سارة أحمد القحطاني', score: '31' },
+    { id: 'r10', name: 'سعود أحمد القحطاني', score: '31' },
     { id: 'r11', name: 'عمر ياسر الدوسري', score: '30' },
-    { id: 'r12', name: 'غلا محمد آل سعيد', score: '29' },
+    { id: 'r12', name: 'غازي محمد آل سعيد', score: '29' },
     { id: 'r13', name: 'خالد سالم المالكي', score: '28' },
-    { id: 'r14', name: 'دانة عبدالله الحارثي', score: '28' },
+    { id: 'r14', name: 'طلال عبدالله الحارثي', score: '28' },
     { id: 'r15', name: 'فيصل خالد الدوسري', score: '25' },
-    { id: 'r16', name: 'شهد وليد العصيمي', score: '23' },
+    { id: 'r16', name: 'سالم وليد العصيمي', score: '23' },
     { id: 'r17', name: 'ماجد عبدالعزيز الحربي', score: '22' },
-    { id: 'r18', name: 'رهف تركي البقمي', score: '20' },
+    { id: 'r18', name: 'رائد تركي البقمي', score: '20' },
     { id: 'r19', name: 'ناصر سعيد الشهري', score: '18' },
-    { id: 'r20', name: 'وجدان محمد العمري', score: '15' },
+    { id: 'r20', name: 'وليد محمد العمري', score: '15' },
   ],
 };
 
