@@ -638,6 +638,190 @@ export default function ResultsAnalysisScreen() {
 </html>`;
   };
 
+  /**
+   * قالب HTML مخصّص لتصدير Word — مختلف عمدًا عن generateAnalysisHtml (المخصص لـ PDF/الطباعة).
+   * محرك Word لا يدعم Flexbox أو CSS gradients أو transform، فإعادة استخدام قالب PDF بحرفيته
+   * تُظهر التحليل بلا أي تنسيق (كل العناصر تتكدّس فوق بعضها). لذلك يعتمد هذا القالب بالكامل على
+   * جداول <table> بعرض% (width على الخلية نفسها، الأكثر دعمًا من Word) بدل flex، وأشرطة تقدم
+   * (progress bars) بخلايا ملوّنة بدل الدوائر (conic-gradient) والأعمدة الرأسية غير المدعومة.
+   */
+  const generateAnalysisWordHtml = async (data: ResultsForm): Promise<string> => {
+    const result = computeAnalysis(data.students, parseFloat(data.maxScore) || 0);
+    const logoDataUri = await loadMoeLogoDataUri();
+    const todayStr = new Date().toLocaleDateString('ar-SA');
+    const maxCount = result ? Math.max(1, ...result.levels.map((l) => l.count)) : 1;
+
+    const statRowsHtml = result
+      ? [
+          ['عدد الطلاب', String(result.count)],
+          ['أعلى درجة', String(result.max)],
+          ['أقل درجة', String(result.min)],
+          ['متوسط الدرجات', result.average.toFixed(1)],
+          ['نسبة التحصيل', `%${Math.round(result.achievementPercent)}`],
+          ['مجموع الدرجات', String(result.sum)],
+        ]
+          .map(
+            ([label, value]) =>
+              `<tr><td class="stat-label">${escapeHtml(label)}</td><td class="stat-value">${escapeHtml(value)}</td></tr>`
+          )
+          .join('')
+      : `<tr><td class="empty-hint">لا توجد بيانات كافية</td></tr>`;
+
+    const levelsTableHtml = result
+      ? `
+      <table width="100%" cellpadding="0" cellspacing="0" class="levels-table">
+        <tr><th>المستوى</th><th>النطاق</th><th>عدد الطلاب</th></tr>
+        ${result.levels
+          .map(
+            (l) =>
+              `<tr><td><span class="level-badge" style="background:${l.color};">${escapeHtml(l.label)}</span></td><td>${l.low} - ${l.high}</td><td>${l.count}</td></tr>`
+          )
+          .join('')}
+      </table>`
+      : '';
+
+    const buildBarRowsHtml = (items: { label: string; color: string; pct: number; valueText: string }[]) =>
+      items
+        .map(
+          ({ label, color, pct, valueText }) => `
+      <tr>
+        <td class="chart-label" style="color:${color};">${escapeHtml(label)}</td>
+        <td class="chart-track-cell">
+          <table width="100%" cellpadding="0" cellspacing="0" class="chart-track"><tr>
+            <td width="${Math.max(0, Math.min(100, Math.round(pct)))}%" style="background:${color};">&nbsp;</td>
+            <td>&nbsp;</td>
+          </tr></table>
+        </td>
+        <td class="chart-value">${escapeHtml(valueText)}</td>
+      </tr>`
+        )
+        .join('');
+
+    const percentBarsHtml = result
+      ? buildBarRowsHtml(
+          result.levels.map((l) => ({
+            label: l.label,
+            color: l.color,
+            pct: l.percent,
+            valueText: `%${Math.round(l.percent)}`,
+          }))
+        )
+      : '';
+
+    const countBarsHtml = result
+      ? buildBarRowsHtml(
+          result.levels.map((l) => ({
+            label: l.label,
+            color: l.color,
+            pct: (l.count / maxCount) * 100,
+            valueText: String(l.count),
+          }))
+        )
+      : '';
+
+    return `
+<!DOCTYPE html>
+<html dir="rtl" lang="ar">
+<head>
+  <meta charset="utf-8"/>
+  <title>تحليل نتائج اختبار</title>
+  <style>
+    @page { size: A4; margin: 1.5cm; }
+    body { font-family: 'Segoe UI', Tahoma, Arial, sans-serif; color: #1c1f33; }
+    table { border-collapse: collapse; }
+    .doc-tag { background: #f0fdfa; border: 1px solid ${TEAL_LIGHT}; padding: 6px 12px; text-align: center; }
+    .doc-tag-title { font-size: 11px; font-weight: 700; color: ${TEAL}; }
+    .doc-tag-sub { font-size: 10px; color: #6b7280; margin-top: 2px; }
+    .title-banner { background: ${TEAL_DARK}; color: #fff; text-align: center; padding: 10px 16px; font-size: 17px; font-weight: 800; }
+    .dot-divider { text-align: center; color: ${TEAL}; font-size: 10px; padding: 4px 0; }
+    .info-box { border: 1px solid #e5e7eb; padding: 8px; text-align: center; background: #f9fafb; }
+    .info-box-label { font-size: 10px; color: #6b7280; }
+    .info-box-value { font-size: 12px; font-weight: 700; color: #1c1f33; }
+    .card-heading { font-size: 12.5px; font-weight: 700; color: ${TEAL_DARK}; padding: 6px 4px; border-bottom: 1px solid #e5e7eb; text-align: center; }
+    .stat-label { font-size: 11px; color: ${TEAL}; font-weight: 700; border: 1px solid #e5e7eb; padding: 6px 10px; background: #f9fafb; }
+    .stat-value { font-size: 13px; font-weight: 800; color: #1c1f33; border: 1px solid #e5e7eb; padding: 6px 10px; background: #f9fafb; text-align: left; }
+    .empty-hint { font-size: 10.5px; color: #9ca3af; text-align: center; padding: 8px; }
+    .levels-table th, .levels-table td { border: 1px solid #e5e7eb; padding: 6px; text-align: center; font-size: 11px; }
+    .levels-table th { background: ${TEAL_LIGHT}; color: #fff; font-weight: 700; }
+    .level-badge { color: #fff; padding: 2px 10px; font-weight: 700; font-size: 10.5px; }
+    .chart-label { font-size: 11px; font-weight: 700; width: 90px; padding: 3px 6px; }
+    .chart-track-cell { padding: 3px 4px; }
+    .chart-track { background: #f3f4f6; border: 1px solid #e5e7eb; }
+    .chart-track td { height: 16px; font-size: 0; line-height: 16px; }
+    .chart-value { font-size: 11px; font-weight: 700; width: 40px; text-align: left; padding: 3px 4px; }
+    .approval-box { border: 1px solid #e5e7eb; padding: 8px; text-align: center; background: #f9fafb; }
+    .approval-label { font-size: 11px; font-weight: 700; color: ${TEAL}; margin-bottom: 4px; }
+    .approval-name { font-size: 11px; color: #1c1f33; }
+    .doc-footer { text-align: center; color: #9ca3af; font-size: 10px; }
+  </style>
+</head>
+<body>
+  <table width="100%" cellpadding="0" cellspacing="0">
+    <tr>
+      <td width="34%" style="vertical-align:top;"><table cellpadding="0" cellspacing="0"><tr><td class="doc-tag">
+        <div class="doc-tag-title">${escapeHtml(data.testLabel) || 'اختبار'}</div>
+        <div class="doc-tag-sub">التاريخ: ${escapeHtml(todayStr)}</div>
+      </td></tr></table></td>
+      <td width="32%" style="vertical-align:top; text-align:center;">${logoDataUri ? `<img src="${logoDataUri}" alt="شعار وزارة التعليم" width="70">` : ''}</td>
+      <td width="34%" style="vertical-align:top; text-align:left;">
+        <div style="font-size:11px; font-weight:700; color:#1c1f33;">${escapeHtml(data.educationAdministration)}</div>
+        <div style="font-size:11px; color:#6b7280;">${escapeHtml(data.schoolName)}</div>
+      </td>
+    </tr>
+  </table>
+
+  <table width="100%" cellpadding="0" cellspacing="0" style="margin-top:8px;">
+    <tr><td class="title-banner">تحليل نتائج اختبار مادة [${escapeHtml(data.subject) || '-'}]</td></tr>
+  </table>
+  <div class="dot-divider">• • • • • • • • • • • • • • • • • • • • • • • • • • • •</div>
+
+  <table width="100%" cellpadding="0" cellspacing="0">
+    <tr>
+      <td width="32%" class="info-box"><div class="info-box-label">المرحلة الدراسية / الصف</div><div class="info-box-value">${escapeHtml(data.gradeLevel) || '-'}</div></td>
+      <td width="4%">&nbsp;</td>
+      <td width="32%" class="info-box"><div class="info-box-label">السنة / الفصل الدراسي</div><div class="info-box-value">${escapeHtml(data.semester) || '-'}</div></td>
+      <td width="4%">&nbsp;</td>
+      <td width="32%" class="info-box"><div class="info-box-label">درجة القياس (الاختبار)</div><div class="info-box-value">${escapeHtml(data.maxScore) || '-'}</div></td>
+    </tr>
+  </table>
+
+  <table width="100%" cellpadding="0" cellspacing="0" style="margin-top:10px; border:1px solid #e5e7eb;">
+    <tr><td class="card-heading">الإحصائيات التفصيلية</td></tr>
+    <tr><td style="padding:8px;">
+      <table width="100%" cellpadding="0" cellspacing="0">
+        <tr>
+          <td width="45%" style="vertical-align:top;"><table width="100%" cellpadding="0" cellspacing="4">${statRowsHtml}</table></td>
+          <td width="10">&nbsp;</td>
+          <td width="45%" style="vertical-align:top;">${levelsTableHtml}</td>
+        </tr>
+      </table>
+    </td></tr>
+  </table>
+
+  <table width="100%" cellpadding="0" cellspacing="0" style="margin-top:10px; border:1px solid #e5e7eb;">
+    <tr><td class="card-heading">رسم بياني (نسب الطلاب لكل تقدير)</td></tr>
+    <tr><td style="padding:8px;"><table width="100%" cellpadding="0" cellspacing="0">${percentBarsHtml}</table></td></tr>
+  </table>
+
+  <table width="100%" cellpadding="0" cellspacing="0" style="margin-top:10px; border:1px solid #e5e7eb;">
+    <tr><td class="card-heading">رسم بياني (عدد الطلاب لكل تقدير)</td></tr>
+    <tr><td style="padding:8px;"><table width="100%" cellpadding="0" cellspacing="0">${countBarsHtml}</table></td></tr>
+  </table>
+
+  <table width="100%" cellpadding="0" cellspacing="0" style="margin-top:10px;">
+    <tr>
+      <td width="48%" class="approval-box"><div class="approval-label">معلم/ة المادة - الاسم</div><div class="approval-name">${escapeHtml(data.teacherName) || '&nbsp;'}</div></td>
+      <td width="4%">&nbsp;</td>
+      <td width="48%" class="approval-box"><div class="approval-label">مدير/ة المدرسة - الاسم</div><div class="approval-name">${escapeHtml(data.principalName) || '&nbsp;'}</div></td>
+    </tr>
+  </table>
+
+  <div class="dot-divider">• • • • • • • • • • • • • • • • • • • • • • • • • • • •</div>
+  <div class="doc-footer">تقرير أُنشئ عبر تطبيق إنجاز المعلم</div>
+</body>
+</html>`;
+  };
+
   const exportPDF = async (data: ResultsForm, idForState: string | null) => {
     const canExport = await checkCanExport();
     if (!canExport) return;
@@ -702,7 +886,7 @@ export default function ResultsAnalysisScreen() {
     if (!canExport) return;
     setIsExporting(true);
     try {
-      const htmlContent = await generateAnalysisHtml(data);
+      const htmlContent = await generateAnalysisWordHtml(data);
       const fileName = `تحليل_نتائج_${new Date().toISOString().split('T')[0]}.doc`;
       if (Platform.OS === 'web') {
         if (typeof window === 'undefined' || typeof document === 'undefined') {

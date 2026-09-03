@@ -196,6 +196,7 @@ export default function IDPScreen() {
   <meta charset="utf-8"/>
   <title>خطة التطوير الفردية (IDP)</title>
   <style>
+    * { -webkit-print-color-adjust: exact !important; color-adjust: exact !important; print-color-adjust: exact !important; }
     body { font-family: 'Segoe UI', Tahoma, Arial, sans-serif; padding: 20px; color: #1c1f33; }
     h1 { color: #1c1f33; font-size: 22px; margin-bottom: 24px; text-align: center; }
     .section { margin-bottom: 24px; border: ${tableBorder}; border-radius: 8px; overflow: hidden; }
@@ -244,6 +245,101 @@ export default function IDPScreen() {
   <div class="section">
     <div class="section-header">الأهداف التطورية بحسب الأولوية</div>
     <table>
+      <tr>
+        <th style="width:40px">#</th>
+        <th>الأهداف التطويرية</th>
+        <th>الأنشطة بناء على 10-20-70</th>
+        <th>تاريخ الانتهاء من الهدف</th>
+        <th>الداعم الرئيسي</th>
+        <th>الإجراءات التفصيلية</th>
+        <th>معايير النجاح</th>
+      </tr>
+      ${[0, 1, 2].map((i) => {
+        const p = priorityObjectives[i];
+        return `<tr>
+          <td class="priority-num">${i + 1}</td>
+          <td>${escapeHtml(p.objective)}</td>
+          <td>${escapeHtml(p.activities)}</td>
+          <td>${escapeHtml(p.endDate)}</td>
+          <td>${escapeHtml(p.supporter)}</td>
+          <td>${escapeHtml(p.procedures)}</td>
+          <td>${escapeHtml(p.successCriteria)}</td>
+        </tr>`;
+      }).join('')}
+    </table>
+  </div>
+</body>
+</html>`;
+    return h;
+  };
+
+  /**
+   * قالب HTML مخصّص لتصدير Word — مختلف عمدًا عن generateIDPHtml (المخصص لـ PDF/الطباعة).
+   * محرك Word لا يدعم Flexbox، وقالب PDF يستخدمه لصفّي الحقول العلويين (form-row/field)،
+   * فتظهر تلك الحقول مكدّسة عموديًا بدل صفين من عمودين عند فتح الملف في Word. الجدولان
+   * الرئيسيان أصلًا <table> عادي فيبقيان كما هما.
+   */
+  const generateIDPWordHtml = (): string => {
+    const teal = '#0d9488';
+    const tealLight = '#14b8a6';
+    const green = '#059669';
+    const tableBorder = '1px solid #e5e7eb';
+    const cellPad = '8px';
+    const h = `
+<!DOCTYPE html>
+<html dir="rtl" lang="ar">
+<head>
+  <meta charset="utf-8"/>
+  <title>خطة التطوير الفردية (IDP)</title>
+  <style>
+    body { font-family: 'Segoe UI', Tahoma, Arial, sans-serif; padding: 20px; color: #1c1f33; }
+    h1 { color: #1c1f33; font-size: 22px; margin-bottom: 24px; text-align: center; }
+    .section { margin-bottom: 24px; border: ${tableBorder}; }
+    .section-header { background: ${teal}; color: #fff; padding: 12px 16px; font-weight: 700; font-size: 16px; }
+    .field-row { width: 100%; border-collapse: collapse; }
+    .field-row td { padding: 12px; vertical-align: top; width: 50%; }
+    .field-label { font-size: 13px; font-weight: 600; color: #374151; margin-bottom: 4px; }
+    .field-value { font-size: 14px; padding: 8px; background: #f9fafb; border: ${tableBorder}; }
+    table.main-table { width: 100%; border-collapse: collapse; font-size: 12px; }
+    table.main-table th, table.main-table td { border: ${tableBorder}; padding: ${cellPad}; text-align: right; }
+    table.main-table th { background: ${tealLight}; color: #fff; font-weight: 700; }
+    .obj-cell { background: #dcfce7; color: ${green}; font-weight: 600; }
+    .priority-num { background: #dcfce7; color: ${green}; font-weight: 700; text-align: center; }
+  </style>
+</head>
+<body>
+  <h1>خطة التطوير الفردية (IDP)</h1>
+
+  <div class="section">
+    <div class="section-header">نموذج خطة التطوير الفردية</div>
+    <table class="field-row"><tr>
+      <td><div class="field-label">الإسم</div><div class="field-value">${escapeHtml(name)}</div></td>
+      <td><div class="field-label">الجهة</div><div class="field-value">${escapeHtml(entity)}</div></td>
+    </tr></table>
+    <table class="field-row"><tr>
+      <td><div class="field-label">تاريخ بداية الخطة</div><div class="field-value">${escapeHtml(startDate)}</div></td>
+      <td><div class="field-label">تاريخ نهاية الخطة</div><div class="field-value">${escapeHtml(endDate)}</div></td>
+    </tr></table>
+  </div>
+
+  <div class="section">
+    <div class="section-header">مجالات التطوير المهني</div>
+    <table class="main-table">
+      <tr>
+        <th style="width:80px">المنهجية / الأهداف</th>
+        <th>التعلم من خلال التجارب والخبرات (70%)<br/><small>مثال: مجتمعات التعلم المهنية</small></th>
+        <th>التعلم من خلال الآخرين (20%)<br/><small>مثال: دورات وندوات تعليمية</small></th>
+        <th>التعلم المباشر (10%)<br/><small>مثال: تعلم نظامي - التعلم الذاتي - الاطلاع والقراءة</small></th>
+      </tr>
+      <tr><td class="obj-cell">الهدف الأول</td><td>${escapeHtml(objectives70[0])}</td><td>${escapeHtml(objectives20[0])}</td><td>${escapeHtml(objectives10[0])}</td></tr>
+      <tr><td class="obj-cell">الهدف الثاني</td><td>${escapeHtml(objectives70[1])}</td><td>${escapeHtml(objectives20[1])}</td><td>${escapeHtml(objectives10[1])}</td></tr>
+      <tr><td class="obj-cell">الهدف الثالث</td><td>${escapeHtml(objectives70[2])}</td><td>${escapeHtml(objectives20[2])}</td><td>${escapeHtml(objectives10[2])}</td></tr>
+    </table>
+  </div>
+
+  <div class="section">
+    <div class="section-header">الأهداف التطورية بحسب الأولوية</div>
+    <table class="main-table">
       <tr>
         <th style="width:40px">#</th>
         <th>الأهداف التطويرية</th>
@@ -339,7 +435,7 @@ export default function IDPScreen() {
     if (!canExport) return;
     setIsExporting(true);
     try {
-      const htmlContent = generateIDPHtml();
+      const htmlContent = generateIDPWordHtml();
       const fileName = `خطة_التطوير_الفردية_${new Date().toISOString().split('T')[0]}.doc`;
       if (Platform.OS === 'web') {
         if (typeof window === 'undefined' || typeof document === 'undefined') {
