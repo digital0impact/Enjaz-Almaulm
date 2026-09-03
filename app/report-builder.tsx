@@ -688,6 +688,7 @@ export default function ReportBuilderScreen() {
   <title>${escapeHtml(type.docTitle)}</title>
   <style>
     @page { size: A4; margin: 0; }
+    * { -webkit-print-color-adjust: exact !important; color-adjust: exact !important; print-color-adjust: exact !important; }
     html, body { margin: 0; padding: 0; background: #e5e7eb; }
     body { font-family: 'Segoe UI', Tahoma, Arial, sans-serif; color: #1c1f33; }
     .page { width: 210mm; height: 297mm; margin: 0 auto; overflow: hidden; box-sizing: border-box; padding: 10mm 12mm; background: #fff; }

@@ -196,6 +196,7 @@ export default function IDPScreen() {
   <meta charset="utf-8"/>
   <title>خطة التطوير الفردية (IDP)</title>
   <style>
+    * { -webkit-print-color-adjust: exact !important; color-adjust: exact !important; print-color-adjust: exact !important; }
     body { font-family: 'Segoe UI', Tahoma, Arial, sans-serif; padding: 20px; color: #1c1f33; }
     h1 { color: #1c1f33; font-size: 22px; margin-bottom: 24px; text-align: center; }
     .section { margin-bottom: 24px; border: ${tableBorder}; border-radius: 8px; overflow: hidden; }

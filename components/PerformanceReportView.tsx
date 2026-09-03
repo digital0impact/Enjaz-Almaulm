@@ -582,6 +582,7 @@ export function PerformanceReportView() {
       <meta name="viewport" content="width=device-width, initial-scale=1.0">
       <title>ملف إنجاز الأداء الوظيفي</title>
       <style>
+        * { -webkit-print-color-adjust: exact !important; color-adjust: exact !important; print-color-adjust: exact !important; }
         body {
           font-family: 'Arial', sans-serif;
           margin: 0;
