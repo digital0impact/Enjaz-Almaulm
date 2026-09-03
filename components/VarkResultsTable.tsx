@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { ScrollView, StyleSheet, ActivityIndicator } from 'react-native';
 import { ThemedView } from '@/components/ThemedView';
 import { ThemedText } from '@/components/ThemedText';
@@ -51,6 +51,10 @@ function summarizeByClass(responses: VarkResponseRow[]): ClassSummary[] {
 export function VarkResultsTable() {
   const [loading, setLoading] = useState(true);
   const [responses, setResponses] = useState<VarkResponseRow[]>([]);
+  /** يبدأ ScrollView الأفقي دائمًا من الحافة اليسرى (إحداثيات x=0) بصرف
+   * النظر عن ترتيب الأعمدة RTL بصريًا، فيلزم تمريره لأقصى اليمين يدويًا
+   * ليبدأ العرض من عمود "الصف" كما هو متوقع — ملحوظ خصوصًا على أندرويد. */
+  const scrollRef = useRef<ScrollView>(null);
 
   useEffect(() => {
     (async () => {
@@ -99,7 +103,13 @@ export function VarkResultsTable() {
   }
 
   return (
-    <ScrollView horizontal showsHorizontalScrollIndicator={true} style={styles.scroll}>
+    <ScrollView
+      ref={scrollRef}
+      horizontal
+      showsHorizontalScrollIndicator={true}
+      style={styles.scroll}
+      onContentSizeChange={() => scrollRef.current?.scrollToEnd({ animated: false })}
+    >
       <ThemedView style={[styles.table, { direction: 'rtl' }]}>
         <ThemedView style={styles.headerRow}>
           <ThemedText style={[styles.headerCell, styles.colClass]}>{formatRTLText('الصف')}</ThemedText>

@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { ScrollView, StyleSheet } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { ThemedView } from '@/components/ThemedView';
@@ -38,6 +38,10 @@ const TABLE_TIME_SLOTS = [
 export function WeeklyScheduleTable() {
   const [schedule, setSchedule] = useState<ScheduleEntry[]>([]);
   const [loading, setLoading] = useState(true);
+  /** يبدأ ScrollView الأفقي دائمًا من الحافة اليسرى (إحداثيات x=0) بصرف
+   * النظر عن ترتيب الأعمدة RTL بصريًا، فيلزم تمريره لأقصى اليمين يدويًا
+   * ليبدأ العرض من عمود "اليوم" كما هو متوقع — ملحوظ خصوصًا على أندرويد. */
+  const scrollRef = useRef<ScrollView>(null);
 
   useEffect(() => {
     (async () => {
@@ -67,7 +71,13 @@ export function WeeklyScheduleTable() {
   }
 
   return (
-    <ScrollView horizontal showsHorizontalScrollIndicator={true} style={styles.scroll}>
+    <ScrollView
+      ref={scrollRef}
+      horizontal
+      showsHorizontalScrollIndicator={true}
+      style={styles.scroll}
+      onContentSizeChange={() => scrollRef.current?.scrollToEnd({ animated: false })}
+    >
       <ThemedView style={[styles.table, { direction: 'rtl' }]}>
         <ThemedView style={styles.headerRow}>
           <ThemedView style={styles.dayHeaderCell}>
