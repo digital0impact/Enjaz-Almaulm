@@ -2156,6 +2156,11 @@ export default function StudentTrackingScreen() {
     );
   };
 
+  // "قائمة المتعلمين" أصبحت تلخيصًا لصفوف جدول المتابعة في "بطاقة متابعة
+  // متعلم" نفسها (نفس مصدر البيانات)، بدل قائمة مستقلة عنها بأهداف/
+  // احتياجات/شواهد منفصلة يدويًا.
+  const trackedEntries = computeDifficultySummary(difficultyCard).validEntries;
+
   return (
     <ThemedView style={styles.container}>
       <ImageBackground
@@ -2218,20 +2223,51 @@ export default function StudentTrackingScreen() {
                 </ThemedText>
               </ThemedView>
               <ThemedView style={styles.studentsListInner}>
-                {loading ? (
-                  <ThemedView style={styles.loadingContainer}>
-                    <ActivityIndicator size="large" color={TEAL} />
-                    <ThemedText style={[styles.loadingText, getTextDirection()]}>{formatRTLText('جارٍ التحميل...')}</ThemedText>
-                  </ThemedView>
-                ) : students.length === 0 ? (
+                {trackedEntries.length === 0 ? (
                   <ThemedView style={styles.emptyState}>
                     <IconSymbol size={40} name="person.3.fill" color="#9ca3af" />
                     <ThemedText style={[styles.emptyTitle, getTextDirection()]}>{formatRTLText('لا يوجد متعلمون بعد')}</ThemedText>
+                    <ThemedText style={[styles.emptySubtitle, getTextDirection()]}>
+                      {formatRTLText('أضيفي متعلمين من «بطاقة متابعة متعلم» أعلاه ليظهروا هنا')}
+                    </ThemedText>
                   </ThemedView>
                 ) : (
-                  students.map((student) => (
-                    <React.Fragment key={student.id}>{renderStudentCard(student)}</React.Fragment>
-                  ))
+                  <ScrollView horizontal showsHorizontalScrollIndicator={false}>
+                    <ThemedView style={styles.trackedTable}>
+                      <ThemedView style={styles.trackedHeaderRow}>
+                        <ThemedText style={[styles.trackedHeaderCell, styles.trackedColName, getTextDirection()]}>{formatRTLText('اسم الطالب')}</ThemedText>
+                        <ThemedText style={[styles.trackedHeaderCell, styles.trackedColDesc, getTextDirection()]}>{formatRTLText('الوصف')}</ThemedText>
+                        <ThemedText style={[styles.trackedHeaderCell, styles.trackedColNeed, getTextDirection()]}>{formatRTLText('نوع الاحتياج')}</ThemedText>
+                        <ThemedText style={[styles.trackedHeaderCell, styles.trackedColGoal, getTextDirection()]}>{formatRTLText('الهدف')}</ThemedText>
+                        <ThemedText style={[styles.trackedHeaderCell, styles.trackedColDate, getTextDirection()]}>{formatRTLText('تاريخ المتابعة')}</ThemedText>
+                      </ThemedView>
+                      {trackedEntries.map((entry) => {
+                        const percent = parseFloat(entry.masteryPercent) || 0;
+                        const level = getPerformanceLevel(percent, parseFloat(difficultyCard.masteryCriteria) || 0);
+                        return (
+                          <ThemedView key={entry.id} style={styles.trackedDataRow}>
+                            <ThemedText style={[styles.trackedCell, styles.trackedColName, getTextDirection()]} numberOfLines={2}>
+                              {formatRTLText(entry.studentName)}
+                            </ThemedText>
+                            <ThemedText style={[styles.trackedCell, styles.trackedColDesc, getTextDirection()]} numberOfLines={2}>
+                              {formatRTLText(entry.skill) || '-'}
+                            </ThemedText>
+                            <ThemedView style={styles.trackedColNeed}>
+                              <ThemedView style={[styles.trackedNeedBadge, { backgroundColor: level.color }]}>
+                                <ThemedText style={styles.trackedNeedBadgeText}>{formatRTLText(level.label)}</ThemedText>
+                              </ThemedView>
+                            </ThemedView>
+                            <ThemedText style={[styles.trackedCell, styles.trackedColGoal, getTextDirection()]} numberOfLines={3}>
+                              {formatRTLText(entry.plan) || '-'}
+                            </ThemedText>
+                            <ThemedText style={[styles.trackedCell, styles.trackedColDate, getTextDirection()]}>
+                              {formatRTLText(entry.followUpDate) || '-'}
+                            </ThemedText>
+                          </ThemedView>
+                        );
+                      })}
+                    </ThemedView>
+                  </ScrollView>
                 )}
               </ThemedView>
             </ThemedView>
@@ -2477,6 +2513,48 @@ const styles = StyleSheet.create({
   pageSectionHeaderRow: { flexDirection: 'row-reverse', justifyContent: 'space-between', alignItems: 'center' },
   pageSectionTitle: { fontSize: 16, fontWeight: '700', color: '#fff' },
   studentsListInner: { padding: 12, gap: 12 },
+  trackedTable: { minWidth: 620 },
+  trackedHeaderRow: {
+    flexDirection: 'row-reverse',
+    backgroundColor: '#f0f2f5',
+    borderRadius: 8,
+    borderBottomWidth: 1,
+    borderBottomColor: '#E5E5EA',
+  },
+  trackedHeaderCell: {
+    fontSize: 12,
+    fontWeight: '700',
+    color: '#555',
+    paddingVertical: 10,
+    paddingHorizontal: 8,
+  },
+  trackedDataRow: {
+    flexDirection: 'row-reverse',
+    alignItems: 'center',
+    borderBottomWidth: 1,
+    borderBottomColor: '#EEEEEE',
+  },
+  trackedCell: {
+    fontSize: 13,
+    color: '#333',
+    paddingVertical: 10,
+    paddingHorizontal: 8,
+  },
+  trackedColName: { width: 130, fontWeight: '600' },
+  trackedColDesc: { width: 150 },
+  trackedColNeed: { width: 110, alignItems: 'center', paddingVertical: 6 },
+  trackedColGoal: { width: 170 },
+  trackedColDate: { width: 90 },
+  trackedNeedBadge: {
+    borderRadius: 12,
+    paddingVertical: 4,
+    paddingHorizontal: 10,
+  },
+  trackedNeedBadgeText: {
+    fontSize: 11,
+    fontWeight: '700',
+    color: '#fff',
+  },
   scrollContainer: {
     flex: 1,
   },
