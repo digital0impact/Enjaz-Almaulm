@@ -15,6 +15,7 @@
  * العرض التجريبي)، وليس هنا — فهذا الملف يغطي التخزين المحلي فقط.
  */
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { buildDemoStorageEntries } from '@/data/demoSeedData';
 
 const DEMO_FLAG_KEY = '__enjaz_demo_mode_active__';
 
@@ -100,14 +101,19 @@ export async function exitDemoMode(): Promise<void> {
 
 /**
  * يُستدعى مرة عند بدء التطبيق (app/_layout.tsx) لاستعادة وضع العرض بعد
- * تحديث الصفحة (الويب) أثناء نفس زيارة الجلسة — لا يُعيد حقن البيانات
- * (يبقى ذلك من مسؤولية صفحة `/demo` عند أول دخول فقط).
+ * تحديث الصفحة (الويب) أثناء نفس زيارة الجلسة. ذاكرة الجلسة (demoStore)
+ * فارغة دائمًا بعد أي تحديث للصفحة (متغيّر JS عادي، لا يُخزَّن)، فيلزم
+ * إعادة حقن نفس البيانات التجريبية الثابتة هنا أيضًا — وإلا يبقى الوضع
+ * التجريبي "مفعّلاً" ظاهريًا لكن بلا أي بيانات (AsyncStorage.getItem يعيد
+ * null لكل شيء)، وهي بالضبط المشكلة التي كانت تحدث قبل هذا الإصلاح.
  */
 export async function restoreDemoModeIfActive(): Promise<boolean> {
   patchOnce();
   const flag = await real.getItem(DEMO_FLAG_KEY);
   if (flag === 'true') {
     active = true;
+    demoStore.clear();
+    seedDemoStorage(buildDemoStorageEntries());
   }
   return active;
 }
