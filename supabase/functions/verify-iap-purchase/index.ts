@@ -142,7 +142,7 @@ Deno.serve(async (req: Request) => {
     const result = await verifyAppleReceipt(transactionReceipt, sharedSecret);
     verified = result.ok && result.productIds.includes(productId);
   } else {
-    const accessToken = Deno.env.get("ANDROID_ACCESS_TOKEN") || "";
+    const accessToken = Deno.env.get("ANDROID_PLAY_ACCESS_TOKEN") || "";
     if (!purchaseToken || !accessToken) {
       return jsonResponse({ error: "missing_token_or_secret" }, 400);
     }
