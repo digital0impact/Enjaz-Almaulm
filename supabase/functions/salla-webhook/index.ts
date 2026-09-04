@@ -64,7 +64,18 @@ Deno.serve(async (req: Request) => {
   const supabaseServiceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
   const webhookSecret = Deno.env.get("WEBHOOK_STORE_SECRET") || "";
   const authHeader = req.headers.get("x-webhook-secret") || req.headers.get("authorization")?.replace("Bearer ", "") || "";
-  if (webhookSecret && authHeader !== webhookSecret) {
+  // فشل مغلق (fail closed): إن لم يكن WEBHOOK_STORE_SECRET مضبوطًا في أسرار
+  // الدالة، تُرفض كل الطلبات بدل قبولها جميعًا بلا تحقق (كان هذا الخلل
+  // السابق: `if (webhookSecret && ...)` يتخطى التحقق كليًا عند عدم ضبط
+  // السر، فيمنح أي طلب اشتراكًا مجانيًا دون تحقق).
+  if (!webhookSecret) {
+    console.error("WEBHOOK_STORE_SECRET غير مضبوط في أسرار الدالة — رُفض الطلب");
+    return new Response(JSON.stringify({ error: "Server misconfigured" }), {
+      status: 500,
+      headers: { "Content-Type": "application/json" },
+    });
+  }
+  if (authHeader !== webhookSecret) {
     return new Response(JSON.stringify({ error: "Unauthorized" }), {
       status: 401,
       headers: { "Content-Type": "application/json" },
