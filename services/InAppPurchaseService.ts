@@ -1,14 +1,12 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { Platform } from 'react-native';
-import { 
-  initConnection, 
-  getProducts, 
+import {
+  initConnection,
+  getProducts,
   requestPurchase,
   finishTransaction,
   Product,
-  Purchase,
-  validateReceiptIos,
-  validateReceiptAndroid
+  Purchase
 } from 'react-native-iap';
 import { supabase } from '../config/supabase';
 import { SubscriptionService } from './SubscriptionService';
@@ -219,16 +217,14 @@ export class InAppPurchaseService {
         // هذا التطبيق يطلب SKU واحدًا فقط، لذا نأخذ العنصر الأول عند وجود مصفوفة.
         const purchase = Array.isArray(purchaseResult) ? purchaseResult[0] : purchaseResult;
         if (purchase) {
-          const isValid = await this.validateReceipt(purchase);
+          // التحقق من صحة عملية الشراء يتم الآن على الخادم فقط (دالة
+          // verify-iap-purchase)، وليس داخل التطبيق كما كان سابقًا — لا
+          // يثق الخادم بأي شيء يرسله العميل سوى الإيصال الخام نفسه، ثم
+          // يتحقق منه فعليًا مع Apple/Google قبل منح الاشتراك.
+          const isValid = await this.verifyPurchaseOnServer(purchase, productId);
 
           if (isValid) {
             await finishTransaction({ purchase });
-            await SubscriptionService.createVerifiedSubscription(
-              userId,
-              this.getPlanTypeFromProductId(productId),
-              purchase.transactionId || 'dev-transaction',
-              true
-            );
             return true;
           }
         }
@@ -254,34 +250,47 @@ export class InAppPurchaseService {
     }
   }
 
+  /**
+   * مطابقة تامة بمعرّف المنتج (وليس .includes) — 'enjazhalfyearly30'.includes('yearly')
+   * كانت تُرجع true (لاحتواء "halfyearly" على "yearly" كسلسلة فرعية)
+   * فتُصنَّف خطأً كخطة سنوية. نفس الخريطة الصحيحة مستخدمة أيضًا على
+   * الخادم في supabase/functions/verify-iap-purchase (المصدر الفعلي
+   * لتحديد الخطة الممنوحة؛ هذه النسخة هنا للعرض المحلي فقط مثل مسار
+   * التطوير __DEV__ أدناه).
+   */
   private getPlanTypeFromProductId(productId: string): 'yearly' | 'half_yearly' {
-    return productId.includes('yearly') ? 'yearly' : 'half_yearly';
+    if (productId === 'Enjaz_Yearly_Subscription_50' || productId === 'enjazyearly50') return 'yearly';
+    return 'half_yearly';
   }
 
-  private async validateReceipt(purchase: Purchase): Promise<boolean> {
+  /**
+   * يرسل الإيصال الخام (بلا أي تحقق محلي) إلى دالة verify-iap-purchase
+   * على الخادم، والتي تتحقق منه فعليًا مع Apple/Google بأسرار غير
+   * مُضمَّنة في التطبيق، ثم تمنح الاشتراك بصلاحية service_role إن كان
+   * صالحًا. لا يعود التطبيق يتحقق من الإيصال أو يكتب في جدول
+   * subscriptions مباشرة إطلاقًا.
+   */
+  private async verifyPurchaseOnServer(purchase: Purchase, productId: string): Promise<boolean> {
     try {
-      if (Platform.OS === 'ios') {
-        const result = await validateReceiptIos({
-          receiptBody: {
-            'receipt-data': purchase.transactionReceipt || '',
-            'password': process.env.EXPO_PUBLIC_IOS_SHARED_SECRET || '',
-            'exclude-old-transactions': true
-          }
-        });
-        return result.status === 0;
-      } else if (Platform.OS === 'android') {
-        const result = await validateReceiptAndroid({
-          packageName: 'teacher-performance-app',
-          productId: purchase.productId,
-          productToken: purchase.transactionId || '',
-          accessToken: process.env.EXPO_PUBLIC_ANDROID_ACCESS_TOKEN || ''
-        });
-        return Boolean(result.isValid);
+      const purchaseAny = purchase as unknown as { purchaseToken?: string; purchaseTokenAndroid?: string };
+      const { data, error } = await supabase.functions.invoke<{ success?: boolean }>('verify-iap-purchase', {
+        body: {
+          platform: Platform.OS === 'ios' ? 'ios' : 'android',
+          productId,
+          transactionId: purchase.transactionId,
+          transactionReceipt: Platform.OS === 'ios' ? purchase.transactionReceipt : undefined,
+          purchaseToken: Platform.OS === 'android' ? (purchaseAny.purchaseToken ?? purchaseAny.purchaseTokenAndroid) : undefined,
+        },
+      });
+      if (error) {
+        logError('IAP server verification failed', 'InAppPurchaseService', error);
+        return false;
       }
-      return false;
-    } catch (error) {
-      logError('Error validating receipt', 'InAppPurchaseService', error);
+      return Boolean(data?.success);
+    } catch (e) {
+      logError('IAP server verification error', 'InAppPurchaseService', e);
       return false;
     }
   }
+
 }
