@@ -669,10 +669,11 @@ export default function ReportBuilderScreen() {
 
   /**
    * قالب "تقرير جلسة" (نوع التقرير: تقرير مخصص) — مبني على نموذج تقرير
-   * الجلسات الرسمي (بيانات الجلسة ثم أهدافها ثم نتائجها، وصفحة ثانية
-   * لتوقيع الحضور)، مستقل تمامًا عن قالب أنواع التقارير الأخرى لأن بنية
-   * الصفحة مختلفة جوهريًا (صفحتان بتدفق طبيعي، لا صفحة واحدة ثابتة
-   * الحجم). يُستخدم لكل من PDF وWord (الاثنان يتشاركان بنية HTML بسيطة
+   * الجلسات الرسمي (بيانات الجلسة ثم أهدافها ونتائجها ثم جدول توقيع
+   * الحضور)، مستقل تمامًا عن قالب أنواع التقارير الأخرى لأن بنية
+   * أقسامه مختلفة جوهريًا. صفحة واحدة ثابتة الحجم (بنفس نمط بقية
+   * الأنواع) مع تصغير تلقائي للمحتوى إن لزم (fitToPage) بدل توزيعه على
+   * صفحتين. يُستخدم لكل من PDF وWord (الاثنان يتشاركان بنية HTML بسيطة
    * بلا flexbox هنا أصلاً، فلا حاجة لقالب Word منفصل).
    */
   const generateCustomSessionHtml = async (data: ReportForm): Promise<string> => {
@@ -706,39 +707,42 @@ export default function ReportBuilderScreen() {
   <meta charset="utf-8"/>
   <title>تقرير جلسة</title>
   <style>
-    @page { size: A4; margin: 14mm 12mm; }
+    @page { size: A4; margin: 0; }
     * { -webkit-print-color-adjust: exact !important; color-adjust: exact !important; print-color-adjust: exact !important; }
-    body { margin: 0; padding: 0; font-family: 'Segoe UI', Tahoma, Arial, sans-serif; color: #1c1f33; }
-    .header-table { margin-bottom: 14px; }
+    html, body { margin: 0; padding: 0; background: #e5e7eb; }
+    body { font-family: 'Segoe UI', Tahoma, Arial, sans-serif; color: #1c1f33; }
+    .page { width: 210mm; height: 297mm; margin: 0 auto; overflow: hidden; box-sizing: border-box; padding: 10mm 12mm; background: #fff; }
+    .page-inner { transform-origin: top center; }
+    .header-table { margin-bottom: 10px; }
     .header-left { text-align: right; font-size: 11px; color: #374151; vertical-align: top; }
     .header-admin, .header-school { font-weight: 700; margin-bottom: 2px; }
     .header-right { text-align: left; vertical-align: top; width: 130px; }
-    .doc-logo { width: 42px; display: block; margin-inline-start: auto; margin-bottom: 3px; }
+    .doc-logo { width: 40px; display: block; margin-inline-start: auto; margin-bottom: 3px; }
     .header-ministry { font-size: 11px; font-weight: 700; color: #1c1f33; text-align: left; }
     .header-ministry-en { font-size: 8.5px; font-weight: 400; color: #6b7280; }
-    .card { width: 100%; border-collapse: collapse; border: 1px solid #e5e7eb; margin-bottom: 12px; }
-    .card-heading { font-size: 13px; font-weight: 700; color: ${TEAL_DARK}; padding: 8px 10px; border-bottom: 2px solid ${TEAL_LIGHT}; }
-    .card-body { padding: 8px 10px; }
+    .card { width: 100%; border-collapse: collapse; border: 1px solid #e5e7eb; margin-bottom: 8px; }
+    .card-heading { font-size: 12.5px; font-weight: 700; color: ${TEAL_DARK}; padding: 6px 10px; border-bottom: 2px solid ${TEAL_LIGHT}; }
+    .card-body { padding: 6px 10px; }
     .info-table { width: 100%; border-collapse: collapse; }
-    .info-item { width: 50%; font-size: 11.5px; color: #374151; padding: 4px 6px; }
+    .info-item { width: 50%; font-size: 11px; color: #374151; padding: 3px 6px; }
     .info-label { font-weight: 700; color: ${TEAL_DARK}; }
-    .bullet-list { margin: 0; padding-right: 18px; font-size: 11.5px; line-height: 1.8; color: #374151; }
-    .bullet-list li { margin-bottom: 3px; }
-    .empty-hint { font-size: 11px; color: #9ca3af; }
-    .page-break { page-break-before: always; }
-    .sig-title { font-size: 14px; font-weight: 700; color: ${TEAL_DARK}; margin-bottom: 10px; padding-bottom: 6px; border-bottom: 2px solid ${TEAL_LIGHT}; }
+    .bullet-list { margin: 0; padding-right: 18px; font-size: 11px; line-height: 1.6; color: #374151; }
+    .bullet-list li { margin-bottom: 2px; }
+    .empty-hint { font-size: 10.5px; color: #9ca3af; }
+    .sig-title { font-size: 12.5px; font-weight: 700; color: ${TEAL_DARK}; margin-bottom: 6px; padding-bottom: 4px; border-bottom: 2px solid ${TEAL_LIGHT}; }
     .sig-table { width: 100%; border-collapse: collapse; }
-    .sig-table td { border: 1px solid #e5e7eb; padding: 8px 6px; text-align: center; font-size: 11px; }
+    .sig-table td { border: 1px solid #e5e7eb; padding: 5px 6px; text-align: center; font-size: 10.5px; }
     .sig-half { width: 50%; vertical-align: top; }
     .sig-inner-table { width: 100%; border-collapse: collapse; }
-    .sig-inner-table th { background: ${TEAL_LIGHT}; color: #fff; font-size: 11px; padding: 6px; border: 1px solid ${TEAL_LIGHT}; }
+    .sig-inner-table th { background: ${TEAL_LIGHT}; color: #fff; font-size: 10.5px; padding: 4px; border: 1px solid ${TEAL_LIGHT}; }
     .sig-num { width: 12%; font-weight: 700; color: ${TEAL_DARK}; }
-    .sig-name { width: 50%; height: 26px; }
+    .sig-name { width: 50%; height: 18px; }
     .sig-sign { width: 38%; }
-    .doc-footer { text-align: center; color: #9ca3af; font-size: 10px; margin-top: 10px; }
+    .doc-footer { text-align: center; color: #9ca3af; font-size: 9.5px; margin-top: 8px; }
   </style>
 </head>
 <body>
+<div class="page"><div class="page-inner">
   ${headerHtml}
 
   <table class="card">
@@ -775,10 +779,6 @@ export default function ReportBuilderScreen() {
     <tr><td class="card-body">${bulletListHtml([], data.results, data.resultsOther)}</td></tr>
   </table>
 
-  <div class="doc-footer">تقرير أُنشئ عبر تطبيق إنجاز المعلم</div>
-
-  <div class="page-break"></div>
-  ${headerHtml}
   <div class="sig-title">✍️ أسماء وتوقيع المعلمين/المعلمات الحاضرين/الحاضرات</div>
   <table class="sig-table"><tr>
     <td class="sig-half">
@@ -794,6 +794,27 @@ export default function ReportBuilderScreen() {
       </table>
     </td>
   </tr></table>
+
+  <div class="doc-footer">تقرير أُنشئ عبر تطبيق إنجاز المعلم</div>
+</div></div>
+<script>
+  (function () {
+    function fitToPage() {
+      var page = document.querySelector('.page');
+      var inner = document.querySelector('.page-inner');
+      if (!page || !inner) return;
+      inner.style.transform = 'none';
+      var pageHeight = page.clientHeight;
+      var contentHeight = inner.scrollHeight;
+      if (contentHeight > pageHeight && pageHeight > 0) {
+        var scale = pageHeight / contentHeight;
+        inner.style.transform = 'scale(' + scale + ')';
+      }
+    }
+    if (document.readyState === 'complete') fitToPage();
+    else window.addEventListener('load', fitToPage);
+  })();
+</script>
 </body>
 </html>`;
   };
@@ -1028,7 +1049,7 @@ export default function ReportBuilderScreen() {
   const generateReportWordHtml = async (data: ReportForm): Promise<string> => {
     // "تقرير مخصص" يستخدم قالب تقرير الجلسة (generateCustomSessionHtml) لكل من
     // PDF وWord، لأنه مبني بالكامل على جداول <table> أصلاً (آمن لـWord) وله بنية
-    // صفحتين مختلفة جوهريًا عن بقية الأنواع.
+    // أقسام مختلفة جوهريًا عن بقية الأنواع.
     if (data.reportType === 'custom') return generateCustomSessionHtml(data);
     const type = getReportType(data.reportType);
     const logoDataUri = await loadMoeLogoDataUri();
