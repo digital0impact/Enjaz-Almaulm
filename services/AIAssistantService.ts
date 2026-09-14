@@ -9,7 +9,9 @@ export type AISuggestType =
   | 'idp_priority_objective'
   | 'idp_priority_activities'
   | 'idp_priority_procedures'
-  | 'idp_priority_success';
+  | 'idp_priority_success'
+  | 'report_custom_goal'
+  | 'report_custom_result';
 
 export interface AISuggestResult {
   text: string;

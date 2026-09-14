@@ -25,6 +25,8 @@ import { BottomNavigationBar } from '@/components/BottomNavigationBar';
 import { IconSymbol } from '@/components/ui/IconSymbol';
 import { ThemedText } from '@/components/ThemedText';
 import { ThemedView } from '@/components/ThemedView';
+import { AIAssistButton } from '@/components/AIAssistButton';
+import type { AISuggestType } from '@/services/AIAssistantService';
 import { formatRTLText, getTextDirection } from '@/utils/rtl-utils';
 
 const TEAL = '#0d9488';
@@ -193,13 +195,13 @@ const REPORT_TYPES: ReportTypeConfig[] = [
     id: 'custom',
     chipLabel: 'تقرير مخصص',
     chipIcon: 'pencil',
-    docTitle: 'تقرير عام',
-    programLabel: 'عنوان التقرير',
-    programPlaceholder: 'اكتب عنوان التقرير',
-    goalsTitle: 'الهدف',
+    docTitle: 'تقرير جلسة',
+    programLabel: 'موضوع الجلسة',
+    programPlaceholder: 'موضوع الجلسة',
+    goalsTitle: 'أهداف الجلسة',
     meansTitle: 'الوسائل / الإجراءات',
-    resultsTitle: 'النتائج المتحققة',
-    leaderLabel: 'المسؤول عن التنفيذ',
+    resultsTitle: 'نتائج الجلسة',
+    leaderLabel: 'اسم المعلم/ة المنفذ/ة',
     leaderPlaceholder: 'الاسم',
     goals: [],
     means: [],
@@ -242,6 +244,11 @@ type ReportForm = {
   implementationDate: string;
   activityLeaderName: string;
   principalName: string;
+  // خاصة بـ"تقرير مخصص" (بنية بيانات الجلسة، مطابقة لنموذج تقرير الجلسات الرسمي)
+  attendeesCount: string;
+  sessionDay: string;
+  targetGroup: string;
+  sessionType: string;
 };
 
 type SavedReport = ReportForm & { id: string; savedAt: string };
@@ -272,7 +279,17 @@ const EMPTY_FORM: ReportForm = {
   implementationDate: '',
   activityLeaderName: '',
   principalName: '',
+  attendeesCount: '',
+  sessionDay: '',
+  targetGroup: '',
+  sessionType: '',
 };
+
+/** خيارات "نوع الجلسة" لـ"تقرير مخصص" — مطابقة للقائمة المنسدلة في نموذج تقرير الجلسات الرسمي */
+const SESSION_TYPE_OPTIONS = ['حلقة نقاش', 'ورشة عمل', 'اجتماع', 'لقاء تدريبي', 'مجتمع تعلم مهني'];
+
+/** عدد صفوف جدول توقيع الحضور في تقرير الجلسة المخصص (مطابق للنموذج الرسمي: 10 صفوف موزَّعة على عمودين) */
+const SESSION_SIGNATURE_ROWS = 10;
 
 const DRAFT_KEY = 'reportBuilderDraft';
 const REPORTS_KEY = 'reportBuilderReports';
@@ -297,6 +314,7 @@ function ChecklistGroup({
   onOtherChange,
   onAddCustom,
   onRemoveCustom,
+  aiSuggestType,
 }: {
   title: string;
   options: string[];
@@ -306,6 +324,8 @@ function ChecklistGroup({
   onOtherChange: (value: string) => void;
   onAddCustom: (value: string) => void;
   onRemoveCustom: (value: string) => void;
+  /** عند تمريرها (لقوائم "تقرير مخصص" الحرة فقط): يظهر زر اقتراح بالذكاء الاصطناعي يملأ حقل الإضافة */
+  aiSuggestType?: AISuggestType;
 }) {
   const [draft, setDraft] = useState('');
   const isCustom = options.length === 0;
@@ -328,6 +348,15 @@ function ChecklistGroup({
             <ThemedText style={[styles.checkboxLabel, getTextDirection(), { flex: 1 }]}>{formatRTLText(item)}</ThemedText>
           </View>
         ))}
+        {aiSuggestType && (
+          <AIAssistButton
+            type={aiSuggestType}
+            currentText={draft}
+            onApply={(text) => setDraft(text)}
+            label={formatRTLText('اقتراح بالذكاء الاصطناعي')}
+            compact={false}
+          />
+        )}
         <View style={styles.customAddRow}>
           <TouchableOpacity style={styles.customAddButton} onPress={submitDraft}>
             <IconSymbol size={20} name="plus.circle.fill" color={TEAL} />
@@ -638,7 +667,160 @@ export default function ReportBuilderScreen() {
     return `<ul class="bullet-list">${all.map((i) => `<li>${escapeHtml(i)}</li>`).join('')}</ul>`;
   };
 
+  /**
+   * قالب "تقرير جلسة" (نوع التقرير: تقرير مخصص) — مبني على نموذج تقرير
+   * الجلسات الرسمي (بيانات الجلسة ثم أهدافها ونتائجها ثم جدول توقيع
+   * الحضور)، مستقل تمامًا عن قالب أنواع التقارير الأخرى لأن بنية
+   * أقسامه مختلفة جوهريًا. صفحة واحدة ثابتة الحجم (بنفس نمط بقية
+   * الأنواع) مع تصغير تلقائي للمحتوى إن لزم (fitToPage) بدل توزيعه على
+   * صفحتين. يُستخدم لكل من PDF وWord (الاثنان يتشاركان بنية HTML بسيطة
+   * بلا flexbox هنا أصلاً، فلا حاجة لقالب Word منفصل).
+   */
+  const generateCustomSessionHtml = async (data: ReportForm): Promise<string> => {
+    const logoDataUri = await loadMoeLogoDataUri();
+
+    const headerHtml = `
+    <table width="100%" cellpadding="0" cellspacing="0" class="header-table">
+      <tr>
+        <td class="header-left">
+          <div class="header-admin">${escapeHtml(data.educationAdministration) || '-'}</div>
+          <div class="header-school">المدرسة: ${escapeHtml(data.schoolName) || '-'}</div>
+        </td>
+        <td class="header-right">
+          ${logoDataUri ? `<img src="${logoDataUri}" alt="شعار وزارة التعليم" class="doc-logo">` : ''}
+          <div class="header-ministry">وزارة التعليم<br/><span class="header-ministry-en">Ministry of Education</span></div>
+        </td>
+      </tr>
+    </table>`;
+
+    const signatureRowsHtml = (start: number, end: number): string =>
+      Array.from({ length: end - start + 1 }, (_, i) => start + i)
+        .map(
+          (n) => `<tr><td class="sig-num">${n}</td><td class="sig-name"></td><td class="sig-sign"></td></tr>`
+        )
+        .join('');
+
+    return `
+<!DOCTYPE html>
+<html dir="rtl" lang="ar">
+<head>
+  <meta charset="utf-8"/>
+  <title>تقرير جلسة</title>
+  <style>
+    @page { size: A4; margin: 0; }
+    * { -webkit-print-color-adjust: exact !important; color-adjust: exact !important; print-color-adjust: exact !important; }
+    html, body { margin: 0; padding: 0; background: #e5e7eb; }
+    body { font-family: 'Segoe UI', Tahoma, Arial, sans-serif; color: #1c1f33; }
+    .page { width: 210mm; height: 297mm; margin: 0 auto; overflow: hidden; box-sizing: border-box; padding: 10mm 12mm; background: #fff; }
+    .page-inner { transform-origin: top center; }
+    .header-table { margin-bottom: 10px; }
+    .header-left { text-align: right; font-size: 11px; color: #374151; vertical-align: top; }
+    .header-admin, .header-school { font-weight: 700; margin-bottom: 2px; }
+    .header-right { text-align: left; vertical-align: top; width: 130px; }
+    .doc-logo { width: 40px; display: block; margin-inline-start: auto; margin-bottom: 3px; }
+    .header-ministry { font-size: 11px; font-weight: 700; color: #1c1f33; text-align: left; }
+    .header-ministry-en { font-size: 8.5px; font-weight: 400; color: #6b7280; }
+    .card { width: 100%; border-collapse: collapse; border: 1px solid #e5e7eb; margin-bottom: 8px; }
+    .card-heading { font-size: 12.5px; font-weight: 700; color: ${TEAL_DARK}; padding: 6px 10px; border-bottom: 2px solid ${TEAL_LIGHT}; }
+    .card-body { padding: 6px 10px; }
+    .info-table { width: 100%; border-collapse: collapse; }
+    .info-item { width: 50%; font-size: 11px; color: #374151; padding: 3px 6px; }
+    .info-label { font-weight: 700; color: ${TEAL_DARK}; }
+    .bullet-list { margin: 0; padding-right: 18px; font-size: 11px; line-height: 1.6; color: #374151; }
+    .bullet-list li { margin-bottom: 2px; }
+    .empty-hint { font-size: 10.5px; color: #9ca3af; }
+    .sig-title { font-size: 12.5px; font-weight: 700; color: ${TEAL_DARK}; margin-bottom: 6px; padding-bottom: 4px; border-bottom: 2px solid ${TEAL_LIGHT}; }
+    .sig-table { width: 100%; border-collapse: collapse; }
+    .sig-table td { border: 1px solid #e5e7eb; padding: 5px 6px; text-align: center; font-size: 10.5px; }
+    .sig-half { width: 50%; vertical-align: top; }
+    .sig-inner-table { width: 100%; border-collapse: collapse; }
+    .sig-inner-table th { background: ${TEAL_LIGHT}; color: #fff; font-size: 10.5px; padding: 4px; border: 1px solid ${TEAL_LIGHT}; }
+    .sig-num { width: 12%; font-weight: 700; color: ${TEAL_DARK}; }
+    .sig-name { width: 50%; height: 18px; }
+    .sig-sign { width: 38%; }
+    .doc-footer { text-align: center; color: #9ca3af; font-size: 9.5px; margin-top: 8px; }
+  </style>
+</head>
+<body>
+<div class="page"><div class="page-inner">
+  ${headerHtml}
+
+  <table class="card">
+    <tr><td class="card-heading">📋 بيانات الجلسة</td></tr>
+    <tr><td class="card-body">
+    <table class="info-table">
+      <tr>
+        <td class="info-item"><span class="info-label">اسم المعلم/ة المنفذ/ة:</span> ${escapeHtml(data.teacherName) || '-'}</td>
+        <td class="info-item"><span class="info-label">عدد الحضور:</span> ${escapeHtml(data.attendeesCount) || '-'}</td>
+      </tr>
+      <tr>
+        <td class="info-item"><span class="info-label">التاريخ:</span> ${escapeHtml(data.implementationDate) || '-'}</td>
+        <td class="info-item"><span class="info-label">اليوم:</span> ${escapeHtml(data.sessionDay) || '-'}</td>
+      </tr>
+      <tr>
+        <td class="info-item"><span class="info-label">موضوع الجلسة:</span> ${escapeHtml(data.program) || '-'}</td>
+        <td class="info-item"><span class="info-label">الفئة المستهدفة:</span> ${escapeHtml(data.targetGroup) || '-'}</td>
+      </tr>
+      <tr>
+        <td class="info-item"><span class="info-label">نوع الجلسة:</span> ${escapeHtml(data.sessionType) || '-'}</td>
+        <td class="info-item"></td>
+      </tr>
+    </table>
+    </td></tr>
+  </table>
+
+  <table class="card">
+    <tr><td class="card-heading">🎯 أهداف الجلسة</td></tr>
+    <tr><td class="card-body">${bulletListHtml([], data.goals, data.goalsOther)}</td></tr>
+  </table>
+
+  <table class="card">
+    <tr><td class="card-heading">✅ نتائج الجلسة</td></tr>
+    <tr><td class="card-body">${bulletListHtml([], data.results, data.resultsOther)}</td></tr>
+  </table>
+
+  <div class="sig-title">✍️ أسماء وتوقيع المعلمين/المعلمات الحاضرين/الحاضرات</div>
+  <table class="sig-table"><tr>
+    <td class="sig-half">
+      <table class="sig-inner-table">
+        <tr><th>م</th><th>الاسم</th><th>التوقيع</th></tr>
+        ${signatureRowsHtml(1, SESSION_SIGNATURE_ROWS / 2)}
+      </table>
+    </td>
+    <td class="sig-half">
+      <table class="sig-inner-table">
+        <tr><th>م</th><th>الاسم</th><th>التوقيع</th></tr>
+        ${signatureRowsHtml(SESSION_SIGNATURE_ROWS / 2 + 1, SESSION_SIGNATURE_ROWS)}
+      </table>
+    </td>
+  </tr></table>
+
+  <div class="doc-footer">تقرير أُنشئ عبر تطبيق إنجاز المعلم</div>
+</div></div>
+<script>
+  (function () {
+    function fitToPage() {
+      var page = document.querySelector('.page');
+      var inner = document.querySelector('.page-inner');
+      if (!page || !inner) return;
+      inner.style.transform = 'none';
+      var pageHeight = page.clientHeight;
+      var contentHeight = inner.scrollHeight;
+      if (contentHeight > pageHeight && pageHeight > 0) {
+        var scale = pageHeight / contentHeight;
+        inner.style.transform = 'scale(' + scale + ')';
+      }
+    }
+    if (document.readyState === 'complete') fitToPage();
+    else window.addEventListener('load', fitToPage);
+  })();
+</script>
+</body>
+</html>`;
+  };
+
   const generateReportHtml = async (data: ReportForm): Promise<string> => {
+    if (data.reportType === 'custom') return generateCustomSessionHtml(data);
     const type = getReportType(data.reportType);
     const logoDataUri = await loadMoeLogoDataUri();
     const todayStr = new Date().toLocaleDateString('ar-SA');
@@ -865,6 +1047,10 @@ export default function ReportBuilderScreen() {
    * القالب بالكامل على جداول <table> بدل flex/grid.
    */
   const generateReportWordHtml = async (data: ReportForm): Promise<string> => {
+    // "تقرير مخصص" يستخدم قالب تقرير الجلسة (generateCustomSessionHtml) لكل من
+    // PDF وWord، لأنه مبني بالكامل على جداول <table> أصلاً (آمن لـWord) وله بنية
+    // أقسام مختلفة جوهريًا عن بقية الأنواع.
+    if (data.reportType === 'custom') return generateCustomSessionHtml(data);
     const type = getReportType(data.reportType);
     const logoDataUri = await loadMoeLogoDataUri();
     const todayStr = new Date().toLocaleDateString('ar-SA');
@@ -1284,7 +1470,9 @@ export default function ReportBuilderScreen() {
             </ThemedView>
             <ThemedView style={styles.formRow}>
               <ThemedView style={styles.fieldBlock}>
-                <ThemedText style={[styles.label, getTextDirection()]}>اسم المعلم/ة</ThemedText>
+                <ThemedText style={[styles.label, getTextDirection()]}>
+                  {formatRTLText(form.reportType === 'custom' ? 'اسم المعلم/ة المنفذ/ة' : 'اسم المعلم/ة')}
+                </ThemedText>
                 <TextInput
                   style={[styles.input, getTextDirection()]}
                   value={form.teacherName}
@@ -1293,60 +1481,112 @@ export default function ReportBuilderScreen() {
                   placeholderTextColor="#999"
                 />
               </ThemedView>
-              <ThemedView style={styles.fieldBlock}>
-                <ThemedText style={[styles.label, getTextDirection()]}>الفصل الدراسي</ThemedText>
-                <View style={styles.radioRow}>
-                  {(['الأول', 'الثاني'] as const).map((sem) => (
-                    <TouchableOpacity
-                      key={sem}
-                      style={styles.radioOption}
-                      onPress={() => updateField('semester', sem)}
-                      activeOpacity={0.7}
-                    >
-                      <IconSymbol
-                        size={18}
-                        name={form.semester === sem ? 'checkmark.circle.fill' : 'circle'}
-                        color={form.semester === sem ? TEAL : '#9ca3af'}
-                      />
-                      <ThemedText style={[styles.radioLabel, getTextDirection()]}>{formatRTLText(sem)}</ThemedText>
-                    </TouchableOpacity>
-                  ))}
-                </View>
-              </ThemedView>
+              {form.reportType === 'custom' ? (
+                <ThemedView style={styles.fieldBlock}>
+                  <ThemedText style={[styles.label, getTextDirection()]}>عدد الحضور</ThemedText>
+                  <TextInput
+                    style={[styles.input, getTextDirection()]}
+                    value={form.attendeesCount}
+                    onChangeText={(v) => updateField('attendeesCount', v)}
+                    placeholder={formatRTLText('عدد الحضور')}
+                    placeholderTextColor="#999"
+                    keyboardType="numeric"
+                  />
+                </ThemedView>
+              ) : (
+                <ThemedView style={styles.fieldBlock}>
+                  <ThemedText style={[styles.label, getTextDirection()]}>الفصل الدراسي</ThemedText>
+                  <View style={styles.radioRow}>
+                    {(['الأول', 'الثاني'] as const).map((sem) => (
+                      <TouchableOpacity
+                        key={sem}
+                        style={styles.radioOption}
+                        onPress={() => updateField('semester', sem)}
+                        activeOpacity={0.7}
+                      >
+                        <IconSymbol
+                          size={18}
+                          name={form.semester === sem ? 'checkmark.circle.fill' : 'circle'}
+                          color={form.semester === sem ? TEAL : '#9ca3af'}
+                        />
+                        <ThemedText style={[styles.radioLabel, getTextDirection()]}>{formatRTLText(sem)}</ThemedText>
+                      </TouchableOpacity>
+                    ))}
+                  </View>
+                </ThemedView>
+              )}
             </ThemedView>
+            {form.reportType === 'custom' ? (
+              <ThemedView style={styles.formRow}>
+                <ThemedView style={styles.fieldBlock}>
+                  <ThemedText style={[styles.label, getTextDirection()]}>التاريخ</ThemedText>
+                  <TextInput
+                    style={[styles.input, getTextDirection()]}
+                    value={form.implementationDate}
+                    onChangeText={(v) => updateField('implementationDate', v)}
+                    placeholder={formatRTLText('__ / __ / 1447هـ')}
+                    placeholderTextColor="#999"
+                  />
+                </ThemedView>
+                <ThemedView style={styles.fieldBlock}>
+                  <ThemedText style={[styles.label, getTextDirection()]}>اليوم</ThemedText>
+                  <TextInput
+                    style={[styles.input, getTextDirection()]}
+                    value={form.sessionDay}
+                    onChangeText={(v) => updateField('sessionDay', v)}
+                    placeholder={formatRTLText('مثال: الأحد')}
+                    placeholderTextColor="#999"
+                  />
+                </ThemedView>
+              </ThemedView>
+            ) : (
+              <ThemedView style={styles.formRow}>
+                <ThemedView style={styles.fieldBlock}>
+                  <ThemedText style={[styles.label, getTextDirection()]}>الصف والتفصيل</ThemedText>
+                  <TextInput
+                    style={[styles.input, getTextDirection()]}
+                    value={form.gradeDetails}
+                    onChangeText={(v) => updateField('gradeDetails', v)}
+                    placeholder={formatRTLText('مثال: الصف السادس - شعبة أ')}
+                    placeholderTextColor="#999"
+                  />
+                </ThemedView>
+                <ThemedView style={styles.fieldBlock}>
+                  <ThemedText style={[styles.label, getTextDirection()]}>الأسبوع</ThemedText>
+                  <TextInput
+                    style={[styles.input, getTextDirection()]}
+                    value={form.week}
+                    onChangeText={(v) => updateField('week', v)}
+                    placeholder={formatRTLText('الأسبوع')}
+                    placeholderTextColor="#999"
+                  />
+                </ThemedView>
+              </ThemedView>
+            )}
             <ThemedView style={styles.formRow}>
-              <ThemedView style={styles.fieldBlock}>
-                <ThemedText style={[styles.label, getTextDirection()]}>الصف والتفصيل</ThemedText>
-                <TextInput
-                  style={[styles.input, getTextDirection()]}
-                  value={form.gradeDetails}
-                  onChangeText={(v) => updateField('gradeDetails', v)}
-                  placeholder={formatRTLText('مثال: الصف السادس - شعبة أ')}
-                  placeholderTextColor="#999"
-                />
-              </ThemedView>
-              <ThemedView style={styles.fieldBlock}>
-                <ThemedText style={[styles.label, getTextDirection()]}>الأسبوع</ThemedText>
-                <TextInput
-                  style={[styles.input, getTextDirection()]}
-                  value={form.week}
-                  onChangeText={(v) => updateField('week', v)}
-                  placeholder={formatRTLText('الأسبوع')}
-                  placeholderTextColor="#999"
-                />
-              </ThemedView>
-            </ThemedView>
-            <ThemedView style={styles.formRow}>
-              <ThemedView style={styles.fieldBlock}>
-                <ThemedText style={[styles.label, getTextDirection()]}>اسم المجال</ThemedText>
-                <TextInput
-                  style={[styles.input, getTextDirection()]}
-                  value={form.domain}
-                  onChangeText={(v) => updateField('domain', v)}
-                  placeholder={formatRTLText('اسم المجال')}
-                  placeholderTextColor="#999"
-                />
-              </ThemedView>
+              {form.reportType === 'custom' ? (
+                <ThemedView style={styles.fieldBlock}>
+                  <ThemedText style={[styles.label, getTextDirection()]}>الفئة المستهدفة</ThemedText>
+                  <TextInput
+                    style={[styles.input, getTextDirection()]}
+                    value={form.targetGroup}
+                    onChangeText={(v) => updateField('targetGroup', v)}
+                    placeholder={formatRTLText('مثال: معلمات الرياضيات')}
+                    placeholderTextColor="#999"
+                  />
+                </ThemedView>
+              ) : (
+                <ThemedView style={styles.fieldBlock}>
+                  <ThemedText style={[styles.label, getTextDirection()]}>اسم المجال</ThemedText>
+                  <TextInput
+                    style={[styles.input, getTextDirection()]}
+                    value={form.domain}
+                    onChangeText={(v) => updateField('domain', v)}
+                    placeholder={formatRTLText('اسم المجال')}
+                    placeholderTextColor="#999"
+                  />
+                </ThemedView>
+              )}
               <ThemedView style={styles.fieldBlock}>
                 <ThemedText style={[styles.label, getTextDirection()]}>{formatRTLText(activeType.programLabel)}</ThemedText>
                 <TextInput
@@ -1358,6 +1598,30 @@ export default function ReportBuilderScreen() {
                 />
               </ThemedView>
             </ThemedView>
+            {form.reportType === 'custom' && (
+              <ThemedView style={styles.formRow}>
+                <ThemedView style={styles.fieldBlockFull}>
+                  <ThemedText style={[styles.label, getTextDirection()]}>نوع الجلسة</ThemedText>
+                  <View style={styles.sessionTypeChipsRow}>
+                    {SESSION_TYPE_OPTIONS.map((opt) => {
+                      const active = form.sessionType === opt;
+                      return (
+                        <TouchableOpacity
+                          key={opt}
+                          style={[styles.sessionTypeChip, active && styles.sessionTypeChipActive]}
+                          onPress={() => updateField('sessionType', opt)}
+                          activeOpacity={0.7}
+                        >
+                          <ThemedText style={[styles.sessionTypeChipText, active && styles.sessionTypeChipTextActive]}>
+                            {formatRTLText(opt)}
+                          </ThemedText>
+                        </TouchableOpacity>
+                      );
+                    })}
+                  </View>
+                </ThemedView>
+              </ThemedView>
+            )}
           </ThemedView>
 
           <ThemedView style={styles.section}>
@@ -1374,17 +1638,20 @@ export default function ReportBuilderScreen() {
                 onOtherChange={(v) => updateField('goalsOther', v)}
                 onAddCustom={(v) => addCustomItem('goals', v)}
                 onRemoveCustom={(v) => removeCustomItem('goals', v)}
+                aiSuggestType="report_custom_goal"
               />
-              <ChecklistGroup
-                title={activeType.meansTitle}
-                options={activeType.means}
-                selected={form.means}
-                onToggle={(v) => updateField('means', toggleValue(form.means, v))}
-                otherValue={form.meansOther}
-                onOtherChange={(v) => updateField('meansOther', v)}
-                onAddCustom={(v) => addCustomItem('means', v)}
-                onRemoveCustom={(v) => removeCustomItem('means', v)}
-              />
+              {form.reportType !== 'custom' && (
+                <ChecklistGroup
+                  title={activeType.meansTitle}
+                  options={activeType.means}
+                  selected={form.means}
+                  onToggle={(v) => updateField('means', toggleValue(form.means, v))}
+                  otherValue={form.meansOther}
+                  onOtherChange={(v) => updateField('meansOther', v)}
+                  onAddCustom={(v) => addCustomItem('means', v)}
+                  onRemoveCustom={(v) => removeCustomItem('means', v)}
+                />
+              )}
               <ChecklistGroup
                 title={activeType.resultsTitle}
                 options={activeType.results}
@@ -1394,10 +1661,12 @@ export default function ReportBuilderScreen() {
                 onOtherChange={(v) => updateField('resultsOther', v)}
                 onAddCustom={(v) => addCustomItem('results', v)}
                 onRemoveCustom={(v) => removeCustomItem('results', v)}
+                aiSuggestType="report_custom_result"
               />
             </View>
           </ThemedView>
 
+          {form.reportType !== 'custom' && (
           <ThemedView style={styles.section}>
             <ThemedView style={styles.sectionHeader}>
               <ThemedText style={[styles.sectionTitle, getTextDirection()]}>
@@ -1419,7 +1688,9 @@ export default function ReportBuilderScreen() {
               ))}
             </View>
           </ThemedView>
+          )}
 
+          {form.reportType !== 'custom' && (
           <ThemedView style={styles.section}>
             <ThemedView style={styles.sectionHeader}>
               <ThemedText style={[styles.sectionTitle, getTextDirection()]}>
@@ -1481,7 +1752,9 @@ export default function ReportBuilderScreen() {
               </ThemedView>
             </View>
           </ThemedView>
+          )}
 
+          {form.reportType !== 'custom' && (
           <ThemedView style={styles.section}>
             <ThemedView style={styles.sectionHeader}>
               <ThemedText style={[styles.sectionTitle, getTextDirection()]}>{formatRTLText('اعتماد المتابعة')}</ThemedText>
@@ -1521,6 +1794,7 @@ export default function ReportBuilderScreen() {
               </ThemedView>
             </ThemedView>
           </ThemedView>
+          )}
 
           <ThemedView style={styles.exportSection}>
             <View style={styles.exportButtonsRow}>
@@ -1666,6 +1940,19 @@ const styles = StyleSheet.create({
   typeChipTextActive: { color: '#fff' },
   formRow: { flexDirection: 'row-reverse', flexWrap: 'wrap', padding: 12, gap: 12 },
   fieldBlock: { flex: 1, minWidth: 140 },
+  fieldBlockFull: { width: '100%' },
+  sessionTypeChipsRow: { flexDirection: 'row-reverse', flexWrap: 'wrap', gap: 8, marginTop: 2 },
+  sessionTypeChip: {
+    borderWidth: 1,
+    borderColor: TEAL,
+    borderRadius: 18,
+    paddingVertical: 7,
+    paddingHorizontal: 14,
+    backgroundColor: '#fff',
+  },
+  sessionTypeChipActive: { backgroundColor: TEAL },
+  sessionTypeChipText: { fontSize: 12.5, fontWeight: '600', color: TEAL },
+  sessionTypeChipTextActive: { color: '#fff' },
   label: { fontSize: 13, fontWeight: '600', color: '#374151', marginBottom: 4 },
   input: {
     borderWidth: 1,
