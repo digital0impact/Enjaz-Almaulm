@@ -13,7 +13,9 @@ type SuggestionType =
   | "idp_priority_objective"
   | "idp_priority_activities"
   | "idp_priority_procedures"
-  | "idp_priority_success";
+  | "idp_priority_success"
+  | "report_custom_goal"
+  | "report_custom_result";
 
 // الأنواع الخاضعة لحد "مرة واحدة للخطة المجانية" (عبر check_and_consume_student_card_ai_usage
 // في قاعدة البيانات). كل الأنواع الأخرى تبقى بلا حدود كما كانت، دون أي تغيير في سلوكها.
@@ -43,6 +45,10 @@ function getPrompt(type: SuggestionType, currentText: string): { system: string;
       "الحقل: الإجراءات التفصيلية لتحقيق الهدف في خطة التطوير الفردية. المطلوب: خطوات عملية مختصرة.",
     idp_priority_success:
       "الحقل: معايير النجاح لتحقيق الهدف التطويري. المطلوب: معايير قابلة للقياس في جمل أو جملتين.",
+    report_custom_goal:
+      "الحقل: هدف من أهداف جلسة أو تقرير مخصص (قد تكون حلقة نقاش، ورشة عمل، اجتماع، لقاء تدريبي، أو مجتمع تعلم مهني، حسب موضوع الجلسة إن ذُكر في النص الحالي). المطلوب: هدف واحد واضح ومختصر في جملة واحدة، مناسب لأن يُضاف كبند مستقل في قائمة أهداف.",
+    report_custom_result:
+      "الحقل: نتيجة من نتائج جلسة أو تقرير مخصص (قد تكون حلقة نقاش، ورشة عمل، اجتماع، لقاء تدريبي، أو مجتمع تعلم مهني، حسب موضوع الجلسة إن ذُكر في النص الحالي). المطلوب: نتيجة واحدة واضحة ومختصرة في جملة واحدة، مناسبة لأن تُضاف كبند مستقل في قائمة نتائج.",
   };
   return {
     system: base,
@@ -87,6 +93,8 @@ Deno.serve(async (req: Request) => {
     "idp_priority_activities",
     "idp_priority_procedures",
     "idp_priority_success",
+    "report_custom_goal",
+    "report_custom_result",
   ];
 
   let type: SuggestionType;
