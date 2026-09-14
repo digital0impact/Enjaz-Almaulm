@@ -1369,8 +1369,8 @@ const styles = StyleSheet.create({
     color: '#1c1f33',
     backgroundColor: '#f9fafb',
   },
-  studentNameCol: { flex: 3 },
-  studentScoreCol: { flex: 1 },
+  studentNameCol: { flex: 3, minWidth: 0 },
+  studentScoreCol: { flex: 1, minWidth: 0 },
   studentRemoveCol: { width: 24, alignItems: 'center' },
   addStudentButton: {
     flexDirection: 'row-reverse',
